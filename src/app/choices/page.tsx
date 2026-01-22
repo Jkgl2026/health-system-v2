@@ -6,13 +6,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, AlertTriangle, CheckCircle2, XCircle, Target, BookOpen, ClipboardCheck, Clock, Home, GraduationCap, FileCheck } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertTriangle, CheckCircle2, XCircle, Target, BookOpen, ClipboardCheck, Clock, Home, GraduationCap, FileCheck, Loader2 } from 'lucide-react';
 import { THREE_CHOICES, FOUR_REQUIREMENTS } from '@/lib/health-data';
+import { getOrGenerateUserId } from '@/lib/user-context';
+import { saveUserChoice, saveRequirements } from '@/lib/api-client';
 import Link from 'next/link';
 
 export default function ChoicesPage() {
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [acceptedRequirements, setAcceptedRequirements] = useState<Set<number>>(new Set());
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleChoiceSelect = (choice: string) => {
     setSelectedChoice(choice);
@@ -29,7 +32,7 @@ export default function ChoicesPage() {
     setAcceptedRequirements(newAccepted);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedChoice) {
       alert('请先选择一个方向，这样才能为您提供合适的建议。');
       return;
@@ -43,11 +46,40 @@ export default function ChoicesPage() {
       return;
     }
 
-    // 保存选择和要求
+    // 保存到 localStorage
     localStorage.setItem('selectedChoice', selectedChoice);
     localStorage.setItem('acceptedRequirements', JSON.stringify([...acceptedRequirements]));
 
-    window.location.href = '/solution';
+    // 保存到数据库
+    setIsSaving(true);
+    try {
+      const userId = getOrGenerateUserId();
+
+      // 保存用户选择
+      const choiceData = THREE_CHOICES.find(c => c.id === selectedChoice);
+      if (choiceData) {
+        await saveUserChoice({
+          userId,
+          planType: choiceData.title,
+          planDescription: choiceData.description,
+        });
+      }
+
+      // 保存四个要求的完成情况
+      await saveRequirements({
+        userId,
+        requirement1Completed: acceptedRequirements.has(1),
+        requirement2Completed: acceptedRequirements.has(2),
+        requirement3Completed: acceptedRequirements.has(3),
+        requirement4Completed: acceptedRequirements.has(4),
+      });
+    } catch (error) {
+      console.error('保存用户选择和要求数据失败:', error);
+      // 即使保存失败也继续
+    } finally {
+      setIsSaving(false);
+      window.location.href = '/solution';
+    }
   };
 
   return (
@@ -509,7 +541,7 @@ export default function ChoicesPage() {
             <Button
               onClick={handleContinue}
               size="lg"
-              disabled={selectedChoice === 'choice3' && acceptedRequirements.size !== 4}
+              disabled={(selectedChoice === 'choice3' && acceptedRequirements.size !== 4) || isSaving}
               className={`${
                 selectedChoice === 'choice3' && acceptedRequirements.size === 4
                   ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600'
@@ -518,7 +550,12 @@ export default function ChoicesPage() {
                   : 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600'
               }`}
             >
-              {selectedChoice === 'choice3' ? (
+              {isSaving ? (
+                <>
+                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  保存中...
+                </>
+              ) : selectedChoice === 'choice3' ? (
                 <>
                   获取健康管理方案
                   <ChevronRight className="w-5 h-5 ml-2" />

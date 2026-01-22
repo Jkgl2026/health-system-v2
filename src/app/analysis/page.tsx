@@ -6,8 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS, SEVEN_QUESTIONS } from '@/lib/health-data';
+import { getOrGenerateUserId } from '@/lib/user-context';
+import { saveHealthAnalysis } from '@/lib/api-client';
 import Link from 'next/link';
 
 interface QuestionAnswer {
@@ -21,6 +23,7 @@ export default function AnalysisPage() {
   const [currentStep, setCurrentStep] = useState<'elements' | 'questions'>('elements');
   const [answers, setAnswers] = useState<QuestionAnswer[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const savedSymptoms = localStorage.getItem('selectedSymptoms');
@@ -62,13 +65,39 @@ export default function AnalysisPage() {
   };
 
   // 下一题
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestionIndex < SEVEN_QUESTIONS.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      // 保存答案并跳转到不良生活习惯自检表
+      // 保存答案
       localStorage.setItem('sevenAnswers', JSON.stringify(answers));
-      window.location.href = '/habits';
+
+      // 保存健康要素分析到数据库
+      setIsSaving(true);
+      try {
+        const userId = getOrGenerateUserId();
+
+        // 计算各要素得分
+        const analysisData = {
+          userId,
+          qiAndBlood: getElementSymptomCount('气血'),
+          circulation: getElementSymptomCount('循环'),
+          toxins: getElementSymptomCount('毒素'),
+          bloodLipids: getElementSymptomCount('血脂'),
+          coldness: getElementSymptomCount('寒凉'),
+          immunity: getElementSymptomCount('免疫'),
+          emotions: getElementSymptomCount('情绪'),
+          overallHealth: selectedSymptoms.length,
+        };
+
+        await saveHealthAnalysis(analysisData);
+      } catch (error) {
+        console.error('保存健康要素分析失败:', error);
+        // 即使保存失败也继续
+      } finally {
+        setIsSaving(false);
+        window.location.href = '/habits';
+      }
     }
   };
 
@@ -257,7 +286,7 @@ export default function AnalysisPage() {
                   <Button
                     variant="outline"
                     onClick={handlePrevious}
-                    disabled={currentQuestionIndex === 0}
+                    disabled={currentQuestionIndex === 0 || isSaving}
                   >
                     <ChevronLeft className="w-5 h-5 mr-2" />
                     上一题
@@ -265,8 +294,14 @@ export default function AnalysisPage() {
                   <Button
                     onClick={handleNext}
                     className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+                    disabled={isSaving}
                   >
-                    {currentQuestionIndex === SEVEN_QUESTIONS.length - 1 ? (
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        保存中...
+                      </>
+                    ) : currentQuestionIndex === SEVEN_QUESTIONS.length - 1 ? (
                       <>
                         完成分析
                         <CheckCircle2 className="w-5 h-5 ml-2" />

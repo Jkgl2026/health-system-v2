@@ -7,14 +7,17 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle2, AlertCircle, ArrowRight, ChevronLeft } from 'lucide-react';
+import { CheckCircle2, AlertCircle, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react';
 import { BODY_SYMPTOMS } from '@/lib/health-data';
+import { getOrGenerateUserId } from '@/lib/user-context';
+import { saveSymptomCheck } from '@/lib/api-client';
 import Link from 'next/link';
 
 export default function CheckPage() {
   const [selectedSymptoms, setSelectedSymptoms] = useState<Set<number>>(new Set());
   const [currentStep, setCurrentStep] = useState<'intro' | 'select' | 'confirm'>('intro');
   const [targetSymptom, setTargetSymptom] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
 // 按类别分组症状
   const symptomsByCategory = BODY_SYMPTOMS.reduce((acc, symptom) => {
@@ -55,7 +58,7 @@ export default function CheckPage() {
     setSelectedSymptoms(newSelected);
   };
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (currentStep === 'intro') {
       setCurrentStep('select');
     } else if (currentStep === 'select') {
@@ -69,10 +72,53 @@ export default function CheckPage() {
         alert('请选择一个您最想改善的症状，这样我们可以为您提供更精准的分析。');
         return;
       }
-      // 保存到localStorage并跳转到下一页
+
+      // 保存到 localStorage
       localStorage.setItem('selectedSymptoms', JSON.stringify([...selectedSymptoms]));
       localStorage.setItem('targetSymptom', targetSymptom.toString());
-      window.location.href = '/analysis';
+
+      // 保存到数据库
+      setIsSaving(true);
+      try {
+        const userId = getOrGenerateUserId();
+        const symptomsArray = [...selectedSymptoms];
+        const totalScore = symptomsArray.length;
+
+        // 计算各要素得分
+        const elementScores: Record<string, number> = {
+          气血: 0,
+          循环: 0,
+          毒素: 0,
+          血脂: 0,
+          寒凉: 0,
+          免疫: 0,
+          情绪: 0,
+        };
+
+        symptomsArray.forEach(symptomId => {
+          const symptom = BODY_SYMPTOMS.find(s => s.id === symptomId);
+          if (symptom) {
+            symptom.elements.forEach(element => {
+              if (elementScores[element] !== undefined) {
+                elementScores[element] += 1;
+              }
+            });
+          }
+        });
+
+        await saveSymptomCheck({
+          userId,
+          checkedSymptoms: symptomsArray.map(id => id.toString()),
+          totalScore,
+          elementScores,
+        });
+      } catch (error) {
+        console.error('保存症状自检数据失败:', error);
+        // 即使保存失败也继续，不阻塞用户体验
+      } finally {
+        setIsSaving(false);
+        window.location.href = '/analysis';
+      }
     }
   };
 
@@ -294,9 +340,19 @@ export default function CheckPage() {
                 onClick={handleContinue}
                 size="lg"
                 className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+                disabled={isSaving}
               >
-                继续下一步
-                <ArrowRight className="w-5 h-5 ml-2" />
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    保存中...
+                  </>
+                ) : (
+                  <>
+                    继续下一步
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </>
+                )}
               </Button>
             </div>
           </div>
