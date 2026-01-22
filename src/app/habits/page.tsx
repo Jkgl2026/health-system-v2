@@ -6,8 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, CheckCircle2, ArrowRight, ChevronLeft, BookOpen } from 'lucide-react';
 import { BAD_HABITS_CHECKLIST } from '@/lib/health-data';
 import Link from 'next/link';
@@ -15,12 +13,6 @@ import Link from 'next/link';
 export default function HabitsPage() {
   const [selectedHabits, setSelectedHabits] = useState<Set<number>>(new Set());
   const [currentStep, setCurrentStep] = useState<'intro' | 'select' | 'confirm'>('intro');
-  const [formData, setFormData] = useState({
-    profession: '',
-    currentHealth: '',
-    mainSymptoms: '',
-    remarks: '',
-  });
 
   const handleHabitToggle = (id: number) => {
     const newSelected = new Set(selectedHabits);
@@ -40,7 +32,6 @@ export default function HabitsPage() {
     } else if (currentStep === 'confirm') {
       // 保存到localStorage并跳转到下一页
       localStorage.setItem('selectedHabits', JSON.stringify([...selectedHabits]));
-      localStorage.setItem('habitsFormData', JSON.stringify(formData));
       window.location.href = '/choices';
     }
   };
@@ -133,65 +124,6 @@ export default function HabitsPage() {
                     只有找到病因，改掉坏习惯，身体才能真正恢复健康。
                   </AlertDescription>
                 </Alert>
-
-                {/* 基本信息表单 */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    请填写您的基本信息
-                  </h3>
-                  <div className="grid gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        您的职业 *
-                      </label>
-                      <Input
-                        placeholder="请填写您的职业"
-                        value={formData.profession}
-                        onChange={(e) => setFormData({ ...formData, profession: e.target.value })}
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">职业可能影响生活习惯和健康风险</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        目前身体状况（顾客自述）*
-                      </label>
-                      <Textarea
-                        placeholder="请描述您目前的身体状况"
-                        value={formData.currentHealth}
-                        onChange={(e) => setFormData({ ...formData, currentHealth: e.target.value })}
-                        rows={3}
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">简要描述您目前的整体健康状况</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        您目前最想解决的症状 *
-                      </label>
-                      <Textarea
-                        placeholder="请列出您最想解决的症状，可多选"
-                        value={formData.mainSymptoms}
-                        onChange={(e) => setFormData({ ...formData, mainSymptoms: e.target.value })}
-                        rows={2}
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">选择3-5个最困扰您的症状</p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        备注
-                      </label>
-                      <Textarea
-                        placeholder="其他需要补充说明的情况"
-                        value={formData.remarks}
-                        onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
-                        rows={2}
-                      />
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">可以补充其他相关信息</p>
-                    </div>
-                  </div>
-                </div>
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">

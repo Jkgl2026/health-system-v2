@@ -327,36 +327,6 @@ export default function StoryPage() {
           </div>
         </section>
 
-        {/* 客户必修的21个堂课 */}
-        <section className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
-            客户必修的21个堂课
-          </h2>
-          <Card className="border-2 border-purple-100 dark:border-purple-900">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {TWENTY_ONE_COURSES.map((course) => (
-                  <Card key={course.id} className="border border-gray-200 dark:border-gray-700">
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-sm">{course.title}</CardTitle>
-                        <Badge variant="outline" className="text-xs">
-                          {course.duration}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-gray-600 dark:text-gray-400">
-                        {course.content}
-                      </p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
         {/* 总结 */}
         <section className="mb-12">
           <Card className="border-2 border-green-100 dark:border-green-900">
@@ -402,14 +372,44 @@ export default function StoryPage() {
           </Card>
         </section>
 
+        {/* 客户必修的21个堂课 */}
+        <section className="mb-12">
+          <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
+            客户必修的21个堂课
+          </h2>
+          <Card className="border-2 border-purple-100 dark:border-purple-900">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {TWENTY_ONE_COURSES.map((course) => (
+                  <Card key={course.id} className="border border-gray-200 dark:border-gray-700">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-sm">{course.title}</CardTitle>
+                        <Badge variant="outline" className="text-xs">
+                          {course.duration}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        {course.content}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
         {/* 下一步按钮 */}
         <section className="text-center space-y-4">
           <Button
-            onClick={() => window.location.href = '/habits'}
+            onClick={() => window.location.href = '/requirements'}
             size="lg"
             className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
           >
-            填写不良生活习惯表
+            查看四个要求
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
           <div>
