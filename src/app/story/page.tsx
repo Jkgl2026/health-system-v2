@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, ChevronRight, BookOpen, Activity, Shield, Heart, Droplets, Snowflake, Sparkles, Smile, MessageCircle, ArrowRight } from 'lucide-react';
-import { SYSTEM_CAMPAIGN_STORY, HEALTH_ELEMENTS, KEY_QUESTION, HEART_INSPIRATION, EIGHT_HEALTH_ELEMENTS, TWENTY_ONE_COURSES, RECOVERY_SPEED_FACTORS } from '@/lib/health-data';
+import { SYSTEM_CAMPAIGN_STORY, HEALTH_ELEMENTS, KEY_QUESTION, HEART_INSPIRATION, EIGHT_HEALTH_ELEMENTS, TWENTY_ONE_COURSES, RECOVERY_SPEED_FACTORS, CLEANING_STORY } from '@/lib/health-data';
 import Link from 'next/link';
 
 export default function StoryPage() {
@@ -172,6 +172,40 @@ export default function StoryPage() {
                   了解这些要素，做好配合，才能让调理效果事半功倍！
                 </p>
               </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* 好转反应 */}
+        <section className="mb-12">
+          <Card className="border-2 border-yellow-100 dark:border-yellow-900">
+            <CardHeader>
+              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center mb-4">
+                <MessageCircle className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-2xl text-center">{CLEANING_STORY.title}</CardTitle>
+              <CardDescription className="text-base mt-2 text-center">
+                理解排毒过程中的好转反应，不要轻易放弃
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="p-6 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-lg">
+                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
+                  {CLEANING_STORY.content}
+                </p>
+              </div>
+
+              <Alert className="border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
+                <MessageCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                <AlertDescription className="mt-2">
+                  <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                    重要提醒
+                  </p>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    调理过程中出现好转反应是好现象，说明身体正在排毒。请不要轻易放弃，坚持调理，让毒素彻底排出，身体才能真正好转！
+                  </p>
+                </AlertDescription>
+              </Alert>
             </CardContent>
           </Card>
         </section>
@@ -372,6 +406,28 @@ export default function StoryPage() {
           </Card>
         </section>
 
+        {/* 下一步按钮 */}
+        <section className="text-center space-y-4">
+          <Button
+            onClick={() => window.location.href = '/requirements'}
+            size="lg"
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+          >
+            查看四个要求
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+          <div>
+            <Button
+              onClick={() => window.location.href = '/choices'}
+              variant="outline"
+              size="lg"
+            >
+              跳过，直接查看选择
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
+        </section>
+
         {/* 客户必修的21个堂课 */}
         <section className="mb-12">
           <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
@@ -400,28 +456,6 @@ export default function StoryPage() {
               </div>
             </CardContent>
           </Card>
-        </section>
-
-        {/* 下一步按钮 */}
-        <section className="text-center space-y-4">
-          <Button
-            onClick={() => window.location.href = '/requirements'}
-            size="lg"
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-          >
-            查看四个要求
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-          <div>
-            <Button
-              onClick={() => window.location.href = '/choices'}
-              variant="outline"
-              size="lg"
-            >
-              跳过，直接查看选择
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
         </section>
       </main>
     </div>
