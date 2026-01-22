@@ -406,28 +406,6 @@ export default function StoryPage() {
           </Card>
         </section>
 
-        {/* 下一步按钮 */}
-        <section className="text-center space-y-4">
-          <Button
-            onClick={() => window.location.href = '/requirements'}
-            size="lg"
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
-          >
-            查看四个要求
-            <ArrowRight className="w-5 h-5 ml-2" />
-          </Button>
-          <div>
-            <Button
-              onClick={() => window.location.href = '/choices'}
-              variant="outline"
-              size="lg"
-            >
-              跳过，直接查看选择
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
-        </section>
-
         {/* 客户必修的21个堂课 */}
         <section className="mb-12">
           <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
@@ -456,6 +434,28 @@ export default function StoryPage() {
               </div>
             </CardContent>
           </Card>
+        </section>
+
+        {/* 下一步按钮 */}
+        <section className="text-center space-y-4 mb-12">
+          <Button
+            onClick={() => window.location.href = '/requirements'}
+            size="lg"
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
+          >
+            查看四个要求
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
+          <div>
+            <Button
+              onClick={() => window.location.href = '/choices'}
+              variant="outline"
+              size="lg"
+            >
+              跳过，直接查看选择
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
         </section>
       </main>
     </div>
