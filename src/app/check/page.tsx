@@ -16,7 +16,7 @@ export default function CheckPage() {
   const [currentStep, setCurrentStep] = useState<'intro' | 'select' | 'confirm'>('intro');
   const [targetSymptom, setTargetSymptom] = useState<number | null>(null);
 
-  // 按类别分组症状
+// 按类别分组症状
   const symptomsByCategory = BODY_SYMPTOMS.reduce((acc, symptom) => {
     if (!acc[symptom.category]) {
       acc[symptom.category] = [];
@@ -243,7 +243,7 @@ export default function CheckPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                     {symptomsByCategory[category].map((symptom) => (
                       <div
                         key={symptom.id}
@@ -254,19 +254,27 @@ export default function CheckPage() {
                         }`}
                         onClick={() => handleSymptomToggle(symptom.id)}
                       >
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-start space-x-2">
                           <Checkbox
                             id={`symptom-${symptom.id}`}
                             checked={selectedSymptoms.has(symptom.id)}
                             onChange={() => handleSymptomToggle(symptom.id)}
+                            className="mt-1 flex-shrink-0"
                           />
-                          <label
-                            htmlFor={`symptom-${symptom.id}`}
-                            className="text-sm cursor-pointer select-none"
-                            onClick={(e) => e.preventDefault()}
-                          >
-                            {symptom.name}
-                          </label>
+                          <div className="flex-1 min-w-0">
+                            <label
+                              htmlFor={`symptom-${symptom.id}`}
+                              className="text-sm font-medium cursor-pointer select-none block"
+                              onClick={(e) => e.preventDefault()}
+                            >
+                              {symptom.name}
+                            </label>
+                            {symptom.description && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                {symptom.description}
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     ))}

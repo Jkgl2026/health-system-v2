@@ -1,108 +1,108 @@
 // 身体语言简表100项
 export const BODY_SYMPTOMS = [
-  { id: 1, name: '记忆力下降', category: '神经系统' },
-  { id: 2, name: '思维断电', category: '神经系统' },
-  { id: 3, name: '反应迟钝', category: '神经系统' },
-  { id: 4, name: '嗜睡', category: '神经系统' },
-  { id: 5, name: '多梦', category: '神经系统' },
-  { id: 6, name: '头晕', category: '神经系统' },
-  { id: 7, name: '头疼', category: '神经系统' },
-  { id: 8, name: '头麻', category: '神经系统' },
-  { id: 9, name: '晕车', category: '神经系统' },
-  { id: 10, name: '失眠', category: '神经系统' },
-  { id: 11, name: '头面油腻', category: '皮肤' },
-  { id: 12, name: '脱发', category: '皮肤' },
-  { id: 13, name: '头发稀少', category: '皮肤' },
-  { id: 14, name: '易打哈欠', category: '神经系统' },
-  { id: 15, name: '常叹气', category: '神经系统' },
-  { id: 16, name: '眼干涩', category: '五官' },
-  { id: 17, name: '眼痒', category: '五官' },
-  { id: 18, name: '眼痛', category: '五官' },
-  { id: 19, name: '视力模糊', category: '五官' },
-  { id: 20, name: '黑痣变大变多', category: '皮肤' },
-  { id: 21, name: '眼怕光流泪', category: '五官' },
-  { id: 22, name: '麦粒肿', category: '五官' },
-  { id: 23, name: '听力下降', category: '五官' },
-  { id: 24, name: '耳痒', category: '五官' },
-  { id: 25, name: '耳鸣', category: '五官' },
-  { id: 26, name: '耳痛', category: '五官' },
-  { id: 27, name: '耳屎多', category: '五官' },
-  { id: 28, name: '耳内潮湿', category: '五官' },
-  { id: 29, name: '打鼾', category: '呼吸系统' },
-  { id: 30, name: '鼻塞', category: '五官' },
-  { id: 31, name: '爱打喷嚏', category: '呼吸系统' },
-  { id: 32, name: '常流鼻涕', category: '呼吸系统' },
-  { id: 33, name: '鼻炎', category: '呼吸系统' },
-  { id: 34, name: '感冒时间长', category: '免疫系统' },
-  { id: 35, name: '嗓子干', category: '呼吸系统' },
-  { id: 36, name: '喉咙痒', category: '呼吸系统' },
-  { id: 37, name: '喉咙痛', category: '呼吸系统' },
-  { id: 38, name: '咳嗽', category: '呼吸系统' },
-  { id: 39, name: '痰多', category: '呼吸系统' },
-  { id: 40, name: '呼吸困难', category: '呼吸系统' },
-  { id: 41, name: '口苦', category: '消化系统' },
-  { id: 42, name: '口干', category: '消化系统' },
-  { id: 43, name: '口臭', category: '消化系统' },
-  { id: 44, name: '口溃疡', category: '消化系统' },
-  { id: 45, name: '舌溃疡', category: '消化系统' },
-  { id: 46, name: '嘴唇麻', category: '消化系统' },
-  { id: 47, name: '舌硬', category: '消化系统' },
-  { id: 48, name: '胸闷气短', category: '循环系统' },
-  { id: 49, name: '心慌心悸', category: '循环系统' },
-  { id: 50, name: '心绞痛', category: '循环系统' },
-  { id: 51, name: '指甲凹陷', category: '皮肤' },
-  { id: 52, name: '半月痕少', category: '皮肤' },
-  { id: 53, name: '手脚脱皮', category: '皮肤' },
-  { id: 54, name: '手脚出汗', category: '皮肤' },
-  { id: 55, name: '手脚凉', category: '循环系统' },
-  { id: 56, name: '手脚热', category: '循环系统' },
-  { id: 57, name: '手足麻木', category: '循环系统' },
-  { id: 58, name: '四肢乏力', category: '神经系统' },
-  { id: 59, name: '静脉曲张', category: '循环系统' },
-  { id: 60, name: '关节痛', category: '循环系统' },
-  { id: 61, name: '肩酸痛', category: '循环系统' },
-  { id: 62, name: '颈椎痛', category: '循环系统' },
-  { id: 63, name: '腰酸痛', category: '循环系统' },
-  { id: 64, name: '尿浑浊', category: '泌尿系统' },
-  { id: 65, name: '尿多沫', category: '泌尿系统' },
-  { id: 66, name: '尿有怪味', category: '泌尿系统' },
-  { id: 67, name: '夜尿多', category: '泌尿系统' },
-  { id: 68, name: '便秘', category: '消化系统' },
-  { id: 69, name: '大便不成形', category: '消化系统' },
-  { id: 70, name: '便溏不净', category: '消化系统' },
-  { id: 71, name: '高血脂', category: '循环系统' },
-  { id: 72, name: '高血压', category: '循环系统' },
-  { id: 73, name: '高血糖', category: '循环系统' },
-  { id: 74, name: '低血糖', category: '循环系统' },
-  { id: 75, name: '低血压', category: '循环系统' },
-  { id: 76, name: '经期头痛', category: '妇科' },
-  { id: 77, name: '月经量少', category: '妇科' },
-  { id: 78, name: '经期时长', category: '妇科' },
-  { id: 79, name: '经期推后', category: '妇科' },
-  { id: 80, name: '月经有血块', category: '妇科' },
-  { id: 81, name: '乳腺增生', category: '妇科' },
-  { id: 82, name: '经期腰痛', category: '妇科' },
-  { id: 83, name: '经期提前', category: '妇科' },
-  { id: 84, name: '月经量多', category: '妇科' },
-  { id: 85, name: '不爱说话', category: '情绪' },
-  { id: 86, name: '恶心', category: '消化系统' },
-  { id: 87, name: '胃胀', category: '消化系统' },
-  { id: 88, name: '胃酸', category: '消化系统' },
-  { id: 89, name: '胃痛', category: '消化系统' },
-  { id: 90, name: '消化不良', category: '消化系统' },
-  { id: 91, name: '肥胖', category: '代谢' },
-  { id: 92, name: '皮肤痒', category: '皮肤' },
-  { id: 93, name: '湿疹', category: '皮肤' },
-  { id: 94, name: '各种过敏', category: '免疫系统' },
-  { id: 95, name: '痤疮', category: '皮肤' },
-  { id: 96, name: '脂肪瘤', category: '代谢' },
-  { id: 97, name: '身体异味', category: '代谢' },
-  { id: 98, name: '淋巴肿大', category: '免疫系统' },
-  { id: 99, name: '眼屎多', category: '五官' },
-  { id: 100, name: '形体消瘦', category: '代谢' },
+  { id: 1, name: '记忆力下降', category: '神经系统', description: '经常忘记近期的事情，需要反复提醒' },
+  { id: 2, name: '思维断电', category: '神经系统', description: '说话或思考时突然空白，想不起来要说什么' },
+  { id: 3, name: '反应迟钝', category: '神经系统', description: '理解能力和反应速度变慢' },
+  { id: 4, name: '嗜睡', category: '神经系统', description: '白天精神不振，总是想睡觉' },
+  { id: 5, name: '多梦', category: '神经系统', description: '睡眠中梦境不断，醒来后感觉疲惫' },
+  { id: 6, name: '头晕', category: '神经系统', description: '头部感觉昏沉或眩晕' },
+  { id: 7, name: '头疼', category: '神经系统', description: '经常出现头痛症状' },
+  { id: 8, name: '头麻', category: '神经系统', description: '头部有麻木的感觉' },
+  { id: 9, name: '晕车', category: '神经系统', description: '乘车时容易出现恶心、头晕等不适' },
+  { id: 10, name: '失眠', category: '神经系统', description: '入睡困难或睡眠质量差，易醒' },
+  { id: 11, name: '头面油腻', category: '皮肤', description: '面部和头部容易出油' },
+  { id: 12, name: '脱发', category: '皮肤', description: '头发掉落增多，头发变稀' },
+  { id: 13, name: '头发稀少', category: '皮肤', description: '头发稀疏，发量明显减少' },
+  { id: 14, name: '易打哈欠', category: '神经系统', description: '经常不自觉地打哈欠，精神不济' },
+  { id: 15, name: '常叹气', category: '神经系统', description: '不自觉地长叹气，感觉气不够用' },
+  { id: 16, name: '眼干涩', category: '五官', description: '眼睛干涩不适，需要频繁眨眼' },
+  { id: 17, name: '眼痒', category: '五官', description: '眼睛发痒，想揉眼睛' },
+  { id: 18, name: '眼痛', category: '五官', description: '眼睛有疼痛感或酸痛感' },
+  { id: 19, name: '视力模糊', category: '五官', description: '看东西不清晰，视力下降' },
+  { id: 20, name: '黑痣变大变多', category: '皮肤', description: '身上的黑痣数量增多或变大' },
+  { id: 21, name: '眼怕光流泪', category: '五官', description: '眼睛怕光，遇光容易流泪' },
+  { id: 22, name: '麦粒肿', category: '五官', description: '眼睑边缘出现红肿硬结' },
+  { id: 23, name: '听力下降', category: '五官', description: '听力不如以前，需要大声说话才能听见' },
+  { id: 24, name: '耳痒', category: '五官', description: '耳朵内部或外部发痒' },
+  { id: 25, name: '耳鸣', category: '五官', description: '耳朵里有嗡嗡声或其他异常声音' },
+  { id: 26, name: '耳痛', category: '五官', description: '耳朵内部或外部有疼痛感' },
+  { id: 27, name: '耳屎多', category: '五官', description: '耳屎分泌过多' },
+  { id: 28, name: '耳内潮湿', category: '五官', description: '耳朵内部感觉潮湿不适' },
+  { id: 29, name: '打鼾', category: '呼吸系统', description: '睡觉时打呼噜，声音较大' },
+  { id: 30, name: '鼻塞', category: '五官', description: '鼻孔堵塞，呼吸不畅' },
+  { id: 31, name: '爱打喷嚏', category: '呼吸系统', description: '经常不自觉地打喷嚏' },
+  { id: 32, name: '常流鼻涕', category: '呼吸系统', description: '鼻腔经常有鼻涕流出' },
+  { id: 33, name: '鼻炎', category: '呼吸系统', description: '患有鼻炎，鼻塞、流涕等症状反复' },
+  { id: 34, name: '感冒时间长', category: '免疫系统', description: '感冒后恢复慢，持续时间长' },
+  { id: 35, name: '嗓子干', category: '呼吸系统', description: '咽喉部位干燥不适' },
+  { id: 36, name: '喉咙痒', category: '呼吸系统', description: '喉咙发痒，想咳嗽' },
+  { id: 37, name: '喉咙痛', category: '呼吸系统', description: '喉咙有疼痛感，吞咽时加重' },
+  { id: 38, name: '咳嗽', category: '呼吸系统', description: '经常咳嗽，干咳或有痰' },
+  { id: 39, name: '痰多', category: '呼吸系统', description: '咳嗽时有大量痰液' },
+  { id: 40, name: '呼吸困难', category: '呼吸系统', description: '呼吸感觉费力，气不够用' },
+  { id: 41, name: '口苦', category: '消化系统', description: '口腔内有苦味' },
+  { id: 42, name: '口干', category: '消化系统', description: '口腔干燥，口渴明显' },
+  { id: 43, name: '口臭', category: '消化系统', description: '口腔异味，口气不清新' },
+  { id: 44, name: '口溃疡', category: '消化系统', description: '口腔内出现溃疡性病变' },
+  { id: 45, name: '舌溃疡', category: '消化系统', description: '舌头上出现溃疡' },
+  { id: 46, name: '嘴唇麻', category: '消化系统', description: '嘴唇有麻木感' },
+  { id: 47, name: '舌硬', category: '消化系统', description: '舌头僵硬，活动不便' },
+  { id: 48, name: '胸闷气短', category: '循环系统', description: '胸部感觉憋闷，呼吸急促' },
+  { id: 49, name: '心慌心悸', category: '循环系统', description: '心跳加快或不规律，感觉心慌' },
+  { id: 50, name: '心绞痛', category: '循环系统', description: '胸部突然出现疼痛，压迫感' },
+  { id: 51, name: '指甲凹陷', category: '皮肤', description: '指甲表面出现凹陷或改变' },
+  { id: 52, name: '半月痕少', category: '皮肤', description: '指甲根部的半月痕很少或没有' },
+  { id: 53, name: '手脚脱皮', category: '皮肤', description: '手掌或脚掌皮肤脱皮' },
+  { id: 54, name: '手脚出汗', category: '皮肤', description: '手掌或脚掌容易出汗' },
+  { id: 55, name: '手脚凉', category: '循环系统', description: '手脚冰凉，尤其冬季更明显' },
+  { id: 56, name: '手脚热', category: '循环系统', description: '手脚发热，感觉烫手' },
+  { id: 57, name: '手足麻木', category: '循环系统', description: '手或脚有麻木感' },
+  { id: 58, name: '四肢乏力', category: '神经系统', description: '手脚无力，提不起东西' },
+  { id: 59, name: '静脉曲张', category: '循环系统', description: '腿部静脉血管突出，呈蚯蚓状' },
+  { id: 60, name: '关节痛', category: '循环系统', description: '关节部位出现疼痛' },
+  { id: 61, name: '肩酸痛', category: '循环系统', description: '肩膀酸痛不适' },
+  { id: 62, name: '颈椎痛', category: '循环系统', description: '颈部疼痛，活动受限' },
+  { id: 63, name: '腰酸痛', category: '循环系统', description: '腰部酸痛，长时间站立或坐立加重' },
+  { id: 64, name: '尿浑浊', category: '泌尿系统', description: '尿液颜色浑浊不清' },
+  { id: 65, name: '尿多沫', category: '泌尿系统', description: '尿液表面有很多泡沫' },
+  { id: 66, name: '尿有怪味', category: '泌尿系统', description: '尿液有异常气味' },
+  { id: 67, name: '夜尿多', category: '泌尿系统', description: '夜间需要多次起夜排尿' },
+  { id: 68, name: '便秘', category: '消化系统', description: '排便困难，大便干燥，次数减少' },
+  { id: 69, name: '大便不成形', category: '消化系统', description: '大便稀软，不成形' },
+  { id: 70, name: '便溏不净', category: '消化系统', description: '大便粘腻，排不干净' },
+  { id: 71, name: '高血脂', category: '循环系统', description: '血液中血脂含量偏高' },
+  { id: 72, name: '高血压', category: '循环系统', description: '血压偏高，超过正常范围' },
+  { id: 73, name: '高血糖', category: '循环系统', description: '血糖偏高，或已被诊断为糖尿病' },
+  { id: 74, name: '低血糖', category: '循环系统', description: '血糖偏低，易出现头晕、出汗' },
+  { id: 75, name: '低血压', category: '循环系统', description: '血压偏低，易出现头晕乏力' },
+  { id: 76, name: '经期头痛', category: '妇科', description: '月经期间出现头痛' },
+  { id: 77, name: '月经量少', category: '妇科', description: '月经量明显减少' },
+  { id: 78, name: '经期时长', category: '妇科', description: '月经持续时间过长或过短' },
+  { id: 79, name: '经期推后', category: '妇科', description: '月经周期推迟，超过正常范围' },
+  { id: 80, name: '月经有血块', category: '妇科', description: '经血中伴有血块' },
+  { id: 81, name: '乳腺增生', category: '妇科', description: '乳房有增生性结节或肿块' },
+  { id: 82, name: '经期腰痛', category: '妇科', description: '月经期间腰部疼痛不适' },
+  { id: 83, name: '经期提前', category: '妇科', description: '月经周期提前，少于正常范围' },
+  { id: 84, name: '月经量多', category: '妇科', description: '月经量明显增多' },
+  { id: 85, name: '不爱说话', category: '情绪', description: '不愿意主动交流，变得沉默寡言' },
+  { id: 86, name: '恶心', category: '消化系统', description: '胃部不适，有想呕吐的感觉' },
+  { id: 87, name: '胃胀', category: '消化系统', description: '胃部感觉胀满不适' },
+  { id: 88, name: '胃酸', category: '消化系统', description: '胃酸过多，反酸烧心' },
+  { id: 89, name: '胃痛', category: '消化系统', description: '胃部有疼痛感' },
+  { id: 90, name: '消化不良', category: '消化系统', description: '进食后消化慢，胃胀不适' },
+  { id: 91, name: '肥胖', category: '代谢', description: '体重超出正常范围，体型偏胖' },
+  { id: 92, name: '皮肤痒', category: '皮肤', description: '皮肤经常瘙痒，想抓挠' },
+  { id: 93, name: '湿疹', category: '皮肤', description: '皮肤出现湿疹，红肿瘙痒' },
+  { id: 94, name: '各种过敏', category: '免疫系统', description: '对某些食物、药物或环境过敏' },
+  { id: 95, name: '痤疮', category: '皮肤', description: '面部或身体出现痤疮（痘痘）' },
+  { id: 96, name: '脂肪瘤', category: '代谢', description: '皮下出现脂肪瘤肿块' },
+  { id: 97, name: '身体异味', category: '代谢', description: '身体有异常气味，如体味重' },
+  { id: 98, name: '淋巴肿大', category: '免疫系统', description: '颈部或身体其他部位淋巴结肿大' },
+  { id: 99, name: '眼屎多', category: '五官', description: '晨起时眼部分泌物增多' },
+  { id: 100, name: '形体消瘦', category: '代谢', description: '体重明显低于正常范围，体型偏瘦' },
 ];
 
-// 健康要素分类
+// 健康要素分类（详细完整版）
 export const HEALTH_ELEMENTS = {
   气血: {
     id: 'qixue',
@@ -111,6 +111,26 @@ export const HEALTH_ELEMENTS = {
     symptoms: [1, 2, 3, 4, 5, 6, 7, 8, 9, 14, 16, 17, 18, 19, 23, 24, 25, 26, 34, 41, 35, 43, 44, 45, 48, 50, 51, 52, 53, 54, 55, 56, 74, 75, 85, 68, 90, 87, 91, 92, 94, 93],
     story: '战备物资的故事',
     principle: '血液把营养带进来，再把垃圾带出去。如果气血不足，细胞、组织和器官的功能就会受到影响。',
+    fullStory: `在战场上，如果粮食弹药和兵源供应不足，军队就无法正常作战。同样，如果我们的气血不足，身体就没有足够的营养来维持正常的新陈代谢和细胞功能。
+
+气血不足的表现：
+1. 记忆力下降、思维断电、反应迟钝 - 大脑供血不足
+2. 头晕、头疼、嗜睡 - 脑部供血不足
+3. 眼干涩、眼痒、视力模糊 - 眼部供血不足
+4. 手脚凉、指甲凹陷 - 末梢循环供血不足
+5. 月经量少、经期推后 - 子宫供血不足
+
+为什么会出现气血不足？
+1. 饮食不规律，营养摄入不足
+2. 脾胃虚弱，消化吸收能力差
+3. 熬夜伤神，过度消耗气血
+4. 情绪波动大，肝气郁结影响气血运行
+
+如何改善气血不足？
+1. 规律作息，保证充足睡眠
+2. 均衡饮食，增加优质蛋白摄入
+3. 适当运动，促进气血运行
+4. 保持良好情绪，避免气血消耗`,
   },
   循环: {
     id: 'xunhuan',
@@ -119,6 +139,26 @@ export const HEALTH_ELEMENTS = {
     symptoms: [46, 47, 48, 49, 55, 56, 57, 59, 60, 61, 62, 63, 71, 72, 73, 75, 76, 77, 78, 79, 80],
     story: '公路堵车的故事',
     principle: '微循环是血液和组织细胞之间进行物质交换的场所，如果微循环堵塞，营养进不去，垃圾出不来。',
+    fullStory: `想象一下，如果城市的主干道堵车了，会发生什么？紧急物资送不进去，垃圾运不出来，整个城市都会陷入混乱。
+
+我们的身体也是一样，如果微循环堵塞，就会出现以下问题：
+1. 胸闷气短、心慌心悸 - 心脏循环不畅
+2. 手足麻木、静脉曲张 - 四肢循环不畅
+3. 关节痛、肩酸痛、颈椎痛 - 局部循环不畅
+4. 高血压、高血脂 - 血管循环阻力增大
+5. 月经有血块、经期腰痛 - 盆腔循环不畅
+
+微循环堵塞的原因：
+1. 长期久坐，缺乏运动
+2. 饮食油腻，血液粘稠
+3. 情绪紧张，血管收缩
+4. 寒湿入侵，血管痉挛
+
+如何改善微循环？
+1. 坚持运动，促进血液循环
+2. 温水泡脚，改善末梢循环
+3. 按摩推拿，疏通经络
+4. 合理饮食，降低血液粘稠度`,
   },
   毒素: {
     id: 'dusu',
@@ -127,6 +167,33 @@ export const HEALTH_ELEMENTS = {
     symptoms: [41, 42, 43, 44, 45, 46, 47, 68, 69, 70, 97],
     story: '蓄水池的故事',
     principle: '体内垃圾毒素的积累会从轻微症状到严重疾病逐步发展，影响整体健康。',
+    fullStory: `蓄水池如果只进不出，会是什么结果？水位会越来越高，水质会越来越差，最终溢出来污染周围环境。
+
+我们体内的毒素也是一样的道理：
+
+体内毒素的来源：
+1. 代谢废物：细胞新陈代谢产生的废物
+2. 饮食毒素：食品添加剂、农药残留
+3. 环境毒素：空气污染、水污染
+4. 情绪毒素：压力、焦虑产生的有害物质
+
+毒素积累的表现：
+1. 口苦、口臭、口溃疡 - 肠道毒素上逆
+2. 便秘、大便不成形 - 肠道排毒不畅
+3. 皮肤痒、湿疹 - 皮肤排毒受阻
+4. 身体异味 - 体内毒素严重积累
+5. 舌硬、嘴唇麻 - 神经系统毒素影响
+
+毒素积累的危害：
+1. 轻度：疲劳、失眠、皮肤问题
+2. 中度：慢性炎症、免疫力下降
+3. 重度：脏器损伤、重大疾病
+
+如何排毒？
+1. 喝够水，促进肾脏排毒
+2. 多吃纤维，促进肠道排毒
+3. 运动出汗，促进皮肤排毒
+4. 保证睡眠，促进肝脏排毒`,
   },
   血脂: {
     id: 'xuezhi',
@@ -135,6 +202,33 @@ export const HEALTH_ELEMENTS = {
     symptoms: [11, 71, 72, 73, 91, 96],
     story: '泥沙堵塞管道的故事',
     principle: '血液中的油脂过多会粘附在血管壁上，使血管变窄、变硬，影响血液循环。',
+    fullStory: `如果有泥沙不断进入管道，管道壁上会慢慢沉积泥沙，管道会越来越窄，水流越来越小，最终可能完全堵塞。
+
+血液中的油脂也是一样的：
+
+高血脂的表现：
+1. 头面油腻 - 皮脂分泌旺盛
+2. 肥胖、脂肪瘤 - 脂肪堆积过多
+3. 高血压、高血糖、高血脂 - 代谢综合征
+4. 形体消瘦（也可能是脂质代谢异常）
+
+高血脂的危害：
+1. 动脉硬化：血管壁脂质沉积，血管变硬
+2. 血栓形成：斑块脱落形成血栓，堵塞血管
+3. 心脑血管疾病：冠心病、脑卒中
+4. 胰岛素抵抗：导致糖尿病
+
+高血脂的原因：
+1. 饮食不当：高脂、高糖、高热量饮食
+2. 缺乏运动：脂肪消耗减少
+3. 代谢异常：甲状腺、肝肾功能异常
+4. 遗传因素：家族性高血脂
+
+如何降低血脂？
+1. 低脂饮食，减少饱和脂肪摄入
+2. 增加运动，促进脂肪消耗
+3. 控制体重，减少内脏脂肪
+4. 补充优质蛋白，促进脂质代谢`,
   },
   寒凉: {
     id: 'hanliang',
@@ -143,6 +237,34 @@ export const HEALTH_ELEMENTS = {
     symptoms: [55, 59, 60, 61, 62, 63, 54, 58],
     story: '道路结冰的故事',
     principle: '寒湿气过重会影响气血运行和毒素排出，导致身体功能下降。',
+    fullStory: `道路结冰会发生什么？车辆打滑、刹车失灵、交通瘫痪。寒冷会让一切运行速度变慢，甚至停滞。
+
+体内的寒湿气也是一样的：
+
+寒湿的表现：
+1. 手脚凉 - 末梢循环受寒
+2. 手脚出汗 - 湿气重
+3. 关节痛、肩酸痛、颈椎痛 - 寒湿阻滞经络
+4. 腰酸痛 - 肾阳不足，寒湿内侵
+5. 四肢乏力 - 寒湿困脾
+
+寒湿的来源：
+1. 环境寒湿：淋雨、涉水、受风
+2. 饮食寒凉：冷饮、冰镇食物、生冷水果
+3. 空调寒气：长期待在空调房
+4. 体质虚寒：阳虚体质，自身体内寒气重
+
+寒湿的危害：
+1. 气血凝滞：寒气收缩血管，影响气血运行
+2. 经络阻塞：湿气阻滞经络，导致疼痛
+3. 脾胃受损：寒湿困脾，影响消化
+4. 免疫力下降：体内环境改变，易感染
+
+如何祛寒湿？
+1. 温热饮食：姜茶、红枣、桂圆
+2. 泡脚热敷：温水泡脚，艾灸热敷
+3. 运动出汗：促进寒湿排出
+4. 避寒保暖：少吹空调，注意保暖`,
   },
   免疫: {
     id: 'mianyi',
@@ -151,6 +273,35 @@ export const HEALTH_ELEMENTS = {
     symptoms: [34, 92, 93, 94, 98],
     story: '城墙守卫的故事',
     principle: '免疫力是身体的防护系统，负责识别和清除入侵的外来物质和异常细胞。',
+    fullStory: `城墙和守卫是保护城市的最后一道防线。如果城墙倒塌，守卫疲惫，敌人就可以轻易入侵。
+
+免疫系统也是我们的身体防线：
+
+免疫力低下的表现：
+1. 感冒时间长 - 病毒抵抗力弱
+2. 各种过敏 - 免疫系统过度敏感
+3. 皮肤痒、湿疹 - 免疫功能紊乱
+4. 淋巴肿大 - 免疫系统活跃
+5. 容易疲劳 - 免疫消耗过大
+
+免疫力低下的原因：
+1. 压力过大：慢性压力消耗免疫资源
+2. 睡眠不足：免疫系统修复时间不够
+3. 营养不良：缺乏维生素、矿物质
+4. 缺乏运动：免疫功能下降
+5. 负面情绪：情绪影响免疫细胞活性
+
+免疫力与疾病：
+1. 免疫低下：易感染、易过敏、易疲劳
+2. 免疫紊乱：自身免疫疾病、过敏性疾病
+3. 免疫逃逸：癌细胞逃避免疫监视
+
+如何提升免疫力？
+1. 充足睡眠：保证7-8小时睡眠
+2. 均衡营养：补充蛋白质、维生素
+3. 适量运动：每周3-5次中等强度运动
+4. 良好情绪：保持乐观积极心态
+5. 减压放松：学会释放压力`,
   },
   情绪: {
     id: 'qingxu',
@@ -159,6 +310,35 @@ export const HEALTH_ELEMENTS = {
     symptoms: [85, 48, 49, 86],
     story: '心灵花园的故事',
     principle: '情绪会影响神经系统和内分泌系统，进而影响整体健康状况。',
+    fullStory: `心灵就像一个花园，如果种满鲜花，花园就美丽；如果长满杂草，花园就会荒芜。
+
+情绪也是一样的：
+
+负面情绪的表现：
+1. 不爱说话 - 情绪低落
+2. 胸闷气短 - 气机郁结
+3. 心慌心悸 - 心神不宁
+4. 恶心 - 情绪性胃肠道反应
+
+情绪对健康的影响：
+1. 神经系统：影响睡眠、记忆、反应速度
+2. 内分泌系统：影响激素分泌，导致月经失调
+3. 消化系统：胃胀、胃痛、消化不良
+4. 心血管系统：血压升高、心律失常
+5. 免疫系统：免疫力下降
+
+常见负面情绪：
+1. 焦虑：担忧未来，心神不宁
+2. 抑郁：情绪低落，兴趣丧失
+3. 愤怒：肝气郁结，气血上逆
+4. 恐惧：肾气受损，免疫力下降
+
+情绪管理方法：
+1. 觉察情绪：识别自己的情绪状态
+2. 表达情绪：找人倾诉，写日记
+3. 转换思维：从积极角度看问题
+4. 释放情绪：运动、音乐、冥想
+5. 寻求支持：家人、朋友、专业人士`,
   },
 };
 
@@ -268,9 +448,260 @@ export const FOUR_REQUIREMENTS = {
   },
 };
 
-// 系统战役故事
+// 身体恢复健康的八要素
+export const EIGHT_HEALTH_ELEMENTS = {
+  element1: {
+    title: '气血充足',
+    description: '保证身体有足够的营养和能量',
+    methods: ['规律作息，保证睡眠', '均衡饮食，营养全面', '适当运动，促进气血生成', '避免过度劳累', '保持良好情绪'],
+  },
+  element2: {
+    title: '循环通畅',
+    description: '保证微循环系统的通畅，让营养进得来，毒素出得去',
+    methods: ['坚持运动，促进血液循环', '温水泡脚，改善末梢循环', '按摩推拿，疏通经络', '合理饮食，降低血液粘稠度', '避免久坐，定时活动'],
+  },
+  element3: {
+    title: '毒素排出',
+    description: '及时清理体内代谢废物和外界毒素',
+    methods: ['喝够水，促进肾脏排毒', '多吃纤维，促进肠道排毒', '运动出汗，促进皮肤排毒', '保证睡眠，促进肝脏排毒', '定期排毒，避免毒素积累'],
+  },
+  element4: {
+    title: '血脂平衡',
+    description: '维持血液中正常的脂肪含量，避免血管堵塞',
+    methods: ['低脂饮食，减少饱和脂肪', '增加运动，促进脂肪消耗', '控制体重，减少内脏脂肪', '补充优质蛋白，促进代谢', '定期体检，监测血脂'],
+  },
+  element5: {
+    title: '寒湿祛除',
+    description: '祛除体内的寒湿气，保证气血正常运行',
+    methods: ['温热饮食，姜茶红枣', '泡脚热敷，温通经络', '运动出汗，排寒祛湿', '避寒保暖，少吹空调', '艾灸理疗，温阳散寒'],
+  },
+  element6: {
+    title: '免疫强大',
+    description: '增强身体的自我防护能力，抵抗疾病',
+    methods: ['充足睡眠，修复免疫系统', '均衡营养，补充维生素矿物质', '适量运动，激活免疫细胞', '良好情绪，保持积极心态', '减压放松，避免免疫消耗'],
+  },
+  element7: {
+    title: '情绪平衡',
+    description: '保持良好的心理状态，避免情绪对身体造成伤害',
+    methods: ['觉察情绪，识别心理状态', '表达情绪，找人倾诉', '转换思维，积极看待问题', '释放情绪，运动音乐冥想', '寻求支持，专业心理咨询'],
+  },
+  element8: {
+    title: '习惯养成',
+    description: '养成健康的生活习惯，长期维持健康',
+    methods: ['规律作息，早睡早起', '均衡饮食，少油少盐', '坚持运动，每周3-5次', '定期体检，预防疾病', '学习健康知识，提升健康意识'],
+  },
+};
+
+// 客户必修的21个堂课
+export const TWENTY_ONE_COURSES = [
+  {
+    id: 1,
+    title: '第1课：为什么得病不容易',
+    duration: '10分钟',
+    content: '得病需要十几年甚至几十年的时间累积，所以去病也需要时间，不要急于求成。',
+  },
+  {
+    id: 2,
+    title: '第2课：医院和健康行业的区别',
+    duration: '10分钟',
+    content: '医院负责抢救生命，健康行业负责预防和康复，两者互补。',
+  },
+  {
+    id: 3,
+    title: '第3课：什么是病因',
+    duration: '10分钟',
+    content: '真正的病因都在生活里，只有找到病因才能从根本上解决问题。',
+  },
+  {
+    id: 4,
+    title: '第4课：健康七要素',
+    duration: '15分钟',
+    content: '详细讲解影响健康的七个核心要素：气血、循环、毒素、血脂、寒凉、免疫、情绪。',
+  },
+  {
+    id: 5,
+    title: '第5课：系统战役模型',
+    duration: '10分钟',
+    content: '通过军事战役的比喻，理解健康系统的运作原理。',
+  },
+  {
+    id: 6,
+    title: '第6课：大扫除的故事',
+    duration: '10分钟',
+    content: '理解排毒过程中的好转反应，不要轻易放弃。',
+  },
+  {
+    id: 7,
+    title: '第7课：身体语言简表的意义',
+    duration: '10分钟',
+    content: '学会读懂身体的信号，早期发现健康问题。',
+  },
+  {
+    id: 8,
+    title: '第8课：七问法',
+    duration: '10分钟',
+    content: '通过七个问题深入了解症状，找出根本原因。',
+  },
+  {
+    id: 9,
+    title: '第9课：气血的重要性',
+    duration: '10分钟',
+    content: '气血是健康的根本，如何补充和养护气血。',
+  },
+  {
+    id: 10,
+    title: '第10课：循环系统的奥秘',
+    duration: '10分钟',
+    content: '微循环如何影响健康，如何改善循环。',
+  },
+  {
+    id: 11,
+    title: '第11课：毒素的来源与排毒',
+    duration: '10分钟',
+    content: '体内毒素的来源，如何有效排毒。',
+  },
+  {
+    id: 12,
+    title: '第12课：血脂与心血管健康',
+    duration: '10分钟',
+    content: '高血脂的危害，如何预防和改善。',
+  },
+  {
+    id: 13,
+    title: '第13课：寒湿对健康的影响',
+    duration: '10分钟',
+    content: '寒湿的来源，如何祛除寒湿。',
+  },
+  {
+    id: 14,
+    title: '第14课：免疫力的建立',
+    duration: '10分钟',
+    content: '免疫力低下的原因，如何提升免疫力。',
+  },
+  {
+    id: 15,
+    title: '第15课：情绪与健康的关系',
+    duration: '10分钟',
+    content: '负面情绪对身体的伤害，如何管理情绪。',
+  },
+  {
+    id: 16,
+    title: '第16课：健康生活习惯的养成',
+    duration: '10分钟',
+    content: '如何养成健康的饮食、作息、运动习惯。',
+  },
+  {
+    id: 17,
+    title: '第17课：如何配合调理',
+    duration: '10分钟',
+    content: '调理期间如何配合，提高调理效果。',
+  },
+  {
+    id: 18,
+    title: '第18课：好转反应的理解',
+    duration: '10分钟',
+    content: '什么是好转反应，如何正确应对。',
+  },
+  {
+    id: 19,
+    title: '第19课：健康自我管理',
+    duration: '10分钟',
+    content: '学会管理自己和家人的健康。',
+  },
+  {
+    id: 20,
+    title: '第20课：家庭健康管理',
+    duration: '10分钟',
+    content: '如何成为家庭的健康守护者。',
+  },
+  {
+    id: 21,
+    title: '第21课：健康观念总结',
+    duration: '10分钟',
+    content: '总结健康的核心观念，长期维持健康。',
+  },
+];
+
+// 不良生活习惯自检表
+export const BAD_HABITS_CHECKLIST = {
+  气血相关: [
+    { id: 1, habit: '经常熬夜，睡眠不足', impact: '消耗气血，影响身体恢复' },
+    { id: 2, habit: '饮食不规律，不吃早餐', impact: '脾胃受损，气血生化不足' },
+    { id: 3, habit: '过度劳累，不知休息', impact: '消耗气血，损伤身体' },
+    { id: 4, habit: '情绪波动大，经常生气', impact: '气血运行不畅，肝气郁结' },
+  ],
+  循环相关: [
+    { id: 5, habit: '长期久坐，缺乏运动', impact: '血液循环不畅，微循环堵塞' },
+    { id: 6, habit: '饮食油腻，血液粘稠', impact: '血管阻力增大，循环受阻' },
+    { id: 7, habit: '过度紧张，血管收缩', impact: '血压升高，循环异常' },
+    { id: 8, habit: '久居寒湿环境', impact: '血管痉挛，循环受阻' },
+  ],
+  毒素相关: [
+    { id: 9, habit: '喝水太少，排毒不畅', impact: '毒素堆积，影响器官功能' },
+    { id: 10, habit: '饮食不卫生，摄入毒素', impact: '增加身体毒素负担' },
+    { id: 11, habit: '长期便秘，毒素回流', impact: '毒素被重新吸收，危害健康' },
+    { id: 12, habit: '饮食加工食品多', impact: '添加剂毒素积累' },
+  ],
+  血脂相关: [
+    { id: 13, habit: '高脂饮食，油炸食品多', impact: '血脂升高，血管堵塞' },
+    { id: 14, habit: '甜食摄入过多', impact: '甘油三酯升高，代谢紊乱' },
+    { id: 15, habit: '缺乏运动，脂肪堆积', impact: '肥胖，高血脂' },
+    { id: 16, habit: '酗酒', impact: '脂质代谢异常，肝脏损伤' },
+  ],
+  寒凉相关: [
+    { id: 17, habit: '爱吃冷饮、冰镇食物', impact: '寒气入体，损伤脾胃' },
+    { id: 18, habit: '贪凉，空调温度太低', impact: '寒气侵袭，气血凝滞' },
+    { id: 19, habit: '穿得太少，受风受寒', impact: '寒湿入侵，关节疼痛' },
+    { id: 20, habit: '淋雨、涉水不处理', impact: '寒湿内侵，身体沉重' },
+  ],
+  免疫相关: [
+    { id: 21, habit: '长期压力大，情绪紧张', impact: '消耗免疫资源，免疫力下降' },
+    { id: 22, habit: '睡眠不足，修复不够', impact: '免疫系统修复时间不够' },
+    { id: 23, habit: '营养不均衡，缺乏维生素', impact: '免疫细胞功能下降' },
+    { id: 24, habit: '缺乏运动，体质虚弱', impact: '免疫功能低下' },
+  ],
+  情绪相关: [
+    { id: 25, habit: '长期焦虑，担忧未来', impact: '心神不宁，睡眠不佳' },
+    { id: 26, habit: '情绪压抑，不表达', impact: '气机郁结，影响脏腑' },
+    { id: 27, habit: '易怒易躁，情绪失控', impact: '气血上逆，损伤健康' },
+    { id: 28, habit: '悲观消极，缺乏信心', impact: '免疫下降，恢复缓慢' },
+  ],
+};
+
+// 发心感召内容
+export const HEART_INSPIRATION = {
+  title: '为什么做健康行业',
+  content: `我曾经看到太多人因为不懂得健康，把辛苦挣来的钱都送给了医院，最后人财两空。也看到太多人因为缺乏健康知识，小病拖成大病，后悔莫及。
+
+我深知健康对于一个家庭的重要性。一个人生病，全家受累。不仅身体痛苦，经济负担也重。如果每个家庭都有一个懂健康的人，很多悲剧是可以避免的。
+
+做健康行业的初衷，不是为了赚多少钱，而是希望：
+1. 帮助更多的人少生病、不生病
+2. 让每个家庭都有一个懂健康的人
+3. 把健康的观念传递给更多的人
+4. 让更多人明白预防大于治疗的重要性
+
+我知道这条路不容易，但我相信只要坚持下去，一定能够帮助更多的人。每一个被帮助的人，又可以帮助更多的人，这样就能形成一个健康的循环。
+
+健康不是一个人的事，而是一个家庭、一个社会的事。让我们一起努力，把健康带给每个家庭！`,
+};
+
+// 关键问题
+export const KEY_QUESTION = {
+  question: '我想问你一个问题，在我给你做这个资检表之前，你知不知道你有这么多的症状？如果病因没有找到，也没有去掉的话，症状会不会越来越多，会不会越来越重？',
+  answer: `很多人在填写身体语言简表之前，都没有意识到自己有这么多症状。这些症状都是身体给我们的信号，提醒我们身体出了问题。
+
+如果病因没有找到，也没有去掉，症状确实会越来越多，越来越重。就像房子漏水，如果不去修补漏洞，只是不断地拖地，水还是会漏进来，而且可能会越来越大，最终导致房子倒塌。
+
+同样的道理，如果我们只是缓解症状，而不解决根本原因，身体的问题就会越来越严重。小病拖成大病，大病拖成重病。
+
+这就是为什么我们强调"找病因"的重要性。只有找到病因，从根源上解决问题，才能真正恢复健康，避免疾病反复发作。`,
+};
+
+// 系统战役故事（包含图片位置标记）
 export const SYSTEM_CAMPAIGN_STORY = {
   title: '系统战役模型',
+  imagePlaceholder: '[此处插入系统战役故事示意图]',
   content: [
     {
       section: '战场保障',
