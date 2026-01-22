@@ -116,9 +116,9 @@ export default function CheckPage() {
           <div className="max-w-3xl mx-auto">
             <Card className="border-2 border-blue-100 dark:border-blue-900">
               <CardHeader>
-                <CardTitle className="text-2xl">身体语言简表</CardTitle>
-                <CardDescription className="text-base">
-                  勾选半年内您出现过的症状，帮助我们了解您的健康状况
+                <CardTitle className="text-2xl text-center">身体语言自检表</CardTitle>
+                <CardDescription className="text-base text-center font-semibold text-orange-600 dark:text-orange-400">
+                  一张表格就是一个生命，请您认真对待！
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -170,6 +170,12 @@ export default function CheckPage() {
                     <strong>温馨提示：</strong>这个简表是我们健康行业的专业工具，
                     用于帮助老百姓找问题的。不同于西医的仪器检查和中医的望闻问切，
                     我们通过症状来找出影响健康的要素，从而更好地恢复健康。
+                  </p>
+                </div>
+
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
+                    *注：本表只作为参考，如果您有任何身体不适，请尽快咨询医生。紧急情况，请遵医嘱。
                   </p>
                 </div>
 

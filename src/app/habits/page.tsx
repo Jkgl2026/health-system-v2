@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { AlertCircle, CheckCircle2, ArrowRight, ChevronLeft, BookOpen } from 'lucide-react';
 import { BAD_HABITS_CHECKLIST } from '@/lib/health-data';
 import Link from 'next/link';
@@ -13,6 +15,12 @@ import Link from 'next/link';
 export default function HabitsPage() {
   const [selectedHabits, setSelectedHabits] = useState<Set<number>>(new Set());
   const [currentStep, setCurrentStep] = useState<'intro' | 'select' | 'confirm'>('intro');
+  const [formData, setFormData] = useState({
+    profession: '',
+    currentHealth: '',
+    mainSymptoms: '',
+    remarks: '',
+  });
 
   const handleHabitToggle = (id: number) => {
     const newSelected = new Set(selectedHabits);
@@ -32,6 +40,7 @@ export default function HabitsPage() {
     } else if (currentStep === 'confirm') {
       // 保存到localStorage并跳转到下一页
       localStorage.setItem('selectedHabits', JSON.stringify([...selectedHabits]));
+      localStorage.setItem('habitsFormData', JSON.stringify(formData));
       window.location.href = '/choices';
     }
   };
@@ -104,6 +113,19 @@ export default function HabitsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* 核心公式 */}
+                <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg border-2 border-blue-200 dark:border-blue-800 text-center">
+                  <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    疾病 = 坏习惯 + 时间
+                  </p>
+                  <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    健康 = 好习惯 + 时间
+                  </p>
+                  <p className="text-base text-gray-700 dark:text-gray-300 mt-4">
+                    养成一个好习惯可以抵消一些坏习惯
+                  </p>
+                </div>
+
                 <Alert>
                   <AlertCircle className="w-4 h-4" />
                   <AlertDescription>
@@ -111,6 +133,65 @@ export default function HabitsPage() {
                     只有找到病因，改掉坏习惯，身体才能真正恢复健康。
                   </AlertDescription>
                 </Alert>
+
+                {/* 基本信息表单 */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    请填写您的基本信息
+                  </h3>
+                  <div className="grid gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        您的职业 *
+                      </label>
+                      <Input
+                        placeholder="请填写您的职业"
+                        value={formData.profession}
+                        onChange={(e) => setFormData({ ...formData, profession: e.target.value })}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">职业可能影响生活习惯和健康风险</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        目前身体状况（顾客自述）*
+                      </label>
+                      <Textarea
+                        placeholder="请描述您目前的身体状况"
+                        value={formData.currentHealth}
+                        onChange={(e) => setFormData({ ...formData, currentHealth: e.target.value })}
+                        rows={3}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">简要描述您目前的整体健康状况</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        您目前最想解决的症状 *
+                      </label>
+                      <Textarea
+                        placeholder="请列出您最想解决的症状，可多选"
+                        value={formData.mainSymptoms}
+                        onChange={(e) => setFormData({ ...formData, mainSymptoms: e.target.value })}
+                        rows={2}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">选择3-5个最困扰您的症状</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        备注
+                      </label>
+                      <Textarea
+                        placeholder="其他需要补充说明的情况"
+                        value={formData.remarks}
+                        onChange={(e) => setFormData({ ...formData, remarks: e.target.value })}
+                        rows={2}
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">可以补充其他相关信息</p>
+                    </div>
+                  </div>
+                </div>
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -151,6 +232,12 @@ export default function HabitsPage() {
                   <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
                     医院的治疗往往只针对症状，而不解决根本原因。我们需要找到问题的根源，
                     从根本上改善健康状况。
+                  </p>
+                </div>
+
+                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    *注：本表只作为参考，如果您有任何身体不适，请尽快咨询医生。紧急情况，请遵医嘱。
                   </p>
                 </div>
 

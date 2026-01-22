@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, ChevronRight, BookOpen, Activity, Shield, Heart, Droplets, Snowflake, Sparkles, Smile, MessageCircle, ArrowRight } from 'lucide-react';
-import { SYSTEM_CAMPAIGN_STORY, HEALTH_ELEMENTS, KEY_QUESTION, HEART_INSPIRATION, EIGHT_HEALTH_ELEMENTS, TWENTY_ONE_COURSES } from '@/lib/health-data';
+import { SYSTEM_CAMPAIGN_STORY, HEALTH_ELEMENTS, KEY_QUESTION, HEART_INSPIRATION, EIGHT_HEALTH_ELEMENTS, TWENTY_ONE_COURSES, RECOVERY_SPEED_FACTORS } from '@/lib/health-data';
 import Link from 'next/link';
 
 export default function StoryPage() {
@@ -57,7 +57,18 @@ export default function StoryPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* 图片位置标记 */}
+              {/* 恢复速度八要素示意图 */}
+              <div className="flex justify-center mb-6">
+                <div className="w-full max-w-3xl">
+                  <img
+                    src="/recovery-speed-diagram.png"
+                    alt="恢复速度八要素示意图"
+                    className="w-full h-auto rounded-lg border-2 border-blue-200 dark:border-blue-800 shadow-lg"
+                  />
+                </div>
+              </div>
+
+              {/* 图片位置标记（备用） */}
               {SYSTEM_CAMPAIGN_STORY.imagePlaceholder && (
                 <div className="flex justify-center mb-6">
                   <div className="w-full max-w-2xl h-64 bg-gradient-to-br from-blue-100 to-green-100 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300 dark:border-blue-700">
@@ -99,6 +110,66 @@ export default function StoryPage() {
                 <p className="text-lg font-medium text-gray-900 dark:text-white text-center">
                   其中任何一个要素出现了问题，都会对我们的免疫力和健康造成影响。
                   只有所有要素都处于良好状态，身体才能保持健康。
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* 恢复速度八要素 */}
+        <section className="mb-12">
+          <Card className="border-2 border-indigo-100 dark:border-indigo-900">
+            <CardHeader>
+              <div className="mx-auto w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mb-4">
+                <ArrowRight className="w-8 h-8 text-white" />
+              </div>
+              <CardTitle className="text-2xl text-center">{RECOVERY_SPEED_FACTORS.title}</CardTitle>
+              <CardDescription className="text-base mt-2 text-center">
+                决定您调理恢复速度的八个关键因素
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* 介绍 */}
+              <Alert className="border-2 border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20">
+                <MessageCircle className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+                <AlertDescription className="mt-2">
+                  <p className="text-sm text-gray-700 dark:text-gray-300 italic">
+                    {RECOVERY_SPEED_FACTORS.intro}
+                  </p>
+                </AlertDescription>
+              </Alert>
+
+              {/* 八个要素 */}
+              <div className="space-y-4">
+                {RECOVERY_SPEED_FACTORS.factors.map((factor) => (
+                  <div key={factor.id} className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                        {factor.id}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                          {factor.question}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          答案：<span className="text-gray-900 dark:text-gray-100">{factor.answer}</span>
+                        </p>
+                        <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                          原理：{factor.principle}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 总结 */}
+              <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/30 dark:to-purple-900/30 rounded-lg border-2 border-indigo-200 dark:border-indigo-800 text-center">
+                <p className="text-lg font-bold text-gray-900 dark:text-white mb-2">
+                  {RECOVERY_SPEED_FACTORS.conclusion}
+                </p>
+                <p className="text-sm text-gray-700 dark:text-gray-300">
+                  了解这些要素，做好配合，才能让调理效果事半功倍！
                 </p>
               </div>
             </CardContent>
