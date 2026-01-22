@@ -57,20 +57,16 @@ export default function StoryPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* 第一张图片 - 系统战役示意图 */}
-              <div className="flex justify-center mb-6">
-                <div className="w-full max-w-2xl h-64 bg-gradient-to-br from-blue-100 to-green-100 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300 dark:border-blue-700 overflow-hidden">
-                  <img
-                    src="/assets/自检表整体服务资料(7)_21.png"
-                    alt="系统战役示意图"
-                    className="w-full h-full object-contain p-4"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.parentElement!.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center px-4">系统战役示意图（身体语言简表）</p>';
-                    }}
-                  />
+              {/* 图片位置标记 */}
+              {SYSTEM_CAMPAIGN_STORY.imagePlaceholder && (
+                <div className="flex justify-center mb-6">
+                  <div className="w-full max-w-2xl h-64 bg-gradient-to-br from-blue-100 to-green-100 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300 dark:border-blue-700">
+                    <p className="text-gray-500 dark:text-gray-400 text-center px-4">
+                      {SYSTEM_CAMPAIGN_STORY.imagePlaceholder}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {SYSTEM_CAMPAIGN_STORY.content.map((section, index) => (
                 <div key={index} className="space-y-3">
@@ -88,21 +84,6 @@ export default function StoryPage() {
                 </div>
               ))}
 
-              {/* 第二张图片 - 身体对应关系图 */}
-              <div className="flex justify-center mb-6">
-                <div className="w-full max-w-2xl h-64 bg-gradient-to-br from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-lg flex items-center justify-center border-2 border-dashed border-green-300 dark:border-green-700 overflow-hidden">
-                  <img
-                    src="/assets/自检表整体服务资料(7)_04.png"
-                    alt="身体对应关系图"
-                    className="w-full h-full object-contain p-4"
-                    onError={(e) => {
-                      e.currentTarget.style.display = 'none';
-                      e.currentTarget.parentElement!.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center px-4">身体对应关系图</p>';
-                    }}
-                  />
-                </div>
-              </div>
-
               {/* 关键问题 */}
               <Alert className="border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
                 <MessageCircle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
@@ -113,18 +94,22 @@ export default function StoryPage() {
                   </p>
                 </AlertDescription>
               </Alert>
+
+              <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                <p className="text-lg font-medium text-gray-900 dark:text-white text-center">
+                  其中任何一个要素出现了问题，都会对我们的免疫力和健康造成影响。
+                  只有所有要素都处于良好状态，身体才能保持健康。
+                </p>
+              </div>
             </CardContent>
           </Card>
         </section>
 
-        {/* 发心感召 - 为什么做健康行业 */}
+        {/* 发心感召 */}
         <section className="mb-12">
           <Card className="border-2 border-purple-100 dark:border-purple-900">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">{HEART_INSPIRATION.title}</CardTitle>
-              <CardDescription>
-                让每个家庭都有一个懂健康的人
-              </CardDescription>
+            <CardHeader>
+              <CardTitle className="text-2xl text-center">{HEART_INSPIRATION.title}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
@@ -243,19 +228,9 @@ export default function StoryPage() {
 
         {/* 身体恢复健康的八要素 */}
         <section className="mb-12">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-              身体恢复健康的八要素
-            </h2>
-            <div className="inline-block p-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border-2 border-orange-200 dark:border-orange-800">
-              <p className="text-lg font-semibold text-orange-700 dark:text-orange-400">
-                恢复的速度由八要素决定
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                八个要素越完善，恢复速度越快；缺失要素越多，恢复速度越慢
-              </p>
-            </div>
-          </div>
+          <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
+            身体恢复健康的八要素
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {(Object.keys(EIGHT_HEALTH_ELEMENTS) as Array<keyof typeof EIGHT_HEALTH_ELEMENTS>).map((key) => {
               const element = EIGHT_HEALTH_ELEMENTS[key];
@@ -359,13 +334,23 @@ export default function StoryPage() {
         {/* 下一步按钮 */}
         <section className="text-center space-y-4">
           <Button
-            onClick={() => window.location.href = '/choices'}
+            onClick={() => window.location.href = '/habits'}
             size="lg"
             className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
           >
-            了解三个选择和四个要求
+            填写不良生活习惯表
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
+          <div>
+            <Button
+              onClick={() => window.location.href = '/choices'}
+              variant="outline"
+              size="lg"
+            >
+              跳过，直接查看选择
+              <ChevronRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
         </section>
       </main>
     </div>

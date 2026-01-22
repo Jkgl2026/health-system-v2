@@ -66,9 +66,9 @@ export default function AnalysisPage() {
     if (currentQuestionIndex < SEVEN_QUESTIONS.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      // 保存答案并跳转到系统战役故事
+      // 保存答案并跳转到不良生活习惯自检表
       localStorage.setItem('sevenAnswers', JSON.stringify(answers));
-      window.location.href = '/story';
+      window.location.href = '/habits';
     }
   };
 
