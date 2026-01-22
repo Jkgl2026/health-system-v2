@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight, AlertTriangle, CheckCircle2, XCircle, Target, BookOpen, ClipboardCheck, Clock } from 'lucide-react';
+import { ChevronLeft, ChevronRight, AlertTriangle, CheckCircle2, XCircle, Target, BookOpen, ClipboardCheck, Clock, Home, GraduationCap, FileCheck } from 'lucide-react';
 import { THREE_CHOICES, FOUR_REQUIREMENTS } from '@/lib/health-data';
 import Link from 'next/link';
 
@@ -16,7 +16,7 @@ export default function ChoicesPage() {
 
   const handleChoiceSelect = (choice: string) => {
     setSelectedChoice(choice);
-    window.scrollTo({ top: 800, behavior: 'smooth' });
+    window.scrollTo({ top: 900, behavior: 'smooth' });
   };
 
   const handleRequirementToggle = (id: number) => {
@@ -34,12 +34,12 @@ export default function ChoicesPage() {
       alert('请先选择一个方向，这样才能为您提供合适的建议。');
       return;
     }
-    if (selectedChoice !== 'choice3') {
-      alert('我们推荐您选择"学习健康自我管理"，这样才能真正改善健康状况。如果继续其他选择，症状可能会持续加重。');
+    if (selectedChoice === 'choice1' || selectedChoice === 'choice2') {
+      alert('感谢您的选择！虽然前两个选择不需要购买产品，但仍然需要完成填表和学习的任务。我们推荐您选择第三个方案，这样可以获得更快的恢复效果。');
       return;
     }
-    if (acceptedRequirements.size !== 4) {
-      alert('请同意并承诺完成所有四个要求，这样才能确保健康管理的效果。');
+    if (selectedChoice === 'choice3' && acceptedRequirements.size !== 4) {
+      alert('请同意并承诺完成所有四个要求，这样才能确保健康管理的效果。如果做不到四个要求，我也不能给您调理。');
       return;
     }
 
@@ -62,7 +62,7 @@ export default function ChoicesPage() {
             </Link>
             <div className="flex items-center space-x-2">
               <Badge variant="outline" className="text-sm">
-                选择与承诺
+                调理方案选择
               </Badge>
             </div>
           </div>
@@ -70,51 +70,79 @@ export default function ChoicesPage() {
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* 三个选择 */}
+        {/* 开场说明 */}
         <section className="mb-12">
-          <Card className="mb-6">
+          <Card>
             <CardHeader className="text-center">
-              <CardTitle className="text-3xl">三个选择</CardTitle>
+              <CardTitle className="text-3xl">三个选择，四个要求</CardTitle>
               <CardDescription className="text-base mt-2">
-                面对健康问题，您有三种选择。请仔细考虑每种选择的后果
+                要解决您的问题有三个方法，有不花钱的、也有花钱的，我都给您介绍一下，您自己选择
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Alert className="mb-4">
-                <AlertTriangle className="w-4 h-4" />
+              <Alert>
+                <BookOpen className="w-4 h-4" />
                 <AlertDescription>
-                  请认真思考：您希望选择哪条路？不同的选择会导致不同的结果。
+                  因为找不到病因是治不好病的，而真正的病因都在生活里。我给您提供几个选择，这里面有快的有慢的，也有不花钱的，有花钱的。您自己来选一下，好吧？
                 </AlertDescription>
               </Alert>
             </CardContent>
           </Card>
+        </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+        {/* 三个选择 */}
+        <section className="mb-12">
+          <h2 className="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">三个选择</h2>
+
+          <div className="space-y-8 max-w-5xl mx-auto">
             {/* 选择一 */}
             <Card
               className={`border-2 cursor-pointer transition-all hover:shadow-xl ${
                 selectedChoice === 'choice1'
-                  ? 'border-red-500 ring-2 ring-red-500'
+                  ? 'border-blue-500 ring-2 ring-blue-500'
                   : 'border-gray-200 dark:border-gray-700'
               }`}
               onClick={() => handleChoiceSelect('choice1')}
             >
-              <CardHeader className="text-center">
-                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                  selectedChoice === 'choice1' ? 'bg-red-500' : 'bg-red-100 dark:bg-red-900'
-                }`}>
-                  <XCircle className={`w-8 h-8 ${selectedChoice === 'choice1' ? 'text-white' : 'text-red-500'}`} />
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className={`w-14 h-14 rounded-lg flex items-center justify-center ${
+                    selectedChoice === 'choice1' ? 'bg-blue-500' : 'bg-blue-100 dark:bg-blue-900'
+                  }`}>
+                    <Home className={`w-7 h-7 ${selectedChoice === 'choice1' ? 'text-white' : 'text-blue-500'}`} />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-xl mb-2">{THREE_CHOICES.choice1.title}</CardTitle>
+                    <CardDescription className="text-base">
+                      {THREE_CHOICES.choice1.description}
+                    </CardDescription>
+                  </div>
+                  {selectedChoice === 'choice1' && (
+                    <CheckCircle2 className="w-8 h-8 text-blue-500" />
+                  )}
                 </div>
-                <CardTitle className="text-xl">{THREE_CHOICES.choice1.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
-                  {THREE_CHOICES.choice1.description}
-                </p>
-                <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                  <p className="text-sm text-red-700 dark:text-red-400 font-semibold">
-                    {THREE_CHOICES.choice1.consequence}
-                  </p>
+                <div className="space-y-4">
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">详细说明：</h4>
+                    {THREE_CHOICES.choice1.details.map((detail, index) => (
+                      <p key={index} className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        {detail}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white flex items-center">
+                      <AlertTriangle className="w-4 h-4 text-yellow-500 mr-2" />
+                      要求：
+                    </h4>
+                    {THREE_CHOICES.choice1.requirements.map((req, index) => (
+                      <p key={index} className="text-sm text-yellow-700 dark:text-yellow-400">
+                        {req}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -123,27 +151,50 @@ export default function ChoicesPage() {
             <Card
               className={`border-2 cursor-pointer transition-all hover:shadow-xl ${
                 selectedChoice === 'choice2'
-                  ? 'border-yellow-500 ring-2 ring-yellow-500'
+                  ? 'border-green-500 ring-2 ring-green-500'
                   : 'border-gray-200 dark:border-gray-700'
               }`}
               onClick={() => handleChoiceSelect('choice2')}
             >
-              <CardHeader className="text-center">
-                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                  selectedChoice === 'choice2' ? 'bg-yellow-500' : 'bg-yellow-100 dark:bg-yellow-900'
-                }`}>
-                  <AlertTriangle className={`w-8 h-8 ${selectedChoice === 'choice2' ? 'text-white' : 'text-yellow-500'}`} />
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className={`w-14 h-14 rounded-lg flex items-center justify-center ${
+                    selectedChoice === 'choice2' ? 'bg-green-500' : 'bg-green-100 dark:bg-green-900'
+                  }`}>
+                    <Target className={`w-7 h-7 ${selectedChoice === 'choice2' ? 'text-white' : 'text-green-500'}`} />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-xl mb-2">{THREE_CHOICES.choice2.title}</CardTitle>
+                    <CardDescription className="text-base">
+                      {THREE_CHOICES.choice2.description}
+                    </CardDescription>
+                  </div>
+                  {selectedChoice === 'choice2' && (
+                    <CheckCircle2 className="w-8 h-8 text-green-500" />
+                  )}
                 </div>
-                <CardTitle className="text-xl">{THREE_CHOICES.choice2.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
-                  {THREE_CHOICES.choice2.description}
-                </p>
-                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                  <p className="text-sm text-yellow-700 dark:text-yellow-400 font-semibold">
-                    {THREE_CHOICES.choice2.consequence}
-                  </p>
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">详细说明：</h4>
+                    {THREE_CHOICES.choice2.details.map((detail, index) => (
+                      <p key={index} className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        {detail}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white flex items-center">
+                      <AlertTriangle className="w-4 h-4 text-yellow-500 mr-2" />
+                      要求：
+                    </h4>
+                    {THREE_CHOICES.choice2.requirements.map((req, index) => (
+                      <p key={index} className="text-sm text-yellow-700 dark:text-yellow-400">
+                        {req}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -152,27 +203,50 @@ export default function ChoicesPage() {
             <Card
               className={`border-2 cursor-pointer transition-all hover:shadow-xl ${
                 selectedChoice === 'choice3'
-                  ? 'border-green-500 ring-2 ring-green-500'
+                  ? 'border-purple-500 ring-2 ring-purple-500'
                   : 'border-gray-200 dark:border-gray-700'
               }`}
               onClick={() => handleChoiceSelect('choice3')}
             >
-              <CardHeader className="text-center">
-                <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                  selectedChoice === 'choice3' ? 'bg-green-500' : 'bg-green-100 dark:bg-green-900'
-                }`}>
-                  <CheckCircle2 className={`w-8 h-8 ${selectedChoice === 'choice3' ? 'text-white' : 'text-green-500'}`} />
+              <CardHeader>
+                <div className="flex items-center space-x-3">
+                  <div className={`w-14 h-14 rounded-lg flex items-center justify-center ${
+                    selectedChoice === 'choice3' ? 'bg-purple-500' : 'bg-purple-100 dark:bg-purple-900'
+                  }`}>
+                    <CheckCircle2 className={`w-7 h-7 ${selectedChoice === 'choice3' ? 'text-white' : 'text-purple-500'}`} />
+                  </div>
+                  <div className="flex-1">
+                    <CardTitle className="text-xl mb-2">{THREE_CHOICES.choice3.title}</CardTitle>
+                    <CardDescription className="text-base">
+                      {THREE_CHOICES.choice3.description}
+                    </CardDescription>
+                  </div>
+                  {selectedChoice === 'choice3' && (
+                    <CheckCircle2 className="w-8 h-8 text-purple-500" />
+                  )}
                 </div>
-                <CardTitle className="text-xl">{THREE_CHOICES.choice3.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-700 dark:text-gray-300 mb-4">
-                  {THREE_CHOICES.choice3.description}
-                </p>
-                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-sm text-green-700 dark:text-green-400 font-semibold">
-                    {THREE_CHOICES.choice3.consequence}
-                  </p>
+                <div className="space-y-4">
+                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">详细说明：</h4>
+                    {THREE_CHOICES.choice3.details.map((detail, index) => (
+                      <p key={index} className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        {detail}
+                      </p>
+                    ))}
+                  </div>
+                  <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border-2 border-red-200 dark:border-red-800">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white flex items-center">
+                      <AlertTriangle className="w-4 h-4 text-red-500 mr-2" />
+                      必须满足的条件：
+                    </h4>
+                    {THREE_CHOICES.choice3.requirements.map((req, index) => (
+                      <p key={index} className="text-sm text-red-700 dark:text-red-400 font-semibold">
+                        {req}
+                      </p>
+                    ))}
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -181,25 +255,31 @@ export default function ChoicesPage() {
           {selectedChoice && (
             <div className="mt-8 max-w-3xl mx-auto">
               <Alert className={`border-2 ${
-                selectedChoice === 'choice1' ? 'border-red-500 bg-red-50 dark:bg-red-900/20' :
-                selectedChoice === 'choice2' ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' :
-                'border-green-500 bg-green-50 dark:bg-green-900/20'
+                selectedChoice === 'choice3' ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20' :
+                selectedChoice === 'choice2' ? 'border-green-500 bg-green-50 dark:bg-green-900/20' :
+                'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
               }`}>
                 {selectedChoice === 'choice3' ? (
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  <CheckCircle2 className="w-4 h-4 text-purple-500" />
                 ) : (
                   <AlertTriangle className="w-4 h-4" />
                 )}
                 <AlertDescription>
                   {selectedChoice === 'choice3' ? (
+                    <span className="text-purple-700 dark:text-purple-400">
+                      您选择了使用我的产品和服务。这就像坐豪车，跑得快还舒服，能加快恢复的速度。
+                      以后有任何需要，您都可以来找我，就算我的能力不足以解决您所有的问题，但是我的背后还有一个强大的平台。
+                      您就把我当成您的健康顾问就行！
+                    </span>
+                  ) : selectedChoice === 'choice2' ? (
                     <span className="text-green-700 dark:text-green-400">
-                      恭喜您选择了正确的方向！学习健康自我管理是改善健康状况的最佳途径。
-                      接下来，请阅读并承诺完成四个要求。
+                      您选择了带产品来免费服务。每个人挣钱都不容易，不要浪费，您的身体恢复这才是我的目的。
+                      您获得了健康，我也获得了经验。这就像坐车回家，舒服、安全、速度快。
                     </span>
                   ) : (
-                    <span>
-                      请慎重考虑。虽然这是您自己的选择，但我们真诚建议您选择"学习健康自我管理"。
-                      其他选择可能导致症状持续加重，错失最佳调理时机。
+                    <span className="text-blue-700 dark:text-blue-400">
+                      您选择了不花钱的方法。这就像走路回家，要么冷要么热，还很辛苦，但是只要坚持，最后也肯定能到家。
+                      得个病也不容易，要十几年甚至几十年才能形成的。去掉一个病也需要时间和坚持。
                     </span>
                   )}
                 </AlertDescription>
@@ -215,24 +295,26 @@ export default function ChoicesPage() {
               <CardHeader className="text-center">
                 <CardTitle className="text-3xl">四个要求</CardTitle>
                 <CardDescription className="text-base mt-2">
-                  为了确保健康管理的效果，请您认真阅读并承诺完成以下四个要求
+                  如果您选择第三个方案（使用我的产品和服务），必须完成以下四个要求。
+                  <strong>如果您做不到这四个要求，我也不能给您调理。</strong>
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Alert>
-                  <BookOpen className="w-4 h-4" />
-                  <AlertDescription>
-                    这四个要求是健康管理成功的关键，缺一不可。只有严格执行，才能确保调理效果。
+                <Alert className="border-red-500 bg-red-50 dark:bg-red-900/20">
+                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                  <AlertDescription className="text-red-700 dark:text-red-400">
+                    找不到病因真的治不好病，真正的病因都在生活里。如果习惯不改，医生治不好您的病，我也没有办法给您调好。
                   </AlertDescription>
                 </Alert>
               </CardContent>
             </Card>
 
             <div className="max-w-4xl mx-auto space-y-6">
+              {/* 要求1 */}
               <div className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
                 acceptedRequirements.has(1)
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/30'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
               }`}
                 onClick={() => handleRequirementToggle(1)}
               >
@@ -245,21 +327,33 @@ export default function ChoicesPage() {
                     />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
+                    <div className="flex items-center space-x-2 mb-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white">
-                        <Clock className="w-5 h-5" />
+                        <FileCheck className="w-5 h-5" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {FOUR_REQUIREMENTS.requirement1.title}
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        要求1：{FOUR_REQUIREMENTS.requirement1.title}
                       </h3>
                     </div>
-                    <p className="text-gray-700 dark:text-gray-300">
+                    <p className="text-gray-700 dark:text-gray-300 mb-3">
                       {FOUR_REQUIREMENTS.requirement1.description}
                     </p>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        <strong>详细内容：</strong>
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                        {FOUR_REQUIREMENTS.requirement1.details}
+                      </p>
+                      <p className="text-sm text-red-600 dark:text-red-400 font-semibold">
+                        {FOUR_REQUIREMENTS.requirement1.warning}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
+              {/* 要求2 */}
               <div className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
                 acceptedRequirements.has(2)
                   ? 'border-green-500 bg-green-50 dark:bg-green-900/30'
@@ -276,25 +370,37 @@ export default function ChoicesPage() {
                     />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white">
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex items-center justify-center text-white">
                         <ClipboardCheck className="w-5 h-5" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {FOUR_REQUIREMENTS.requirement2.title}
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        要求2：{FOUR_REQUIREMENTS.requirement2.title}
                       </h3>
                     </div>
-                    <p className="text-gray-700 dark:text-gray-300">
+                    <p className="text-gray-700 dark:text-gray-300 mb-3">
                       {FOUR_REQUIREMENTS.requirement2.description}
                     </p>
+                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        <strong>详细内容：</strong>
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                        {FOUR_REQUIREMENTS.requirement2.details}
+                      </p>
+                      <p className="text-sm text-green-600 dark:text-green-400">
+                        <strong>好处：</strong> {FOUR_REQUIREMENTS.requirement2.benefit}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
 
+              {/* 要求3 */}
               <div className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
                 acceptedRequirements.has(3)
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/30'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                  ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/30'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-purple-300'
               }`}
                 onClick={() => handleRequirementToggle(3)}
               >
@@ -307,25 +413,42 @@ export default function ChoicesPage() {
                     />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white">
-                        <Target className="w-5 h-5" />
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white">
+                        <GraduationCap className="w-5 h-5" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {FOUR_REQUIREMENTS.requirement3.title}
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        要求3：{FOUR_REQUIREMENTS.requirement3.title}
                       </h3>
                     </div>
-                    <p className="text-gray-700 dark:text-gray-300">
+                    <p className="text-gray-700 dark:text-gray-300 mb-3">
                       {FOUR_REQUIREMENTS.requirement3.description}
                     </p>
+                    <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        <strong>详细内容：</strong>
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                        {FOUR_REQUIREMENTS.requirement3.details}
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        <strong>好处：</strong>
+                      </p>
+                      <ul className="list-disc list-inside text-sm text-gray-700 dark:text-gray-300">
+                        {FOUR_REQUIREMENTS.requirement3.benefits.map((benefit, index) => (
+                          <li key={index}>{benefit}</li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
 
+              {/* 要求4 */}
               <div className={`p-6 border-2 rounded-lg cursor-pointer transition-all ${
                 acceptedRequirements.has(4)
-                  ? 'border-green-500 bg-green-50 dark:bg-green-900/30'
-                  : 'border-gray-200 dark:border-gray-700 hover:border-green-300'
+                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/30'
+                  : 'border-gray-200 dark:border-gray-700 hover:border-orange-300'
               }`}
                 onClick={() => handleRequirementToggle(4)}
               >
@@ -338,28 +461,42 @@ export default function ChoicesPage() {
                     />
                   </div>
                   <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white">
-                        <CheckCircle2 className="w-5 h-5" />
+                    <div className="flex items-center space-x-2 mb-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white">
+                        <Target className="w-5 h-5" />
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        {FOUR_REQUIREMENTS.requirement4.title}
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                        要求4：{FOUR_REQUIREMENTS.requirement4.title}
                       </h3>
                     </div>
-                    <p className="text-gray-700 dark:text-gray-300">
+                    <p className="text-gray-700 dark:text-gray-300 mb-3">
                       {FOUR_REQUIREMENTS.requirement4.description}
                     </p>
+                    <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        <strong>详细内容：</strong>
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                        {FOUR_REQUIREMENTS.requirement4.details}
+                      </p>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                        <strong>原因：</strong> {FOUR_REQUIREMENTS.requirement4.reason}
+                      </p>
+                      <p className="text-sm text-orange-600 dark:text-orange-400">
+                        <strong>好处：</strong> {FOUR_REQUIREMENTS.requirement4.benefit}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="mt-8 max-w-3xl mx-auto">
-              <Alert className="border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/20">
-                <BookOpen className="w-4 h-4 text-blue-500" />
-                <AlertDescription className="text-blue-700 dark:text-blue-400">
+              <Alert className="border-2 border-purple-500 bg-purple-50 dark:bg-purple-900/20">
+                <BookOpen className="w-4 h-4 text-purple-500" />
+                <AlertDescription className="text-purple-700 dark:text-purple-400">
                   这四个要求缺一不可，是健康管理成功的关键保障。只有严格执行，
-                  才能确保调理效果。请您认真对待每一项要求。
+                  才能确保调理效果。请您认真对待每一项要求，如果做不到这四个要求，我也不能给您调理。
                 </AlertDescription>
               </Alert>
             </div>
@@ -367,24 +504,35 @@ export default function ChoicesPage() {
         )}
 
         {/* 下一步按钮 */}
-        {selectedChoice === 'choice3' && (
+        {selectedChoice && (
           <section className="text-center">
             <Button
               onClick={handleContinue}
               size="lg"
-              disabled={acceptedRequirements.size !== 4}
+              disabled={selectedChoice === 'choice3' && acceptedRequirements.size !== 4}
               className={`${
-                acceptedRequirements.size === 4
-                  ? 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600'
-                  : 'bg-gray-400 cursor-not-allowed'
+                selectedChoice === 'choice3' && acceptedRequirements.size === 4
+                  ? 'bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600'
+                  : selectedChoice === 'choice3'
+                  ? 'bg-gray-400 cursor-not-allowed'
+                  : 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600'
               }`}
             >
-              获取您的健康管理方案
-              <ChevronRight className="w-5 h-5 ml-2" />
+              {selectedChoice === 'choice3' ? (
+                <>
+                  获取健康管理方案
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </>
+              ) : (
+                <>
+                  确认选择
+                  <CheckCircle2 className="w-5 h-5 ml-2" />
+                </>
+              )}
             </Button>
-            {acceptedRequirements.size !== 4 && (
+            {selectedChoice === 'choice3' && acceptedRequirements.size !== 4 && (
               <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-                请先同意并承诺完成所有四个要求
+                请先同意并承诺完成所有四个要求，如果做不到这四个要求，我也不能给您调理
               </p>
             )}
           </section>
