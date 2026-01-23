@@ -63,8 +63,6 @@ export async function POST(request: NextRequest) {
             免疫: 0,
             情绪: 0,
           },
-          createdAt: new Date(),
-          updatedAt: new Date(),
         });
         results.created.push('symptomCheck');
       } else {
@@ -91,8 +89,6 @@ export async function POST(request: NextRequest) {
           immunity: 0,
           emotions: 0,
           overallHealth: 5,
-          createdAt: new Date(),
-          updatedAt: new Date(),
         });
         results.created.push('healthAnalysis');
       } else {
@@ -113,8 +109,6 @@ export async function POST(request: NextRequest) {
           userId,
           planType: '方案三：健康调理师全程指导',
           planDescription: '最快、最专业的方法，有健康调理师一对一指导，针对您的具体情况制定调理方案，全程跟踪恢复效果。',
-          createdAt: new Date(),
-          updatedAt: new Date(),
         });
         results.created.push('userChoice');
       } else {
@@ -137,8 +131,6 @@ export async function POST(request: NextRequest) {
           requirement2Completed: true,
           requirement3Completed: true,
           requirement4Completed: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
         });
         results.created.push('requirements');
       } else {

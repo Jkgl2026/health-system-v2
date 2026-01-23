@@ -446,6 +446,7 @@ export default function CheckPage() {
 
                 {saveError && (
                   <ErrorAlert
+                    title="保存症状自检失败"
                     error={saveError}
                     onRetry={() => {
                       setSaveError(null);

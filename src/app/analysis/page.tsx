@@ -282,6 +282,7 @@ export default function AnalysisPage() {
 
             {saveError && (
               <ErrorAlert
+                title="保存健康要素分析失败"
                 error={saveError}
                 onRetry={() => {
                   setSaveError(null);

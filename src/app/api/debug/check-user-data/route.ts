@@ -87,13 +87,13 @@ export async function GET(request: NextRequest) {
           exists: !!symptomCheck,
           data: symptomCheck,
           completedAt: symptomCheck?.checkedAt,
-          hasData: symptomCheck && symptomCheck.checkedSymptoms.length > 0,
+          hasData: symptomCheck && Array.isArray(symptomCheck.checkedSymptoms) && symptomCheck.checkedSymptoms.length > 0,
         },
         healthAnalysis: {
           exists: !!healthAnalysisData,
           data: healthAnalysisData,
           completedAt: healthAnalysisData?.analyzedAt,
-          hasData: healthAnalysisData && healthAnalysisData.overallHealth > 0,
+          hasData: healthAnalysisData !== null && healthAnalysisData.overallHealth !== null && healthAnalysisData.overallHealth > 0,
         },
         userChoice: {
           exists: !!userChoice,

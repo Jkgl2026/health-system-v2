@@ -567,6 +567,7 @@ export default function ChoicesPage() {
 
         {saveError && (
           <ErrorAlert
+            title="保存选择和要求失败"
             error={saveError}
             onRetry={() => {
               setSaveError(null);

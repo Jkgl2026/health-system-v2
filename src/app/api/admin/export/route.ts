@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
           const symptomChecks = await healthDataManager.getSymptomChecksByUserId(user.id);
           const healthAnalysis = await healthDataManager.getHealthAnalysisByUserId(user.id);
           const userChoices = await healthDataManager.getUserChoicesByUserId(user.id);
-          const requirements = await healthDataManager.getRequirementsByUserId(user.id);
+          const requirements = await healthDataManager.getRequirementByUserId(user.id);
 
           details.symptomCheckCount = symptomChecks.length;
           details.healthAnalysisCount = healthAnalysis.length;

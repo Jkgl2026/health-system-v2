@@ -30,7 +30,8 @@ export async function POST(request: NextRequest) {
 
     // 更新密码
     const db = await import('coze-coding-dev-sdk').then(m => m.getDb());
-    const { admins, eq } = await import('./shared/schema');
+    const { admins } = await import('@/storage/database/shared/schema');
+    const { eq } = await import('drizzle-orm');
 
     const [updatedAdmin] = await db
       .update(admins)
