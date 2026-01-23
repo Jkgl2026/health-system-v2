@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, ChevronLeft, ChevronRight, Download, Search, X } from 'lucide-react';
 
 interface UserSummary {
   user: {
@@ -67,12 +67,24 @@ export default function AdminDashboardPage() {
   const [selectedUser, setSelectedUser] = useState<UserFullData | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const itemsPerPage = 10;
 
   useEffect(() => {
     checkAuth();
     fetchUsers();
-  }, [currentPage]);
+  }, [currentPage, searchQuery]);
+
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setCurrentPage(1); // 重置到第一页
+    fetchUsers();
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setCurrentPage(1);
+  };
 
   const checkAuth = () => {
     const isLoggedIn = localStorage.getItem('adminLoggedIn');
@@ -83,7 +95,16 @@ export default function AdminDashboardPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`/api/admin/users?page=${currentPage}&limit=${itemsPerPage}`);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: itemsPerPage.toString(),
+      });
+
+      if (searchQuery) {
+        params.append('search', searchQuery);
+      }
+
+      const response = await fetch(`/api/admin/users?${params.toString()}`);
       const data = await response.json();
       if (data.success) {
         setUsers(data.users);
@@ -111,6 +132,16 @@ export default function AdminDashboardPage() {
       }
     } catch (error) {
       console.error('Failed to fetch user detail:', error);
+    }
+  };
+
+  const handleExport = async (includeDetails: boolean) => {
+    try {
+      const url = `/api/admin/export?details=${includeDetails}`;
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Failed to export data:', error);
+      alert('导出数据失败，请重试');
     }
   };
 
@@ -146,13 +177,24 @@ export default function AdminDashboardPage() {
                 <p className="text-sm text-gray-500 dark:text-gray-400">用户数据管理中心</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleLogout}
-              className="flex items-center space-x-2"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>退出登录</span>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => handleExport(false)}
+                className="flex items-center space-x-2"
+              >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">导出数据</span>
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleLogout}
+                className="flex items-center space-x-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>退出登录</span>
+              </Button>
+            </div>
             </Button>
           </div>
         </div>
@@ -196,8 +238,36 @@ export default function AdminDashboardPage() {
         {/* 用户列表 */}
         <Card>
           <CardHeader>
-            <CardTitle>用户列表</CardTitle>
-            <CardDescription>查看和管理所有用户数据</CardDescription>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <CardTitle>用户列表</CardTitle>
+                <CardDescription>查看和管理所有用户数据</CardDescription>
+              </div>
+              <form onSubmit={handleSearch} className="flex items-center space-x-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="搜索姓名或手机号..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearchChange(e.target.value)}
+                    className="pl-10 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white w-full sm:w-64"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => handleSearchChange('')}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <Button type="submit" size="sm">
+                  搜索
+                </Button>
+              </form>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (

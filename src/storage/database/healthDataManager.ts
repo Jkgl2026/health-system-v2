@@ -1,5 +1,6 @@
 import { eq, and, desc, SQL } from "drizzle-orm";
 import { getDb } from "coze-coding-dev-sdk";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import {
   users,
   symptomChecks,
@@ -282,7 +283,12 @@ export class HealthDataManager {
 
   async createAdmin(data: InsertAdmin): Promise<Admin> {
     const db = await getDb();
-    const validated = insertAdminSchema.parse(data);
+    // 加密密码
+    const hashedPassword = await hashPassword(data.password);
+    const validated = insertAdminSchema.parse({
+      ...data,
+      password: hashedPassword,
+    });
     const [admin] = await db.insert(admins).values(validated).returning();
     return admin;
   }
@@ -298,9 +304,9 @@ export class HealthDataManager {
     if (!admin || !admin.isActive) {
       return null;
     }
-    // 注意：这里应该使用密码加密库（如 bcrypt）来验证密码
-    // 为了简化，这里直接比较，实际生产环境必须使用加密
-    if (admin.password === password) {
+    // 使用 bcrypt 验证密码
+    const isMatch = await verifyPassword(password, admin.password);
+    if (isMatch) {
       return admin;
     }
     return null;
@@ -351,7 +357,7 @@ export class HealthDataManager {
   /**
    * 获取所有用户的概要信息（用于管理后台列表）
    */
-  async getAllUsersSummary(options: { skip?: number; limit?: number } = {}): Promise<
+  async getAllUsersSummary(options: { skip?: number; limit?: number; search?: string } = {}): Promise<
     Array<{
       user: User;
       latestSymptomCheck: SymptomCheck | null;
@@ -360,8 +366,21 @@ export class HealthDataManager {
       requirements: Requirement | null;
     }>
   > {
-    const { skip = 0, limit = 100 } = options;
-    const allUsers = await this.getAllUsers({ skip, limit });
+    const { skip = 0, limit = 100, search } = options;
+    let allUsers = await this.getAllUsers({ skip: 0, limit: 10000 }); // 获取所有用户，因为需要过滤
+
+    // 搜索过滤
+    if (search) {
+      const searchLower = search.toLowerCase();
+      allUsers = allUsers.filter(
+        (user) =>
+          (user.name && user.name.toLowerCase().includes(searchLower)) ||
+          (user.phone && user.phone.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // 应用分页
+    allUsers = allUsers.slice(skip, skip + limit);
 
     const results = await Promise.all(
       allUsers.map(async (user) => {
