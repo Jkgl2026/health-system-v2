@@ -37,10 +37,14 @@ export default function ChoicesPage() {
       alert('请先选择一个方向，这样才能为您提供合适的建议。');
       return;
     }
+    
+    // 如果选择前两个方案，提示但允许继续
     if (selectedChoice === 'choice1' || selectedChoice === 'choice2') {
       alert('感谢您的选择！虽然前两个选择不需要购买产品，但仍然需要完成填表和学习的任务。我们推荐您选择第三个方案，这样可以获得更快的恢复效果。');
-      return;
+      // 移除 return，允许继续保存数据
     }
+    
+    // 如果选择第三个方案，必须完成所有四个要求
     if (selectedChoice === 'choice3' && acceptedRequirements.size !== 4) {
       alert('请同意并承诺完成所有四个要求，这样才能确保健康管理的效果。如果做不到四个要求，我也不能给您调理。');
       return;
@@ -78,13 +82,17 @@ export default function ChoicesPage() {
       }
 
       // 保存四个要求的完成情况
-      await saveRequirements({
+      // 如果选择方案1或2，默认完成四个要求（承诺填表和学习）
+      // 如果选择方案3，根据勾选情况保存
+      const requirementsData = {
         userId,
-        requirement1Completed: acceptedRequirements.has(1),
-        requirement2Completed: acceptedRequirements.has(2),
-        requirement3Completed: acceptedRequirements.has(3),
-        requirement4Completed: acceptedRequirements.has(4),
-      });
+        requirement1Completed: selectedChoice === 'choice1' || selectedChoice === 'choice2' ? true : acceptedRequirements.has(1),
+        requirement2Completed: selectedChoice === 'choice1' || selectedChoice === 'choice2' ? true : acceptedRequirements.has(2),
+        requirement3Completed: selectedChoice === 'choice1' || selectedChoice === 'choice2' ? true : acceptedRequirements.has(3),
+        requirement4Completed: selectedChoice === 'choice1' || selectedChoice === 'choice2' ? true : acceptedRequirements.has(4),
+      };
+      
+      await saveRequirements(requirementsData);
     } catch (error) {
       console.error('保存用户选择和要求数据失败:', error);
       // 即使保存失败也继续
