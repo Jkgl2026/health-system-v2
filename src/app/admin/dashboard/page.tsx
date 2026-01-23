@@ -725,15 +725,31 @@ export default function AdminDashboardPage() {
                       七问答案
                     </h3>
                     <div className="space-y-2">
-                      {SEVEN_QUESTIONS.map((q, index) => {
-                        const answer = selectedUser.requirements?.sevenQuestionsAnswers?.[q.id.toString()];
-                        return (
-                          <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                            <div className="font-medium text-sm mb-1">{q.question}</div>
-                            <div className="text-sm text-gray-600">{answer || '-'}</div>
-                          </div>
-                        );
-                      })}
+                      {(() => {
+                        const answers = selectedUser.requirements?.sevenQuestionsAnswers;
+                        
+                        // 检查是否是数组格式
+                        if (Array.isArray(answers)) {
+                          return answers.map((item: any, index: number) => (
+                            <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                              <div className="font-medium text-sm mb-1">{item.question || `问题 ${index + 1}`}</div>
+                              <div className="text-sm text-gray-600">{item.answer || '-'}</div>
+                            </div>
+                          ));
+                        }
+                        
+                        // 字典格式
+                        return SEVEN_QUESTIONS.map((q, index) => {
+                          const answerData = answers?.[q.id.toString()];
+                          const answer = typeof answerData === 'object' && answerData !== null ? answerData.answer : answerData;
+                          return (
+                            <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                              <div className="font-medium text-sm mb-1">{q.question}</div>
+                              <div className="text-sm text-gray-600">{answer || '-'}</div>
+                            </div>
+                          );
+                        });
+                      })()}
                     </div>
                   </div>
                 </>
