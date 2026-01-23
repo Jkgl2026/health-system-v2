@@ -233,7 +233,7 @@ export default function Home() {
         {/* 开始按钮 */}
         <section className="text-center">
           <Button
-            onClick={() => window.location.href = '/check'}
+            onClick={() => window.location.href = '/personal-info'}
             size="lg"
             className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white text-lg px-12 py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
           >
