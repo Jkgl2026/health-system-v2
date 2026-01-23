@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-01-23T13:45:00.000Z",
+  "total": 8,
+  "data": [
+    {
+      "key": "health_app_user_id",
+      "source": "localStorage",
+      "value": "d99deac8-b33e-454f-8fa1-PLACEHOLDER"
+    },
+    {
+      "key": "selectedChoice",
+      "source": "localStorage",
+      "value": "choice3"
+    },
+    {
+      "key": "acceptedRequirements",
+      "source": "localStorage",
+      "value": [1, 2, 3, 4]
+    },
+    {
+      "key": "selectedSymptoms",
+      "source": "localStorage",
+      "value": [2, 85]
+    },
+    {
+      "key": "selectedHabitsRequirements",
+      "source": "localStorage",
+      "value": 0
+    },
+    {
+      "key": "selectedSymptoms300",
+      "source": "localStorage",
+      "value": 0
+    },
+    {
+      "key": "sevenAnswers",
+      "source": "localStorage",
+      "value": []
+    },
+    {
+      "key": "targetSymptom",
+      "source": "localStorage",
+      "value": 85
+    }
+  ]
+}
