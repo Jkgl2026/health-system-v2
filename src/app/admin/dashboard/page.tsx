@@ -591,11 +591,11 @@ export default function AdminDashboardPage() {
 
               <Separator />
 
-              {/* 健康要素分析 */}
+              {/* 分析状态 */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center">
                   <Activity className="h-5 w-5 mr-2" />
-                  健康要素分析
+                  分析状态
                 </h3>
                 {getLatestHealthAnalysis() ? (
                   <div className="space-y-3">
@@ -624,11 +624,11 @@ export default function AdminDashboardPage() {
 
               <Separator />
 
-              {/* 症状自检 */}
+              {/* 自检状态 */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center">
                   <FileText className="h-5 w-5 mr-2" />
-                  症状自检
+                  自检状态
                 </h3>
                 {getLatestSymptomCheck() ? (
                   <div className="space-y-2">
@@ -659,11 +659,11 @@ export default function AdminDashboardPage() {
 
               <Separator />
 
-              {/* 方案选择 */}
+              {/* 选择方案 */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center">
                   <Target className="h-5 w-5 mr-2" />
-                  方案选择
+                  选择方案
                 </h3>
                 {getLatestChoice() ? (
                   <div className="space-y-2">
@@ -684,11 +684,11 @@ export default function AdminDashboardPage() {
 
               <Separator />
 
-              {/* 四个要求 */}
+              {/* 要求完成度 */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center">
                   <CheckCircle className="h-5 w-5 mr-2" />
-                  四个要求完成情况
+                  要求完成度
                 </h3>
                 {selectedUser.requirements ? (
                   <div className="space-y-3">
