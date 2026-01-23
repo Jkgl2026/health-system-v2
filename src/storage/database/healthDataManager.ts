@@ -36,10 +36,12 @@ export class HealthDataManager {
     const db = await getDb();
     try {
       const validated = insertUserSchema.parse(data);
+      console.log('[HealthDataManager] 创建用户 - 验证通过:', validated);
       const [user] = await db.insert(users).values(validated).returning();
+      console.log('[HealthDataManager] 创建用户成功:', user.id);
       return user;
     } catch (error) {
-      console.error('Validation error:', error);
+      console.error('[HealthDataManager] 创建用户失败:', error);
       throw error;
     }
   }
@@ -58,12 +60,19 @@ export class HealthDataManager {
 
   async updateUser(id: string, data: Partial<InsertUser>): Promise<User | null> {
     const db = await getDb();
-    const [user] = await db
-      .update(users)
-      .set({ ...data, updatedAt: new Date() })
-      .where(eq(users.id, id))
-      .returning();
-    return user || null;
+    try {
+      console.log('[HealthDataManager] 更新用户 - userId:', id, 'data:', data);
+      const [user] = await db
+        .update(users)
+        .set({ ...data, updatedAt: new Date() })
+        .where(eq(users.id, id))
+        .returning();
+      console.log('[HealthDataManager] 更新用户成功:', user ? user.id : 'not found');
+      return user || null;
+    } catch (error) {
+      console.error('[HealthDataManager] 更新用户失败:', error);
+      throw error;
+    }
   }
 
   async getAllUsers(options: { skip?: number; limit?: number } = {}): Promise<User[]> {

@@ -6,6 +6,8 @@ import type { InsertUser } from '@/storage/database';
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
+    console.log('POST /api/user - 接收到数据:', data);
+
     const userData: InsertUser = {
       name: data.name || null,
       phone: data.phone || null,
@@ -31,12 +33,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    console.log('开始创建用户:', userData);
     const user = await healthDataManager.createUser(userData);
+    console.log('用户创建成功:', user);
+
     return NextResponse.json({ success: true, user }, { status: 201 });
   } catch (error) {
     console.error('Error creating user:', error);
+    const errorMessage = error instanceof Error ? error.message : '未知错误';
     return NextResponse.json(
-      { error: '创建用户失败' },
+      { error: '创建用户失败', details: errorMessage },
       { status: 500 }
     );
   }
@@ -56,6 +62,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     const data = await request.json();
+    console.log('PATCH /api/user - userId:', userId, '数据:', data);
+
     const userData: Partial<InsertUser> = {};
 
     if (data.name !== undefined) userData.name = data.name;
@@ -70,12 +78,23 @@ export async function PATCH(request: NextRequest) {
     if (data.address !== undefined) userData.address = data.address;
     if (data.bmi !== undefined) userData.bmi = data.bmi;
 
+    console.log('开始更新用户:', { userId, userData });
     const updatedUser = await healthDataManager.updateUser(userId, userData);
+    console.log('用户更新成功:', updatedUser);
+
+    if (!updatedUser) {
+      return NextResponse.json(
+        { error: '用户不存在' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({ success: true, user: updatedUser });
   } catch (error) {
     console.error('Error updating user:', error);
+    const errorMessage = error instanceof Error ? error.message : '未知错误';
     return NextResponse.json(
-      { error: '更新用户信息失败' },
+      { error: '更新用户信息失败', details: errorMessage },
       { status: 500 }
     );
   }
@@ -95,6 +114,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('GET /api/user - userId:', userId, 'phone:', phone);
+
     let user;
     if (userId) {
       user = await healthDataManager.getUserById(userId);
@@ -109,11 +130,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    console.log('获取用户成功:', user.id);
     return NextResponse.json({ success: true, user });
   } catch (error) {
     console.error('Error fetching user:', error);
+    const errorMessage = error instanceof Error ? error.message : '未知错误';
     return NextResponse.json(
-      { error: '获取用户信息失败' },
+      { error: '获取用户信息失败', details: errorMessage },
       { status: 500 }
     );
   }

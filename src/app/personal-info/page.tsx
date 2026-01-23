@@ -122,17 +122,31 @@ export default function PersonalInfoPage() {
         bmi: bmi?.toString() || null,
       };
 
+      console.log('开始保存用户数据:', { userId, userData });
+
       const userResponse = await getUser(userId);
+      console.log('获取用户响应:', userResponse);
+
+      let response;
       if (userResponse.success && userResponse.user) {
-        await updateUser(userId, userData);
+        console.log('更新现有用户');
+        response = await updateUser(userId, userData);
       } else {
-        await createUser(userData);
+        console.log('创建新用户');
+        response = await createUser(userData);
+      }
+
+      console.log('保存响应:', response);
+
+      if (!response.success) {
+        throw new Error(response.error || '保存失败');
       }
 
       window.location.href = '/check';
     } catch (error) {
       console.error('保存个人信息失败:', error);
-      alert('保存失败，请重试');
+      const errorMessage = error instanceof Error ? error.message : '未知错误';
+      alert(`保存失败：${errorMessage}\n请稍后重试或联系管理员`);
     } finally {
       setIsSaving(false);
     }
