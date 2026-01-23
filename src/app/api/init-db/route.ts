@@ -1,9 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
 
-// POST /api/init-db - 初始化数据库表结构（仅用于首次设置）
+// POST /api/init-db - 初始化数据库表结构（仅用于首次设置或开发环境）
+// ⚠️ 警告：此操作会删除所有数据！请谨慎使用！
 export async function POST(request: NextRequest) {
   try {
+    const body = await request.json().catch(() => ({}));
+    const { confirm } = body;
+
+    // 安全保护：必须传入 confirm=true 才能执行
+    if (confirm !== true) {
+      return NextResponse.json(
+        {
+          error: '操作被拒绝',
+          message: '此操作会删除所有数据！请传入 confirm=true 参数确认执行。'
+        },
+        { status: 403 }
+      );
+    }
+
     const db = await getDb();
 
     // 删除旧表（如果存在）
@@ -29,6 +44,7 @@ export async function POST(request: NextRequest) {
         occupation VARCHAR(100),
         address TEXT,
         bmi VARCHAR(20),
+        deleted_at TIMESTAMP WITH TIME ZONE,
         created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE
       );
@@ -98,6 +114,7 @@ export async function POST(request: NextRequest) {
         requirement2_answers JSONB,
         seven_questions_answers JSONB,
         completed_at TIMESTAMP WITH TIME ZONE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
         updated_at TIMESTAMP WITH TIME ZONE
       );
     `);
@@ -109,27 +126,54 @@ export async function POST(request: NextRequest) {
     await db.execute(`
       CREATE TABLE admins (
         id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-        username VARCHAR(50) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL,
-        name VARCHAR(128),
-        is_active BOOLEAN DEFAULT TRUE NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-        updated_at TIMESTAMP WITH TIME ZONE
+        username VARCHAR(50) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       );
     `);
 
     await db.execute(`
-      CREATE INDEX admins_username_idx ON admins(username);
+      CREATE TABLE audit_logs (
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+        table_name VARCHAR(50) NOT NULL,
+        record_id VARCHAR(36) NOT NULL,
+        action VARCHAR(20) NOT NULL,
+        old_data JSONB,
+        new_data JSONB,
+        operator_id VARCHAR(36),
+        operator_name VARCHAR(128),
+        operator_type VARCHAR(20),
+        ip VARCHAR(45),
+        user_agent TEXT,
+        description TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+      );
+    `);
+
+    await db.execute(`
+      CREATE INDEX audit_logs_table_idx ON audit_logs(table_name);
+      CREATE INDEX audit_logs_record_idx ON audit_logs(record_id);
+      CREATE INDEX audit_logs_action_idx ON audit_logs(action);
+      CREATE INDEX audit_logs_created_idx ON audit_logs(created_at DESC);
     `);
 
     return NextResponse.json({
       success: true,
       message: '数据库表结构初始化成功',
-    }, { status: 201 });
+      tables: [
+        'users',
+        'symptom_checks',
+        'health_analysis',
+        'user_choices',
+        'requirements',
+        'admins',
+        'audit_logs'
+      ]
+    });
   } catch (error) {
     console.error('Error initializing database:', error);
     return NextResponse.json(
-      { error: '数据库初始化失败', details: error instanceof Error ? error.message : String(error) },
+      { error: '数据库初始化失败', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
