@@ -207,6 +207,7 @@ export const insertRequirementSchema = createCoercedInsertSchema(requirements).p
   requirement3Completed: true,
   requirement4Completed: true,
   requirement2Answers: true,
+  sevenQuestionsAnswers: true,
   completedAt: true,
 });
 

@@ -96,6 +96,7 @@ export async function POST(request: NextRequest) {
         requirement3_completed BOOLEAN DEFAULT FALSE,
         requirement4_completed BOOLEAN DEFAULT FALSE,
         requirement2_answers JSONB,
+        seven_questions_answers JSONB,
         completed_at TIMESTAMP WITH TIME ZONE,
         updated_at TIMESTAMP WITH TIME ZONE
       );
