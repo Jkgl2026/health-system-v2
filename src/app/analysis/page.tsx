@@ -9,7 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS, SEVEN_QUESTIONS } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
-import { saveHealthAnalysis } from '@/lib/api-client';
+import { saveHealthAnalysis, createUser, getUser } from '@/lib/api-client';
 import Link from 'next/link';
 
 interface QuestionAnswer {
@@ -76,6 +76,18 @@ export default function AnalysisPage() {
       setIsSaving(true);
       try {
         const userId = getOrGenerateUserId();
+        
+        // 确保用户存在
+        const userResponse = await getUser(userId);
+        if (!userResponse.success || !userResponse.user) {
+          await createUser({
+            name: null,
+            phone: null,
+            email: null,
+            age: null,
+            gender: null,
+          });
+        }
 
         // 计算各要素得分
         const analysisData = {

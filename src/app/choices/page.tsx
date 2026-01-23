@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, AlertTriangle, CheckCircle2, XCircle, Target, BookOpen, ClipboardCheck, Clock, Home, GraduationCap, FileCheck, Loader2 } from 'lucide-react';
 import { THREE_CHOICES, FOUR_REQUIREMENTS } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
-import { saveUserChoice, saveRequirements } from '@/lib/api-client';
+import { saveUserChoice, saveRequirements, createUser, getUser } from '@/lib/api-client';
 import Link from 'next/link';
 
 export default function ChoicesPage() {
@@ -54,6 +54,18 @@ export default function ChoicesPage() {
     setIsSaving(true);
     try {
       const userId = getOrGenerateUserId();
+      
+      // 确保用户存在
+      const userResponse = await getUser(userId);
+      if (!userResponse.success || !userResponse.user) {
+        await createUser({
+          name: null,
+          phone: null,
+          email: null,
+          age: null,
+          gender: null,
+        });
+      }
 
       // 保存用户选择
       const choiceData = THREE_CHOICES[selectedChoice as keyof typeof THREE_CHOICES];

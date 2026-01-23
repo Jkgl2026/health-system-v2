@@ -10,7 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
-import { saveSymptomCheck } from '@/lib/api-client';
+import { saveSymptomCheck, createUser, getUser } from '@/lib/api-client';
 import Link from 'next/link';
 
 export default function CheckPage() {
@@ -81,6 +81,19 @@ export default function CheckPage() {
       setIsSaving(true);
       try {
         const userId = getOrGenerateUserId();
+        
+        // 确保用户存在
+        const userResponse = await getUser(userId);
+        if (!userResponse.success || !userResponse.user) {
+          await createUser({
+            name: null,
+            phone: null,
+            email: null,
+            age: null,
+            gender: null,
+          });
+        }
+        
         const symptomsArray = [...selectedSymptoms];
         const totalScore = symptomsArray.length;
 
