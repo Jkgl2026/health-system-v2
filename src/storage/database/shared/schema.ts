@@ -125,6 +125,7 @@ export const requirements = pgTable(
     requirement3Completed: boolean("requirement3_completed").default(false), // 要求3完成状态
     requirement4Completed: boolean("requirement4_completed").default(false), // 要求4完成状态
     requirement2Answers: jsonb("requirement2_answers"), // 要求2的回答
+    sevenQuestionsAnswers: jsonb("seven_questions_answers"), // 持续跟进落实健康的七问答案
     completedAt: timestamp("completed_at", { withTimezone: true }),
     updatedAt: timestamp("updated_at", { withTimezone: true }),
   },

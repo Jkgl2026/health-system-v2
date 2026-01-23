@@ -7,7 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, ChevronLeft, ChevronRight, Download, Search, X, TrendingUp, Target } from 'lucide-react';
+import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, ChevronLeft, ChevronRight, Download, Search, X, TrendingUp, Target, HelpCircle } from 'lucide-react';
+import { SEVEN_QUESTIONS } from '@/lib/health-data';
 
 interface UserSummary {
   user: {
@@ -613,28 +614,43 @@ export default function AdminDashboardPage() {
                             </Badge>
                           </div>
 
-                          {/* 各要素得分 - 用进度条展示 */}
-                          <div className="space-y-3">
+                          {/* 各要素得分 - 用柱状图展示 */}
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {HEALTH_ELEMENTS.map((element) => {
                               const score = analysis[element.key] || 0;
                               const percentage = Math.min((score / 10) * 100, 100);
                               return (
-                                <div key={element.key} className="bg-white dark:bg-gray-800 p-3 rounded-md">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center space-x-2">
-                                      <div className={`w-2 h-2 rounded-full ${element.color}`} />
-                                      <span className="font-medium text-sm">{element.label}</span>
+                                <div key={element.key} className="bg-white dark:bg-gray-800 p-4 rounded-lg border-2 shadow-sm">
+                                  <div className="flex flex-col items-center mb-3">
+                                    {/* 图标和标签 */}
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${element.color}`}>
+                                      <TrendingUp className="w-5 h-5 text-white" />
                                     </div>
-                                    <div className="flex items-center space-x-2">
-                                      <span className={`font-bold text-lg ${element.textColor}`}>{score}</span>
-                                      <span className="text-sm text-gray-500">分</span>
+                                    <span className="font-bold text-lg text-gray-900 dark:text-white">{element.label}</span>
+                                  </div>
+                                  {/* 分数 */}
+                                  <div className="text-center mb-2">
+                                    <span className={`font-black text-3xl ${element.textColor}`}>{score}</span>
+                                    <span className="text-sm text-gray-500 ml-1">分</span>
+                                  </div>
+                                  {/* 柱状图 */}
+                                  <div className="relative h-24 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                                    <div
+                                      className={`absolute bottom-0 w-full ${element.color} transition-all duration-500 rounded-b-lg`}
+                                      style={{ height: `${percentage}%` }}
+                                    />
+                                    {/* 刻度线 */}
+                                    <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                                      {[10, 8, 6, 4, 2, 0].map((tick) => (
+                                        <div key={tick} className="w-full border-t border-gray-300 dark:border-gray-600" />
+                                      ))}
                                     </div>
                                   </div>
-                                  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
-                                    <div
-                                      className={`h-full ${element.color} transition-all duration-500`}
-                                      style={{ width: `${percentage}%` }}
-                                    />
+                                  {/* 百分比 */}
+                                  <div className="text-center mt-2">
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                      {percentage}%
+                                    </span>
                                   </div>
                                 </div>
                               );
@@ -781,6 +797,63 @@ export default function AdminDashboardPage() {
                     <div className="text-center py-8">
                       <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                       <p className="text-gray-500">暂无要求完成记录</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* 持续跟进落实健康的七问 */}
+              <Card className="border-2 border-teal-100">
+                <CardHeader className="bg-teal-50 dark:bg-teal-950">
+                  <CardTitle className="flex items-center text-lg">
+                    <HelpCircle className="w-5 h-5 mr-2 text-teal-600" />
+                    持续跟进落实健康的七问
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {selectedUser.requirements?.sevenQuestionsAnswers ? (
+                    <div className="space-y-4">
+                      {SEVEN_QUESTIONS.map((q) => {
+                        const answer = selectedUser.requirements.sevenQuestionsAnswers[q.id];
+                        return (
+                          <div
+                            key={q.id}
+                            className="p-4 bg-gradient-to-r from-teal-50 to-white dark:from-teal-950 dark:to-gray-900 rounded-lg border border-teal-100"
+                          >
+                            <div className="flex items-start space-x-3 mb-2">
+                              <div className="w-8 h-8 bg-teal-500 rounded-full flex items-center justify-center flex-shrink-0">
+                                <span className="text-white font-bold text-sm">{q.id}</span>
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
+                                  {q.question}
+                                </h4>
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                                  {q.description}
+                                </p>
+                                {answer ? (
+                                  <div className="p-3 bg-white dark:bg-gray-800 rounded-md">
+                                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                                      {typeof answer === 'string' ? answer : JSON.stringify(answer)}
+                                    </p>
+                                  </div>
+                                ) : (
+                                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md text-sm text-gray-500 dark:text-gray-400">
+                                    未填写
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500">暂无七问记录</p>
                     </div>
                   )}
                 </CardContent>

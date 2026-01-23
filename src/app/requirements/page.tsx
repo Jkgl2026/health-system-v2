@@ -77,7 +77,7 @@ export default function RequirementsPage() {
       <main className="container mx-auto px-4 py-8">
         {/* Tab导航 */}
         <div className="flex justify-center mb-8">
-          <div className="inline-flex bg-white dark:bg-gray-800 rounded-lg p-1 shadow-sm">
+          <div className="inline-flex bg-white dark:bg-gray-800 rounded-lg p-2 shadow-lg border-2 border-blue-200 dark:border-blue-800">
             {[
               { key: 'overview', label: '总览', icon: BookOpen },
               { key: 'req1', label: '要求1', icon: ClipboardCheck },
@@ -90,14 +90,14 @@ export default function RequirementsPage() {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key as any)}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-md transition-all ${
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all ${
                     activeTab === tab.key
-                      ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white'
+                      ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg scale-105'
                       : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-sm">{tab.label}</span>
+                  <Icon className="w-6 h-6" />
+                  <span className="text-base font-bold">{tab.label}</span>
                 </button>
               );
             })}
@@ -169,12 +169,12 @@ export default function RequirementsPage() {
             <Card className="border-2 border-blue-100 dark:border-blue-900">
               <CardHeader>
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                     1
                   </div>
                   <div>
-                    <CardTitle className="text-2xl">{FOUR_REQUIREMENTS.requirement1.title}</CardTitle>
-                    <CardDescription className="text-base mt-1">
+                    <CardTitle className="text-3xl font-extrabold">{FOUR_REQUIREMENTS.requirement1.title}</CardTitle>
+                    <CardDescription className="text-lg mt-1">
                       {FOUR_REQUIREMENTS.requirement1.description}
                     </CardDescription>
                   </div>
@@ -266,12 +266,12 @@ export default function RequirementsPage() {
             <Card className="border-2 border-purple-100 dark:border-purple-900">
               <CardHeader>
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                     2
                   </div>
                   <div>
-                    <CardTitle className="text-2xl">{FOUR_REQUIREMENTS.requirement2.title}</CardTitle>
-                    <CardDescription className="text-base mt-1">
+                    <CardTitle className="text-3xl font-extrabold">{FOUR_REQUIREMENTS.requirement2.title}</CardTitle>
+                    <CardDescription className="text-lg mt-1">
                       {FOUR_REQUIREMENTS.requirement2.description}
                     </CardDescription>
                   </div>
@@ -344,12 +344,12 @@ export default function RequirementsPage() {
             <Card className="border-2 border-green-100 dark:border-green-900">
               <CardHeader>
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                     3
                   </div>
                   <div>
-                    <CardTitle className="text-2xl">{FOUR_REQUIREMENTS.requirement3.title}</CardTitle>
-                    <CardDescription className="text-base mt-1">
+                    <CardTitle className="text-3xl font-extrabold">{FOUR_REQUIREMENTS.requirement3.title}</CardTitle>
+                    <CardDescription className="text-lg mt-1">
                       {FOUR_REQUIREMENTS.requirement3.description}
                     </CardDescription>
                   </div>
@@ -395,12 +395,12 @@ export default function RequirementsPage() {
             <Card className="border-2 border-orange-100 dark:border-orange-900">
               <CardHeader>
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
                     4
                   </div>
                   <div>
-                    <CardTitle className="text-2xl">{FOUR_REQUIREMENTS.requirement4.title}</CardTitle>
-                    <CardDescription className="text-base mt-1">
+                    <CardTitle className="text-3xl font-extrabold">{FOUR_REQUIREMENTS.requirement4.title}</CardTitle>
+                    <CardDescription className="text-lg mt-1">
                       {FOUR_REQUIREMENTS.requirement4.description}
                     </CardDescription>
                   </div>
