@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react';
+import { ErrorAlert } from '@/components/ui/error-alert';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
 import { saveSymptomCheck, createUser, getUser } from '@/lib/api-client';
@@ -18,6 +19,7 @@ export default function CheckPage() {
   const [currentStep, setCurrentStep] = useState<'intro' | 'select' | 'confirm'>('intro');
   const [targetSymptom, setTargetSymptom] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<any>(null);
 
 // 按类别分组症状
   const symptomsByCategory = BODY_SYMPTOMS.reduce((acc, symptom) => {
@@ -127,12 +129,14 @@ export default function CheckPage() {
           totalScore,
           elementScores,
         });
-      } catch (error) {
-        console.error('保存症状自检数据失败:', error);
-        // 即使保存失败也继续，不阻塞用户体验
-      } finally {
+
+        // 保存成功后才跳转
         setIsSaving(false);
         window.location.href = '/analysis';
+      } catch (error) {
+        console.error('保存症状自检数据失败:', error);
+        setSaveError(error);
+        setIsSaving(false);
       }
     }
   };
@@ -432,6 +436,18 @@ export default function CheckPage() {
                       了解它背后的健康要素，为您提供有针对性的解决方案。
                     </p>
                   </div>
+                )}
+
+                {saveError && (
+                  <ErrorAlert
+                    error={saveError}
+                    onRetry={() => {
+                      setSaveError(null);
+                      // 直接重新触发提交
+                      const button = document.querySelector('button[onClick]') as HTMLButtonElement;
+                      button?.click();
+                    }}
+                  />
                 )}
 
                 <Button

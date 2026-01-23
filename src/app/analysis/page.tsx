@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { ErrorAlert } from '@/components/ui/error-alert';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS, SEVEN_QUESTIONS } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
 import { saveHealthAnalysis, createUser, getUser } from '@/lib/api-client';
@@ -24,6 +25,7 @@ export default function AnalysisPage() {
   const [answers, setAnswers] = useState<QuestionAnswer[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<any>(null);
 
   useEffect(() => {
     const savedSymptoms = localStorage.getItem('selectedSymptoms');
@@ -103,12 +105,14 @@ export default function AnalysisPage() {
         };
 
         await saveHealthAnalysis(analysisData);
-      } catch (error) {
-        console.error('保存健康要素分析失败:', error);
-        // 即使保存失败也继续
-      } finally {
+
+        // 保存成功后才跳转
         setIsSaving(false);
         window.location.href = '/story';
+      } catch (error) {
+        console.error('保存健康要素分析失败:', error);
+        setSaveError(error);
+        setIsSaving(false);
       }
     }
   };
@@ -269,6 +273,16 @@ export default function AnalysisPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {saveError && (
+              <ErrorAlert
+                error={saveError}
+                onRetry={() => {
+                  setSaveError(null);
+                  handleNext();
+                }}
+              />
+            )}
 
             <Card className="border-2 border-blue-100 dark:border-blue-900">
               <CardHeader>

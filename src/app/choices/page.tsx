@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { ChevronLeft, ChevronRight, AlertTriangle, CheckCircle2, XCircle, Target, BookOpen, ClipboardCheck, Clock, Home, GraduationCap, FileCheck, Loader2 } from 'lucide-react';
+import { ErrorAlert } from '@/components/ui/error-alert';
 import { THREE_CHOICES, FOUR_REQUIREMENTS } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
 import { saveUserChoice, saveRequirements, createUser, getUser } from '@/lib/api-client';
@@ -16,6 +17,7 @@ export default function ChoicesPage() {
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [acceptedRequirements, setAcceptedRequirements] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<any>(null);
 
   const handleChoiceSelect = (choice: string) => {
     setSelectedChoice(choice);
@@ -93,12 +95,14 @@ export default function ChoicesPage() {
       };
       
       await saveRequirements(requirementsData);
-    } catch (error) {
-      console.error('保存用户选择和要求数据失败:', error);
-      // 即使保存失败也继续
-    } finally {
+
+      // 保存成功后才跳转
       setIsSaving(false);
       window.location.href = '/requirements';
+    } catch (error) {
+      console.error('保存用户选择和要求数据失败:', error);
+      setSaveError(error);
+      setIsSaving(false);
     }
   };
 
@@ -553,6 +557,16 @@ export default function ChoicesPage() {
               </Alert>
             </div>
           </section>
+        )}
+
+        {saveError && (
+          <ErrorAlert
+            error={saveError}
+            onRetry={() => {
+              setSaveError(null);
+              handleContinue();
+            }}
+          />
         )}
 
         {/* 下一步按钮 */}
