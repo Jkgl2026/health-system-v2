@@ -8,7 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react';
-import { BODY_SYMPTOMS } from '@/lib/health-data';
+import { BODY_SYMPTOMS, HEALTH_ELEMENTS } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
 import { saveSymptomCheck } from '@/lib/api-client';
 import Link from 'next/link';
@@ -95,15 +95,17 @@ export default function CheckPage() {
           情绪: 0,
         };
 
-        symptomsArray.forEach(symptomId => {
-          const symptom = BODY_SYMPTOMS.find(s => s.id === symptomId);
-          if (symptom) {
-            symptom.elements.forEach(element => {
-              if (elementScores[element] !== undefined) {
-                elementScores[element] += 1;
-              }
-            });
-          }
+        // 遍历每个健康要素，统计用户选择了多少个该要素的症状
+        Object.keys(HEALTH_ELEMENTS).forEach(elementKey => {
+          const elementData = HEALTH_ELEMENTS[elementKey as keyof typeof HEALTH_ELEMENTS];
+          const elementSymptoms = elementData.symptoms || [];
+          
+          // 统计用户选择的症状中有多少个属于该要素
+          const selectedInElement = symptomsArray.filter(symptomId =>
+            elementSymptoms.includes(symptomId)
+          ).length;
+          
+          elementScores[elementKey] = selectedInElement;
         });
 
         await saveSymptomCheck({

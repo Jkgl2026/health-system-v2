@@ -56,7 +56,7 @@ export default function ChoicesPage() {
       const userId = getOrGenerateUserId();
 
       // 保存用户选择
-      const choiceData = THREE_CHOICES.find(c => c.id === selectedChoice);
+      const choiceData = THREE_CHOICES[selectedChoice as keyof typeof THREE_CHOICES];
       if (choiceData) {
         await saveUserChoice({
           userId,
