@@ -6,11 +6,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ChevronLeft, User, Calculator, Activity } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ChevronLeft, User, Calculator, Activity, AlertCircle, Copy, CheckCircle2 } from 'lucide-react';
 import { getOrGenerateUserId } from '@/lib/user-context';
 import { createUser, getUser, updateUser } from '@/lib/api-client';
 import Link from 'next/link';
+
+interface ErrorResponse {
+  status: number;
+  statusText: string;
+  data: any;
+  message: string;
+  timestamp: string;
+  url: string;
+}
 
 export default function PersonalInfoPage() {
   const [formData, setFormData] = useState({
@@ -28,6 +37,8 @@ export default function PersonalInfoPage() {
   const [bmiCategory, setBmiCategory] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<ErrorResponse | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     loadUserData();
@@ -108,6 +119,8 @@ export default function PersonalInfoPage() {
     }
 
     setIsSaving(true);
+    setError(null);
+
     try {
       const userId = getOrGenerateUserId();
       const userData = {
@@ -122,21 +135,37 @@ export default function PersonalInfoPage() {
         bmi: bmi?.toString() || null,
       };
 
-      console.log('开始保存用户数据:', { userId, userData });
+      console.log('[前端] 开始保存用户数据:', { userId, userData });
 
       const userResponse = await getUser(userId);
-      console.log('获取用户响应:', userResponse);
+      console.log('[前端] 获取用户响应:', userResponse);
 
       let response;
+      let apiUrl = '';
+
       if (userResponse.success && userResponse.user) {
-        console.log('更新现有用户');
-        response = await updateUser(userId, userData);
+        console.log('[前端] 更新现有用户');
+        apiUrl = `/api/user?userId=${userId}`;
+        const res = await fetch(apiUrl, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData),
+        });
+        const data = await res.json();
+        response = { success: res.ok, ...data, status: res.status, statusText: res.statusText };
       } else {
-        console.log('创建新用户');
-        response = await createUser(userData);
+        console.log('[前端] 创建新用户');
+        apiUrl = '/api/user';
+        const res = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData),
+        });
+        const data = await res.json();
+        response = { success: res.ok, ...data, status: res.status, statusText: res.statusText };
       }
 
-      console.log('保存响应:', response);
+      console.log('[前端] 保存响应:', response);
 
       if (!response.success) {
         throw new Error(response.error || '保存失败');
@@ -144,9 +173,31 @@ export default function PersonalInfoPage() {
 
       window.location.href = '/check';
     } catch (error) {
-      console.error('保存个人信息失败:', error);
-      const errorMessage = error instanceof Error ? error.message : '未知错误';
-      alert(`保存失败：${errorMessage}\n请稍后重试或联系管理员`);
+      console.error('[前端] 保存个人信息失败:', error);
+
+      // 构建详细的错误信息
+      let errorResponse: ErrorResponse = {
+        status: 0,
+        statusText: 'Unknown',
+        data: null,
+        message: error instanceof Error ? error.message : '未知错误',
+        timestamp: new Date().toISOString(),
+        url: window.location.href,
+      };
+
+      // 如果是 fetch 错误
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorResponse.status = 0;
+        errorResponse.statusText = 'Network Error';
+        errorResponse.message = '网络请求失败，请检查网络连接或稍后重试';
+        errorResponse.data = { originalError: error.message };
+      } else {
+        errorResponse.status = (error as any).status || 500;
+        errorResponse.statusText = (error as any).statusText || 'Internal Server Error';
+        errorResponse.data = error;
+      }
+
+      setError(errorResponse);
     } finally {
       setIsSaving(false);
     }
@@ -165,6 +216,37 @@ export default function PersonalInfoPage() {
         return 'text-red-600 dark:text-red-400';
       default:
         return '';
+    }
+  };
+
+  const copyError = () => {
+    if (!error) return;
+
+    const errorText = `
+错误时间: ${error.timestamp}
+页面URL: ${error.url}
+错误状态: ${error.status} ${error.statusText}
+错误信息: ${error.message}
+详细信息: ${JSON.stringify(error.data, null, 2)}
+    `.trim();
+
+    navigator.clipboard.writeText(errorText).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const getErrorSuggestion = (error: ErrorResponse) => {
+    if (error.status === 0) {
+      return '网络请求失败，请检查网络连接或刷新页面重试。';
+    } else if (error.status === 404) {
+      return '资源不存在，请联系管理员检查服务器配置。';
+    } else if (error.status === 500) {
+      return '服务器内部错误，请稍后重试或联系技术支持。';
+    } else if (error.message.includes('database') || error.message.includes('Database')) {
+      return '数据库连接失败，请联系管理员初始化数据库。';
+    } else {
+      return '请稍后重试，或复制错误信息联系技术支持。';
     }
   };
 
@@ -222,6 +304,69 @@ export default function PersonalInfoPage() {
         {/* 表单卡片 */}
         <Card>
           <CardContent className="pt-6 space-y-6">
+            {/* 错误提示 */}
+            {error && (
+              <Alert variant="destructive" className="border-red-200 dark:border-red-800">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="flex items-center justify-between">
+                  <span>保存失败</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={copyError}
+                    className="h-6 px-2 text-xs"
+                  >
+                    {copied ? (
+                      <>
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
+                        已复制
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3 mr-1" />
+                        复制错误信息
+                      </>
+                    )}
+                  </Button>
+                </AlertTitle>
+                <AlertDescription className="mt-2">
+                  <div className="space-y-2">
+                    <p className="font-medium">{error.message}</p>
+                    <p className="text-sm opacity-90">{getErrorSuggestion(error)}</p>
+
+                    {/* 详细错误信息（可折叠） */}
+                    <details className="mt-3">
+                      <summary className="cursor-pointer text-sm font-medium hover:underline">
+                        查看详细信息
+                      </summary>
+                      <div className="mt-2 p-3 bg-black/10 dark:bg-black/20 rounded-md text-xs font-mono overflow-auto max-h-40">
+                        <div>时间: {new Date(error.timestamp).toLocaleString('zh-CN')}</div>
+                        <div>状态: <span className="font-bold">{error.status}</span> {error.statusText}</div>
+                        <div className="break-all">URL: {error.url}</div>
+                        <div className="mt-2">
+                          <div className="font-bold mb-1">详情:</div>
+                          <pre className="mt-1 whitespace-pre-wrap break-words">
+                            {typeof error.data === 'string' ? error.data : JSON.stringify(error.data, null, 2)}
+                          </pre>
+                        </div>
+                      </div>
+                    </details>
+
+                    {/* 快速解决方案 */}
+                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-md text-xs space-y-1.5">
+                      <p className="font-bold">快速解决步骤：</p>
+                      <ol className="list-decimal list-inside space-y-1 ml-1">
+                        <li>按 F12 打开浏览器控制台</li>
+                        <li>切换到 "Network" 标签</li>
+                        <li>点击保存按钮查看请求详情</li>
+                        <li>如果数据库未初始化，访问：<code className="bg-white/50 dark:bg-black/30 px-1.5 py-0.5 rounded break-all">/api/init-db</code></li>
+                      </ol>
+                    </div>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
             {/* 姓名 */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-base font-medium">
