@@ -111,6 +111,62 @@ export default function PersonalInfoPage() {
     }));
   };
 
+  // 安全解析响应的工具函数
+  const safeParseResponse = async (res: Response) => {
+    console.log('[前端] 响应状态:', res.status, res.statusText);
+    console.log('[前端] 响应头 Content-Type:', res.headers.get('content-type'));
+
+    // 先检查状态码
+    if (!res.ok) {
+      // 尝试读取响应体（文本或JSON）
+      let errorText = '';
+      let errorData = null;
+
+      try {
+        // 尝试解析为 JSON
+        if (res.headers.get('content-type')?.includes('application/json')) {
+          errorData = await res.json();
+          errorText = errorData.error || errorData.message || JSON.stringify(errorData);
+        } else {
+          // 如果不是 JSON，读取为文本
+          errorText = await res.text();
+          // 限制文本长度，避免过长
+          errorText = errorText.length > 500 ? errorText.substring(0, 500) + '...' : errorText;
+        }
+      } catch (e) {
+        // 如果连文本都读取失败，使用默认消息
+        errorText = '无法读取服务器响应';
+      }
+
+      throw {
+        status: res.status,
+        statusText: res.statusText,
+        message: errorText || `HTTP ${res.status}: ${res.statusText}`,
+        data: errorData,
+        url: res.url,
+      };
+    }
+
+    // 如果响应成功，尝试解析为 JSON
+    try {
+      const contentType = res.headers.get('content-type');
+      if (contentType?.includes('application/json')) {
+        return await res.json();
+      } else {
+        // 非 JSON 成功响应
+        const text = await res.text();
+        return { success: true, data: text };
+      }
+    } catch (e) {
+      throw {
+        status: 0,
+        statusText: 'Parse Error',
+        message: '响应解析失败',
+        data: { originalError: e instanceof Error ? e.message : String(e) },
+      };
+    }
+  };
+
   const handleSubmit = async () => {
     // 验证必填字段
     if (!formData.name || !formData.gender || !formData.age || !formData.weight || !formData.height) {
@@ -151,8 +207,7 @@ export default function PersonalInfoPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userData),
         });
-        const data = await res.json();
-        response = { success: res.ok, ...data, status: res.status, statusText: res.statusText };
+        response = await safeParseResponse(res);
       } else {
         console.log('[前端] 创建新用户');
         apiUrl = '/api/user';
@@ -161,8 +216,7 @@ export default function PersonalInfoPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(userData),
         });
-        const data = await res.json();
-        response = { success: res.ok, ...data, status: res.status, statusText: res.statusText };
+        response = await safeParseResponse(res);
       }
 
       console.log('[前端] 保存响应:', response);
@@ -195,6 +249,39 @@ export default function PersonalInfoPage() {
         errorResponse.status = (error as any).status || 500;
         errorResponse.statusText = (error as any).statusText || 'Internal Server Error';
         errorResponse.data = error;
+      }
+
+      // 处理不同类型的错误
+      if (typeof error === 'object' && error !== null) {
+        // 从 safeParseResponse 抛出的错误对象
+        errorResponse = {
+          status: (error as any).status || 500,
+          statusText: (error as any).statusText || 'Unknown Error',
+          data: (error as any).data || error,
+          message: (error as any).message || '保存失败',
+          timestamp: new Date().toISOString(),
+          url: (error as any).url || window.location.href,
+        };
+      } else if (error instanceof TypeError && error.message.includes('fetch')) {
+        // 网络错误
+        errorResponse = {
+          status: 0,
+          statusText: 'Network Error',
+          data: { originalError: error.message },
+          message: '网络请求失败，请检查网络连接或稍后重试',
+          timestamp: new Date().toISOString(),
+          url: window.location.href,
+        };
+      } else {
+        // 其他错误
+        errorResponse = {
+          status: 500,
+          statusText: 'Internal Server Error',
+          data: error,
+          message: error instanceof Error ? error.message : '未知错误',
+          timestamp: new Date().toISOString(),
+          url: window.location.href,
+        };
       }
 
       setError(errorResponse);
@@ -238,15 +325,23 @@ export default function PersonalInfoPage() {
 
   const getErrorSuggestion = (error: ErrorResponse) => {
     if (error.status === 0) {
-      return '网络请求失败，请检查网络连接或刷新页面重试。';
+      return '网络请求失败，请检查网络连接或刷新页面重试。如果问题持续，可能是服务器暂时不可用。';
+    } else if (error.status === 400) {
+      return '请求参数错误，请检查填写的信息是否完整和正确。';
     } else if (error.status === 404) {
       return '资源不存在，请联系管理员检查服务器配置。';
     } else if (error.status === 500) {
-      return '服务器内部错误，请稍后重试或联系技术支持。';
-    } else if (error.message.includes('database') || error.message.includes('Database')) {
-      return '数据库连接失败，请联系管理员初始化数据库。';
+      if (error.message.includes('database') || error.message.includes('Database') || error.message.includes('relation')) {
+        return '数据库表结构错误，请联系管理员初始化数据库。';
+      } else if (error.message.includes('Internal S')) {
+        return '服务器返回了非标准响应，这通常是服务器配置问题，请联系技术支持。';
+      } else {
+        return '服务器内部错误，请稍后重试或联系技术支持。';
+      }
+    } else if (error.status === 502 || error.status === 503 || error.status === 504) {
+      return '服务暂时不可用，请稍后重试。';
     } else {
-      return '请稍后重试，或复制错误信息联系技术支持。';
+      return `请稍后重试，或复制错误信息联系技术支持。状态码: ${error.status}`;
     }
   };
 
