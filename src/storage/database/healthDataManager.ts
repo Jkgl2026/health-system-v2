@@ -1,4 +1,4 @@
-import { eq, and, desc, SQL } from "drizzle-orm";
+import { eq, and, desc, SQL, isNull } from "drizzle-orm";
 import { getDb } from "coze-coding-dev-sdk";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import {
@@ -8,12 +8,14 @@ import {
   userChoices,
   requirements,
   admins,
+  auditLogs,
   insertUserSchema,
   insertSymptomCheckSchema,
   insertHealthAnalysisSchema,
   insertUserChoiceSchema,
   insertRequirementSchema,
   insertAdminSchema,
+  insertAuditLogSchema,
 } from "./shared/schema";
 import type {
   User,
@@ -28,18 +30,125 @@ import type {
   InsertRequirement,
   Admin,
   InsertAdmin,
+  AuditLog,
+  InsertAuditLog,
 } from "./shared/schema";
 
+// 审计日志记录器接口
+interface AuditLoggerOptions {
+  tableName: string;
+  recordId: string;
+  action: 'CREATE' | 'UPDATE' | 'DELETE' | 'RESTORE';
+  oldData?: any;
+  newData?: any;
+  operatorId?: string;
+  operatorName?: string;
+  operatorType?: 'ADMIN' | 'SYSTEM' | 'USER';
+  ip?: string;
+  userAgent?: string;
+  description?: string;
+}
+
 export class HealthDataManager {
+  // ==================== 审计日志 ====================
+
+  /**
+   * 记录审计日志
+   */
+  private async logAudit(options: AuditLoggerOptions): Promise<void> {
+    try {
+      const db = await getDb();
+      const logData: InsertAuditLog = {
+        action: options.action,
+        tableName: options.tableName,
+        recordId: options.recordId,
+        operatorId: options.operatorId || 'SYSTEM',
+        operatorName: options.operatorName || 'System',
+        operatorType: options.operatorType || 'SYSTEM',
+        oldData: options.oldData,
+        newData: options.newData,
+        ip: options.ip,
+        userAgent: options.userAgent,
+        description: options.description,
+      };
+
+      await db.insert(auditLogs).values(logData);
+      console.log('[HealthDataManager] 审计日志已记录:', {
+        action: options.action,
+        table: options.tableName,
+        recordId: options.recordId,
+      });
+    } catch (error) {
+      console.error('[HealthDataManager] 记录审计日志失败:', error);
+      // 审计日志失败不应该影响主业务流程
+    }
+  }
+
+  /**
+   * 获取审计日志列表
+   */
+  async getAuditLogs(options: {
+    skip?: number;
+    limit?: number;
+    tableName?: string;
+    recordId?: string;
+    operatorId?: string;
+    action?: string;
+  } = {}): Promise<AuditLog[]> {
+    const { skip = 0, limit = 100, tableName, recordId, operatorId, action } = options;
+    const db = await getDb();
+
+    let query = db.select().from(auditLogs);
+
+    const conditions = [];
+    if (tableName) conditions.push(eq(auditLogs.tableName, tableName));
+    if (recordId) conditions.push(eq(auditLogs.recordId, recordId));
+    if (operatorId) conditions.push(eq(auditLogs.operatorId, operatorId));
+    if (action) conditions.push(eq(auditLogs.action, action));
+
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+
+    return query
+      .orderBy(desc(auditLogs.createdAt))
+      .limit(limit)
+      .offset(skip);
+  }
+
+  /**
+   * 获取特定记录的所有审计日志
+   */
+  async getRecordAuditLogs(tableName: string, recordId: string): Promise<AuditLog[]> {
+    return this.getAuditLogs({ tableName, recordId, limit: 100 });
+  }
+
+  /**
+   * 获取操作者的审计日志
+   */
+  async getOperatorAuditLogs(operatorId: string, limit = 100): Promise<AuditLog[]> {
+    return this.getAuditLogs({ operatorId, limit });
+  }
   // ==================== 用户管理 ====================
 
-  async createUser(data: InsertUser): Promise<User> {
+  async createUser(data: InsertUser, auditOptions?: Omit<AuditLoggerOptions, 'tableName' | 'action' | 'recordId' | 'newData'>): Promise<User> {
     const db = await getDb();
     try {
       const validated = insertUserSchema.parse(data);
       console.log('[HealthDataManager] 创建用户 - 验证通过:', validated);
       const [user] = await db.insert(users).values(validated).returning();
       console.log('[HealthDataManager] 创建用户成功:', user.id);
+
+      // 记录审计日志
+      await this.logAudit({
+        ...auditOptions,
+        tableName: 'users',
+        action: 'CREATE',
+        recordId: user.id,
+        newData: user,
+        description: `创建用户: ${user.name || '未知'}`,
+      });
+
       return user;
     } catch (error) {
       console.error('[HealthDataManager] 创建用户失败:', error);
@@ -49,7 +158,12 @@ export class HealthDataManager {
 
   async getUserById(id: string): Promise<User | null> {
     const db = await getDb();
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await db.select().from(users).where(
+      and(
+        eq(users.id, id),
+        isNull(users.deletedAt) // 排除已删除的用户
+      )
+    );
     return user || null;
   }
 
@@ -59,16 +173,35 @@ export class HealthDataManager {
     return user || null;
   }
 
-  async updateUser(id: string, data: Partial<InsertUser>): Promise<User | null> {
+  async updateUser(id: string, data: Partial<InsertUser>, auditOptions?: Omit<AuditLoggerOptions, 'tableName' | 'action' | 'recordId'>): Promise<User | null> {
     const db = await getDb();
     try {
       console.log('[HealthDataManager] 更新用户 - userId:', id, 'data:', data);
+
+      // 获取旧数据用于审计日志
+      const [oldUser] = await db.select().from(users).where(eq(users.id, id));
+
       const [user] = await db
         .update(users)
         .set({ ...data, updatedAt: new Date() })
         .where(eq(users.id, id))
         .returning();
+
       console.log('[HealthDataManager] 更新用户成功:', user ? user.id : 'not found');
+
+      if (user && oldUser) {
+        // 记录审计日志
+        await this.logAudit({
+          ...auditOptions,
+          tableName: 'users',
+          action: 'UPDATE',
+          recordId: user.id,
+          oldData: oldUser,
+          newData: user,
+          description: `更新用户: ${user.name || '未知'}`,
+        });
+      }
+
       return user || null;
     } catch (error) {
       console.error('[HealthDataManager] 更新用户失败:', error);
@@ -87,10 +220,101 @@ export class HealthDataManager {
       .offset(skip);
   }
 
-  async deleteUser(id: string): Promise<boolean> {
+  /**
+   * 软删除用户（标记为已删除，而非真正删除）
+   */
+  async softDeleteUser(id: string, auditOptions?: Omit<AuditLoggerOptions, 'tableName' | 'action' | 'recordId'>): Promise<boolean> {
     const db = await getDb();
-    const result = await db.delete(users).where(eq(users.id, id));
-    return (result.rowCount ?? 0) > 0;
+    try {
+      // 获取用户数据用于审计日志
+      const [oldUser] = await db.select().from(users).where(eq(users.id, id));
+
+      if (!oldUser) {
+        return false;
+      }
+
+      // 软删除：设置deleted_at
+      const result = await db
+        .update(users)
+        .set({ deletedAt: new Date(), updatedAt: new Date() })
+        .where(eq(users.id, id));
+
+      console.log('[HealthDataManager] 软删除用户成功:', id);
+
+      // 记录审计日志
+      await this.logAudit({
+        ...auditOptions,
+        tableName: 'users',
+        action: 'DELETE',
+        recordId: id,
+        oldData: oldUser,
+        description: `软删除用户: ${oldUser.name || '未知'}`,
+      });
+
+      return (result.rowCount ?? 0) > 0;
+    } catch (error) {
+      console.error('[HealthDataManager] 软删除用户失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 恢复已删除的用户
+   */
+  async restoreUser(id: string, auditOptions?: Omit<AuditLoggerOptions, 'tableName' | 'action' | 'recordId'>): Promise<User | null> {
+    const db = await getDb();
+    try {
+      // 获取用户数据（包括已删除的）
+      const [user] = await db.select().from(users).where(eq(users.id, id));
+
+      if (!user) {
+        return null;
+      }
+
+      // 恢复：清除deleted_at
+      const [restoredUser] = await db
+        .update(users)
+        .set({ deletedAt: null, updatedAt: new Date() })
+        .where(eq(users.id, id))
+        .returning();
+
+      console.log('[HealthDataManager] 恢复用户成功:', id);
+
+      // 记录审计日志
+      await this.logAudit({
+        ...auditOptions,
+        tableName: 'users',
+        action: 'RESTORE',
+        recordId: id,
+        oldData: user,
+        newData: restoredUser,
+        description: `恢复用户: ${user.name || '未知'}`,
+      });
+
+      return restoredUser;
+    } catch (error) {
+      console.error('[HealthDataManager] 恢复用户失败:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 获取所有用户（包括已删除的）
+   */
+  async getAllUsers(options: { skip?: number; limit?: number; includeDeleted?: boolean } = {}): Promise<User[]> {
+    const { skip = 0, limit = 100, includeDeleted = false } = options;
+    const db = await getDb();
+
+    const query = db.select().from(users);
+
+    if (!includeDeleted) {
+      query.where(isNull(users.deletedAt));
+    }
+
+    return query
+      .orderBy(desc(users.createdAt))
+      .limit(limit)
+      .offset(skip);
   }
 
   // ==================== 症状自检管理 ====================

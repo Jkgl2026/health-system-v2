@@ -206,12 +206,40 @@ curl -X POST http://localhost:5000/api/migrate-db
 
 # 诊断数据库状态
 curl http://localhost:5000/api/diagnose-db
+
+# 检查数据完整性
+curl http://localhost:5000/api/check-data-integrity
+
+# 查看审计日志
+curl http://localhost:5000/api/get-audit-logs
 ```
+
+### 数据安全功能
+
+#### 1. 审计日志系统
+自动记录所有数据变更操作，包括：
+- 用户创建、更新、删除
+- 症状自检、健康分析、方案选择
+- 管理员操作
+- 软删除和恢复操作
+
+#### 2. 软删除功能
+使用标记删除而非物理删除：
+- 数据可恢复
+- 保留操作历史
+- 支持批量清理过期数据
+
+#### 3. 数据完整性检查
+自动检测数据问题：
+- 孤立记录（没有关联用户的数据）
+- 必填字段缺失
+- 重复数据
+- 数据一致性检查
 
 ### 管理后台
 访问 `http://localhost:5000/admin` 查看和管理用户数据。
 
-详细说明请参考 `ADMIN_BACKEND_GUIDE.md`。
+详细说明请参考 `ADMIN_BACKEND_GUIDE.md` 和 `DATABASE_MIGRATION_GUIDE.md`。
 
 ## 许可证
 

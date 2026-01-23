@@ -30,6 +30,7 @@ export const users = pgTable(
     occupation: varchar("occupation", { length: 100 }), // 职业
     address: text("address"), // 地址
     bmi: varchar("bmi", { length: 20 }), // 身体质量指数
+    deletedAt: timestamp("deleted_at", { withTimezone: true }), // 软删除标记
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -155,6 +156,35 @@ export const admins = pgTable(
   })
 );
 
+// 审计日志表 - 记录所有数据变更
+export const auditLogs = pgTable(
+  "audit_logs",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    action: varchar("action", { length: 20 }).notNull(), // CREATE, UPDATE, DELETE, RESTORE
+    tableName: varchar("table_name", { length: 50 }).notNull(), // 表名
+    recordId: varchar("record_id", { length: 36 }).notNull(), // 记录ID
+    operatorId: varchar("operator_id", { length: 36 }), // 操作人ID（管理员或系统）
+    operatorName: varchar("operator_name", { length: 128 }), // 操作人名称
+    operatorType: varchar("operator_type", { length: 20 }).notNull(), // ADMIN, SYSTEM, USER
+    oldData: jsonb("old_data"), // 修改前的数据
+    newData: jsonb("new_data"), // 修改后的数据
+    ip: varchar("ip", { length: 45 }), // 操作IP地址
+    userAgent: text("user_agent"), // 用户代理
+    description: text("description"), // 操作描述
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    recordIdx: index("audit_logs_record_idx").on(table.tableName, table.recordId),
+    operatorIdx: index("audit_logs_operator_idx").on(table.operatorId),
+    createdAtIdx: index("audit_logs_created_at_idx").on(table.createdAt),
+  })
+);
+
 // 使用 createSchemaFactory 配置 date coercion（处理前端 string → Date 转换）
 const { createInsertSchema: createCoercedInsertSchema } = createSchemaFactory({
   coerce: { date: true },
@@ -218,6 +248,20 @@ export const insertAdminSchema = createCoercedInsertSchema(admins).pick({
   isActive: true,
 });
 
+export const insertAuditLogSchema = createCoercedInsertSchema(auditLogs).pick({
+  action: true,
+  tableName: true,
+  recordId: true,
+  operatorId: true,
+  operatorName: true,
+  operatorType: true,
+  oldData: true,
+  newData: true,
+  ip: true,
+  userAgent: true,
+  description: true,
+});
+
 // TypeScript types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -236,6 +280,9 @@ export type InsertRequirement = z.infer<typeof insertRequirementSchema>;
 
 export type Admin = typeof admins.$inferSelect;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
+
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 
 
 
