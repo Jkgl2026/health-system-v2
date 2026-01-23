@@ -34,9 +34,14 @@ export class HealthDataManager {
 
   async createUser(data: InsertUser): Promise<User> {
     const db = await getDb();
-    const validated = insertUserSchema.parse(data);
-    const [user] = await db.insert(users).values(validated).returning();
-    return user;
+    try {
+      const validated = insertUserSchema.parse(data);
+      const [user] = await db.insert(users).values(validated).returning();
+      return user;
+    } catch (error) {
+      console.error('Validation error:', error);
+      throw error;
+    }
   }
 
   async getUserById(id: string): Promise<User | null> {
