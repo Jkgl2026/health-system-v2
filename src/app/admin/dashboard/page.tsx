@@ -600,7 +600,7 @@ export default function AdminDashboardPage() {
                 {getLatestHealthAnalysis() ? (
                   <div className="space-y-3">
                     {HEALTH_ELEMENTS.map((element) => {
-                      const value = getLatestHealthAnalysis()![element.key as keyof typeof getLatestHealthAnalysis()];
+                      const value = (getLatestHealthAnalysis() as any)[element.key];
                       return (
                         <div key={element.key}>
                           <div className="flex justify-between text-sm mb-1">
@@ -644,7 +644,7 @@ export default function AdminDashboardPage() {
                     </div>
                     {getLatestSymptomCheck()!.checkedSymptoms.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {getLatestSymptomCheck()!.checkedSymptoms.map((symptom, index) => (
+                        {getLatestSymptomCheck()!.checkedSymptoms.map((symptom: string, index: number) => (
                           <Badge key={index} variant="secondary">
                             {symptom}
                           </Badge>
@@ -725,11 +725,11 @@ export default function AdminDashboardPage() {
                       七问答案
                     </h3>
                     <div className="space-y-2">
-                      {SEVEN_QUESTIONS.map((question, index) => {
-                        const answer = selectedUser.requirements?.sevenQuestionsAnswers?.[index];
+                      {SEVEN_QUESTIONS.map((q, index) => {
+                        const answer = selectedUser.requirements?.sevenQuestionsAnswers?.[q.id.toString()];
                         return (
                           <div key={index} className="p-3 bg-gray-50 rounded-lg">
-                            <div className="font-medium text-sm mb-1">{question}</div>
+                            <div className="font-medium text-sm mb-1">{q.question}</div>
                             <div className="text-sm text-gray-600">{answer || '-'}</div>
                           </div>
                         );
