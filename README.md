@@ -75,6 +75,8 @@
 - **UI组件**: shadcn/ui (基于 Radix UI)
 - **样式**: Tailwind CSS 4
 - **包管理器**: pnpm
+- **数据库**: PostgreSQL (集成数据库服务)
+- **ORM**: Drizzle ORM
 
 ## 项目结构
 
@@ -83,18 +85,29 @@
 ├── src/
 │   ├── app/
 │   │   ├── page.tsx           # 首页
-│   │   ├── check/page.tsx     # 身体语言简表页面
-│   │   ├── analysis/page.tsx  # 症状分析与健康要素归类
-│   │   ├── story/page.tsx     # 系统战役故事
-│   │   ├── choices/page.tsx   # 三个选择和四个要求
-│   │   ├── solution/page.tsx  # 健康管理方案
+│   │   ├── personal-info/     # 个人信息收集
+│   │   ├── check/             # 身体语言简表
+│   │   ├── analysis/          # 症状分析与健康要素归类
+│   │   ├── story/             # 系统战役故事
+│   │   ├── choices/           # 三个选择和四个要求
+│   │   ├── solution/          # 健康管理方案
+│   │   ├── recovery-speed/    # 康复速度说明
+│   │   ├── courses/           # 课程学习（含发心感悟）
+│   │   ├── inspiration/       # 健康理念
+│   │   ├── admin/             # 管理后台
 │   │   ├── layout.tsx         # 根布局
 │   │   └── globals.css        # 全局样式
 │   ├── components/ui/         # shadcn/ui 组件
+│   ├── storage/
+│   │   └── database/          # 数据库相关
+│   │       ├── shared/schema.ts    # 数据库Schema定义
+│   │       └── healthDataManager.ts # 数据管理类
 │   └── lib/
 │       ├── health-data.ts     # 健康数据定义
 │       └── utils.ts           # 工具函数
 ├── .coze                      # 项目配置
+├── DATABASE_MIGRATION_GUIDE.md  # 数据库迁移指南
+├── ADMIN_BACKEND_GUIDE.md     # 管理后台指南
 ├── package.json
 └── README.md
 ```
@@ -176,7 +189,29 @@ pnpm start
 - ✅ 三个选择和四个要求
 - ✅ 大扫除故事和好转反应说明
 - ✅ 个性化的健康管理方案
-- ✅ 数据本地存储，保护用户隐私
+- ✅ 数据持久化存储（PostgreSQL）
+- ✅ 管理后台支持用户数据管理
+
+## 数据库管理
+
+### 重要原则
+**绝对不要在生产环境使用 `/api/init-db`！** 该API会删除所有数据。
+
+### 数据库迁移
+当需要修改数据库schema时，请参考 `DATABASE_MIGRATION_GUIDE.md`，使用迁移API：
+
+```bash
+# 应用迁移（安全添加列，不删除数据）
+curl -X POST http://localhost:5000/api/migrate-db
+
+# 诊断数据库状态
+curl http://localhost:5000/api/diagnose-db
+```
+
+### 管理后台
+访问 `http://localhost:5000/admin` 查看和管理用户数据。
+
+详细说明请参考 `ADMIN_BACKEND_GUIDE.md`。
 
 ## 许可证
 
