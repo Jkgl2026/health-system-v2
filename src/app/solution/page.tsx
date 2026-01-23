@@ -254,7 +254,7 @@ export default function SolutionPage() {
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/inspiration" className="flex items-center space-x-2">
+            <Link href="/recovery-speed" className="flex items-center space-x-2">
               <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               <span className="text-gray-600 dark:text-gray-400">返回上一步</span>
             </Link>
@@ -468,9 +468,9 @@ export default function SolutionPage() {
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
-                onClick={() => window.location.href = '/'}
+                onClick={() => window.location.href = '/courses'}
               >
-                返回首页
+                学习21堂必修课程
                 <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </CardContent>

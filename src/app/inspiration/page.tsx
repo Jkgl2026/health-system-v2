@@ -182,11 +182,11 @@ export default function InspirationPage() {
         {/* 下一步按钮 */}
         <section className="text-center space-y-4 mb-12">
           <Button
-            onClick={() => window.location.href = '/solution'}
+            onClick={() => window.location.href = '/'}
             size="lg"
             className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
           >
-            查看健康管理方案
+            返回首页
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
         </section>
