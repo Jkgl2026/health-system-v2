@@ -117,10 +117,10 @@ export async function GET(request: NextRequest) {
         totalTables: 5,
         existingTables: [
           'user',
-          symptomCheck: !!symptomCheck,
-          healthAnalysis: !!healthAnalysisData,
-          userChoice: !!userChoice,
-          requirements: !!requirementsData,
+          ...(symptomCheck ? ['symptomCheck'] : []),
+          ...(healthAnalysisData ? ['healthAnalysis'] : []),
+          ...(userChoice ? ['userChoice'] : []),
+          ...(requirementsData ? ['requirements'] : []),
         ].filter(Boolean).length,
         missingTables: [
           !symptomCheck && 'symptomCheck',
