@@ -581,15 +581,16 @@ export class HealthDataManager {
   /**
    * 获取所有用户的概要信息（用于管理后台列表）
    */
-  async getAllUsersSummary(options: { skip?: number; limit?: number; search?: string } = {}): Promise<
-    Array<{
+  async getAllUsersSummary(options: { skip?: number; limit?: number; search?: string } = {}): Promise<{
+    users: Array<{
       user: User;
       latestSymptomCheck: SymptomCheck | null;
       latestHealthAnalysis: HealthAnalysis | null;
       latestChoice: UserChoice | null;
       requirements: Requirement | null;
-    }>
-  > {
+    }>;
+    total: number;
+  }> {
     const { skip = 0, limit = 100, search } = options;
     let allUsers = await this.getAllUsers({ skip: 0, limit: 10000 }); // 获取所有用户，因为需要过滤
 
@@ -603,11 +604,14 @@ export class HealthDataManager {
       );
     }
 
+    // 保存总数（过滤后）
+    const total = allUsers.length;
+
     // 应用分页
-    allUsers = allUsers.slice(skip, skip + limit);
+    const paginatedUsers = allUsers.slice(skip, skip + limit);
 
     const results = await Promise.all(
-      allUsers.map(async (user) => {
+      paginatedUsers.map(async (user) => {
         const [latestSymptomCheck, latestHealthAnalysis, latestChoice, requirements] =
           await Promise.all([
             this.getLatestSymptomCheck(user.id),
@@ -626,7 +630,10 @@ export class HealthDataManager {
       })
     );
 
-    return results;
+    return {
+      users: results,
+      total,
+    };
   }
 }
 

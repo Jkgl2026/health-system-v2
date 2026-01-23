@@ -11,19 +11,24 @@ export async function GET(request: NextRequest) {
 
     const skip = (page - 1) * limit;
 
-    const usersSummary = await healthDataManager.getAllUsersSummary({
+    const result = await healthDataManager.getAllUsersSummary({
       skip,
       limit,
       search,
     });
 
+    const totalPages = Math.ceil(result.total / limit);
+
     return NextResponse.json({
       success: true,
-      users: usersSummary,
+      data: result.users,
       pagination: {
         page,
         limit,
-        total: usersSummary.length,
+        total: result.total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
       },
     });
   } catch (error) {
