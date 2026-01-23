@@ -685,39 +685,6 @@ export default function AdminDashboardPage() {
                               <p className="text-gray-700 dark:text-gray-300">{choice.planDescription}</p>
                             </div>
                           )}
-
-                          {/* 显示个性化健康管理方案的主要健康要素 */}
-                          {getLatestHealthAnalysis() && (
-                            <div className="mt-4 p-4 bg-white dark:bg-gray-800 rounded-md border border-purple-200">
-                              <div className="flex items-center space-x-2 mb-4">
-                                <Target className="w-5 h-5 text-purple-600" />
-                                <span className="font-bold text-lg text-purple-700">个性化健康管理方案</span>
-                              </div>
-                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                {[
-                                  { key: 'qiAndBlood', label: '气血', icon: '❤️', color: 'text-red-600', bgColor: 'bg-red-50 dark:bg-red-950', borderColor: 'border-red-200' },
-                                  { key: 'circulation', label: '循环', icon: '🔄', color: 'text-blue-600', bgColor: 'bg-blue-50 dark:bg-blue-950', borderColor: 'border-blue-200' },
-                                  { key: 'toxins', label: '毒素', icon: '🧪', color: 'text-yellow-600', bgColor: 'bg-yellow-50 dark:bg-yellow-950', borderColor: 'border-yellow-200' },
-                                  { key: 'bloodLipids', label: '血脂', icon: '📊', color: 'text-orange-600', bgColor: 'bg-orange-50 dark:bg-orange-950', borderColor: 'border-orange-200' },
-                                  { key: 'coldness', label: '寒凉', icon: '❄️', color: 'text-cyan-600', bgColor: 'bg-cyan-50 dark:bg-cyan-950', borderColor: 'border-cyan-200' },
-                                  { key: 'immunity', label: '免疫', icon: '🛡️', color: 'text-green-600', bgColor: 'bg-green-50 dark:bg-green-950', borderColor: 'border-green-200' },
-                                  { key: 'emotions', label: '情绪', icon: '😊', color: 'text-purple-600', bgColor: 'bg-purple-50 dark:bg-purple-950', borderColor: 'border-purple-200' },
-                                ].map((element) => {
-                                  const analysis = getLatestHealthAnalysis();
-                                  const score = analysis ? analysis[element.key] || 0 : 0;
-                                  return (
-                                    <div key={element.key} className={`${element.bgColor} ${element.borderColor} border-2 rounded-lg p-3`}>
-                                      <div className="flex items-center space-x-2 mb-2">
-                                        <span className="text-2xl">{element.icon}</span>
-                                        <span className="font-bold text-base">{element.label}</span>
-                                      </div>
-                                      <div className={`text-2xl font-bold ${element.color}`}>{score}分</div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       ))}
                     </div>
@@ -744,14 +711,14 @@ export default function AdminDashboardPage() {
                   {selectedUser.requirements ? (
                     <div className="space-y-4">
                       {/* 完成进度概览 */}
-                      <div className="p-6 bg-gradient-to-r from-orange-50 to-white dark:from-orange-950 dark:to-gray-900 rounded-lg border-2 border-orange-200">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-2xl font-bold text-gray-800 dark:text-white">总览</span>
-                          <Badge className="bg-orange-600 text-lg px-4 py-1">
+                      <div className="p-4 bg-gradient-to-r from-orange-50 to-white dark:from-orange-950 dark:to-gray-900 rounded-lg border border-orange-100">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-semibold text-gray-700">总体完成度</span>
+                          <Badge className="bg-orange-600">
                             {calculateRequirementsProgress(selectedUser.requirements)}%
                           </Badge>
                         </div>
-                        <div className="w-full h-5 bg-gray-200 rounded-full overflow-hidden">
+                        <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-orange-400 to-orange-600 transition-all duration-500"
                             style={{ width: `${calculateRequirementsProgress(selectedUser.requirements)}%` }}
@@ -771,7 +738,7 @@ export default function AdminDashboardPage() {
                           return (
                             <div
                               key={req.key}
-                              className={`p-5 rounded-lg border-2 transition-all ${
+                              className={`p-4 rounded-lg border-2 transition-all ${
                                 isCompleted
                                   ? 'bg-green-50 border-green-300 dark:bg-green-950 dark:border-green-700'
                                   : 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
@@ -780,22 +747,22 @@ export default function AdminDashboardPage() {
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
                                   {isCompleted ? (
-                                    <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
-                                      <CheckCircle className="w-6 h-6 text-white" />
+                                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                      <CheckCircle className="w-5 h-5 text-white" />
                                     </div>
                                   ) : (
-                                    <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                                      <AlertCircle className="w-6 h-6 text-gray-500" />
+                                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                                      <AlertCircle className="w-5 h-5 text-gray-500" />
                                     </div>
                                   )}
-                                  <div className="flex-1">
-                                    <p className="font-bold text-xl text-gray-800 dark:text-white">{req.label.split('：')[0]}</p>
-                                    <p className="font-medium text-base text-gray-600 dark:text-gray-400 mt-1">
-                                      {req.label.split('：')[1]}
+                                  <div>
+                                    <p className="font-medium text-sm">{req.label}</p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {isCompleted ? '已完成' : '未完成'}
                                     </p>
                                   </div>
                                 </div>
-                                <Badge variant={isCompleted ? "default" : "outline"} className={isCompleted ? 'bg-green-600 text-base px-3 py-1' : 'text-gray-500 text-base px-3 py-1'}>
+                                <Badge variant={isCompleted ? "default" : "outline"} className={isCompleted ? 'bg-green-600' : 'text-gray-500'}>
                                   {isCompleted ? '✓ 完成' : '○ 未完成'}
                                 </Badge>
                               </div>
