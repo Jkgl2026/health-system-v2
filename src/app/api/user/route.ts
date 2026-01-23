@@ -12,6 +12,12 @@ export async function POST(request: NextRequest) {
       email: data.email || null,
       age: data.age || null,
       gender: data.gender || null,
+      weight: data.weight || null,
+      height: data.height || null,
+      bloodPressure: data.bloodPressure || null,
+      occupation: data.occupation || null,
+      address: data.address || null,
+      bmi: data.bmi || null,
     };
 
     // 如果提供了phone，检查是否已存在
@@ -31,6 +37,45 @@ export async function POST(request: NextRequest) {
     console.error('Error creating user:', error);
     return NextResponse.json(
       { error: '创建用户失败' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/user - 更新用户信息
+export async function PATCH(request: NextRequest) {
+  try {
+    const searchParams = request.nextUrl.searchParams;
+    const userId = searchParams.get('userId');
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: '必须提供 userId 参数' },
+        { status: 400 }
+      );
+    }
+
+    const data = await request.json();
+    const userData: Partial<InsertUser> = {};
+
+    if (data.name !== undefined) userData.name = data.name;
+    if (data.phone !== undefined) userData.phone = data.phone;
+    if (data.email !== undefined) userData.email = data.email;
+    if (data.age !== undefined) userData.age = data.age;
+    if (data.gender !== undefined) userData.gender = data.gender;
+    if (data.weight !== undefined) userData.weight = data.weight;
+    if (data.height !== undefined) userData.height = data.height;
+    if (data.bloodPressure !== undefined) userData.bloodPressure = data.bloodPressure;
+    if (data.occupation !== undefined) userData.occupation = data.occupation;
+    if (data.address !== undefined) userData.address = data.address;
+    if (data.bmi !== undefined) userData.bmi = data.bmi;
+
+    const updatedUser = await healthDataManager.updateUser(userId, userData);
+    return NextResponse.json({ success: true, user: updatedUser });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    return NextResponse.json(
+      { error: '更新用户信息失败' },
       { status: 500 }
     );
   }

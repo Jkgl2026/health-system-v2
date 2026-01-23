@@ -24,6 +24,12 @@ export const users = pgTable(
     email: varchar("email", { length: 255 }),
     age: integer("age"),
     gender: varchar("gender", { length: 10 }),
+    weight: varchar("weight", { length: 20 }), // 体重(kg)
+    height: varchar("height", { length: 20 }), // 身高(cm)
+    bloodPressure: varchar("blood_pressure", { length: 50 }), // 血压
+    occupation: varchar("occupation", { length: 100 }), // 职业
+    address: text("address"), // 地址
+    bmi: varchar("bmi", { length: 20 }), // 身体质量指数
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
       .notNull(),
@@ -160,6 +166,12 @@ export const insertUserSchema = createCoercedInsertSchema(users).pick({
   email: true,
   age: true,
   gender: true,
+  weight: true,
+  height: true,
+  bloodPressure: true,
+  occupation: true,
+  address: true,
+  bmi: true,
 });
 
 export const insertSymptomCheckSchema = createCoercedInsertSchema(symptomChecks).pick({

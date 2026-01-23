@@ -74,7 +74,7 @@ export default function Home() {
               </div>
             </div>
             <Button
-              onClick={() => window.location.href = '/check'}
+              onClick={() => window.location.href = '/personal-info'}
               className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
             >
               开始自检

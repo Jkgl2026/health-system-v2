@@ -11,6 +11,12 @@ export async function createUser(userData: {
   email?: string | null;
   age?: number | null;
   gender?: string | null;
+  weight?: string | null;
+  height?: string | null;
+  bloodPressure?: string | null;
+  occupation?: string | null;
+  address?: string | null;
+  bmi?: string | null;
 }) {
   try {
     const response = await fetch(`${API_BASE}/user`, {
@@ -40,6 +46,36 @@ export async function getUser(userId?: string, phone?: string) {
     return data;
   } catch (error) {
     console.error('API Error - getUser:', error);
+    throw error;
+  }
+}
+
+/**
+ * 更新用户信息
+ */
+export async function updateUser(userId: string, userData: {
+  name?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  age?: number | null;
+  gender?: string | null;
+  weight?: string | null;
+  height?: string | null;
+  bloodPressure?: string | null;
+  occupation?: string | null;
+  address?: string | null;
+  bmi?: string | null;
+}) {
+  try {
+    const response = await fetch(`${API_BASE}/user?userId=${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('API Error - updateUser:', error);
     throw error;
   }
 }
