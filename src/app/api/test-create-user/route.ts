@@ -1,31 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from 'coze-coding-dev-sdk';
+import { healthDataManager } from '@/storage/database';
+import type { InsertUser } from '@/storage/database';
 
-// POST /api/test-create-user - 测试创建用户（不使用Zod验证）
+// POST /api/test-create-user - 测试创建用户
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    const db = await getDb();
 
-    // 直接插入数据，不使用 schema 验证
-    const result = await db.execute(`
-      INSERT INTO users (name, phone, gender, age, weight, height, bmi)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id, name, phone, gender, age, weight, height, bmi, created_at;
-    `, [
-      data.name || null,
-      data.phone || null,
-      data.gender || null,
-      data.age || null,
-      data.weight || null,
-      data.height || null,
-      data.bmi || null,
-    ]);
+    // 使用 healthDataManager 创建用户
+    const userData: InsertUser = {
+      name: data.name || null,
+      phone: data.phone || null,
+      gender: data.gender || null,
+      age: data.age || null,
+      weight: data.weight || null,
+      height: data.height || null,
+      bmi: data.bmi || null,
+    };
+
+    const user = await healthDataManager.createUser(userData);
 
     return NextResponse.json({
       success: true,
       message: '用户创建成功',
-      user: result.rows[0],
+      user,
     }, { status: 201 });
   } catch (error) {
     console.error('Error creating user:', error);
