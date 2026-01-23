@@ -439,23 +439,13 @@ export default function StoryPage() {
         {/* 下一步按钮 */}
         <section className="text-center space-y-4 mb-12">
           <Button
-            onClick={() => window.location.href = '/requirements'}
+            onClick={() => window.location.href = '/habits'}
             size="lg"
             className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
           >
-            查看四个要求
+            开始填写不良生活习惯表
             <ArrowRight className="w-5 h-5 ml-2" />
           </Button>
-          <div>
-            <Button
-              onClick={() => window.location.href = '/choices'}
-              variant="outline"
-              size="lg"
-            >
-              跳过，直接查看选择
-              <ChevronRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
         </section>
       </main>
     </div>

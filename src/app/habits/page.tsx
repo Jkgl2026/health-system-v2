@@ -32,7 +32,7 @@ export default function HabitsPage() {
     } else if (currentStep === 'confirm') {
       // 保存到localStorage并跳转到下一页
       localStorage.setItem('selectedHabits', JSON.stringify([...selectedHabits]));
-      window.location.href = '/choices';
+      window.location.href = '/requirements';
     }
   };
 

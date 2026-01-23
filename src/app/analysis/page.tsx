@@ -108,7 +108,7 @@ export default function AnalysisPage() {
         // 即使保存失败也继续
       } finally {
         setIsSaving(false);
-        window.location.href = '/habits';
+        window.location.href = '/story';
       }
     }
   };
