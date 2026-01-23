@@ -96,13 +96,19 @@ export default function ChoicesPage() {
       
       await saveRequirements(requirementsData);
 
-      // 保存成功后才跳转
+      // 保存成功后清除错误状态，然后跳转
+      setSaveError(null);
       setIsSaving(false);
-      window.location.href = '/requirements';
+      
+      // 使用更可靠的跳转方式
+      setTimeout(() => {
+        window.location.href = '/requirements';
+      }, 100);
     } catch (error) {
       console.error('保存用户选择和要求数据失败:', error);
       setSaveError(error);
       setIsSaving(false);
+      // ⚠️ 保存失败时不跳转，让用户看到错误并决定下一步
     }
   };
 

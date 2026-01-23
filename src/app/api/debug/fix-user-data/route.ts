@@ -1,63 +1,164 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { users, symptomChecks, healthAnalysis, userChoices, requirements } from '@/storage/database/shared/schema';
+import { eq } from 'drizzle-orm';
 
-// POST /api/debug/fix-user-data - 为指定用户添加测试数据
+/**
+ * 调试API：修复用户数据
+ * 用于为缺失数据的用户添加测试数据
+ */
 export async function POST(request: NextRequest) {
   try {
-    const db = await getDb();
-    const { userIds } = await request.json();
+    const body = await request.json();
+    const { userId, data } = body;
 
-    if (!Array.isArray(userIds) || userIds.length === 0) {
+    if (!userId) {
       return NextResponse.json(
-        { error: '请提供用户ID数组' },
+        { error: '缺少userId参数' },
         { status: 400 }
       );
     }
 
-    const results = [];
+    const db = await getDb();
+    
+    // 检查用户是否存在
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
-    for (const userId of userIds) {
-      // 1. 创建自检记录
-      await db.execute(`
-        INSERT INTO symptom_checks (id, user_id, checked_symptoms, total_score, element_scores, checked_at)
-        VALUES ('${uuidv4()}', '${userId}', '["1", "2", "3", "4", "5"]', 5, '{"气血": 2, "循环": 1, "毒素": 2}', NOW())
-        ON CONFLICT DO NOTHING
-      `);
+    if (!user) {
+      return NextResponse.json(
+        { error: '用户不存在' },
+        { status: 404 }
+      );
+    }
 
-      // 2. 创建健康分析记录
-      await db.execute(`
-        INSERT INTO health_analysis (id, user_id, qi_and_blood, circulation, toxins, overall_health, analyzed_at)
-        VALUES ('${uuidv4()}', '${userId}', 2, 1, 2, 5, NOW())
-        ON CONFLICT DO NOTHING
-      `);
+    const results: any = {
+      userId,
+      created: [],
+      skipped: [],
+    };
 
-      // 3. 创建用户选择记录
-      await db.execute(`
-        INSERT INTO user_choices (id, user_id, plan_type, plan_description, selected_at)
-        VALUES ('${uuidv4()}', '${userId}', '系统调理', '按照系统调理方案进行健康管理', NOW())
-        ON CONFLICT DO NOTHING
-      `);
+    // 修复症状自检数据
+    if (!data.symptomCheck || data.symptomCheck === true) {
+      const [existing] = await db
+        .select()
+        .from(symptomChecks)
+        .where(eq(symptomChecks.userId, userId))
+        .limit(1);
 
-      // 4. 创建要求完成记录
-      await db.execute(`
-        INSERT INTO requirements (id, user_id, requirement1_completed, requirement2_completed, requirement3_completed, requirement4_completed, completed_at)
-        VALUES ('${uuidv4()}', '${userId}', true, true, true, true, NOW())
-        ON CONFLICT DO NOTHING
-      `);
+      if (!existing) {
+        await db.insert(symptomChecks).values({
+          userId,
+          checkedSymptoms: ['1', '2', '3', '4', '5'],
+          totalScore: 5,
+          elementScores: {
+            气血: 1,
+            循环: 1,
+            毒素: 1,
+            血脂: 1,
+            寒凉: 1,
+            免疫: 0,
+            情绪: 0,
+          },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        results.created.push('symptomCheck');
+      } else {
+        results.skipped.push('symptomCheck (已存在)');
+      }
+    }
 
-      results.push({ userId, status: 'success' });
+    // 修复健康分析数据
+    if (!data.healthAnalysis || data.healthAnalysis === true) {
+      const [existing] = await db
+        .select()
+        .from(healthAnalysis)
+        .where(eq(healthAnalysis.userId, userId))
+        .limit(1);
+
+      if (!existing) {
+        await db.insert(healthAnalysis).values({
+          userId,
+          qiAndBlood: 1,
+          circulation: 1,
+          toxins: 1,
+          bloodLipids: 1,
+          coldness: 1,
+          immunity: 0,
+          emotions: 0,
+          overallHealth: 5,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        results.created.push('healthAnalysis');
+      } else {
+        results.skipped.push('healthAnalysis (已存在)');
+      }
+    }
+
+    // 修复用户选择数据
+    if (!data.userChoice || data.userChoice === true) {
+      const [existing] = await db
+        .select()
+        .from(userChoices)
+        .where(eq(userChoices.userId, userId))
+        .limit(1);
+
+      if (!existing) {
+        await db.insert(userChoices).values({
+          userId,
+          planType: '方案三：健康调理师全程指导',
+          planDescription: '最快、最专业的方法，有健康调理师一对一指导，针对您的具体情况制定调理方案，全程跟踪恢复效果。',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        results.created.push('userChoice');
+      } else {
+        results.skipped.push('userChoice (已存在)');
+      }
+    }
+
+    // 修复要求数据
+    if (!data.requirements || data.requirements === true) {
+      const [existing] = await db
+        .select()
+        .from(requirements)
+        .where(eq(requirements.userId, userId))
+        .limit(1);
+
+      if (!existing) {
+        await db.insert(requirements).values({
+          userId,
+          requirement1Completed: true,
+          requirement2Completed: true,
+          requirement3Completed: true,
+          requirement4Completed: true,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+        results.created.push('requirements');
+      } else {
+        results.skipped.push('requirements (已存在)');
+      }
     }
 
     return NextResponse.json({
       success: true,
-      message: '测试数据添加成功',
-      results,
+      ...results,
+      message: `成功创建 ${results.created.length} 项数据，跳过 ${results.skipped.length} 项已存在数据`,
     });
   } catch (error) {
-    console.error('Error fixing user data:', error);
+    console.error('修复用户数据失败:', error);
     return NextResponse.json(
-      { error: '添加测试数据失败', details: error instanceof Error ? error.message : String(error) },
+      {
+        success: false,
+        error: '修复失败',
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }

@@ -130,13 +130,19 @@ export default function CheckPage() {
           elementScores,
         });
 
-        // 保存成功后才跳转
+        // 保存成功后清除错误状态，然后跳转
+        setSaveError(null);
         setIsSaving(false);
-        window.location.href = '/analysis';
+        
+        // 使用更可靠的跳转方式
+        setTimeout(() => {
+          window.location.href = '/analysis';
+        }, 100);
       } catch (error) {
         console.error('保存症状自检数据失败:', error);
         setSaveError(error);
         setIsSaving(false);
+        // ⚠️ 保存失败时不跳转，让用户看到错误并决定下一步
       }
     }
   };

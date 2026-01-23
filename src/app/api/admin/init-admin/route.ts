@@ -1,57 +1,64 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { hashPassword } from '@/lib/password';
 import { getDb } from 'coze-coding-dev-sdk';
+import { admins } from '@/storage/database/shared/schema';
 import { eq } from 'drizzle-orm';
+import bcrypt from 'bcrypt';
 
-// POST /api/admin/init-admin - 初始化默认管理员账号
-export async function POST(request: NextRequest) {
+/**
+ * 初始化管理员账号API
+ * 创建默认管理员账号（用户名：admin，密码：admin123）
+ */
+export async function POST() {
   try {
     const db = await getDb();
-    const { admins } = await import('@/storage/database/shared/schema');
-
-    // 检查是否已存在管理员
-    const existingAdmins = await db.select().from(admins);
     
-    if (existingAdmins.length > 0) {
+    // 检查是否已存在admin用户
+    const [existingAdmin] = await db
+      .select()
+      .from(admins)
+      .where(eq(admins.username, 'admin'))
+      .limit(1);
+
+    if (existingAdmin) {
       return NextResponse.json({
         success: false,
-        message: '管理员账号已存在，无需重复初始化',
-        existingAdmins: existingAdmins.map(a => ({ id: a.id, username: a.username, name: a.name })),
-      }, { status: 400 });
+        message: '管理员账号已存在',
+        username: existingAdmin.username,
+      });
     }
 
-    // 创建默认管理员账号
-    const defaultUsername = 'admin';
-    const defaultPassword = 'admin123';
-    const hashedPassword = await hashPassword(defaultPassword);
+    // 加密密码
+    const hashedPassword = await bcrypt.hash('admin123', 10);
 
+    // 创建管理员账号
     const [newAdmin] = await db.insert(admins).values({
-      username: defaultUsername,
+      username: 'admin',
       password: hashedPassword,
-      name: '系统管理员',
-      isActive: true,
       createdAt: new Date(),
+      updatedAt: new Date(),
     }).returning();
 
     return NextResponse.json({
       success: true,
-      message: '默认管理员账号创建成功',
+      message: '管理员账号创建成功',
       admin: {
         id: newAdmin.id,
         username: newAdmin.username,
-        name: newAdmin.name,
-        isActive: newAdmin.isActive,
       },
       credentials: {
-        username: defaultUsername,
-        password: defaultPassword,
-        note: '请立即登录后修改密码',
+        username: 'admin',
+        password: 'admin123',
       },
-    }, { status: 201 });
+      warning: '请立即修改默认密码！',
+    });
   } catch (error) {
-    console.error('Error initializing admin:', error);
+    console.error('初始化管理员账号失败:', error);
     return NextResponse.json(
-      { error: '管理员初始化失败', details: error instanceof Error ? error.message : String(error) },
+      {
+        success: false,
+        error: '初始化失败',
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 500 }
     );
   }
