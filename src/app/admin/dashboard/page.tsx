@@ -6,8 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, ChevronLeft, ChevronRight, Download, Search, X } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
+import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, ChevronLeft, ChevronRight, Download, Search, X, TrendingUp, Target } from 'lucide-react';
 
 interface UserSummary {
   user: {
@@ -61,6 +61,17 @@ interface UserFullData {
   requirements: any;
 }
 
+// 健康要素配置
+const HEALTH_ELEMENTS = [
+  { key: 'qiAndBlood', label: '气血', color: 'bg-red-500', textColor: 'text-red-600' },
+  { key: 'circulation', label: '循环', color: 'bg-blue-500', textColor: 'text-blue-600' },
+  { key: 'toxins', label: '毒素', color: 'bg-yellow-500', textColor: 'text-yellow-600' },
+  { key: 'bloodLipids', label: '血脂', color: 'bg-orange-500', textColor: 'text-orange-600' },
+  { key: 'coldness', label: '寒凉', color: 'bg-cyan-500', textColor: 'text-cyan-600' },
+  { key: 'immunity', label: '免疫', color: 'bg-green-500', textColor: 'text-green-600' },
+  { key: 'emotions', label: '情绪', color: 'bg-purple-500', textColor: 'text-purple-600' },
+];
+
 export default function AdminDashboardPage() {
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,7 +88,7 @@ export default function AdminDashboardPage() {
 
   const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setCurrentPage(1); // 重置到第一页
+    setCurrentPage(1);
     fetchUsers();
   };
 
@@ -162,6 +173,30 @@ export default function AdminDashboardPage() {
     return (completed / 4) * 100;
   };
 
+  // 获取最新的健康分析数据
+  const getLatestHealthAnalysis = () => {
+    if (!selectedUser || !selectedUser.healthAnalysis || selectedUser.healthAnalysis.length === 0) {
+      return null;
+    }
+    return selectedUser.healthAnalysis[0];
+  };
+
+  // 获取最新的症状自检数据
+  const getLatestSymptomCheck = () => {
+    if (!selectedUser || !selectedUser.symptomChecks || selectedUser.symptomChecks.length === 0) {
+      return null;
+    }
+    return selectedUser.symptomChecks[0];
+  };
+
+  // 获取最新的方案选择
+  const getLatestChoice = () => {
+    if (!selectedUser || !selectedUser.userChoices || selectedUser.userChoices.length === 0) {
+      return null;
+    }
+    return selectedUser.userChoices[0];
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       {/* 顶部导航栏 */}
@@ -202,32 +237,44 @@ export default function AdminDashboardPage() {
       <main className="container mx-auto px-4 py-8">
         {/* 统计卡片 */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card>
+          <Card className="border-l-4 border-l-blue-500">
             <CardHeader className="pb-2">
-              <CardDescription>总用户数</CardDescription>
-              <CardTitle className="text-3xl">{users.length}</CardTitle>
+              <CardDescription className="flex items-center">
+                <Users className="w-4 h-4 mr-2 text-blue-500" />
+                总用户数
+              </CardDescription>
+              <CardTitle className="text-3xl text-blue-600">{users.length}</CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="border-l-4 border-l-green-500">
             <CardHeader className="pb-2">
-              <CardDescription>完成自检</CardDescription>
-              <CardTitle className="text-3xl">
+              <CardDescription className="flex items-center">
+                <FileText className="w-4 h-4 mr-2 text-green-500" />
+                完成自检
+              </CardDescription>
+              <CardTitle className="text-3xl text-green-600">
                 {users.filter((u) => u.latestSymptomCheck).length}
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="border-l-4 border-l-blue-500">
             <CardHeader className="pb-2">
-              <CardDescription>完成分析</CardDescription>
-              <CardTitle className="text-3xl">
+              <CardDescription className="flex items-center">
+                <Activity className="w-4 h-4 mr-2 text-blue-500" />
+                完成分析
+              </CardDescription>
+              <CardTitle className="text-3xl text-blue-600">
                 {users.filter((u) => u.latestHealthAnalysis).length}
               </CardTitle>
             </CardHeader>
           </Card>
-          <Card>
+          <Card className="border-l-4 border-l-purple-500">
             <CardHeader className="pb-2">
-              <CardDescription>已选择方案</CardDescription>
-              <CardTitle className="text-3xl">
+              <CardDescription className="flex items-center">
+                <Target className="w-4 h-4 mr-2 text-purple-500" />
+                已选方案
+              </CardDescription>
+              <CardTitle className="text-3xl text-purple-600">
                 {users.filter((u) => u.latestChoice).length}
               </CardTitle>
             </CardHeader>
@@ -397,227 +444,347 @@ export default function AdminDashboardPage() {
         </Card>
       </main>
 
-      {/* 用户详情对话框 */}
+      {/* 用户详情对话框 - 优化版 */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>用户详细信息</DialogTitle>
-            <DialogDescription>查看用户的完整数据</DialogDescription>
+            <DialogTitle className="text-2xl">用户详细信息</DialogTitle>
+            <DialogDescription>查看用户的完整健康数据</DialogDescription>
           </DialogHeader>
           {selectedUser && (
             <div className="space-y-6">
-              {/* 基本信息 */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  基本信息
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <span className="text-sm text-gray-500">姓名：</span>
-                    <span className="font-medium">{selectedUser.user?.name || '-'}</span>
+              {/* 用户基本信息卡片 */}
+              <Card className="border-2 border-blue-100">
+                <CardHeader className="bg-blue-50 dark:bg-blue-950">
+                  <CardTitle className="flex items-center text-lg">
+                    <Users className="w-5 h-5 mr-2 text-blue-600" />
+                    基本信息
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">姓名</span>
+                      <span className="font-semibold text-lg">{selectedUser.user?.name || '-'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">手机号</span>
+                      <span className="font-semibold text-lg">{selectedUser.user?.phone || '-'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">邮箱</span>
+                      <span className="font-medium">{selectedUser.user?.email || '-'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">年龄</span>
+                      <span className="font-medium">{selectedUser.user?.age ? `${selectedUser.user.age}岁` : '-'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">性别</span>
+                      <span className="font-medium">{selectedUser.user?.gender || '-'}</span>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm text-gray-500">注册时间</span>
+                      <span className="font-medium text-sm">{formatDate(selectedUser.user?.createdAt)}</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-sm text-gray-500">手机号：</span>
-                    <span className="font-medium">{selectedUser.user?.phone || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-500">邮箱：</span>
-                    <span className="font-medium">{selectedUser.user?.email || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-500">年龄：</span>
-                    <span className="font-medium">{selectedUser.user?.age || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-500">性别：</span>
-                    <span className="font-medium">{selectedUser.user?.gender || '-'}</span>
-                  </div>
-                  <div>
-                    <span className="text-sm text-gray-500">注册时间：</span>
-                    <span className="font-medium">{formatDate(selectedUser.user?.createdAt)}</span>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              {/* 症状自检 */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 flex items-center">
-                  <FileText className="w-5 h-5 mr-2" />
-                  症状自检记录 ({selectedUser.symptomChecks.length} 条)
-                </h3>
-                {selectedUser.symptomChecks.length > 0 ? (
-                  <div className="space-y-3">
-                    {selectedUser.symptomChecks.map((check: any) => (
-                      <div key={check.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-sm text-gray-500">
-                            {formatDate(check.checkedAt)}
-                          </span>
-                          <Badge>总分: {check.totalScore || 0}</Badge>
-                        </div>
-                        <div className="text-sm">
-                          <span className="text-gray-500">选中症状：</span>
-                          <span className="font-medium">
-                            {Array.isArray(check.checkedSymptoms)
-                              ? check.checkedSymptoms.length
-                              : 0}{' '}
-                            项
-                          </span>
-                        </div>
-                        {check.elementScores && (
-                          <div className="mt-2 text-xs text-gray-500">
-                            <span>各要素得分：{JSON.stringify(check.elementScores)}</span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
+              <Separator />
+
+              {/* 症状自检记录 */}
+              <Card className="border-2 border-green-100">
+                <CardHeader className="bg-green-50 dark:bg-green-950">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center text-lg">
+                      <FileText className="w-5 h-5 mr-2 text-green-600" />
+                      症状自检记录
+                    </CardTitle>
+                    {selectedUser.symptomChecks.length > 0 && (
+                      <Badge variant="default" className="bg-green-600">
+                        {selectedUser.symptomChecks.length} 条记录
+                      </Badge>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-sm text-gray-500">暂无自检记录</div>
-                )}
-              </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {selectedUser.symptomChecks.length > 0 ? (
+                    <div className="space-y-4">
+                      {selectedUser.symptomChecks.map((check: any, index: number) => (
+                        <div key={check.id} className="p-4 bg-gradient-to-r from-green-50 to-white dark:from-green-950 dark:to-gray-900 rounded-lg border border-green-100">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center space-x-4">
+                              <div className="flex items-center space-x-2">
+                                <span className="text-sm text-gray-500">检查时间：</span>
+                                <span className="font-medium text-sm">{formatDate(check.checkedAt)}</span>
+                              </div>
+                              <Badge className="bg-green-600">
+                                <Target className="w-3 h-3 mr-1" />
+                                总分：{check.totalScore || 0} 分
+                              </Badge>
+                            </div>
+                          </div>
+
+                          {/* 选中的症状数量 */}
+                          <div className="mb-3 p-3 bg-white dark:bg-gray-800 rounded-md">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <FileText className="w-4 h-4 text-green-600" />
+                              <span className="font-semibold text-green-700">选中症状</span>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <div className="text-3xl font-bold text-green-600">
+                                {Array.isArray(check.checkedSymptoms) ? check.checkedSymptoms.length : 0}
+                              </div>
+                              <span className="text-gray-600">项症状</span>
+                            </div>
+                          </div>
+
+                          {/* 各要素得分 */}
+                          {check.elementScores && typeof check.elementScores === 'object' && (
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2 mb-3">
+                                <TrendingUp className="w-4 h-4 text-blue-600" />
+                                <span className="font-semibold text-blue-700">各要素得分</span>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                {HEALTH_ELEMENTS.map((element) => {
+                                  const score = check.elementScores[element.key] || 0;
+                                  const percentage = Math.min((score / 10) * 100, 100);
+                                  return (
+                                    <div key={element.key} className="bg-white dark:bg-gray-800 p-3 rounded-md border">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm font-medium">{element.label}</span>
+                                        <Badge className={element.color + ' text-white text-xs'}>
+                                          {score} 分
+                                        </Badge>
+                                      </div>
+                                      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div
+                                          className={`h-full ${element.color} transition-all duration-500`}
+                                          style={{ width: `${percentage}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500">暂无自检记录</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Separator />
 
               {/* 健康要素分析 */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 flex items-center">
-                  <Activity className="w-5 h-5 mr-2" />
-                  健康要素分析 ({selectedUser.healthAnalysis.length} 条)
-                </h3>
-                {selectedUser.healthAnalysis.length > 0 ? (
-                  <div className="space-y-3">
-                    {selectedUser.healthAnalysis.map((analysis: any) => (
-                      <div key={analysis.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="text-sm text-gray-500 mb-2">
-                          {formatDate(analysis.analyzedAt)}
-                        </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                          <div>
-                            <span className="text-gray-500">气血：</span>
-                            <span className="font-medium">{analysis.qiAndBlood || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">循环：</span>
-                            <span className="font-medium">{analysis.circulation || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">毒素：</span>
-                            <span className="font-medium">{analysis.toxins || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">血脂：</span>
-                            <span className="font-medium">{analysis.bloodLipids || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">寒凉：</span>
-                            <span className="font-medium">{analysis.coldness || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">免疫：</span>
-                            <span className="font-medium">{analysis.immunity || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">情绪：</span>
-                            <span className="font-medium">{analysis.emotions || '-'}</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-500">整体：</span>
-                            <span className="font-medium">{analysis.overallHealth || '-'}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+              <Card className="border-2 border-blue-100">
+                <CardHeader className="bg-blue-50 dark:bg-blue-950">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center text-lg">
+                      <Activity className="w-5 h-5 mr-2 text-blue-600" />
+                      健康要素分析
+                    </CardTitle>
+                    {selectedUser.healthAnalysis.length > 0 && (
+                      <Badge variant="default" className="bg-blue-600">
+                        {selectedUser.healthAnalysis.length} 条记录
+                      </Badge>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-sm text-gray-500">暂无分析记录</div>
-                )}
-              </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {selectedUser.healthAnalysis.length > 0 ? (
+                    <div className="space-y-4">
+                      {selectedUser.healthAnalysis.map((analysis: any) => (
+                        <div key={analysis.id} className="p-4 bg-gradient-to-r from-blue-50 to-white dark:from-blue-950 dark:to-gray-900 rounded-lg border border-blue-100">
+                          <div className="flex items-center justify-between mb-4">
+                            <span className="text-sm text-gray-500">分析时间：{formatDate(analysis.analyzedAt)}</span>
+                            <Badge className="bg-blue-600">
+                              <TrendingUp className="w-3 h-3 mr-1" />
+                              整体得分：{analysis.overallHealth || 0} 分
+                            </Badge>
+                          </div>
 
-              {/* 用户选择 */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 flex items-center">
-                  <CheckCircle className="w-5 h-5 mr-2" />
-                  方案选择 ({selectedUser.userChoices.length} 条)
-                </h3>
-                {selectedUser.userChoices.length > 0 ? (
-                  <div className="space-y-3">
-                    {selectedUser.userChoices.map((choice: any) => (
-                      <div key={choice.id} className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                        <div className="flex justify-between items-center mb-2">
-                          <Badge variant="default" className="bg-purple-500">
-                            {choice.planType}
-                          </Badge>
-                          <span className="text-sm text-gray-500">
-                            {formatDate(choice.selectedAt)}
-                          </span>
-                        </div>
-                        {choice.planDescription && (
-                          <div className="text-sm text-gray-600 dark:text-gray-400">
-                            {choice.planDescription}
+                          {/* 各要素得分 - 用进度条展示 */}
+                          <div className="space-y-3">
+                            {HEALTH_ELEMENTS.map((element) => {
+                              const score = analysis[element.key] || 0;
+                              const percentage = Math.min((score / 10) * 100, 100);
+                              return (
+                                <div key={element.key} className="bg-white dark:bg-gray-800 p-3 rounded-md">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center space-x-2">
+                                      <div className={`w-2 h-2 rounded-full ${element.color}`} />
+                                      <span className="font-medium text-sm">{element.label}</span>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                      <span className={`font-bold text-lg ${element.textColor}`}>{score}</span>
+                                      <span className="text-sm text-gray-500">分</span>
+                                    </div>
+                                  </div>
+                                  <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full ${element.color} transition-all duration-500`}
+                                      style={{ width: `${percentage}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500">暂无分析记录</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* 方案选择 */}
+              <Card className="border-2 border-purple-100">
+                <CardHeader className="bg-purple-50 dark:bg-purple-950">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center text-lg">
+                      <Target className="w-5 h-5 mr-2 text-purple-600" />
+                      方案选择
+                    </CardTitle>
+                    {selectedUser.userChoices.length > 0 && (
+                      <Badge variant="default" className="bg-purple-600">
+                        {selectedUser.userChoices.length} 条记录
+                      </Badge>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-sm text-gray-500">暂无选择记录</div>
-                )}
-              </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {selectedUser.userChoices.length > 0 ? (
+                    <div className="space-y-4">
+                      {selectedUser.userChoices.map((choice: any) => (
+                        <div key={choice.id} className="p-4 bg-gradient-to-r from-purple-50 to-white dark:from-purple-950 dark:to-gray-900 rounded-lg border border-purple-100">
+                          <div className="flex items-center justify-between mb-3">
+                            <Badge variant="default" className="bg-purple-600 text-base px-4 py-1">
+                              {choice.planType}
+                            </Badge>
+                            <span className="text-sm text-gray-500">{formatDate(choice.selectedAt)}</span>
+                          </div>
+                          {choice.planDescription && (
+                            <div className="mt-3 p-3 bg-white dark:bg-gray-800 rounded-md">
+                              <p className="text-gray-700 dark:text-gray-300">{choice.planDescription}</p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500">暂无选择记录</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Separator />
 
               {/* 四个要求完成情况 */}
-              <div>
-                <h3 className="text-lg font-semibold mb-3 flex items-center">
-                  <Activity className="w-5 h-5 mr-2" />
-                  四个要求完成情况
-                </h3>
-                {selectedUser.requirements ? (
-                  <div className="space-y-3">
-                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
-                        <div className="flex items-center space-x-2">
-                          {selectedUser.requirements.requirement1Completed ? (
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4 text-red-500" />
-                          )}
-                          <span>要求1</span>
+              <Card className="border-2 border-orange-100">
+                <CardHeader className="bg-orange-50 dark:bg-orange-950">
+                  <CardTitle className="flex items-center text-lg">
+                    <CheckCircle className="w-5 h-5 mr-2 text-orange-600" />
+                    四个要求完成情况
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {selectedUser.requirements ? (
+                    <div className="space-y-4">
+                      {/* 完成进度概览 */}
+                      <div className="p-4 bg-gradient-to-r from-orange-50 to-white dark:from-orange-950 dark:to-gray-900 rounded-lg border border-orange-100">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-semibold text-gray-700">总体完成度</span>
+                          <Badge className="bg-orange-600">
+                            {calculateRequirementsProgress(selectedUser.requirements)}%
+                          </Badge>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          {selectedUser.requirements.requirement2Completed ? (
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4 text-red-500" />
-                          )}
-                          <span>要求2</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {selectedUser.requirements.requirement3Completed ? (
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4 text-red-500" />
-                          )}
-                          <span>要求3</span>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          {selectedUser.requirements.requirement4Completed ? (
-                            <CheckCircle className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <AlertCircle className="w-4 h-4 text-red-500" />
-                          )}
-                          <span>要求4</span>
+                        <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-orange-400 to-orange-600 transition-all duration-500"
+                            style={{ width: `${calculateRequirementsProgress(selectedUser.requirements)}%` }}
+                          />
                         </div>
                       </div>
+
+                      {/* 各要求完成状态 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {[
+                          { key: 'requirement1Completed', label: '要求1：认真填写身体语言简表' },
+                          { key: 'requirement2Completed', label: '要求2：针对性学习' },
+                          { key: 'requirement3Completed', label: '要求3：按方案调理' },
+                          { key: 'requirement4Completed', label: '要求4：定期反馈' },
+                        ].map((req) => {
+                          const isCompleted = selectedUser.requirements[req.key as keyof typeof selectedUser.requirements];
+                          return (
+                            <div
+                              key={req.key}
+                              className={`p-4 rounded-lg border-2 transition-all ${
+                                isCompleted
+                                  ? 'bg-green-50 border-green-300 dark:bg-green-950 dark:border-green-700'
+                                  : 'bg-gray-50 border-gray-200 dark:bg-gray-800 dark:border-gray-700'
+                              }`}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  {isCompleted ? (
+                                    <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                                      <CheckCircle className="w-5 h-5 text-white" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                                      <AlertCircle className="w-5 h-5 text-gray-500" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="font-medium text-sm">{req.label}</p>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {isCompleted ? '已完成' : '未完成'}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Badge variant={isCompleted ? "default" : "outline"} className={isCompleted ? 'bg-green-600' : 'text-gray-500'}>
+                                  {isCompleted ? '✓ 完成' : '○ 未完成'}
+                                </Badge>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
                       {selectedUser.requirements.completedAt && (
-                        <div className="mt-2 text-sm text-gray-500">
-                          全部完成时间：{formatDate(selectedUser.requirements.completedAt)}
+                        <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950 rounded-md text-sm text-blue-700 dark:text-blue-300">
+                          🎉 全部完成时间：{formatDate(selectedUser.requirements.completedAt)}
                         </div>
                       )}
                     </div>
-                  </div>
-                ) : (
-                  <div className="text-sm text-gray-500">暂无要求完成记录</div>
-                )}
-              </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500">暂无要求完成记录</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           )}
         </DialogContent>
