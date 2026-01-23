@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ChevronLeft, ChevronRight, CheckCircle2, AlertCircle, BookOpen, ClipboardCheck, Users, GraduationCap, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ArrowRight, CheckCircle2, AlertCircle, BookOpen, ClipboardCheck, Users, GraduationCap } from 'lucide-react';
 import { FOUR_REQUIREMENTS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
 import Link from 'next/link';
 
@@ -36,10 +36,10 @@ export default function RequirementsPage() {
   };
 
   const handleContinue = () => {
-    // 保存到localStorage并跳转到下一页
+    // 保存到localStorage
     localStorage.setItem('selectedHabitsRequirements', JSON.stringify([...selectedHabits]));
     localStorage.setItem('selectedSymptoms300', JSON.stringify([...selectedSymptoms300]));
-    window.location.href = '/choices';
+    window.location.href = '/recovery';
   };
 
   const habitCategories = Object.keys(BAD_HABITS_CHECKLIST) as Array<keyof typeof BAD_HABITS_CHECKLIST>;
@@ -61,7 +61,7 @@ export default function RequirementsPage() {
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/habits" className="flex items-center space-x-2">
+            <Link href="/choices" className="flex items-center space-x-2">
               <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               <span className="text-gray-600 dark:text-gray-400">返回上一步</span>
             </Link>
@@ -147,6 +147,17 @@ export default function RequirementsPage() {
                     );
                   })}
                 </div>
+
+                <div className="text-center mt-8">
+                  <Button
+                    onClick={handleContinue}
+                    size="lg"
+                    className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+                  >
+                    继续下一步
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -196,94 +207,66 @@ export default function RequirementsPage() {
                   </p>
                 </div>
 
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    已选择 {selectedHabits.size} 项习惯
-                  </p>
-                  <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        const allIds = habitCategories.flatMap(cat => BAD_HABITS_CHECKLIST[cat].map(h => h.id));
-                        setSelectedHabits(new Set(allIds));
-                      }}
-                    >
-                      全选
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setSelectedHabits(new Set())}
-                    >
-                      清空
-                    </Button>
+                {/* 不良习惯表 */}
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      已选择 {selectedHabits.size} 项习惯
+                    </p>
+                    <div className="space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => {
+                        const allHabitIds = Object.values(BAD_HABITS_CHECKLIST).flat().map(h => h.id);
+                        setSelectedHabits(new Set(allHabitIds));
+                      }}>
+                        全选
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedHabits(new Set())}>
+                        清空
+                      </Button>
+                    </div>
                   </div>
-                </div>
 
-                {/* 不良生活习惯表 */}
-                {habitCategories.map((category) => {
-                  const habits = BAD_HABITS_CHECKLIST[category];
-                  return (
-                    <Card key={category} className="mb-4">
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center space-x-2">
-                          <span>{category}</span>
-                          <Badge variant="secondary">
-                            {habits.filter(h => selectedHabits.has(h.id)).length} / {habits.length}
-                          </Badge>
-                        </CardTitle>
+                  {habitCategories.map(category => (
+                    <Card key={category} className="border border-gray-200 dark:border-gray-700">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">{category}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {habits.map((habit) => (
-                            <div
-                              key={habit.id}
-                              className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                                selectedHabits.has(habit.id)
-                                  ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/30'
-                                  : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700'
-                              }`}
-                              onClick={() => handleHabitToggle(habit.id)}
-                            >
-                              <div className="flex items-start space-x-2">
-                                <Checkbox
-                                  id={`habit-req-${habit.id}`}
-                                  checked={selectedHabits.has(habit.id)}
-                                  onChange={() => handleHabitToggle(habit.id)}
-                                  className="mt-1 flex-shrink-0"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <label
-                                    htmlFor={`habit-req-${habit.id}`}
-                                    className="text-xs font-medium cursor-pointer select-none block"
-                                  >
-                                    {habit.habit}
-                                  </label>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    {habit.impact}
-                                  </p>
-                                </div>
+                        <div className="space-y-3">
+                          {BAD_HABITS_CHECKLIST[category].map(habit => (
+                            <div key={habit.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                              <Checkbox
+                                id={`habit-${habit.id}`}
+                                checked={selectedHabits.has(habit.id)}
+                                onCheckedChange={() => handleHabitToggle(habit.id)}
+                              />
+                              <div className="flex-1">
+                                <label
+                                  htmlFor={`habit-${habit.id}`}
+                                  className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                                >
+                                  {habit.habit}
+                                </label>
                               </div>
                             </div>
                           ))}
                         </div>
                       </CardContent>
                     </Card>
-                  );
-                })}
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* 要求2：建立身体恢复档案 - 300项身体语言自检表 */}
+        {/* 要求2：详细了解 - 300个症状 */}
         {activeTab === 'req2' && (
           <div className="max-w-6xl mx-auto space-y-6">
-            <Card className="border-2 border-green-100 dark:border-green-900">
+            <Card className="border-2 border-purple-100 dark:border-purple-900">
               <CardHeader>
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
                     2
                   </div>
                   <div>
@@ -295,103 +278,73 @@ export default function RequirementsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                <Alert>
+                  <AlertCircle className="w-4 h-4" />
+                  <AlertDescription>
                     <strong>说明：</strong>{FOUR_REQUIREMENTS.requirement2.details}
-                  </p>
-                </div>
+                  </AlertDescription>
+                </Alert>
 
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>预期效果：</strong>{FOUR_REQUIREMENTS.requirement2.benefit}
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    已选择 {selectedSymptoms300.size} / {BODY_SYMPTOMS_300.length} 项症状
-                  </p>
-                  <div className="flex space-x-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setSelectedSymptoms300(new Set(BODY_SYMPTOMS_300.map(s => s.id)))}
-                    >
-                      全选
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setSelectedSymptoms300(new Set())}
-                    >
-                      清空
-                    </Button>
+                {/* 300症状表 */}
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      已选择 {selectedSymptoms300.size} 项症状
+                    </p>
+                    <div className="space-x-2">
+                      <Button variant="outline" size="sm" onClick={() => {
+                        const allSymptomIds = BODY_SYMPTOMS_300.map(s => s.id);
+                        setSelectedSymptoms300(new Set(allSymptomIds));
+                      }}>
+                        全选
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedSymptoms300(new Set())}>
+                        清空
+                      </Button>
+                    </div>
                   </div>
-                </div>
 
-                {/* 300项身体语言自检表 */}
-                {symptomCategories300.map((category) => {
-                  const symptoms = symptoms300ByCategory[category];
-                  return (
-                    <Card key={category} className="mb-4">
-                      <CardHeader>
-                        <CardTitle className="text-lg flex items-center space-x-2">
-                          <span>{category}</span>
-                          <Badge variant="secondary">
-                            {symptoms.filter(s => selectedSymptoms300.has(s.id)).length} / {symptoms.length}
-                          </Badge>
-                        </CardTitle>
+                  {symptomCategories300.map(category => (
+                    <Card key={category} className="border border-gray-200 dark:border-gray-700">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg">{category}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {symptoms.map((symptom) => (
-                            <div
-                              key={symptom.id}
-                              className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                                selectedSymptoms300.has(symptom.id)
-                                  ? 'border-green-500 bg-green-50 dark:bg-green-900/30'
-                                  : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
-                              }`}
-                              onClick={() => handleSymptom300Toggle(symptom.id)}
-                            >
-                              <div className="flex items-start space-x-2">
-                                <Checkbox
-                                  id={`symptom300-${symptom.id}`}
-                                  checked={selectedSymptoms300.has(symptom.id)}
-                                  onChange={() => handleSymptom300Toggle(symptom.id)}
-                                  className="mt-1 flex-shrink-0"
-                                />
-                                <div className="flex-1 min-w-0">
-                                  <label
-                                    htmlFor={`symptom300-${symptom.id}`}
-                                    className="text-xs font-medium cursor-pointer select-none block"
-                                  >
-                                    {symptom.name}
-                                  </label>
-                                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    {symptom.description}
-                                  </p>
-                                </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {symptoms300ByCategory[category].map(symptom => (
+                            <div key={symptom.id} className="flex items-start space-x-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                              <Checkbox
+                                id={`symptom300-${symptom.id}`}
+                                checked={selectedSymptoms300.has(symptom.id)}
+                                onCheckedChange={() => handleSymptom300Toggle(symptom.id)}
+                              />
+                              <div className="flex-1">
+                                <label
+                                  htmlFor={`symptom300-${symptom.id}`}
+                                  className="text-xs text-gray-700 dark:text-gray-300 cursor-pointer"
+                                >
+                                  {symptom.name}
+                                </label>
                               </div>
                             </div>
                           ))}
                         </div>
                       </CardContent>
                     </Card>
-                  );
-                })}
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* 要求3：跟着学习健康观念 */}
+        {/* 要求3：相信调理 */}
         {activeTab === 'req3' && (
           <div className="max-w-4xl mx-auto space-y-6">
-            <Card className="border-2 border-purple-100 dark:border-purple-900">
+            <Card className="border-2 border-green-100 dark:border-green-900">
               <CardHeader>
                 <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
                     3
                   </div>
                   <div>
@@ -403,36 +356,40 @@ export default function RequirementsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>说明：</strong>{FOUR_REQUIREMENTS.requirement3.details}
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="font-semibold text-gray-900 dark:text-white">学习的好处：</h4>
-                  {FOUR_REQUIREMENTS.requirement3.benefits.map((benefit, index) => (
-                    <div key={index} className="flex items-start space-x-3">
-                      <div className="w-6 h-6 bg-purple-100 dark:bg-purple-900 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <span className="text-purple-600 dark:text-purple-400 text-sm font-bold">{index + 1}</span>
-                      </div>
-                      <p className="text-gray-700 dark:text-gray-300">{benefit}</p>
-                    </div>
-                  ))}
-                </div>
-
                 <Alert>
-                  <AlertCircle className="w-4 h-4" />
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
                   <AlertDescription>
-                    每堂课只有十来分钟，不会耽误太多时间，但能帮您更好地理解和配合调理。
+                    <strong>重要：</strong>{FOUR_REQUIREMENTS.requirement3.details}
                   </AlertDescription>
                 </Alert>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">相信调理的原因</h4>
+                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                      <li>• 身体有强大的自我修复能力</li>
+                      <li>• 找到病因，对症调理，效果显著</li>
+                      <li>• 无数成功案例证明了调理的有效性</li>
+                      <li>• 坚持调理，给身体足够的时间恢复</li>
+                    </ul>
+                  </div>
+
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">如何建立信心</h4>
+                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                      <li>• 学习健康知识，了解调理原理</li>
+                      <li>• 观察身体变化，感受进步</li>
+                      <li>• 与导师沟通，获得鼓励和指导</li>
+                      <li>• 保持积极心态，相信自己能够恢复</li>
+                    </ul>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* 要求4：学会健康自我管理 */}
+        {/* 要求4：学习知识 */}
         {activeTab === 'req4' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <Card className="border-2 border-orange-100 dark:border-orange-900">
@@ -450,53 +407,59 @@ export default function RequirementsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>说明：</strong>{FOUR_REQUIREMENTS.requirement4.details}
-                  </p>
-                </div>
-
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>原因：</strong>{FOUR_REQUIREMENTS.requirement4.reason}
-                  </p>
-                </div>
-
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>预期效果：</strong>{FOUR_REQUIREMENTS.requirement4.benefit}
-                  </p>
-                </div>
-
                 <Alert>
-                  <AlertCircle className="w-4 h-4" />
+                  <BookOpen className="w-4 h-4 text-orange-500" />
                   <AlertDescription>
-                    我的目标是让每个家庭都有一个懂健康的人，这样您就真的没必要什么事都来找我。
+                    <strong>重要：</strong>{FOUR_REQUIREMENTS.requirement4.details}
                   </AlertDescription>
                 </Alert>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">学习内容</h4>
+                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                      <li>• 系统战役故事 - 了解七个健康要素</li>
+                      <li>• 健康要素原理 - 深入理解每个要素</li>
+                      <li>• 好转反应 - 理解调理过程中的反应</li>
+                      <li>• 恢复速度8要素 - 加快恢复的方法</li>
+                      <li>• 21堂必修课程 - 系统学习健康管理</li>
+                      <li>• 发心感悟 - 树立正确的健康观念</li>
+                    </ul>
+                  </div>
+
+                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">学习建议</h4>
+                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                      <li>• 认真阅读每一章节，不要跳跃</li>
+                      <li>• 做好笔记，记录重要知识点</li>
+                      <li>• 理论结合实践，将知识转化为行动</li>
+                      <li>• 有疑问及时向导师请教</li>
+                      <li>• 反复学习，加深理解和记忆</li>
+                    </ul>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* 下一步按钮 */}
+        {/* 底部导航 */}
         {activeTab !== 'overview' && (
-          <div className="text-center space-y-4">
-            <Button
-              onClick={handleContinue}
-              size="lg"
-              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-            >
-              确认完成四个要求
-              <CheckCircle2 className="w-5 h-5 ml-2" />
-            </Button>
-            <div>
-              <Link href="/choices">
-                <Button variant="outline" size="lg">
-                  跳过，直接查看选择
-                  <ArrowRight className="w-5 h-5 ml-2" />
-                </Button>
-              </Link>
+          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t p-4">
+            <div className="container mx-auto flex justify-between items-center">
+              <Button
+                variant="outline"
+                onClick={() => setActiveTab('overview')}
+              >
+                返回总览
+              </Button>
+              <Button
+                onClick={handleContinue}
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                继续下一步
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </div>
         )}

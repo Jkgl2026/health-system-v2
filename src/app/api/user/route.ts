@@ -7,20 +7,22 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     const userData: InsertUser = {
-      name: data.name,
-      phone: data.phone,
+      name: data.name || null,
+      phone: data.phone || null,
       email: data.email || null,
       age: data.age || null,
       gender: data.gender || null,
     };
 
-    // 检查手机号是否已存在
-    const existingUser = await healthDataManager.getUserByPhone(data.phone);
-    if (existingUser) {
-      return NextResponse.json(
-        { error: '该手机号已注册' },
-        { status: 400 }
-      );
+    // 如果提供了phone，检查是否已存在
+    if (data.phone) {
+      const existingUser = await healthDataManager.getUserByPhone(data.phone);
+      if (existingUser) {
+        return NextResponse.json(
+          { error: '该手机号已注册' },
+          { status: 400 }
+        );
+      }
     }
 
     const user = await healthDataManager.createUser(userData);

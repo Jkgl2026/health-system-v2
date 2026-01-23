@@ -5,19 +5,39 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, CheckCircle2, Sparkles, AlertTriangle, Home, RotateCcw, ArrowRight } from 'lucide-react';
-import { CLEANING_STORY, BODY_SYMPTOMS, HEALTH_ELEMENTS } from '@/lib/health-data';
+import { ChevronLeft, CheckCircle2, Sparkles, AlertTriangle, ArrowRight, BookOpen, Flame, Target, Activity, Droplets, Heart, Zap } from 'lucide-react';
+import { BODY_SYMPTOMS, HEALTH_ELEMENTS, TWENTY_ONE_COURSES } from '@/lib/health-data';
 import Link from 'next/link';
+
+interface ProductMatch {
+  name: string;
+  description: string;
+  icon: any;
+  color: string;
+  matchScore: number;
+  reasons: string[];
+}
+
+interface CourseMatch {
+  id: number;
+  title: string;
+  content: string;
+  duration: string;
+  module?: string;
+  relevance: 'high' | 'medium' | 'low';
+}
 
 export default function SolutionPage() {
   const [selectedSymptoms, setSelectedSymptoms] = useState<number[]>([]);
   const [targetSymptom, setTargetSymptom] = useState<number | null>(null);
-  const [sevenAnswers, setSevenAnswers] = useState<any[]>([]);
+  const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
+  const [selectedHabits, setSelectedHabits] = useState<number[]>([]);
 
   useEffect(() => {
     const savedSymptoms = localStorage.getItem('selectedSymptoms');
     const savedTarget = localStorage.getItem('targetSymptom');
-    const savedAnswers = localStorage.getItem('sevenAnswers');
+    const savedChoice = localStorage.getItem('selectedChoice');
+    const savedHabits = localStorage.getItem('selectedHabitsRequirements');
 
     if (savedSymptoms) {
       setSelectedSymptoms(JSON.parse(savedSymptoms));
@@ -25,8 +45,11 @@ export default function SolutionPage() {
     if (savedTarget) {
       setTargetSymptom(parseInt(savedTarget));
     }
-    if (savedAnswers) {
-      setSevenAnswers(JSON.parse(savedAnswers));
+    if (savedChoice) {
+      setSelectedChoice(savedChoice);
+    }
+    if (savedHabits) {
+      setSelectedHabits(JSON.parse(savedHabits));
     }
   }, []);
 
@@ -52,13 +75,186 @@ export default function SolutionPage() {
 
   const primaryElements = getPrimaryElements();
 
+  // 产品匹配逻辑
+  const getProductMatches = (): ProductMatch[] => {
+    const matches: ProductMatch[] = [];
+
+    // 艾灸 - 适合气血、寒凉、循环问题
+    const aiJiuScore = calculateMatchScore(['气血', '寒凉', '循环']);
+    if (aiJiuScore > 0) {
+      matches.push({
+        name: '艾灸调理',
+        description: '通过艾灸穴位，温通经络，调和气血，驱寒除湿，改善寒凉和气血不足问题',
+        icon: Activity,
+        color: 'from-orange-500 to-red-500',
+        matchScore: aiJiuScore,
+        reasons: [
+          '温通经络，促进气血运行',
+          '驱寒除湿，改善寒凉体质',
+          '增强免疫力，提升身体自愈能力',
+          '调理慢性炎症，缓解疼痛'
+        ]
+      });
+    }
+
+    // 火灸 - 适合气血、毒素、循环问题
+    const huoJiuScore = calculateMatchScore(['气血', '毒素', '循环']);
+    if (huoJiuScore > 0) {
+      matches.push({
+        name: '火灸调理',
+        description: '以火之力，温阳散寒，活血化瘀，祛除体内毒素和淤堵',
+        icon: Flame,
+        color: 'from-red-500 to-orange-600',
+        matchScore: huoJiuScore,
+        reasons: [
+          '强力活血化瘀，疏通经络',
+          '温阳补气，提升身体能量',
+          '祛除毒素，净化体内环境',
+          '改善循环，促进新陈代谢'
+        ]
+      });
+    }
+
+    // 正骨 - 适合骨骼、肌肉、循环问题
+    const zhengGuScore = calculateMatchScore(['循环', '气血']);
+    if (zhengGuScore > 0 || selectedSymptoms.some(s => [30, 31, 32, 33, 34, 35].includes(s))) {
+      matches.push({
+        name: '正骨调理',
+        description: '通过手法矫正骨骼位置，恢复脊柱生理曲度，改善神经受压和循环障碍',
+        icon: Target,
+        color: 'from-blue-500 to-purple-500',
+        matchScore: zhengGuScore + 1,
+        reasons: [
+          '矫正骨骼位置，恢复脊柱健康',
+          '解除神经压迫，缓解疼痛',
+          '改善循环，促进气血运行',
+          '矫正体态，提升整体健康'
+        ]
+      });
+    }
+
+    // 空腹禅 - 身心调理，适合情绪、毒素、气血问题
+    const kongFuChanScore = calculateMatchScore(['情绪', '毒素', '气血', '血脂']);
+    if (kongFuChanScore > 0) {
+      matches.push({
+        name: '空腹禅调理',
+        description: '通过空腹禅修，净化身心，清理毒素，调和气血，平衡情绪',
+        icon: Heart,
+        color: 'from-green-500 to-teal-500',
+        matchScore: kongFuChanScore,
+        reasons: [
+          '净化身心，清理体内毒素',
+          '调和气血，提升生命能量',
+          '平衡情绪，释放心理压力',
+          '改善睡眠，提升整体健康'
+        ]
+      });
+    }
+
+    // 经络调理 - 适合循环、气血、毒素问题
+    const jingLiaoScore = calculateMatchScore(['循环', '气血', '毒素']);
+    if (jingLiaoScore > 0) {
+      matches.push({
+        name: '经络调理',
+        description: '通过疏通经络，促进气血运行，清除淤堵，恢复身体平衡',
+        icon: Zap,
+        color: 'from-yellow-500 to-orange-500',
+        matchScore: jingLiaoScore,
+        reasons: [
+          '疏通经络，恢复气血运行',
+          '清除淤堵，改善循环',
+          '调和脏腑功能，增强免疫力',
+          '缓解疼痛，提升生活质量'
+        ]
+      });
+    }
+
+    // 药王产品 - 综合调理
+    const yaoWangScore = primaryElements.length > 0 ? primaryElements[0].count : 0;
+    matches.push({
+      name: '药王产品',
+      description: '传统药王配方产品，针对性调理您的健康问题，标本兼治',
+      icon: Droplets,
+      color: 'from-green-600 to-emerald-500',
+      matchScore: yaoWangScore,
+      reasons: [
+        '天然药材，安全有效',
+        '传统配方，传承千年',
+        '标本兼治，综合调理',
+        '个性化定制，精准调理'
+      ]
+    });
+
+    // 膏药 - 局部调理
+    const gaoYaoScore = calculateMatchScore(['气血', '循环', '寒凉']);
+    matches.push({
+      name: '膏药调理',
+      description: '外用膏药，直达病灶，活血化瘀，消炎止痛，方便使用',
+      icon: Activity,
+      color: 'from-brown-500 to-orange-500',
+      matchScore: gaoYaoScore,
+      reasons: [
+        '直达病灶，快速起效',
+        '活血化瘀，消炎止痛',
+        '方便使用，随时调理',
+        '天然成分，安全可靠'
+      ]
+    });
+
+    return matches.sort((a, b) => b.matchScore - a.matchScore);
+  };
+
+  const calculateMatchScore = (elementNames: string[]): number => {
+    return primaryElements
+      .filter(el => elementNames.includes(el.name))
+      .reduce((sum, el) => sum + el.count, 0);
+  };
+
+  // 课程匹配逻辑
+  const getCourseMatches = (): CourseMatch[] => {
+    return TWENTY_ONE_COURSES.map(course => {
+      let relevance: 'high' | 'medium' | 'low' = 'low';
+
+      // 根据健康要素匹配课程
+      if (primaryElements.length > 0) {
+        const primaryElementNames = primaryElements.map(el => el.name);
+
+        if (primaryElementNames.includes('气血') && course.title.includes('气血')) {
+          relevance = 'high';
+        } else if (primaryElementNames.includes('循环') && course.title.includes('循环')) {
+          relevance = 'high';
+        } else if (primaryElementNames.includes('毒素') && course.title.includes('毒素')) {
+          relevance = 'high';
+        } else if (primaryElementNames.includes('寒凉') && course.title.includes('寒')) {
+          relevance = 'high';
+        } else if (primaryElementNames.includes('免疫') && course.title.includes('免疫')) {
+          relevance = 'high';
+        } else if (primaryElementNames.includes('情绪') && course.title.includes('情绪')) {
+          relevance = 'high';
+        } else if (primaryElementNames.includes('血脂') && course.title.includes('血脂')) {
+          relevance = 'high';
+        } else {
+          relevance = 'medium';
+        }
+      }
+
+      return { ...course, relevance };
+    }).sort((a, b) => {
+      const relevanceOrder = { high: 3, medium: 2, low: 1 };
+      return relevanceOrder[b.relevance] - relevanceOrder[a.relevance];
+    });
+  };
+
+  const productMatches = getProductMatches();
+  const courseMatches = getCourseMatches();
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-20">
       {/* 头部 */}
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/choices" className="flex items-center space-x-2">
+            <Link href="/inspiration" className="flex items-center space-x-2">
               <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               <span className="text-gray-600 dark:text-gray-400">返回上一步</span>
             </Link>
@@ -81,7 +277,7 @@ export default function SolutionPage() {
               </div>
               <CardTitle className="text-3xl">您的个性化健康管理方案</CardTitle>
               <CardDescription className="text-base mt-2">
-                恭喜您完成了健康自检流程！以下是您的健康管理方案
+                恭喜您完成了健康自检流程！根据您的情况，为您量身定制以下方案
               </CardDescription>
             </CardHeader>
           </Card>
@@ -130,15 +326,14 @@ export default function SolutionPage() {
                 </div>
               </div>
 
-              {/* 七问回答摘要 */}
-              {sevenAnswers.length > 0 && (
-                <div className="p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
-                  <h4 className="text-sm font-semibold mb-3 text-gray-700 dark:text-gray-300">
-                    您的详细回答（已记录）
+              {/* 选择方案 */}
+              {selectedChoice && (
+                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border-2 border-orange-200 dark:border-orange-800">
+                  <h4 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                    您选择的方案：
                   </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    您已完成了持续跟进落实健康的七问，所有回答已保存。
-                    这些信息将帮助我们为您提供更精准的健康管理建议。
+                  <p className="text-lg font-medium text-orange-700 dark:text-orange-400">
+                    {selectedChoice === 'choice1' ? '自我调理' : selectedChoice === 'choice2' ? '产品调理' : '系统调理'}
                   </p>
                 </div>
               )}
@@ -146,191 +341,142 @@ export default function SolutionPage() {
           </Card>
         </section>
 
-        {/* 大扫除故事 - 好转反应 */}
-        <section className="mb-12">
-          <Card className="border-2 border-yellow-100 dark:border-yellow-900">
-            <CardHeader>
-              <CardTitle className="text-2xl flex items-center">
-                <AlertTriangle className="w-6 h-6 text-yellow-500 mr-2" />
-                重要提示：好转反应
-              </CardTitle>
-              <CardDescription>
-                了解调理过程中可能出现的好转反应，不要惊慌
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <Alert className="border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20">
-                <AlertTriangle className="w-4 h-4 text-yellow-500" />
-                <AlertDescription className="text-yellow-700 dark:text-yellow-400">
-                  在调理过程中，您可能会出现一些不适，这其实是好转反应，说明身体正在清理毒素。
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-4">
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                    大扫除的故事
-                  </h3>
-                  <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed">
-                    {CLEANING_STORY.content}
-                  </p>
-                </div>
-
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
-                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white flex items-center">
-                    <CheckCircle2 className="w-5 h-5 text-green-500 mr-2" />
-                    关键理解
-                  </h3>
-                  <ul className="space-y-2 text-gray-700 dark:text-gray-300">
-                    <li>• 服用产品的过程中，一旦出现类似好转反应，说明身体正在排毒</li>
-                    <li>• 这个时候去医院检查指标可能会升高，这是正常现象</li>
-                    <li>• 坚持一段时间，让毒素彻底排出，身体才能好转</li>
-                    <li>• 不要因为一时的不适就停止调理，那会前功尽弃</li>
-                  </ul>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        {/* 健康约定 */}
+        {/* 推荐调理产品 */}
         <section className="mb-12">
           <Card className="border-2 border-blue-100 dark:border-blue-900">
             <CardHeader>
-              <CardTitle className="text-2xl">健康约定</CardTitle>
+              <CardTitle className="text-2xl flex items-center">
+                <Target className="w-6 h-6 text-blue-500 mr-2" />
+                推荐调理产品
+              </CardTitle>
               <CardDescription>
-                为了确保调理效果，请您严格遵守以下约定
+                根据您的健康要素分析，为您推荐以下调理产品
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white">
-                      <RotateCcw className="w-4 h-4" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      按时按量使用产品
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    严格按照指导使用，不随意增减用量
-                  </p>
-                </div>
-
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-500 rounded-lg flex items-center justify-center text-white">
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      每天好习惯打卡
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    记录每天坚持的健康习惯，养成良好生活方式
-                  </p>
-                </div>
-
-                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white">
-                      <Sparkles className="w-4 h-4" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      填写不良生活习惯表
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    诚实地记录日常生活中的不良习惯，找出问题根源
-                  </p>
-                </div>
-
-                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center text-white">
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      每月填写全面质检表
-                    </h3>
-                  </div>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    连续三个月每月填写一次，跟踪身体变化
-                  </p>
-                </div>
+                {productMatches.map((product, index) => {
+                  const Icon = product.icon;
+                  return (
+                    <Card key={index} className="border-2 border-gray-100 dark:border-gray-800 hover:shadow-lg transition-shadow">
+                      <CardHeader>
+                        <div className="flex items-center space-x-3">
+                          <div className={`w-12 h-12 bg-gradient-to-br ${product.color} rounded-lg flex items-center justify-center`}>
+                            <Icon className="w-6 h-6 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <CardTitle className="text-lg">{product.name}</CardTitle>
+                            <Badge variant="secondary" className="text-xs mt-1">
+                              匹配度: {Math.min(95, 70 + product.matchScore * 5)}%
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                          {product.description}
+                        </p>
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold text-gray-900 dark:text-white mb-1">调理作用：</p>
+                          {product.reasons.map((reason, idx) => (
+                            <p key={idx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                              <span className="text-green-500 mr-1">•</span>
+                              {reason}
+                            </p>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
-
-              <Alert className="mt-6">
-                <Home className="w-4 h-4" />
-                <AlertDescription>
-                  如果需要进店调理，可以随时到店里来。我们会全程陪伴您的健康管理之旅。
-                </AlertDescription>
-              </Alert>
             </CardContent>
           </Card>
         </section>
 
-        {/* 总结 */}
+        {/* 推荐学习课程 */}
         <section className="mb-12">
-          <Card className="border-2 border-gradient-to-r from-blue-500 to-green-500 bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30">
-            <CardHeader className="text-center">
-              <CardTitle className="text-3xl">健康自我管理的核心价值</CardTitle>
+          <Card className="border-2 border-purple-100 dark:border-purple-900">
+            <CardHeader>
+              <CardTitle className="text-2xl flex items-center">
+                <BookOpen className="w-6 h-6 text-purple-500 mr-2" />
+                推荐学习课程
+              </CardTitle>
+              <CardDescription>
+                根据您的情况，重点学习以下课程
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <p className="text-lg text-gray-700 dark:text-gray-300 text-center leading-relaxed">
-                  我们给自己的定位是健康管理，不是产品的推销员。
-                  我们的使命是<strong>"让老百姓少花钱甚至不花钱解决问题"</strong>。
-                </p>
-                <p className="text-lg text-gray-700 dark:text-gray-300 text-center leading-relaxed">
-                  因为最省钱的方法就是教会您健康自我管理。
-                  有钱的顾客我们要服务，没有钱的顾客我们更要服务。
-                </p>
-                <p className="text-xl font-semibold text-gray-900 dark:text-white text-center">
-                  老百姓生不起病，我们要教他会生活、少生病，把健康把握在自己手里！
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {courseMatches.slice(0, 9).map((course) => (
+                  <Card key={course.id} className="border border-gray-200 dark:border-gray-700">
+                    <CardHeader>
+                      <div className="flex items-center justify-between mb-2">
+                        <Badge variant="secondary" className="text-xs">
+                          第{course.id}课
+                        </Badge>
+                        {course.relevance === 'high' && (
+                          <Badge className="text-xs bg-red-500">重点</Badge>
+                        )}
+                      </div>
+                      <CardTitle className="text-base">{course.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                        {course.content}
+                      </p>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        📚 {course.duration} | {course.module}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             </CardContent>
           </Card>
         </section>
 
-        {/* 完成按钮 */}
-        <section className="text-center mb-12">
-          <Button
-            onClick={() => {
-              localStorage.clear();
-              window.location.href = '/';
-            }}
-            size="lg"
-            className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
-          >
-            完成自检，返回首页
-            <CheckCircle2 className="w-5 h-5 ml-2" />
-          </Button>
-          <p className="mt-4 text-sm text-gray-600 dark:text-gray-400">
-            您的健康管理之旅才刚刚开始，祝您早日恢复健康！
-          </p>
+        {/* 重要提示 */}
+        <section className="mb-12">
+          <Alert className="border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
+            <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+            <AlertDescription className="mt-2">
+              <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                重要提示
+              </p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                以上调理方案仅供参考，具体调理方法和产品选择请咨询专业调理导师。
+                调理过程中如出现不适，请及时暂停并寻求专业指导。
+              </p>
+            </AlertDescription>
+          </Alert>
+        </section>
+
+        {/* 下一步 */}
+        <section className="text-center">
+          <Card className="border-2 border-green-100 dark:border-green-900">
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-center space-x-2 mb-4">
+                <CheckCircle2 className="w-6 h-6 text-green-500" />
+                <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                  恭喜您完成了整个健康自检流程！
+                </p>
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 mb-6">
+                现在请根据以上方案，开始您的健康管理之旅。如有任何疑问，请及时联系您的调理导师。
+              </p>
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
+                onClick={() => window.location.href = '/'}
+              >
+                返回首页
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
         </section>
       </main>
-
-      {/* 页脚 */}
-      <footer className="bg-white dark:bg-gray-800 border-t mt-12">
-        <div className="container mx-auto px-4 py-8 text-center text-gray-600 dark:text-gray-400">
-          <p className="text-lg font-semibold">健康自我管理 - 把健康把握在自己手里</p>
-          <p className="mt-2">让老百姓少花钱甚至不花钱解决问题</p>
-          <div className="mt-4 flex justify-center space-x-4">
-            <Button variant="outline" size="sm" onClick={() => window.location.href = '/'}>
-              <Home className="w-4 h-4 mr-2" />
-              返回首页
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => window.location.href = '/check'}>
-              <RotateCcw className="w-4 h-4 mr-2" />
-              重新自检
-            </Button>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 }

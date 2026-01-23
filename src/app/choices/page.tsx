@@ -98,7 +98,7 @@ export default function ChoicesPage() {
       // 即使保存失败也继续
     } finally {
       setIsSaving(false);
-      window.location.href = '/solution';
+      window.location.href = '/requirements';
     }
   };
 
@@ -108,7 +108,7 @@ export default function ChoicesPage() {
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/requirements" className="flex items-center space-x-2">
+            <Link href="/story" className="flex items-center space-x-2">
               <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               <span className="text-gray-600 dark:text-gray-400">返回上一步</span>
             </Link>
