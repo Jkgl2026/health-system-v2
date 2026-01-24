@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Download, X, Smartphone, Monitor } from 'lucide-react';
+import { Download, X, Smartphone, Monitor, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export interface BeforeInstallPromptEvent extends Event {
@@ -16,8 +16,26 @@ export function PWAInstallPrompt() {
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isCorrectPage, setIsCorrectPage] = useState(false);
 
   useEffect(() => {
+    // 检查是否在正确的页面
+    const currentPath = window.location.pathname;
+    const isHomePage = currentPath === '/' || currentPath === '/install-guide' || currentPath === '/ios-install-guide';
+
+    // 检查是否显示登录页面（通过页面内容判断）
+    const isLoginPage = document.body.innerText.includes('欢迎使用扣子') ||
+                        document.body.innerText.includes('手机号登录') ||
+                        document.body.innerText.includes('账号登录');
+
+    // 只有在正确的页面且不是登录页面时才显示安装提示
+    setIsCorrectPage(isHomePage && !isLoginPage);
+
+    if (!isCorrectPage) {
+      console.log('PWA install prompt not shown: incorrect page or login page');
+      return;
+    }
+
     // 检测设备类型
     const userAgent = navigator.userAgent;
     const isIOSDevice = /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
@@ -70,7 +88,7 @@ export function PWAInstallPrompt() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
     };
-  }, []);
+  }, [isCorrectPage]);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
@@ -102,7 +120,7 @@ export function PWAInstallPrompt() {
     localStorage.setItem('pwa_next_prompt_time', nextPromptTime.toString());
   };
 
-  if (!showPrompt) return null;
+  if (!showPrompt || !isCorrectPage) return null;
 
   const getDeviceIcon = () => {
     if (isIOS || isAndroid) return <Smartphone className="h-5 w-5" />;

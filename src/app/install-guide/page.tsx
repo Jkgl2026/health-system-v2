@@ -219,6 +219,44 @@ export default function InstallGuidePage() {
           </Card>
         )}
 
+        {/* 重要提示 */}
+        <Card className="max-w-4xl mx-auto mb-8 border-2 border-amber-300 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3 text-xl text-amber-800">
+              <AlertCircle className="h-6 w-6" />
+              <span>⚠️ 重要安装提示</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
+                  1
+                </div>
+                <p className="text-amber-900">
+                  <strong>确保在应用首页安装</strong>：必须在应用首页看到"健康自我管理"标题和内容时，才能点击安装按钮
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
+                  2
+                </div>
+                <p className="text-amber-900">
+                  <strong>不要在登录页面安装</strong>：如果看到"欢迎使用扣子"或"手机号登录"等登录页面，请先完成登录或刷新页面，直到看到应用内容再安装
+                </p>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="w-6 h-6 bg-amber-600 text-white rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0">
+                  3
+                </div>
+                <p className="text-amber-900">
+                  <strong>刷新页面重新安装</strong>：如果已经安装但打开后显示登录页面，请删除已安装的应用，刷新页面后重新安装
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* 安装步骤 */}
         <Card className="max-w-4xl mx-auto mb-8">
           <CardHeader>
@@ -369,6 +407,25 @@ export default function InstallGuidePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
+              <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                <h3 className="font-bold text-lg mb-2 flex items-center gap-2 text-red-800">
+                  <AlertCircle className="h-5 w-5" />
+                  <span>Q: 安装后打开显示登录页面怎么办？</span>
+                </h3>
+                <p className="text-red-900 ml-7 mb-2">
+                  如果安装后打开应用显示"欢迎使用扣子"或"手机号登录"等登录页面，说明您在错误的页面安装了应用。
+                </p>
+                <div className="ml-7 space-y-2 text-red-800">
+                  <p><strong>解决方法：</strong></p>
+                  <ol className="list-decimal list-inside space-y-1">
+                    <li>删除已安装的应用</li>
+                    <li>刷新浏览器页面</li>
+                    <li>确保看到"健康自我管理"标题和应用内容（非登录页面）</li>
+                    <li>重新按照步骤安装应用</li>
+                  </ol>
+                </div>
+              </div>
+
               <div>
                 <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
                   <span className="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-sm">Q</span>

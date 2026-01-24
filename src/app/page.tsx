@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck } from 'lucide-react';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
+import { PWARedirect } from './page-pwa-redirect';
 
 export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
@@ -254,6 +255,9 @@ export default function Home() {
           </p>
         </section>
       </main>
+
+      {/* PWA 启动重定向 */}
+      <PWARedirect />
 
       {/* 页脚 */}
       <footer className="bg-white dark:bg-gray-800 border-t mt-12">

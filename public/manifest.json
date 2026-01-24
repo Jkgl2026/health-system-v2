@@ -2,8 +2,9 @@
   "name": "健康自我管理",
   "short_name": "健康管理",
   "description": "通过科学的症状自检和健康要素分析，了解您的身体状况，掌握健康管理的科学方法。让老百姓少花钱甚至不花钱解决问题。",
-  "start_url": "/",
+  "start_url": "/?pwa=true",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
   "background_color": "#ffffff",
   "theme_color": "#10b981",
   "orientation": "portrait-primary",
@@ -65,14 +66,14 @@
       "name": "开始自检",
       "short_name": "自检",
       "description": "快速开始健康自检",
-      "url": "/personal-info",
+      "url": "/personal-info?pwa=true",
       "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     },
     {
       "name": "健康课程",
       "short_name": "课程",
       "description": "学习健康知识",
-      "url": "/inspiration",
+      "url": "/inspiration?pwa=true",
       "icons": [{ "src": "/icons/icon-192x192.png", "sizes": "192x192" }]
     }
   ]
