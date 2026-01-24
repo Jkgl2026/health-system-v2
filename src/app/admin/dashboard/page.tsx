@@ -580,7 +580,7 @@ export default function AdminDashboardPage() {
                   </div>
                   <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
                     <div className="text-sm text-blue-600 mb-1">BMI</div>
-                    <div className="font-bold text-lg">{selectedUser.user?.bmi ? selectedUser.user.bmi.toFixed(1) : '未计算'}</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.bmi && !isNaN(Number(selectedUser.user.bmi)) ? Number(selectedUser.user.bmi).toFixed(1) : '未计算'}</div>
                   </div>
                   <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
                     <div className="text-sm text-blue-600 mb-1">注册时间</div>
@@ -602,8 +602,12 @@ export default function AdminDashboardPage() {
                     <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-100 text-center">
                       <div className="text-sm text-blue-600 mb-2">整体健康总分</div>
                       <div className="font-bold text-5xl text-blue-700 mb-2">
-                        {getLatestHealthAnalysis()!.overallHealth !== null ? 
-                          getLatestHealthAnalysis()!.overallHealth.toFixed(1) : '未计算'}
+                        {(() => {
+                          const analysis = getLatestHealthAnalysis();
+                          if (analysis?.overallHealth === null || analysis?.overallHealth === undefined) return '未计算';
+                          const val = Number(analysis.overallHealth);
+                          return !isNaN(val) ? val.toFixed(1) : '格式错误';
+                        })()}
                       </div>
                       <div className="text-sm text-blue-500">
                         基于7个健康要素的综合评估
@@ -613,8 +617,9 @@ export default function AdminDashboardPage() {
                     {/* 各要素得分卡片 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {HEALTH_ELEMENTS.map((element) => {
-                        const value = (getLatestHealthAnalysis() as any)[element.key];
-                        const score = value !== null ? Math.min(value, 100) : 0;
+                        const rawValue = (getLatestHealthAnalysis() as any)[element.key];
+                        const value = rawValue !== null && rawValue !== undefined ? Number(rawValue) : null;
+                        const score = value !== null && !isNaN(value) ? Math.min(value, 100) : 0;
                         
                         return (
                           <div key={element.key} className="bg-white p-5 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
@@ -636,7 +641,7 @@ export default function AdminDashboardPage() {
                               >
                                 {score > 20 && (
                                   <span className="text-xs font-bold text-white">
-                                    {score.toFixed(0)}%
+                                    {Number(score).toFixed(0)}%
                                   </span>
                                 )}
                               </div>

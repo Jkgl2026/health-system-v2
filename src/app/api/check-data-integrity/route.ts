@@ -17,14 +17,14 @@ export async function GET(request: NextRequest) {
       WHERE u.id IS NULL
     `);
 
-    if (orphanedRequirements && orphanedRequirements.length > 0) {
+    if (orphanedRequirements?.rows && orphanedRequirements.rows.length > 0) {
       issues.push({
         type: 'ORPHANED_RECORD',
         severity: 'HIGH',
         table: 'requirements',
-        count: orphanedRequirements.length,
-        description: `${orphanedRequirements.length} 条 requirements 记录没有关联的用户`,
-        data: orphanedRequirements.slice(0, 5),
+        count: orphanedRequirements.rows.length,
+        description: `${orphanedRequirements.rows.length} 条 requirements 记录没有关联的用户`,
+        data: orphanedRequirements.rows.slice(0, 5),
       });
     }
 
@@ -35,14 +35,14 @@ export async function GET(request: NextRequest) {
       WHERE u.id IS NULL
     `);
 
-    if (orphanedSymptomChecks && orphanedSymptomChecks.length > 0) {
+    if (orphanedSymptomChecks?.rows && orphanedSymptomChecks.rows.length > 0) {
       issues.push({
         type: 'ORPHANED_RECORD',
         severity: 'HIGH',
         table: 'symptom_checks',
-        count: orphanedSymptomChecks.length,
-        description: `${orphanedSymptomChecks.length} 条 symptom_checks 记录没有关联的用户`,
-        data: orphanedSymptomChecks.slice(0, 5),
+        count: orphanedSymptomChecks.rows.length,
+        description: `${orphanedSymptomChecks.rows.length} 条 symptom_checks 记录没有关联的用户`,
+        data: orphanedSymptomChecks.rows.slice(0, 5),
       });
     }
 
@@ -53,14 +53,14 @@ export async function GET(request: NextRequest) {
       WHERE u.id IS NULL
     `);
 
-    if (orphanedHealthAnalysis && orphanedHealthAnalysis.length > 0) {
+    if (orphanedHealthAnalysis?.rows && orphanedHealthAnalysis.rows.length > 0) {
       issues.push({
         type: 'ORPHANED_RECORD',
         severity: 'HIGH',
         table: 'health_analysis',
-        count: orphanedHealthAnalysis.length,
-        description: `${orphanedHealthAnalysis.length} 条 health_analysis 记录没有关联的用户`,
-        data: orphanedHealthAnalysis.slice(0, 5),
+        count: orphanedHealthAnalysis.rows.length,
+        description: `${orphanedHealthAnalysis.rows.length} 条 health_analysis 记录没有关联的用户`,
+        data: orphanedHealthAnalysis.rows.slice(0, 5),
       });
     }
 
@@ -71,14 +71,14 @@ export async function GET(request: NextRequest) {
       WHERE u.id IS NULL
     `);
 
-    if (orphanedUserChoices && orphanedUserChoices.length > 0) {
+    if (orphanedUserChoices?.rows && orphanedUserChoices.rows.length > 0) {
       issues.push({
         type: 'ORPHANED_RECORD',
         severity: 'HIGH',
         table: 'user_choices',
-        count: orphanedUserChoices.length,
-        description: `${orphanedUserChoices.length} 条 user_choices 记录没有关联的用户`,
-        data: orphanedUserChoices.slice(0, 5),
+        count: orphanedUserChoices.rows.length,
+        description: `${orphanedUserChoices.rows.length} 条 user_choices 记录没有关联的用户`,
+        data: orphanedUserChoices.rows.slice(0, 5),
       });
     }
 
@@ -91,14 +91,14 @@ export async function GET(request: NextRequest) {
          OR phone IS NULL OR phone = ''
     `);
 
-    if (usersMissingFields && usersMissingFields.length > 0) {
+    if (usersMissingFields?.rows && usersMissingFields.rows.length > 0) {
       issues.push({
         type: 'MISSING_REQUIRED_FIELD',
         severity: 'MEDIUM',
         table: 'users',
-        count: usersMissingFields.length,
-        description: `${usersMissingFields.length} 条用户记录缺少必填字段（name或phone）`,
-        data: usersMissingFields.slice(0, 5),
+        count: usersMissingFields.rows.length,
+        description: `${usersMissingFields.rows.length} 条用户记录缺少必填字段（name或phone）`,
+        data: usersMissingFields.rows.slice(0, 5),
       });
     }
 
@@ -113,15 +113,15 @@ export async function GET(request: NextRequest) {
       HAVING COUNT(*) > 1
     `);
 
-    if (duplicatePhones && duplicatePhones.length > 0) {
+    if (duplicatePhones?.rows && duplicatePhones.rows.length > 0) {
       issues.push({
         type: 'DUPLICATE_DATA',
         severity: 'MEDIUM',
         table: 'users',
         field: 'phone',
-        count: duplicatePhones.length,
-        description: `${duplicatePhones.length} 个手机号存在重复`,
-        data: duplicatePhones,
+        count: duplicatePhones.rows.length,
+        description: `${duplicatePhones.rows.length} 个手机号存在重复`,
+        data: duplicatePhones.rows,
       });
     }
 
@@ -139,13 +139,13 @@ export async function GET(request: NextRequest) {
     ]);
 
     const summary = {
-      activeUsers: stats[0]?.[0]?.count || 0,
-      deletedUsers: stats[1]?.[0]?.count || 0,
-      requirementsCount: stats[2]?.[0]?.count || 0,
-      symptomChecksCount: stats[3]?.[0]?.count || 0,
-      healthAnalysisCount: stats[4]?.[0]?.count || 0,
-      userChoicesCount: stats[5]?.[0]?.count || 0,
-      auditLogsCount: stats[6]?.[0]?.count || 0,
+      activeUsers: stats[0]?.rows?.[0]?.count || 0,
+      deletedUsers: stats[1]?.rows?.[0]?.count || 0,
+      requirementsCount: stats[2]?.rows?.[0]?.count || 0,
+      symptomChecksCount: stats[3]?.rows?.[0]?.count || 0,
+      healthAnalysisCount: stats[4]?.rows?.[0]?.count || 0,
+      userChoicesCount: stats[5]?.rows?.[0]?.count || 0,
+      auditLogsCount: stats[6]?.rows?.[0]?.count || 0,
     };
 
     console.log('[数据完整性检查] 完成，发现', issues.length, '个问题');
