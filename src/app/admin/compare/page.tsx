@@ -7,9 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { LogOut, ArrowLeft, Activity, Users, CheckCircle, TrendingUp, TrendingDown, Minus, Eye } from 'lucide-react';
+import { LogOut, ArrowLeft, Activity, Users, CheckCircle, TrendingUp, TrendingDown, Minus, Eye, HelpCircle, AlertCircle, FileText, Sparkles, Flame, Heart, Zap, Droplets, Target, BookOpen } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
+import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
 
 interface UserData {
   id: string;
@@ -589,6 +590,418 @@ export default function AdminComparePage() {
                   </CardContent>
                 </Card>
               )}
+
+              <Separator />
+
+              {/* 七问答案对比 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <HelpCircle className="h-5 w-5 mr-2" />
+                    持续跟进落实健康的七问（全部7个问题）
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {SEVEN_QUESTIONS.map((q, index) => {
+                      const getAnswer = (data: FullUserData) => {
+                        const answers = data.requirements?.sevenQuestionsAnswers;
+                        const answerDict = answers as Record<string, any>;
+                        const answerData = answerDict?.[q.id.toString()];
+                        return typeof answerData === 'object' && answerData !== null ? answerData.answer : answerData;
+                      };
+
+                      const answers = compareData.map(getAnswer);
+
+                      return (
+                        <div key={index} className="p-4 bg-gray-50 rounded-lg border">
+                          <div className="font-bold text-gray-900 mb-3">
+                            {index + 1}. {q.question}
+                          </div>
+                          <div className="text-xs text-gray-500 mb-2">
+                            {q.description}
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {answers.map((answer, versionIndex) => (
+                              <div key={versionIndex} className={`p-3 rounded-lg ${answer ? 'bg-green-50 border border-green-200' : 'bg-gray-100 border border-gray-200'}`}>
+                                <div className="text-xs text-gray-500 mb-1">版本 {versionIndex + 1}</div>
+                                <div className="text-sm text-gray-700">
+                                  {answer || <span className="text-gray-400 italic">未填写</span>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* 不良生活习惯自检表对比 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <AlertCircle className="h-5 w-5 mr-2" />
+                    不良生活习惯自检表（全部252项）
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {(() => {
+                      const habitIdsList = compareData.map(data => {
+                        const habitIds = data.requirements?.badHabitsChecklist || [];
+                        return new Set(Array.isArray(habitIds) ? habitIds : []);
+                      });
+
+                      return Object.entries(BAD_HABITS_CHECKLIST).map(([category, habits]) => (
+                        <div key={category} className="p-4 bg-gray-50 rounded-lg border">
+                          <h4 className="font-semibold text-pink-700 mb-4">{category} ({habits.length}项)</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {habits.map((habit: any) => (
+                              <div key={habit.id} className="p-2 bg-white rounded border">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  #{habit.id} {habit.habit}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {habitIdsList.map((habitIds, versionIndex) => (
+                                    <div key={versionIndex} className={`text-xs px-2 py-1 rounded ${habitIds.has(habit.id) ? 'bg-pink-100 text-pink-700' : 'bg-gray-100 text-gray-400'}`}>
+                                      V{versionIndex + 1}: {habitIds.has(habit.id) ? '✓' : '✗'}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* 身体语言简表对比 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    身体语言简表（全部100项）
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {(() => {
+                      const symptomIdsList = compareData.map(data => {
+                        const symptomCheck = data.symptomChecks?.[0];
+                        const symptomIds = symptomCheck?.checkedSymptoms || [];
+                        return new Set(symptomIds.map((id: string) => parseInt(id)));
+                      });
+
+                      // 按类别分组
+                      const symptomsByCategory = BODY_SYMPTOMS.reduce((acc, symptom) => {
+                        if (!acc[symptom.category]) acc[symptom.category] = [];
+                        acc[symptom.category].push(symptom);
+                        return acc;
+                      }, {} as Record<string, any[]>);
+
+                      return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
+                        <div key={category} className="p-4 bg-gray-50 rounded-lg border">
+                          <h4 className="font-semibold text-green-700 mb-4">{category} ({symptoms.length}项)</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {symptoms.map((symptom: any) => (
+                              <div key={symptom.id} className="p-2 bg-white rounded border">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  #{symptom.id} {symptom.name}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {symptomIdsList.map((symptomIds, versionIndex) => (
+                                    <div key={versionIndex} className={`text-xs px-2 py-1 rounded ${symptomIds.has(symptom.id) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+                                      V{versionIndex + 1}: {symptomIds.has(symptom.id) ? '✓' : '✗'}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* 300项症状自检表对比 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FileText className="h-5 w-5 mr-2" />
+                    300项症状自检表（全部300项）
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {(() => {
+                      const symptomIdsList = compareData.map(data => {
+                        const symptomIds = data.requirements?.symptoms300Checklist || [];
+                        return new Set(Array.isArray(symptomIds) ? symptomIds : []);
+                      });
+
+                      // 按类别分组
+                      const symptomsByCategory = BODY_SYMPTOMS_300.reduce((acc, symptom) => {
+                        if (!acc[symptom.category]) acc[symptom.category] = [];
+                        acc[symptom.category].push(symptom);
+                        return acc;
+                      }, {} as Record<string, any[]>);
+
+                      return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
+                        <div key={category} className="p-4 bg-gray-50 rounded-lg border">
+                          <h4 className="font-semibold text-amber-700 mb-4">{category} ({symptoms.length}项)</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                            {symptoms.map((symptom: any) => (
+                              <div key={symptom.id} className="p-2 bg-white rounded border">
+                                <div className="text-xs text-gray-500 mb-1">
+                                  #{symptom.id} {symptom.name}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  {symptomIdsList.map((symptomIds, versionIndex) => (
+                                    <div key={versionIndex} className={`text-xs px-2 py-1 rounded ${symptomIds.has(symptom.id) ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400'}`}>
+                                      V{versionIndex + 1}: {symptomIds.has(symptom.id) ? '✓' : '✗'}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* 四个要求完成情况对比 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <CheckCircle className="h-5 w-5 mr-2" />
+                    四个要求完成情况对比
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead>要求</TableHead>
+                        {compareData.map((data, index) => (
+                          <TableHead key={data.id}>版本 {index + 1}</TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {['requirement1Completed', 'requirement2Completed', 'requirement3Completed', 'requirement4Completed'].map((req, index) => {
+                        const labels = ['要求一：总览和故事', '要求二：了解发心感悟', '要求三：必学课程', '要求四：复健速度'];
+                        const getValue = (data: FullUserData) => data.requirements?.[req] || false;
+
+                        return (
+                          <TableRow key={req}>
+                            <TableCell className="font-medium">{labels[index]}</TableCell>
+                            {compareData.map((data, versionIndex) => (
+                              <TableCell key={versionIndex}>
+                                {getValue(data) ? (
+                                  <Badge className="bg-green-500">已完成</Badge>
+                                ) : (
+                                  <Badge variant="outline">未完成</Badge>
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        );
+                      })}
+                      <TableRow>
+                        <TableCell className="font-medium">完成时间</TableCell>
+                        {compareData.map((data, versionIndex) => (
+                          <TableCell key={versionIndex}>{formatDate(data.requirements?.completedAt)}</TableCell>
+                        ))}
+                      </TableRow>
+                      <TableRow>
+                        <TableCell className="font-medium">最后更新</TableCell>
+                        {compareData.map((data, versionIndex) => (
+                          <TableCell key={versionIndex}>{formatDate(data.requirements?.updatedAt)}</TableCell>
+                        ))}
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+
+              <Separator />
+
+              {/* 个性化健康管理方案对比 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Sparkles className="h-5 w-5 mr-2" />
+                    个性化健康管理方案对比
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* 主要健康要素对比 */}
+                    <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-200">
+                      <h4 className="text-base font-semibold mb-3 text-gray-900 flex items-center">
+                        <Activity className="w-5 h-5 mr-2 text-purple-600" />
+                        主要健康要素（按症状数量排序，取前3）
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {compareData.map((data, versionIndex) => {
+                          const elementScores = data.symptomChecks?.[0]?.elementScores as Record<string, number> || {};
+                          const primaryElements = Object.entries(elementScores)
+                            .filter(([_, count]) => count > 0)
+                            .sort((a, b) => (b[1] as number) - (a[1] as number))
+                            .slice(0, 3)
+                            .map(([name, count]) => ({ name, count: Number(count) }));
+
+                          return (
+                            <div key={versionIndex} className="p-3 bg-white rounded-lg border">
+                              <div className="text-xs text-gray-500 mb-2">版本 {versionIndex + 1}</div>
+                              {primaryElements.length > 0 ? (
+                                primaryElements.map((el, idx) => (
+                                  <div key={idx} className="flex items-center justify-between py-1">
+                                    <span className="text-sm font-medium">{el.name}</span>
+                                    <Badge className="bg-purple-100 text-purple-700">{el.count}个症状</Badge>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-xs text-gray-400">无数据</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 推荐调理产品对比 */}
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <h4 className="text-base font-semibold mb-3 text-gray-900 flex items-center">
+                        <Target className="w-5 h-5 mr-2 text-blue-600" />
+                        推荐调理产品
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {compareData.map((data, versionIndex) => {
+                          const elementScores = data.symptomChecks?.[0]?.elementScores as Record<string, number> || {};
+                          const primaryElements = Object.entries(elementScores)
+                            .filter(([_, count]) => count > 0)
+                            .sort((a, b) => (b[1] as number) - (a[1] as number))
+                            .slice(0, 3)
+                            .map(([name, count]) => ({ name, count: Number(count) }));
+
+                          const elementNames = primaryElements.map(el => el.name);
+                          const products: any[] = [];
+
+                          if (elementNames.includes('气血') || elementNames.includes('寒凉') || elementNames.includes('循环')) {
+                            products.push({ name: '艾灸调理', matchScore: 5 });
+                          }
+                          if (elementNames.includes('气血') || elementNames.includes('毒素') || elementNames.includes('循环')) {
+                            products.push({ name: '火灸调理', matchScore: 5 });
+                          }
+                          if (elementNames.includes('循环') || elementNames.includes('气血')) {
+                            products.push({ name: '正骨调理', matchScore: 4 });
+                          }
+                          if (elementNames.includes('情绪') || elementNames.includes('毒素') || elementNames.includes('气血') || elementNames.includes('血脂')) {
+                            products.push({ name: '空腹禅调理', matchScore: 4 });
+                          }
+                          if (elementNames.includes('循环') || elementNames.includes('气血') || elementNames.includes('毒素')) {
+                            products.push({ name: '经络调理', matchScore: 4 });
+                          }
+                          products.push({ name: '药王产品', matchScore: 3 });
+
+                          return (
+                            <div key={versionIndex} className="p-3 bg-white rounded-lg border">
+                              <div className="text-xs text-gray-500 mb-2">版本 {versionIndex + 1}</div>
+                              {products.length > 0 ? (
+                                products.map((product, idx) => (
+                                  <div key={idx} className="flex items-center justify-between py-1">
+                                    <span className="text-sm font-medium">{product.name}</span>
+                                    <Badge className="bg-blue-100 text-blue-700">匹配度 {product.matchScore}</Badge>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-xs text-gray-400">无数据</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* 推荐学习课程对比 */}
+                    <div className="p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                      <h4 className="text-base font-semibold mb-3 text-gray-900 flex items-center">
+                        <BookOpen className="w-5 h-5 mr-2 text-green-600" />
+                        推荐学习课程（按相关性排序）
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {compareData.map((data, versionIndex) => {
+                          const elementScores = data.symptomChecks?.[0]?.elementScores as Record<string, number> || {};
+                          const primaryElements = Object.entries(elementScores)
+                            .filter(([_, count]) => count > 0)
+                            .sort((a, b) => (b[1] as number) - (a[1] as number))
+                            .slice(0, 3)
+                            .map(([name, count]) => ({ name, count: Number(count) }));
+
+                          const primaryElementNames = primaryElements.map(el => el.name);
+
+                          const courses = TWENTY_ONE_COURSES.map((course: any) => {
+                            let relevance: 'high' | 'medium' | 'low' = 'low';
+
+                            if (primaryElementNames.length > 0) {
+                              if (primaryElementNames.includes('气血') && course.title.includes('气血')) relevance = 'high';
+                              else if (primaryElementNames.includes('循环') && course.title.includes('循环')) relevance = 'high';
+                              else if (primaryElementNames.includes('毒素') && course.title.includes('毒素')) relevance = 'high';
+                              else if (primaryElementNames.includes('寒凉') && course.title.includes('寒')) relevance = 'high';
+                              else if (primaryElementNames.includes('免疫') && course.title.includes('免疫')) relevance = 'high';
+                              else if (primaryElementNames.includes('情绪') && course.title.includes('情绪')) relevance = 'high';
+                              else if (primaryElementNames.includes('血脂') && course.title.includes('血脂')) relevance = 'high';
+                              else relevance = 'medium';
+                            }
+
+                            return { ...course, relevance };
+                          }).sort((a: any, b: any) => {
+                            const relevanceOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
+                            return relevanceOrder[b.relevance] - relevanceOrder[a.relevance];
+                          }).slice(0, 5);
+
+                          return (
+                            <div key={versionIndex} className="p-3 bg-white rounded-lg border">
+                              <div className="text-xs text-gray-500 mb-2">版本 {versionIndex + 1}</div>
+                              {courses.length > 0 ? (
+                                courses.map((course, idx) => (
+                                  <div key={idx} className="py-1 border-b last:border-0">
+                                    <div className="text-xs font-medium text-gray-700">{course.title}</div>
+                                    <Badge className={`mt-1 ${course.relevance === 'high' ? 'bg-green-500' : course.relevance === 'medium' ? 'bg-yellow-500' : 'bg-gray-400'}`}>
+                                      {course.relevance === 'high' ? '高相关' : course.relevance === 'medium' ? '中相关' : '低相关'}
+                                    </Badge>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-xs text-gray-400">无数据</div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* 数据不足提示 */}
               {!compareData.some(data => data.healthAnalysis && data.healthAnalysis.length > 0) && (
