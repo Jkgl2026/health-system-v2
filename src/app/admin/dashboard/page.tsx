@@ -722,7 +722,9 @@ export default function AdminDashboardPage() {
                       <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
                         <div className="text-sm text-green-600 mb-1">目标症状</div>
                         <div className="font-bold text-3xl text-green-700">
-                          {selectedUser.user?.targetSymptom || '未设置'}
+                          {getLatestSymptomCheck()?.checkedSymptoms && getLatestSymptomCheck()!.checkedSymptoms.length > 0 
+                            ? `症状ID: ${getLatestSymptomCheck()!.checkedSymptoms[0]}`
+                            : '未设置'}
                         </div>
                       </div>
                       <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
@@ -949,6 +951,14 @@ export default function AdminDashboardPage() {
                       <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-100 text-center">
                         <div className="text-sm text-orange-600 mb-1">全部要求完成时间</div>
                         <div className="font-bold text-lg">{formatDate(selectedUser.requirements.completedAt)}</div>
+                      </div>
+                    )}
+
+                    {/* 最后更新时间 */}
+                    {selectedUser.requirements.updatedAt && (
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-100 text-center">
+                        <div className="text-sm text-orange-600 mb-1">最后更新时间</div>
+                        <div className="font-bold text-lg">{formatDate(selectedUser.requirements.updatedAt)}</div>
                       </div>
                     )}
 
