@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Pagination } from '@/components/admin/Pagination';
 import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw, Sparkles, Flame, Heart, Zap, Droplets, BookOpen, AlertTriangle } from 'lucide-react';
 import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface UserSummary {
   user: {
@@ -89,6 +89,10 @@ export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserFullData | null>(null);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [showHistoryDialog, setShowHistoryDialog] = useState(false);
+  const [historyUsers, setHistoryUsers] = useState<any[]>([]);
+  const [historyPhone, setHistoryPhone] = useState<string | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [searchQuery, setSearchQuery] = useState('');
@@ -189,6 +193,26 @@ export default function AdminDashboardPage() {
       }
     } catch (error) {
       console.error('Failed to fetch user detail:', error);
+    }
+  };
+
+  const handleViewHistory = async (phone: string) => {
+    setLoadingHistory(true);
+    setHistoryPhone(phone);
+    try {
+      const response = await fetch(`/api/user/history?phone=${encodeURIComponent(phone)}`);
+      const data = await response.json();
+      if (data.success) {
+        setHistoryUsers(data.users);
+        setShowHistoryDialog(true);
+      } else {
+        alert('获取历史记录失败');
+      }
+    } catch (error) {
+      console.error('Failed to fetch user history:', error);
+      alert('获取历史记录失败，请重试');
+    } finally {
+      setLoadingHistory(false);
     }
   };
 
@@ -443,6 +467,7 @@ export default function AdminDashboardPage() {
                     <TableHead className="font-semibold">性别</TableHead>
                     <TableHead className="font-semibold">健康状态</TableHead>
                     <TableHead className="font-semibold">完成度</TableHead>
+                    <TableHead className="font-semibold">历史记录</TableHead>
                     <TableHead className="font-semibold">注册时间</TableHead>
                     <TableHead className="font-semibold">操作</TableHead>
                   </TableRow>
@@ -450,7 +475,7 @@ export default function AdminDashboardPage() {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8">
+                      <TableCell colSpan={9} className="text-center py-8">
                         <div className="flex items-center justify-center">
                           <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mr-2" />
                           加载中...
@@ -459,7 +484,7 @@ export default function AdminDashboardPage() {
                     </TableRow>
                   ) : users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                         {searchQuery ? '未找到匹配的用户' : '暂无用户数据'}
                       </TableCell>
                     </TableRow>
@@ -499,6 +524,20 @@ export default function AdminDashboardPage() {
                             <span className="text-xs text-gray-600 mt-1 block">
                               {calculateRequirementsProgress(userSummary.requirements).toFixed(0)}%
                             </span>
+                          </TableCell>
+                          <TableCell>
+                            {userSummary.user.phone ? (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleViewHistory(userSummary.user.phone!)}
+                              >
+                                <Activity className="h-4 w-4 mr-1" />
+                                历史记录
+                              </Button>
+                            ) : (
+                              <span className="text-gray-400 text-sm">-</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-sm text-gray-600">
                             {formatDate(userSummary.user.createdAt)}
@@ -1787,6 +1826,142 @@ export default function AdminDashboardPage() {
                 })()}
               </div>
 
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 历史记录对比对话框 */}
+      <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">历史记录对比</DialogTitle>
+            <DialogDescription>
+              {historyPhone} 的所有填写记录（共 {historyUsers.length} 次）
+            </DialogDescription>
+          </DialogHeader>
+
+          {loadingHistory ? (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="h-8 w-8 animate-spin text-blue-600 mr-2" />
+              <span>加载中...</span>
+            </div>
+          ) : historyUsers.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              暂无历史记录
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* 历史记录时间轴 */}
+              <div className="space-y-4">
+                {historyUsers.map((user, index) => (
+                  <div
+                    key={user.id}
+                    className={`relative pl-8 pb-6 border-l-4 ${
+                      user.isLatestVersion
+                        ? 'border-green-500 bg-gradient-to-r from-green-50 to-emerald-50'
+                        : 'border-gray-300 bg-white'
+                    }`}
+                  >
+                    {/* 时间点标记 */}
+                    <div className={`absolute left-0 top-0 w-6 h-6 -translate-x-1/2 rounded-full border-4 ${
+                      user.isLatestVersion
+                        ? 'bg-green-500 border-white shadow-lg'
+                        : 'bg-gray-300 border-white'
+                    }`} />
+
+                    {/* 标题 */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <h3 className="font-bold text-lg">
+                          第 {historyUsers.length - index} 次填写
+                          {user.isLatestVersion && (
+                            <Badge className="ml-2 bg-green-500">最新版本</Badge>
+                          )}
+                        </h3>
+                        <span className="text-sm text-gray-500">
+                          {formatDate(user.createdAt)}
+                        </span>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setShowHistoryDialog(false);
+                          handleViewDetail(user.id);
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-1" />
+                        查看详情
+                      </Button>
+                    </div>
+
+                    {/* 基本信息 */}
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                      <div className="bg-white p-3 rounded-lg shadow-sm border">
+                        <div className="text-xs text-gray-500 mb-1">姓名</div>
+                        <div className="font-semibold">{user.name || '-'}</div>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg shadow-sm border">
+                        <div className="text-xs text-gray-500 mb-1">年龄</div>
+                        <div className="font-semibold">{user.age || '-'}</div>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg shadow-sm border">
+                        <div className="text-xs text-gray-500 mb-1">性别</div>
+                        <div className="font-semibold">{user.gender || '-'}</div>
+                      </div>
+                      <div className="bg-white p-3 rounded-lg shadow-sm border">
+                        <div className="text-xs text-gray-500 mb-1">BMI</div>
+                        <div className="font-semibold">
+                          {user.bmi && !isNaN(Number(user.bmi)) ? Number(user.bmi).toFixed(1) : '-'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 身体数据对比 */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {user.weight && (
+                        <div className="bg-white p-3 rounded-lg shadow-sm border">
+                          <div className="text-xs text-gray-500 mb-1">体重</div>
+                          <div className="font-semibold">{user.weight} kg</div>
+                        </div>
+                      )}
+                      {user.height && (
+                        <div className="bg-white p-3 rounded-lg shadow-sm border">
+                          <div className="text-xs text-gray-500 mb-1">身高</div>
+                          <div className="font-semibold">{user.height} cm</div>
+                        </div>
+                      )}
+                      {user.bloodPressure && (
+                        <div className="bg-white p-3 rounded-lg shadow-sm border">
+                          <div className="text-xs text-gray-500 mb-1">血压</div>
+                          <div className="font-semibold">{user.bloodPressure} mmHg</div>
+                        </div>
+                      )}
+                      {user.occupation && (
+                        <div className="bg-white p-3 rounded-lg shadow-sm border">
+                          <div className="text-xs text-gray-500 mb-1">职业</div>
+                          <div className="font-semibold">{user.occupation}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 对比说明 */}
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="font-bold">对比说明</AlertTitle>
+                <AlertDescription>
+                  <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                    <li>每次填写都会创建独立的记录，便于对比不同时期的健康状况</li>
+                    <li>最新版本会用绿色标记，方便识别当前数据</li>
+                    <li>点击"查看详情"可以查看该次填写的完整数据</li>
+                    <li>通过对比可以观察健康指标的变化趋势</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
             </div>
           )}
         </DialogContent>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import type { InsertUser } from '@/storage/database';
 
-// POST /api/user - 创建新用户或查找已有用户
+// POST /api/user - 创建新用户（每次都创建新记录，支持历史对比）
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
@@ -22,27 +22,13 @@ export async function POST(request: NextRequest) {
       bmi: data.bmi || null,
     };
 
-    // 如果提供了phone，检查是否已存在
-    if (data.phone) {
-      const existingUser = await healthDataManager.getUserByPhone(data.phone);
-      if (existingUser) {
-        console.log('找到已有用户，返回用户信息:', existingUser);
-        // 返回已有用户信息，让前端决定是更新还是继续
-        return NextResponse.json({
-          success: true,
-          exists: true,
-          user: existingUser,
-          message: '找到已有用户'
-        }, { status: 200 });
-      }
-    }
-
-    // 如果没有手机号或手机号不存在，创建新用户
+    // 每次都创建新用户，不管手机号是否存在
+    // createUser方法会自动处理手机号分组逻辑
     console.log('开始创建用户:', userData);
     const user = await healthDataManager.createUser(userData);
     console.log('用户创建成功:', user);
 
-    return NextResponse.json({ success: true, exists: false, user }, { status: 201 });
+    return NextResponse.json({ success: true, user }, { status: 201 });
   } catch (error) {
     console.error('Error in POST /api/user:', error);
     const errorMessage = error instanceof Error ? error.message : '未知错误';

@@ -131,13 +131,67 @@ export class HealthDataManager {
   }
   // ==================== 用户管理 ====================
 
+  /**
+   * 创建用户（支持手机号分组，每次都创建新记录）
+   */
   async createUser(data: InsertUser, auditOptions?: Omit<AuditLoggerOptions, 'tableName' | 'action' | 'recordId' | 'newData'>): Promise<User> {
     const db = await getDb();
     try {
       const validated = insertUserSchema.parse(data);
       console.log('[HealthDataManager] 创建用户 - 验证通过:', validated);
-      const [user] = await db.insert(users).values(validated).returning();
-      console.log('[HealthDataManager] 创建用户成功:', user.id);
+
+      // 如果提供了手机号，需要处理手机号分组
+      if (data.phone) {
+        console.log('[HealthDataManager] 检查手机号是否已存在:', data.phone);
+        
+        // 查找该手机号的所有记录（包括已删除的）
+        const existingUsers = await db.select().from(users).where(eq(users.phone, data.phone!));
+        
+        if (existingUsers.length > 0) {
+          console.log('[HealthDataManager] 找到已有记录，使用相同的phoneGroupId');
+          
+          // 使用已有记录的phoneGroupId
+          const phoneGroupId = existingUsers[0].phoneGroupId || existingUsers[0].id;
+          
+          // 将所有旧记录的isLatestVersion设置为false
+          await db.update(users)
+            .set({ isLatestVersion: false, updatedAt: new Date() })
+            .where(eq(users.phone, data.phone!));
+          
+          console.log('[HealthDataManager] 已将旧记录标记为非最新版本');
+          
+          // 使用相同的phoneGroupId创建新记录
+          const [user] = await db.insert(users).values({
+            ...validated,
+            phoneGroupId,
+            isLatestVersion: true,
+          }).returning();
+          
+          console.log('[HealthDataManager] 创建用户成功（使用已有phoneGroupId）:', user.id);
+
+          // 记录审计日志
+          await this.logAudit({
+            ...auditOptions,
+            tableName: 'users',
+            action: 'CREATE',
+            recordId: user.id,
+            newData: user,
+            description: `创建用户（历史版本）: ${user.name || '未知'}，手机号: ${user.phone}`,
+          });
+
+          return user;
+        }
+      }
+
+      // 如果手机号不存在，创建新记录（生成新的phoneGroupId）
+      const { phoneGroupId, ...userData } = validated;
+      const [user] = await db.insert(users).values({
+        ...userData,
+        phoneGroupId: phoneGroupId || crypto.randomUUID(),
+        isLatestVersion: true,
+      }).returning();
+      
+      console.log('[HealthDataManager] 创建用户成功（新phoneGroupId）:', user.id);
 
       // 记录审计日志
       await this.logAudit({
@@ -154,6 +208,56 @@ export class HealthDataManager {
       console.error('[HealthDataManager] 创建用户失败:', error);
       throw error;
     }
+  }
+
+  /**
+   * 获取同一手机号的所有记录（用于对比）
+   */
+  async getUsersByPhone(phone: string, options: { includeDeleted?: boolean } = {}): Promise<User[]> {
+    const db = await getDb();
+    const { includeDeleted = false } = options;
+
+    let query = db.select().from(users).where(eq(users.phone, phone));
+
+    if (includeDeleted) {
+      // 包括已删除的记录
+      query = db.select().from(users).where(eq(users.phone, phone));
+    } else {
+      // 排除已删除的记录
+      query = db.select().from(users).where(
+        and(
+          eq(users.phone, phone),
+          isNull(users.deletedAt)
+        )
+      );
+    }
+
+    return query.orderBy(desc(users.createdAt));
+  }
+
+  /**
+   * 通过phoneGroupId获取所有记录
+   */
+  async getUsersByPhoneGroupId(phoneGroupId: string, options: { includeDeleted?: boolean } = {}): Promise<User[]> {
+    const db = await getDb();
+    const { includeDeleted = false } = options;
+
+    let query;
+
+    if (includeDeleted) {
+      // 包括已删除的记录
+      query = db.select().from(users).where(eq(users.phoneGroupId, phoneGroupId));
+    } else {
+      // 排除已删除的记录
+      query = db.select().from(users).where(
+        and(
+          eq(users.phoneGroupId, phoneGroupId),
+          isNull(users.deletedAt)
+        )
+      );
+    }
+
+    return query.orderBy(desc(users.createdAt));
   }
 
   async getUserById(id: string): Promise<User | null> {

@@ -183,6 +183,7 @@ export default function PersonalInfoPage() {
       const userId = getOrGenerateUserId();
       const userData = {
         name: formData.name,
+        phone: formData.phone || null,
         gender: formData.gender,
         age: parseInt(formData.age) || null,
         weight: formData.weight,
@@ -193,71 +194,25 @@ export default function PersonalInfoPage() {
         bmi: bmi?.toString() || null,
       };
 
-      console.log('[前端] 开始保存用户数据:', { userId, userData });
+      console.log('[前端] 开始保存用户数据（每次都创建新记录）:', { userId, userData });
 
-      let response;
-
-      // 如果提供了手机号，优先通过手机号查找用户
-      if (formData.phone) {
-        console.log('[前端] 通过手机号查找用户');
-        const checkResponse = await fetch('/api/user?phone=' + encodeURIComponent(formData.phone));
-        const checkData = await safeParseResponse(checkResponse);
-        console.log('[前端] 手机号查找结果:', checkData);
-
-        if (checkData.success && checkData.user) {
-          // 找到用户，更新该用户
-          console.log('[前端] 通过手机号找到用户，更新用户');
-          const res = await fetch(`/api/user?phone=${encodeURIComponent(formData.phone)}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData),
-          });
-          response = await safeParseResponse(res);
-
-          // 更新 localStorage 中的 userId，确保后续操作使用正确的 userId
-          localStorage.setItem('health_app_user_id', checkData.user.id);
-        } else {
-          // 手机号未找到，创建新用户
-          console.log('[前端] 手机号未找到，创建新用户');
-          const res = await fetch('/api/user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...userData,
-              phone: formData.phone,
-            }),
-          });
-          response = await safeParseResponse(res);
-        }
-      } else {
-        // 没有手机号，通过 userId 查找
-        console.log('[前端] 通过 userId 查找用户');
-        const userResponse = await getUser(userId);
-        console.log('[前端] 获取用户响应:', userResponse);
-
-        if (userResponse.success && userResponse.user) {
-          console.log('[前端] 更新现有用户');
-          const res = await fetch(`/api/user?userId=${userId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData),
-          });
-          response = await safeParseResponse(res);
-        } else {
-          console.log('[前端] 创建新用户');
-          const res = await fetch('/api/user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(userData),
-          });
-          response = await safeParseResponse(res);
-        }
-      }
+      // 每次都创建新记录，不再更新已有记录
+      const res = await fetch('/api/user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(userData),
+      });
+      const response = await safeParseResponse(res);
 
       console.log('[前端] 保存响应:', response);
 
       if (!response.success) {
         throw new Error(response.error || '保存失败');
+      }
+
+      // 更新 localStorage 中的 userId 为新创建的用户ID
+      if (response.user?.id) {
+        localStorage.setItem('health_app_user_id', response.user.id);
       }
 
       window.location.href = '/check';

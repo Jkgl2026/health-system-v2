@@ -30,6 +30,8 @@ export const users = pgTable(
     occupation: varchar("occupation", { length: 100 }), // 职业
     address: text("address"), // 地址
     bmi: varchar("bmi", { length: 20 }), // 身体质量指数
+    phoneGroupId: varchar("phone_group_id", { length: 36 }), // 手机号分组ID，用于标识同一手机号的不同填写记录
+    isLatestVersion: boolean("is_latest_version").default(true), // 是否是最新版本
     deletedAt: timestamp("deleted_at", { withTimezone: true }), // 软删除标记
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
@@ -38,6 +40,7 @@ export const users = pgTable(
   },
   (table) => ({
     phoneIdx: index("users_phone_idx").on(table.phone),
+    phoneGroupIdx: index("users_phone_group_idx").on(table.phoneGroupId),
   })
 );
 
@@ -205,6 +208,8 @@ export const insertUserSchema = createCoercedInsertSchema(users).pick({
   occupation: true,
   address: true,
   bmi: true,
+  phoneGroupId: true,
+  isLatestVersion: true,
 });
 
 export const insertSymptomCheckSchema = createCoercedInsertSchema(symptomChecks).pick({

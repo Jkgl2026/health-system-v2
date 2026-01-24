@@ -1,230 +1,226 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
-import { migrationManager } from '@/storage/database/migrationManager';
 
-// POST /api/migrate-db - 安全迁移数据库（添加缺失的列，不删除数据）
-// 支持自动备份和回滚
+// POST /api/migrate-db - 数据库迁移：添加手机号分组字段
+// 此操作会添加新字段并更新现有数据，不会删除任何数据
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { autoBackup = true, createdBy = 'ADMIN' } = body;
+    const body = await request.json().catch(() => ({}));
+    const { confirm } = body;
 
-    console.log('[Migration API] 开始数据库迁移...');
-
-    // 定义迁移步骤
-    const steps = [
-      {
-        description: '添加 users.deleted_at 列（软删除支持）',
-        execute: async () => {
-          const db = await getDb();
-          const columnCheck = await db.execute(`
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_name = 'users'
-            AND column_name = 'deleted_at';
-          `);
-
-          if (!columnCheck.rows || columnCheck.rows.length === 0) {
-            await db.execute(`
-              ALTER TABLE users
-              ADD COLUMN deleted_at TIMESTAMP WITH TIME ZONE;
-            `);
-            console.log('✓ 已添加 users.deleted_at 列');
-          } else {
-            console.log('ℹ users.deleted_at 列已存在，跳过');
-          }
+    // 安全保护：必须传入 confirm=true 才能执行
+    if (confirm !== true) {
+      return NextResponse.json(
+        {
+          error: '操作被拒绝',
+          message: '此操作会修改数据库结构！请传入 confirm=true 参数确认执行。'
         },
-        rollback: async () => {
-          // 删除列的回滚操作
-          const db = await getDb();
-          try {
-            await db.execute(`ALTER TABLE users DROP COLUMN IF EXISTS deleted_at;`);
-            console.log('✓ 已回滚 users.deleted_at 列');
-          } catch (error) {
-            console.error('回滚 users.deleted_at 列失败:', error);
-          }
-        },
-      },
-      {
-        description: '添加 requirements.seven_questions_answers 列',
-        execute: async () => {
-          const db = await getDb();
-          const columnCheck = await db.execute(`
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_name = 'requirements'
-            AND column_name = 'seven_questions_answers';
-          `);
-
-          if (!columnCheck.rows || columnCheck.rows.length === 0) {
-            await db.execute(`
-              ALTER TABLE requirements
-              ADD COLUMN seven_questions_answers JSONB;
-            `);
-            console.log('✓ 已添加 requirements.seven_questions_answers 列');
-          } else {
-            console.log('ℹ requirements.seven_questions_answers 列已存在，跳过');
-          }
-        },
-        rollback: async () => {
-          // 删除列的回滚操作
-          const db = await getDb();
-          try {
-            await db.execute(`ALTER TABLE requirements DROP COLUMN IF EXISTS seven_questions_answers;`);
-            console.log('✓ 已回滚 requirements.seven_questions_answers 列');
-          } catch (error) {
-            console.error('回滚 requirements.seven_questions_answers 列失败:', error);
-          }
-        },
-      },
-      {
-        description: '添加 requirements.bad_habits_checklist 列（不良生活习惯自检表）',
-        execute: async () => {
-          const db = await getDb();
-          const columnCheck = await db.execute(`
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_name = 'requirements'
-            AND column_name = 'bad_habits_checklist';
-          `);
-
-          if (!columnCheck.rows || columnCheck.rows.length === 0) {
-            await db.execute(`
-              ALTER TABLE requirements
-              ADD COLUMN bad_habits_checklist JSONB;
-            `);
-            console.log('✓ 已添加 requirements.bad_habits_checklist 列');
-          } else {
-            console.log('ℹ requirements.bad_habits_checklist 列已存在，跳过');
-          }
-        },
-        rollback: async () => {
-          // 删除列的回滚操作
-          const db = await getDb();
-          try {
-            await db.execute(`ALTER TABLE requirements DROP COLUMN IF EXISTS bad_habits_checklist;`);
-            console.log('✓ 已回滚 requirements.bad_habits_checklist 列');
-          } catch (error) {
-            console.error('回滚 requirements.bad_habits_checklist 列失败:', error);
-          }
-        },
-      },
-      {
-        description: '添加 requirements.symptoms_300_checklist 列（300项症状自检表）',
-        execute: async () => {
-          const db = await getDb();
-          const columnCheck = await db.execute(`
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_name = 'requirements'
-            AND column_name = 'symptoms_300_checklist';
-          `);
-
-          if (!columnCheck.rows || columnCheck.rows.length === 0) {
-            await db.execute(`
-              ALTER TABLE requirements
-              ADD COLUMN symptoms_300_checklist JSONB;
-            `);
-            console.log('✓ 已添加 requirements.symptoms_300_checklist 列');
-          } else {
-            console.log('ℹ requirements.symptoms_300_checklist 列已存在，跳过');
-          }
-        },
-        rollback: async () => {
-          // 删除列的回滚操作
-          const db = await getDb();
-          try {
-            await db.execute(`ALTER TABLE requirements DROP COLUMN IF EXISTS symptoms_300_checklist;`);
-            console.log('✓ 已回滚 requirements.symptoms_300_checklist 列');
-          } catch (error) {
-            console.error('回滚 requirements.symptoms_300_checklist 列失败:', error);
-          }
-        },
-      },
-      {
-        description: '创建 audit_logs 表（审计日志支持）',
-        execute: async () => {
-          const db = await getDb();
-          const tableCheck = await db.execute(`
-            SELECT table_name
-            FROM information_schema.tables
-            WHERE table_name = 'audit_logs';
-          `);
-
-          if (!tableCheck.rows || tableCheck.rows.length === 0) {
-            await db.execute(`
-              CREATE TABLE audit_logs (
-                id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-                action VARCHAR(20) NOT NULL,
-                table_name VARCHAR(50) NOT NULL,
-                record_id VARCHAR(36) NOT NULL,
-                operator_id VARCHAR(36),
-                operator_name VARCHAR(128),
-                operator_type VARCHAR(20) NOT NULL,
-                old_data JSONB,
-                new_data JSONB,
-                ip VARCHAR(45),
-                user_agent TEXT,
-                description TEXT,
-                created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
-              );
-            `);
-
-            // 创建索引
-            await db.execute(`CREATE INDEX audit_logs_record_idx ON audit_logs(table_name, record_id);`);
-            await db.execute(`CREATE INDEX audit_logs_operator_idx ON audit_logs(operator_id);`);
-            await db.execute(`CREATE INDEX audit_logs_created_at_idx ON audit_logs(created_at);`);
-
-            console.log('✓ 已创建 audit_logs 表');
-          } else {
-            console.log('ℹ audit_logs 表已存在，跳过');
-          }
-        },
-        rollback: async () => {
-          // 删除表的回滚操作
-          const db = await getDb();
-          try {
-            await db.execute(`DROP TABLE IF EXISTS audit_logs;`);
-            console.log('✓ 已回滚 audit_logs 表');
-          } catch (error) {
-            console.error('回滚 audit_logs 表失败:', error);
-          }
-        },
-      },
-    ];
-
-    // 执行迁移（带自动备份和回滚）
-    const result = await migrationManager.executeMigration(steps, {
-      autoBackup,
-      createdBy,
-      description: '数据库迁移 - 添加软删除和审计日志支持',
-    });
-
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        message: result.message,
-        data: {
-          migrationId: result.migrationId,
-          backupId: result.backupId,
-          note: '如果迁移出现问题，可以使用迁移ID进行回滚',
-        },
-      }, { status: 200 });
-    } else {
-      return NextResponse.json({
-        success: false,
-        error: result.message,
-        data: {
-          migrationId: result.migrationId,
-          backupId: result.backupId,
-          note: '迁移失败，系统已自动创建备份，可以尝试回滚',
-        },
-      }, { status: 500 });
+        { status: 403 }
+      );
     }
+
+    const db = await getDb();
+
+    console.log('[Migration] 开始执行数据库迁移...');
+
+    // 检查 phone_group_id 字段是否已存在
+    const columnCheckResult = await db.execute(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'users' AND column_name = 'phone_group_id';
+    `);
+
+    const phoneGroupExists = columnCheckResult.rows.length > 0;
+    console.log('[Migration] phone_group_id 字段是否存在:', phoneGroupExists);
+
+    // 添加 phone_group_id 字段（如果不存在）
+    if (!phoneGroupExists) {
+      console.log('[Migration] 添加 phone_group_id 字段...');
+      await db.execute(`
+        ALTER TABLE users 
+        ADD COLUMN phone_group_id VARCHAR(36);
+      `);
+      console.log('[Migration] phone_group_id 字段添加成功');
+    }
+
+    // 检查 is_latest_version 字段是否已存在
+    const versionCheckResult = await db.execute(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'users' AND column_name = 'is_latest_version';
+    `);
+
+    const versionExists = versionCheckResult.rows.length > 0;
+    console.log('[Migration] is_latest_version 字段是否存在:', versionExists);
+
+    // 添加 is_latest_version 字段（如果不存在）
+    if (!versionExists) {
+      console.log('[Migration] 添加 is_latest_version 字段...');
+      await db.execute(`
+        ALTER TABLE users 
+        ADD COLUMN is_latest_version BOOLEAN DEFAULT true;
+      `);
+      console.log('[Migration] is_latest_version 字段添加成功');
+    }
+
+    // 检查 users_phone_group_idx 索引是否已存在
+    const indexCheckResult = await db.execute(`
+      SELECT indexname 
+      FROM pg_indexes 
+      WHERE tablename = 'users' AND indexname = 'users_phone_group_idx';
+    `);
+
+    const indexExists = indexCheckResult.rows.length > 0;
+    console.log('[Migration] users_phone_group_idx 索引是否存在:', indexExists);
+
+    // 添加索引（如果不存在）
+    if (!indexExists) {
+      console.log('[Migration] 添加 users_phone_group_idx 索引...');
+      await db.execute(`
+        CREATE INDEX users_phone_group_idx ON users(phone_group_id);
+      `);
+      console.log('[Migration] users_phone_group_idx 索引添加成功');
+    }
+
+    // 更新现有数据：为有手机号的记录设置 phone_group_id
+    console.log('[Migration] 更新现有数据的 phone_group_id...');
+    const updateResult = await db.execute(`
+      UPDATE users 
+      SET phone_group_id = id 
+      WHERE phone IS NOT NULL 
+        AND phone_group_id IS NULL;
+    `);
+    console.log('[Migration] 更新了', updateResult.rowCount, '条记录');
+
+    // 更新 requirements 表，添加缺失字段
+    console.log('[Migration] 检查 requirements 表字段...');
+
+    // 检查 bad_habits_checklist 字段
+    const badHabitsCheck = await db.execute(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'requirements' AND column_name = 'bad_habits_checklist';
+    `);
+
+    if (badHabitsCheck.rows.length === 0) {
+      console.log('[Migration] 添加 bad_habits_checklist 字段...');
+      await db.execute(`
+        ALTER TABLE requirements 
+        ADD COLUMN bad_habits_checklist JSONB;
+      `);
+      console.log('[Migration] bad_habits_checklist 字段添加成功');
+    }
+
+    // 检查 symptoms_300_checklist 字段
+    const symptoms300Check = await db.execute(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'requirements' AND column_name = 'symptoms_300_checklist';
+    `);
+
+    if (symptoms300Check.rows.length === 0) {
+      console.log('[Migration] 添加 symptoms_300_checklist 字段...');
+      await db.execute(`
+        ALTER TABLE requirements 
+        ADD COLUMN symptoms_300_checklist JSONB;
+      `);
+      console.log('[Migration] symptoms_300_checklist 字段添加成功');
+    }
+
+    // 检查 admins 表字段
+    console.log('[Migration] 检查 admins 表字段...');
+
+    // 检查 name 字段
+    const adminNameCheck = await db.execute(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'admins' AND column_name = 'name';
+    `);
+
+    if (adminNameCheck.rows.length === 0) {
+      console.log('[Migration] 添加 admins.name 字段...');
+      await db.execute(`
+        ALTER TABLE admins 
+        ADD COLUMN name VARCHAR(128);
+      `);
+      console.log('[Migration] admins.name 字段添加成功');
+    }
+
+    // 检查 is_active 字段
+    const adminActiveCheck = await db.execute(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'admins' AND column_name = 'is_active';
+    `);
+
+    if (adminActiveCheck.rows.length === 0) {
+      console.log('[Migration] 添加 admins.is_active 字段...');
+      await db.execute(`
+        ALTER TABLE admins 
+        ADD COLUMN is_active BOOLEAN DEFAULT true NOT NULL;
+      `);
+      console.log('[Migration] admins.is_active 字段添加成功');
+    }
+
+    // 检查 updated_at 字段
+    const adminUpdatedCheck = await db.execute(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'admins' AND column_name = 'updated_at';
+    `);
+
+    if (adminUpdatedCheck.rows.length === 0) {
+      console.log('[Migration] 添加 admins.updated_at 字段...');
+      await db.execute(`
+        ALTER TABLE admins 
+        ADD COLUMN updated_at TIMESTAMP WITH TIME ZONE;
+      `);
+      console.log('[Migration] admins.updated_at 字段添加成功');
+    }
+
+    // 检查 audit_logs 表字段
+    console.log('[Migration] 检查 audit_logs 表字段...');
+
+    // 检查 deleted_at 字段
+    const auditDeletedCheck = await db.execute(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'audit_logs' AND column_name = 'deleted_at';
+    `);
+
+    if (auditDeletedCheck.rows.length === 0) {
+      console.log('[Migration] 添加 audit_logs.deleted_at 字段...');
+      await db.execute(`
+        ALTER TABLE audit_logs 
+        ADD COLUMN deleted_at TIMESTAMP WITH TIME ZONE;
+      `);
+      console.log('[Migration] audit_logs.deleted_at 字段添加成功');
+    }
+
+    console.log('[Migration] 数据库迁移完成');
+
+    return NextResponse.json({
+      success: true,
+      message: '数据库迁移完成',
+      changes: [
+        '添加 users.phone_group_id 字段',
+        '添加 users.is_latest_version 字段',
+        '添加 users_phone_group_idx 索引',
+        '更新现有用户的 phone_group_id',
+        '添加 requirements.bad_habits_checklist 字段',
+        '添加 requirements.symptoms_300_checklist 字段',
+        '添加 admins.name 字段',
+        '添加 admins.is_active 字段',
+        '添加 admins.updated_at 字段',
+      ]
+    });
   } catch (error) {
-    console.error('Error migrating database:', error);
+    console.error('Migration error:', error);
     return NextResponse.json(
-      { error: '数据库迁移失败', details: error instanceof Error ? error.message : String(error) },
+      { 
+        error: '数据库迁移失败', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
+      },
       { status: 500 }
     );
   }
