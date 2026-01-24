@@ -8,8 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Pagination } from '@/components/admin/Pagination';
-import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw } from 'lucide-react';
-import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300 } from '@/lib/health-data';
+import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw, Sparkles, Flame, Heart, Zap, Droplets, BookOpen, AlertTriangle } from 'lucide-react';
+import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface UserSummary {
   user: {
@@ -1258,6 +1259,532 @@ export default function AdminDashboardPage() {
                     ));
                   })()}
                 </div>
+              </div>
+
+              <Separator />
+
+              {/* 个性化健康管理方案 - 红色渐变背景 */}
+              <div className="bg-gradient-to-br from-red-50 to-rose-100 border-l-4 border-red-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-red-900">
+                  <Sparkles className="h-6 w-6 mr-3 text-red-600" />
+                  个性化健康管理方案
+                </h3>
+
+                {(() => {
+                  const latestSymptomCheck = getLatestSymptomCheck();
+                  const latestAnalysis = getLatestHealthAnalysis();
+                  const latestChoice = getLatestChoice();
+
+                  if (!latestSymptomCheck && !latestAnalysis && !latestChoice) {
+                    return (
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100 text-center">
+                        <Sparkles className="h-12 w-12 mx-auto text-red-300 mb-3" />
+                        <p className="text-red-600 font-medium">暂无个性化方案数据</p>
+                        <p className="text-sm text-red-500 mt-1">用户尚未完成健康自检，无法生成个性化方案</p>
+                      </div>
+                    );
+                  }
+
+                  // 计算主要健康要素
+                  const symptomIds = latestSymptomCheck?.checkedSymptoms || [];
+                  const selectedSymptoms = symptomIds.map((id: string) => parseInt(id));
+                  
+                  const getPrimaryElements = () => {
+                    if (!latestSymptomCheck?.elementScores) return [];
+                    const elementScores = latestSymptomCheck.elementScores as Record<string, number>;
+                    return Object.entries(elementScores)
+                      .filter(([_, count]) => count > 0)
+                      .sort((a, b) => (b[1] as number) - (a[1] as number))
+                      .slice(0, 3)
+                      .map(([name, count]) => ({ name, count: Number(count) }));
+                  };
+
+                  const primaryElements = getPrimaryElements();
+
+                  // 计算重点改善症状
+                  const getTargetSymptoms = () => {
+                    if (!selectedSymptoms || selectedSymptoms.length === 0) return [];
+                    // 取选中症状的前5个作为重点症状
+                    return selectedSymptoms.slice(0, 5).map((id: number) => BODY_SYMPTOMS.find(s => s.id === id)).filter(Boolean);
+                  };
+
+                  const targetSymptoms = getTargetSymptoms();
+
+                  // 计算推荐的调理产品
+                  const getRecommendedProducts = () => {
+                    const products: any[] = [];
+                    const elementNames = primaryElements.map(el => el.name);
+
+                    // 艾灸 - 适合气血、寒凉、循环问题
+                    if (elementNames.includes('气血') || elementNames.includes('寒凉') || elementNames.includes('循环')) {
+                      products.push({
+                        name: '艾灸调理',
+                        description: '通过艾灸穴位，温通经络，调和气血，驱寒除湿，改善寒凉和气血不足问题',
+                        icon: Activity,
+                        color: 'from-orange-500 to-red-500',
+                        matchScore: 5,
+                        reasons: [
+                          '温通经络，促进气血运行',
+                          '驱寒除湿，改善寒凉体质',
+                          '增强免疫力，提升身体自愈能力',
+                          '调理慢性炎症，缓解疼痛'
+                        ]
+                      });
+                    }
+
+                    // 火灸 - 适合气血、毒素、循环问题
+                    if (elementNames.includes('气血') || elementNames.includes('毒素') || elementNames.includes('循环')) {
+                      products.push({
+                        name: '火灸调理',
+                        description: '以火之力，温阳散寒，活血化瘀，祛除体内毒素和淤堵',
+                        icon: Flame,
+                        color: 'from-red-500 to-orange-600',
+                        matchScore: 5,
+                        reasons: [
+                          '强力活血化瘀，疏通经络',
+                          '温阳补气，提升身体能量',
+                          '祛除毒素，净化体内环境',
+                          '改善循环，促进新陈代谢'
+                        ]
+                      });
+                    }
+
+                    // 正骨 - 适合骨骼、肌肉、循环问题
+                    if (elementNames.includes('循环') || elementNames.includes('气血') || 
+                        selectedSymptoms.some((s: number) => [30, 31, 32, 33, 34, 35, 60, 61, 62, 63].includes(s))) {
+                      products.push({
+                        name: '正骨调理',
+                        description: '通过手法矫正骨骼位置，恢复脊柱生理曲度，改善神经受压和循环障碍',
+                        icon: Target,
+                        color: 'from-blue-500 to-purple-500',
+                        matchScore: 4,
+                        reasons: [
+                          '矫正骨骼位置，恢复脊柱健康',
+                          '解除神经压迫，缓解疼痛',
+                          '改善循环，促进气血运行',
+                          '矫正体态，提升整体健康'
+                        ]
+                      });
+                    }
+
+                    // 空腹禅 - 身心调理，适合情绪、毒素、气血问题
+                    if (elementNames.includes('情绪') || elementNames.includes('毒素') || elementNames.includes('气血') || elementNames.includes('血脂')) {
+                      products.push({
+                        name: '空腹禅调理',
+                        description: '通过空腹禅修，净化身心，清理毒素，调和气血，平衡情绪',
+                        icon: Heart,
+                        color: 'from-green-500 to-teal-500',
+                        matchScore: 4,
+                        reasons: [
+                          '净化身心，清理体内毒素',
+                          '调和气血，提升生命能量',
+                          '平衡情绪，释放心理压力',
+                          '改善睡眠，提升整体健康'
+                        ]
+                      });
+                    }
+
+                    // 经络调理 - 适合循环、气血、毒素问题
+                    if (elementNames.includes('循环') || elementNames.includes('气血') || elementNames.includes('毒素')) {
+                      products.push({
+                        name: '经络调理',
+                        description: '通过疏通经络，促进气血运行，清除淤堵，恢复身体平衡',
+                        icon: Zap,
+                        color: 'from-yellow-500 to-orange-500',
+                        matchScore: 4,
+                        reasons: [
+                          '疏通经络，恢复气血运行',
+                          '清除淤堵，改善循环',
+                          '调和脏腑功能，增强免疫力',
+                          '缓解疼痛，提升生活质量'
+                        ]
+                      });
+                    }
+
+                    // 药王产品 - 综合调理
+                    products.push({
+                      name: '药王产品',
+                      description: '传统药王配方产品，针对性调理您的健康问题，标本兼治',
+                      icon: Droplets,
+                      color: 'from-green-600 to-emerald-500',
+                      matchScore: 3,
+                      reasons: [
+                        '天然药材，安全有效',
+                        '传统配方，传承千年',
+                        '标本兼治，综合调理',
+                        '个性化定制，精准调理'
+                      ]
+                    });
+
+                    return products.sort((a, b) => b.matchScore - a.matchScore);
+                  };
+
+                  const recommendedProducts = getRecommendedProducts();
+
+                  // 推荐的学习课程
+                  const getRecommendedCourses = () => {
+                    return TWENTY_ONE_COURSES.map((course: any) => {
+                      let relevance: 'high' | 'medium' | 'low' = 'low';
+                      const primaryElementNames = primaryElements.map(el => el.name);
+
+                      if (primaryElementNames.length > 0) {
+                        if (primaryElementNames.includes('气血') && course.title.includes('气血')) relevance = 'high';
+                        else if (primaryElementNames.includes('循环') && course.title.includes('循环')) relevance = 'high';
+                        else if (primaryElementNames.includes('毒素') && course.title.includes('毒素')) relevance = 'high';
+                        else if (primaryElementNames.includes('寒凉') && course.title.includes('寒')) relevance = 'high';
+                        else if (primaryElementNames.includes('免疫') && course.title.includes('免疫')) relevance = 'high';
+                        else if (primaryElementNames.includes('情绪') && course.title.includes('情绪')) relevance = 'high';
+                        else if (primaryElementNames.includes('血脂') && course.title.includes('血脂')) relevance = 'high';
+                        else relevance = 'medium';
+                      }
+
+                      return { ...course, relevance };
+                    }).sort((a: any, b: any) => {
+                      const relevanceOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
+                      return relevanceOrder[b.relevance] - relevanceOrder[a.relevance];
+                    });
+                  };
+
+                  const recommendedCourses = getRecommendedCourses();
+
+                  // 分阶段调理计划
+                  const getPhasedPlan = () => {
+                    const plan = {
+                      foundation: {
+                        name: '基础期（第1-2个月）',
+                        goals: ['调理体质', '建立健康习惯', '改善症状'],
+                        actions: [] as string[]
+                      },
+                      enhancement: {
+                        name: '强化期（第3-4个月）',
+                        goals: ['强化疗效', '深度调理', '巩固成果'],
+                        actions: [] as string[]
+                      },
+                      consolidation: {
+                        name: '巩固期（第5-6个月）',
+                        goals: ['巩固疗效', '维持健康', '预防复发'],
+                        actions: [] as string[]
+                      }
+                    };
+
+                    // 根据健康要素添加具体建议
+                    const elementNames = primaryElements.map(el => el.name);
+                    
+                    if (elementNames.includes('气血')) {
+                      plan.foundation.actions.push('食用补气血食物（红枣、桂圆、山药等）');
+                      plan.foundation.actions.push('保证充足睡眠，每晚23:00前入睡');
+                      plan.enhancement.actions.push('适当运动，促进气血生成');
+                      plan.consolidation.actions.push('定期食用药膳，维持气血充盈');
+                    }
+
+                    if (elementNames.includes('循环')) {
+                      plan.foundation.actions.push('温水泡脚，改善末梢循环');
+                      plan.foundation.actions.push('每天运动30分钟，促进血液循环');
+                      plan.enhancement.actions.push('定期按摩推拿，疏通经络');
+                      plan.consolidation.actions.push('坚持运动习惯，保持循环通畅');
+                    }
+
+                    if (elementNames.includes('毒素')) {
+                      plan.foundation.actions.push('每天喝足够的水（2000ml以上）');
+                      plan.foundation.actions.push('多吃纤维食物，促进肠道排毒');
+                      plan.enhancement.actions.push('定期运动出汗，促进皮肤排毒');
+                      plan.consolidation.actions.push('养成健康饮食习惯，避免毒素积累');
+                    }
+
+                    if (elementNames.includes('寒凉')) {
+                      plan.foundation.actions.push('温热饮食，少食生冷');
+                      plan.foundation.actions.push('注意保暖，避免寒气入侵');
+                      plan.enhancement.actions.push('艾灸调理，温阳散寒');
+                      plan.consolidation.actions.push('继续温热饮食，保持身体温暖');
+                    }
+
+                    if (elementNames.includes('免疫')) {
+                      plan.foundation.actions.push('保证充足睡眠，修复免疫系统');
+                      plan.foundation.actions.push('均衡营养，补充维生素矿物质');
+                      plan.enhancement.actions.push('适量运动，激活免疫细胞');
+                      plan.consolidation.actions.push('保持健康生活方式，维持免疫力');
+                    }
+
+                    if (elementNames.includes('情绪')) {
+                      plan.foundation.actions.push('学习情绪管理技巧');
+                      plan.foundation.actions.push('适度运动，释放压力');
+                      plan.enhancement.actions.push('练习冥想，平衡心态');
+                      plan.consolidation.actions.push('保持积极心态，学会自我调节');
+                    }
+
+                    if (elementNames.includes('血脂')) {
+                      plan.foundation.actions.push('低脂饮食，减少饱和脂肪摄入');
+                      plan.foundation.actions.push('增加运动，促进脂肪消耗');
+                      plan.enhancement.actions.push('控制体重，减少内脏脂肪');
+                      plan.consolidation.actions.push('定期体检，监测血脂水平');
+                    }
+
+                    return plan;
+                  };
+
+                  const phasedPlan = getPhasedPlan();
+
+                  return (
+                    <div className="space-y-8">
+                      {/* 健康状况总结 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100">
+                        <h4 className="font-bold text-lg text-red-800 mb-4">健康状况总结</h4>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* 重点改善症状 */}
+                          {targetSymptoms.length > 0 && (
+                            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                              <h5 className="text-base font-semibold mb-3 text-gray-900 dark:text-white flex items-center">
+                                <Target className="w-5 h-5 mr-2 text-blue-600" />
+                                重点改善症状
+                              </h5>
+                              <div className="space-y-2">
+                                {targetSymptoms.map((symptom: any, index: number) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span className="text-sm font-medium text-gray-700">#{symptom.id} {symptom.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 主要健康要素 */}
+                          {primaryElements.length > 0 && (
+                            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+                              <h5 className="text-base font-semibold mb-3 text-gray-900 dark:text-white flex items-center">
+                                <Activity className="w-5 h-5 mr-2 text-purple-600" />
+                                主要健康要素
+                              </h5>
+                              <div className="space-y-2">
+                                {primaryElements.map((el: any, index: number) => (
+                                  <div key={index} className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-700">{el.name}</span>
+                                    <Badge variant="secondary" className="text-xs">{el.count} 项症状</Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 方案类型 */}
+                        {latestChoice && (
+                          <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border-2 border-orange-200 dark:border-orange-800">
+                            <h5 className="text-base font-semibold mb-2 text-gray-700 dark:text-gray-300">选择方案</h5>
+                            <p className="text-lg font-bold text-orange-700 dark:text-orange-400">
+                              {latestChoice.planType}
+                            </p>
+                            {latestChoice.planDescription && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{latestChoice.planDescription}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 推荐调理产品 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100">
+                        <h4 className="font-bold text-lg text-red-800 mb-4 flex items-center">
+                          <Target className="w-5 h-5 mr-2 text-red-600" />
+                          推荐调理产品
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {recommendedProducts.map((product, index) => {
+                            const Icon = product.icon;
+                            return (
+                              <div key={index} className="border-2 border-gray-100 dark:border-gray-800 hover:shadow-lg transition-shadow rounded-lg p-4">
+                                <div className="flex items-center space-x-3 mb-3">
+                                  <div className={`w-10 h-10 bg-gradient-to-br ${product.color} rounded-lg flex items-center justify-center`}>
+                                    <Icon className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-base">{product.name}</div>
+                                    <Badge variant="secondary" className="text-xs mt-1">
+                                      匹配度: {Math.min(95, 70 + product.matchScore * 5)}%
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-gray-700 dark:text-gray-300 mb-2">
+                                  {product.description}
+                                </p>
+                                <div className="space-y-1">
+                                  <p className="text-xs font-semibold text-gray-900 dark:text-white">调理作用：</p>
+                                  {product.reasons.map((reason: string, idx: number) => (
+                                    <p key={idx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                      <span className="text-green-500 mr-1">•</span>
+                                      {reason}
+                                    </p>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 推荐学习课程 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100">
+                        <h4 className="font-bold text-lg text-red-800 mb-4 flex items-center">
+                          <BookOpen className="w-5 h-5 mr-2 text-red-600" />
+                          推荐学习课程
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {recommendedCourses.slice(0, 9).map((course: any) => (
+                            <div key={course.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  第{course.id}课
+                                </Badge>
+                                {course.relevance === 'high' && (
+                                  <Badge className="text-xs bg-red-500">重点</Badge>
+                                )}
+                              </div>
+                              <div className="font-semibold text-sm mb-1">{course.title}</div>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                {course.content}
+                              </p>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                📚 {course.duration}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 分阶段调理计划 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100">
+                        <h4 className="font-bold text-lg text-red-800 mb-4 flex items-center">
+                          <CheckCircle className="w-5 h-5 mr-2 text-red-600" />
+                          分阶段调理计划
+                        </h4>
+                        <div className="space-y-6">
+                          {/* 基础期 */}
+                          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="font-bold text-base text-green-800">{phasedPlan.foundation.name}</h5>
+                              <Badge className="bg-green-600 text-white text-xs">第一阶段</Badge>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-green-700 mb-2">主要目标：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.foundation.goals.map((goal: string, idx: number) => (
+                                    <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                      <span className="text-green-500 mr-1">✓</span>
+                                      {goal}
+                                    </p>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-green-700 mb-2">具体措施：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.foundation.actions.length > 0 ? (
+                                    phasedPlan.foundation.actions.map((action: string, idx: number) => (
+                                      <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                        <span className="text-green-500 mr-1">•</span>
+                                        {action}
+                                      </p>
+                                    ))
+                                  ) : (
+                                    <p className="text-xs text-gray-500 italic">暂无具体措施</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 强化期 */}
+                          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="font-bold text-base text-blue-800">{phasedPlan.enhancement.name}</h5>
+                              <Badge className="bg-blue-600 text-white text-xs">第二阶段</Badge>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-blue-700 mb-2">主要目标：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.enhancement.goals.map((goal: string, idx: number) => (
+                                    <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                      <span className="text-blue-500 mr-1">✓</span>
+                                      {goal}
+                                    </p>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-blue-700 mb-2">具体措施：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.enhancement.actions.length > 0 ? (
+                                    phasedPlan.enhancement.actions.map((action: string, idx: number) => (
+                                      <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                        <span className="text-blue-500 mr-1">•</span>
+                                        {action}
+                                      </p>
+                                    ))
+                                  ) : (
+                                    <p className="text-xs text-gray-500 italic">暂无具体措施</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 巩固期 */}
+                          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="font-bold text-base text-purple-800">{phasedPlan.consolidation.name}</h5>
+                              <Badge className="bg-purple-600 text-white text-xs">第三阶段</Badge>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-purple-700 mb-2">主要目标：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.consolidation.goals.map((goal: string, idx: number) => (
+                                    <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                      <span className="text-purple-500 mr-1">✓</span>
+                                      {goal}
+                                    </p>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-purple-700 mb-2">具体措施：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.consolidation.actions.length > 0 ? (
+                                    phasedPlan.consolidation.actions.map((action: string, idx: number) => (
+                                      <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                        <span className="text-purple-500 mr-1">•</span>
+                                        {action}
+                                      </p>
+                                    ))
+                                  ) : (
+                                    <p className="text-xs text-gray-500 italic">暂无具体措施</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 重要提示 */}
+                      <Alert className="border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
+                        <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                        <AlertDescription className="mt-2">
+                          <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                            重要提示
+                          </p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            以上调理方案仅供参考，具体调理方法和产品选择请咨询专业调理导师。
+                            调理过程中如出现不适，请及时暂停并寻求专业指导。
+                            方案生成时间：{new Date().toLocaleString('zh-CN')}
+                          </p>
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  );
+                })()}
               </div>
 
             </div>
