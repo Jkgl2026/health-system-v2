@@ -467,10 +467,15 @@ export default function RequirementsPage() {
                               <div className="flex-1">
                                 <label
                                   htmlFor={`symptom300-${symptom.id}`}
-                                  className="text-sm md:text-base text-gray-700 dark:text-gray-300 cursor-pointer font-medium leading-relaxed"
+                                  className="text-sm md:text-base text-gray-700 dark:text-gray-300 cursor-pointer font-medium leading-relaxed block mb-1"
                                 >
                                   {symptom.name}
                                 </label>
+                                {symptom.description && (
+                                  <p className="text-xs md:text-sm text-purple-600 dark:text-purple-400 leading-relaxed">
+                                    {symptom.description}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           ))}
