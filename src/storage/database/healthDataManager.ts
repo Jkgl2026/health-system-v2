@@ -260,6 +260,31 @@ export class HealthDataManager {
     return query.orderBy(desc(users.createdAt));
   }
 
+  /**
+   * 通过姓名获取所有记录（用于对比）
+   */
+  async getUsersByName(name: string, options: { includeDeleted?: boolean } = {}): Promise<User[]> {
+    const db = await getDb();
+    const { includeDeleted = false } = options;
+
+    let query;
+
+    if (includeDeleted) {
+      // 包括已删除的记录
+      query = db.select().from(users).where(eq(users.name, name));
+    } else {
+      // 排除已删除的记录
+      query = db.select().from(users).where(
+        and(
+          eq(users.name, name),
+          isNull(users.deletedAt)
+        )
+      );
+    }
+
+    return query.orderBy(desc(users.createdAt));
+  }
+
   async getUserById(id: string): Promise<User | null> {
     const db = await getDb();
     const [user] = await db.select().from(users).where(

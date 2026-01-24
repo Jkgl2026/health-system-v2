@@ -34,7 +34,9 @@ interface FullUserData extends UserData {
 }
 
 export default function AdminComparePage() {
+  const [queryType, setQueryType] = useState<'phone' | 'name'>('phone');
   const [phone, setPhone] = useState('');
+  const [name, setName] = useState('');
   const [historyUsers, setHistoryUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
@@ -53,14 +55,25 @@ export default function AdminComparePage() {
   };
 
   const fetchHistory = async () => {
-    if (!phone) {
+    if (queryType === 'phone' && !phone) {
       alert('请输入手机号');
+      return;
+    }
+    if (queryType === 'name' && !name) {
+      alert('请输入姓名');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/user/history?phone=${encodeURIComponent(phone)}`);
+      const params = new URLSearchParams();
+      if (queryType === 'phone') {
+        params.append('phone', phone);
+      } else {
+        params.append('name', name);
+      }
+
+      const response = await fetch(`/api/user/history?${params.toString()}`);
       const data = await response.json();
       if (data.success) {
         setHistoryUsers(data.users);
@@ -195,16 +208,54 @@ export default function AdminComparePage() {
         <Card className="mb-6 shadow-sm">
           <CardHeader>
             <CardTitle>选择对比对象</CardTitle>
-            <CardDescription>输入手机号查看该用户的所有填写记录，然后选择需要对比的版本</CardDescription>
+            <CardDescription>输入手机号或姓名查看该用户的所有填写记录，然后选择需要对比的版本</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* 查询类型选择 */}
+            <div className="flex gap-4 mb-4">
+              <button
+                type="button"
+                onClick={() => setQueryType('phone')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  queryType === 'phone'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                按手机号查询
+              </button>
+              <button
+                type="button"
+                onClick={() => setQueryType('name')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  queryType === 'name'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                }`}
+              >
+                按姓名查询
+              </button>
+            </div>
+
+            {/* 输入框 */}
             <div className="flex gap-2 mb-4">
               <input
                 type="text"
-                placeholder="请输入手机号"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                placeholder={queryType === 'phone' ? '请输入手机号' : '请输入姓名'}
+                value={queryType === 'phone' ? phone : name}
+                onChange={(e) => {
+                  if (queryType === 'phone') {
+                    setPhone(e.target.value);
+                  } else {
+                    setName(e.target.value);
+                  }
+                }}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    fetchHistory();
+                  }
+                }}
               />
               <Button onClick={fetchHistory} disabled={loading}>
                 <Users className="h-4 w-4 mr-2" />
@@ -299,7 +350,7 @@ export default function AdminComparePage() {
           <AlertTitle className="font-bold">使用说明</AlertTitle>
           <AlertDescription>
             <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
-              <li>输入手机号查询该用户的所有填写记录</li>
+              <li>选择查询类型（手机号或姓名），输入对应的值查询该用户的所有填写记录</li>
               <li>勾选 2-3 个版本进行对比（最多3个）</li>
               <li>点击"开始对比"按钮查看详细对比结果</li>
               <li>可以对比基本信息、BMI变化、健康指标变化等</li>
