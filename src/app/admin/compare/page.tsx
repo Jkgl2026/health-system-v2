@@ -7,10 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { LogOut, ArrowLeft, Activity, Users, CheckCircle, TrendingUp, TrendingDown, Minus, Eye, HelpCircle, AlertCircle, FileText, Sparkles, Flame, Heart, Zap, Droplets, Target, BookOpen } from 'lucide-react';
+import { LogOut, ArrowLeft, Activity, Users, CheckCircle, TrendingUp, TrendingDown, Minus, Eye, HelpCircle, AlertCircle, FileText, Sparkles, Flame, Heart, Zap, Droplets, Target, BookOpen, Stethoscope, RefreshCw, XCircle, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
+import DiagnosticsPanel from './diagnostics';
 
 interface UserData {
   id: string;
@@ -43,6 +44,8 @@ export default function AdminComparePage() {
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
   const [showCompareDialog, setShowCompareDialog] = useState(false);
   const [compareData, setCompareData] = useState<FullUserData[]>([]);
+  const [showDiagnosticsDialog, setShowDiagnosticsDialog] = useState(false);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
     checkAuth();
@@ -66,6 +69,8 @@ export default function AdminComparePage() {
     }
 
     setLoading(true);
+    setConnectionError(null);
+
     try {
       const params = new URLSearchParams();
       if (queryType === 'phone') {
@@ -74,17 +79,46 @@ export default function AdminComparePage() {
         params.append('name', name);
       }
 
-      const response = await fetch(`/api/user/history?${params.toString()}`);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒超时
+
+      const response = await fetch(`/api/user/history?${params.toString()}`, {
+        signal: controller.signal,
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || errorData.details || `HTTP ${response.status}`);
+      }
+
       const data = await response.json();
+
       if (data.success) {
         setHistoryUsers(data.users);
         setSelectedVersions([]);
       } else {
-        alert('获取历史记录失败');
+        throw new Error(data.error || data.details || '获取历史记录失败');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch history:', error);
-      alert('获取历史记录失败，请重试');
+      let errorMessage = '获取历史记录失败';
+
+      if (error.name === 'AbortError') {
+        errorMessage = '请求超时，请检查网络连接或稍后重试';
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string' && error.includes('Failed to fetch')) {
+        errorMessage = '无法连接到服务器，请检查网络连接';
+      }
+
+      setConnectionError(errorMessage);
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -111,11 +145,29 @@ export default function AdminComparePage() {
     }
 
     setLoading(true);
+    setConnectionError(null);
+
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒超时
+
       const promises = selectedVersions.map(userId =>
-        fetch(`/api/admin/users/${userId}`).then(res => res.json())
+        fetch(`/api/admin/users/${userId}`, {
+          signal: controller.signal,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }).then(res => {
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
+          return res.json();
+        })
       );
+
       const results = await Promise.all(promises);
+      clearTimeout(timeoutId);
 
       // r.data 是完整的数据对象，包含 user, symptomChecks, healthAnalysis 等
       // 我们需要展开其中的 user 字段作为基础，并添加其他字段
@@ -130,8 +182,7 @@ export default function AdminComparePage() {
         }));
 
       if (fullData.length < 2) {
-        alert('获取完整数据失败');
-        return;
+        throw new Error('获取完整数据失败，请重试');
       }
 
       console.log('对比数据:', fullData.map(d => ({
@@ -141,9 +192,18 @@ export default function AdminComparePage() {
 
       setCompareData(fullData);
       setShowCompareDialog(true);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to fetch compare data:', error);
-      alert('获取对比数据失败');
+      let errorMessage = '获取对比数据失败';
+
+      if (error.name === 'AbortError') {
+        errorMessage = '请求超时，请稍后重试';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      setConnectionError(errorMessage);
+      alert(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -208,14 +268,25 @@ export default function AdminComparePage() {
                 <p className="text-sm text-gray-500">对比同一用户不同时期的数据</p>
               </div>
             </div>
-            <Button variant="destructive" size="sm" onClick={() => {
-              localStorage.removeItem('adminLoggedIn');
-              localStorage.removeItem('admin');
-              window.location.href = '/admin/login';
-            }}>
-              <LogOut className="h-4 w-4 mr-2" />
-              退出登录
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowDiagnosticsDialog(true)}
+                title="运行诊断工具"
+              >
+                <Stethoscope className="h-4 w-4 mr-2" />
+                诊断
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => {
+                localStorage.removeItem('adminLoggedIn');
+                localStorage.removeItem('admin');
+                window.location.href = '/admin/login';
+              }}>
+                <LogOut className="h-4 w-4 mr-2" />
+                退出登录
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -1088,6 +1159,39 @@ export default function AdminComparePage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* 诊断对话框 */}
+      <Dialog open={showDiagnosticsDialog} onOpenChange={setShowDiagnosticsDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">系统诊断</DialogTitle>
+            <DialogDescription>
+              检查系统状态，帮助诊断连接问题
+            </DialogDescription>
+          </DialogHeader>
+          <DiagnosticsPanel />
+        </DialogContent>
+      </Dialog>
+
+      {/* 连接错误提示 */}
+      {connectionError && (
+        <Alert className="fixed bottom-4 right-4 max-w-md shadow-lg bg-red-50 border-red-200">
+          <XCircle className="h-5 w-5 text-red-600" />
+          <AlertTitle className="font-bold text-red-900">连接错误</AlertTitle>
+          <AlertDescription className="text-red-700">
+            {connectionError}
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2"
+              onClick={() => setShowDiagnosticsDialog(true)}
+            >
+              <Stethoscope className="h-4 w-4 mr-2" />
+              运行诊断
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 }
