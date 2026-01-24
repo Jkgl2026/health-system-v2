@@ -1018,240 +1018,248 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              {/* 七问答案 - 优化显示 */}
-              {selectedUser.requirements?.sevenQuestionsAnswers && (
-                <>
-                  <Separator />
-                  <div className="bg-gradient-to-br from-indigo-50 to-blue-100 border-l-4 border-indigo-500 p-6 rounded-lg shadow-sm">
-                    <h3 className="font-bold text-xl mb-6 flex items-center text-indigo-900">
-                      <HelpCircle className="h-6 w-6 mr-3 text-indigo-600" />
-                      七问答案
-                    </h3>
-                    
-                    <div className="space-y-4">
+              {/* 七问答案 - 始终显示所有问题，标记已回答/未回答 */}
+              <Separator />
+              <div className="bg-gradient-to-br from-indigo-50 to-blue-100 border-l-4 border-indigo-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-indigo-900">
+                  <HelpCircle className="h-6 w-6 mr-3 text-indigo-600" />
+                  持续跟进落实健康的七问（全部7个问题）
+                </h3>
+
+                <div className="space-y-4">
+                  {SEVEN_QUESTIONS.map((q, index) => {
+                    const answers = selectedUser.requirements?.sevenQuestionsAnswers;
+                    const answerDict = answers as Record<string, any>;
+                    const answerData = answerDict?.[q.id.toString()];
+                    const answer = typeof answerData === 'object' && answerData !== null ? answerData.answer : answerData;
+                    const date = typeof answerData === 'object' && answerData !== null ? answerData.date : null;
+                    const hasAnswer = answer !== null && answer !== undefined && answer !== '';
+
+                    return (
+                      <div key={index} className={`bg-white p-5 rounded-lg shadow-sm border ${hasAnswer ? 'border-green-300' : 'border-gray-200'} hover:shadow-md transition-shadow`}>
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${hasAnswer ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-bold text-lg text-indigo-900 mb-2">
+                              {q.question}
+                            </div>
+                            <div className="text-xs text-gray-500 mb-2">
+                              {q.description}
+                            </div>
+                            <div className={`p-3 rounded-lg ${hasAnswer ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'}`}>
+                              {hasAnswer ? (
+                                <div>
+                                  <div className="text-gray-700 leading-relaxed">{answer}</div>
+                                  {date && (
+                                    <div className="text-xs text-green-600 mt-2">
+                                      填写时间：{formatDate(date)}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-gray-400 text-sm italic">
+                                  未填写
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* 不良生活习惯自检表 - 显示所有252项，标记选中/未选中 */}
+              <div className="bg-gradient-to-br from-pink-50 to-rose-100 border-l-4 border-pink-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-pink-900">
+                  <AlertCircle className="h-6 w-6 mr-3 text-pink-600" />
+                  不良生活习惯自检表（全部252项）
+                </h3>
+
+                <div className="space-y-6">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-pink-100 text-center">
+                    <div className="text-sm text-pink-600 mb-1">已选中 / 总计</div>
+                    <div className="font-bold text-3xl text-pink-700">
                       {(() => {
-                        const answers = selectedUser.requirements?.sevenQuestionsAnswers;
-                        
-                        // 检查是否是数组格式
-                        if (Array.isArray(answers)) {
-                          if (answers.length === 0) {
-                            return (
-                              <div className="bg-white p-6 rounded-lg shadow-sm border border-indigo-100 text-center">
-                                <HelpCircle className="h-12 w-12 mx-auto text-indigo-300 mb-3" />
-                                <p className="text-indigo-600 font-medium">暂无七问答案数据</p>
-                                <p className="text-sm text-indigo-500 mt-1">用户尚未完成七问填写</p>
-                              </div>
-                            );
-                          }
-                          
-                          return answers.map((item: any, index: number) => (
-                            <div key={index} className="bg-white p-5 rounded-lg shadow-sm border border-indigo-100 hover:shadow-md transition-shadow">
-                              <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
-                                  {index + 1}
-                                </div>
-                                <div className="font-bold text-lg text-indigo-900">
-                                  {item.question || `问题 ${index + 1}`}
-                                </div>
-                              </div>
-                              <div className="text-gray-700 leading-relaxed pl-11">
-                                {item.answer || '未填写'}
-                              </div>
-                              {item.date && (
-                                <div className="text-xs text-indigo-500 mt-2 pl-11">
-                                  填写时间：{formatDate(item.date)}
-                                </div>
-                              )}
-                            </div>
-                          ));
-                        }
-                        
-                        // 字典格式
-                        const answerDict = answers as Record<string, any>;
-                        const hasAnswers = Object.values(answerDict).some(val => 
-                          val !== null && val !== undefined && 
-                          (typeof val === 'object' ? val.answer : val)
-                        );
-                        
-                        if (!hasAnswers) {
-                          return (
-                            <div className="bg-white p-6 rounded-lg shadow-sm border border-indigo-100 text-center">
-                              <HelpCircle className="h-12 w-12 mx-auto text-indigo-300 mb-3" />
-                              <p className="text-indigo-600 font-medium">暂无七问答案数据</p>
-                              <p className="text-sm text-indigo-500 mt-1">用户尚未完成七问填写</p>
-                            </div>
-                          );
-                        }
-                        
-                        return SEVEN_QUESTIONS.map((q, index) => {
-                          const answerData = answerDict?.[q.id.toString()];
-                          const answer = typeof answerData === 'object' && answerData !== null ? answerData.answer : answerData;
-                          const date = typeof answerData === 'object' && answerData !== null ? answerData.date : null;
-                          
-                          return (
-                            <div key={index} className="bg-white p-5 rounded-lg shadow-sm border border-indigo-100 hover:shadow-md transition-shadow">
-                              <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
-                                  {index + 1}
-                                </div>
-                                <div className="font-bold text-lg text-indigo-900">
-                                  {q.question}
-                                </div>
-                              </div>
-                              <div className="text-gray-700 leading-relaxed pl-11">
-                                {answer || '未填写'}
-                              </div>
-                              {date && (
-                                <div className="text-xs text-indigo-500 mt-2 pl-11">
-                                  填写时间：{formatDate(date)}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        });
+                        const habitIds = selectedUser.requirements?.badHabitsChecklist || [];
+                        const totalHabits = Object.values(BAD_HABITS_CHECKLIST).flat().length;
+                        return `${Array.isArray(habitIds) ? habitIds.length : 0} / ${totalHabits}`;
                       })()}
                     </div>
                   </div>
 
-                  <Separator />
-                  
-                  {/* 不良生活习惯自检表 */}
-                  <div className="bg-gradient-to-br from-pink-50 to-rose-100 border-l-4 border-pink-500 p-6 rounded-lg shadow-sm">
-                    <h3 className="font-bold text-xl mb-6 flex items-center text-pink-900">
-                      <AlertCircle className="h-6 w-6 mr-3 text-pink-600" />
-                      不良生活习惯自检表
-                    </h3>
-                    
-                    {selectedUser.requirements?.badHabitsChecklist ? (
-                      <div className="space-y-6">
-                        <div className="bg-white p-4 rounded-lg shadow-sm border border-pink-100 text-center">
-                          <div className="text-sm text-pink-600 mb-1">已选中习惯</div>
-                          <div className="font-bold text-3xl text-pink-700">
-                            {Array.isArray(selectedUser.requirements.badHabitsChecklist)
-                              ? selectedUser.requirements.badHabitsChecklist.length
-                              : 0} 项
-                          </div>
-                        </div>
+                  {(() => {
+                    const habitIds = selectedUser.requirements?.badHabitsChecklist || [];
+                    const habitSet = new Set(Array.isArray(habitIds) ? habitIds : []);
 
-                        <div className="bg-white p-6 rounded-lg shadow-sm border border-pink-100">
-                          <div className="font-semibold text-lg text-pink-800 mb-4">选中的不良生活习惯</div>
-                          <div className="space-y-3">
-                            {(() => {
-                              const habitIds = selectedUser.requirements.badHabitsChecklist;
-                              if (!Array.isArray(habitIds) || habitIds.length === 0) {
-                                return <div className="text-center py-4 text-pink-600">暂无选中的不良生活习惯</div>;
-                              }
-
-                              const habitsByCategory: Record<string, any[]> = {};
-                              Object.keys(BAD_HABITS_CHECKLIST).forEach(category => {
-                                BAD_HABITS_CHECKLIST[category as keyof typeof BAD_HABITS_CHECKLIST].forEach(habit => {
-                                  if (habitIds.includes(habit.id)) {
-                                    if (!habitsByCategory[category]) habitsByCategory[category] = [];
-                                    habitsByCategory[category].push(habit);
-                                  }
-                                });
-                              });
-
-                              return Object.entries(habitsByCategory).map(([category, habits]) => (
-                                <div key={category}>
-                                  <h4 className="font-semibold text-pink-700 mb-2">{category} ({habits.length}项)</h4>
-                                  <div className="space-y-1 pl-4">
-                                    {habits.map((habit: any) => (
-                                      <div key={habit.id} className="flex items-start gap-2 p-2 bg-pink-50 rounded text-sm">
-                                        <span className="font-bold text-pink-600">#{habit.id}</span>
-                                        <span className="flex-1">{habit.habit}</span>
-                                      </div>
-                                    ))}
+                    return Object.entries(BAD_HABITS_CHECKLIST).map(([category, habits]) => (
+                      <div key={category} className="bg-white p-6 rounded-lg shadow-sm border border-pink-100">
+                        <h4 className="font-semibold text-pink-700 mb-4">{category} ({habits.length}项)</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {habits.map((habit: any) => {
+                            const isSelected = habitSet.has(habit.id);
+                            return (
+                              <div key={habit.id} className={`p-3 rounded-lg border-2 ${isSelected ? 'bg-pink-50 border-pink-400' : 'bg-gray-50 border-gray-200'}`}>
+                                <div className="flex items-start gap-2">
+                                  <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${isSelected ? 'bg-pink-500' : 'bg-gray-300'}`}>
+                                    {isSelected ? (
+                                      <CheckCircle className="w-3 h-3 text-white" />
+                                    ) : null}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className={`font-medium text-sm ${isSelected ? 'text-pink-900' : 'text-gray-600'}`}>
+                                      #{habit.id} {habit.habit}
+                                    </div>
+                                    {habit.impact && (
+                                      <div className="text-xs text-red-600 mt-1">{habit.impact}</div>
+                                    )}
                                   </div>
                                 </div>
-                              ));
-                            })()}
-                          </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-                    ) : (
-                      <div className="bg-white p-6 rounded-lg shadow-sm border border-pink-100 text-center">
-                        <AlertCircle className="h-12 w-12 mx-auto text-pink-300 mb-3" />
-                        <p className="text-pink-600 font-medium">暂无不良生活习惯数据</p>
-                      </div>
-                    )}
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* 身体语言简表（100项）- 显示所有症状，标记选中/未选中 */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 border-l-4 border-green-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-green-900">
+                  <FileText className="h-6 w-6 mr-3 text-green-600" />
+                  身体语言简表（全部100项）
+                </h3>
+
+                <div className="space-y-6">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100 text-center">
+                    <div className="text-sm text-green-600 mb-1">已选中 / 总计</div>
+                    <div className="font-bold text-3xl text-green-700">
+                      {(() => {
+                        const latestSymptomCheck = getLatestSymptomCheck();
+                        const symptomIds = latestSymptomCheck?.checkedSymptoms || [];
+                        return `${symptomIds.length} / ${BODY_SYMPTOMS.length}`;
+                      })()}
+                    </div>
                   </div>
 
-                  <Separator />
+                  {(() => {
+                    const latestSymptomCheck = getLatestSymptomCheck();
+                    const symptomIds = latestSymptomCheck?.checkedSymptoms || [];
+                    const symptomSet = new Set(symptomIds.map((id: string) => parseInt(id)));
 
-                  {/* 300项症状自检表 */}
-                  <div className="bg-gradient-to-br from-amber-50 to-yellow-100 border-l-4 border-amber-500 p-6 rounded-lg shadow-sm">
-                    <h3 className="font-bold text-xl mb-6 flex items-center text-amber-900">
-                      <FileText className="h-6 w-6 mr-3 text-amber-600" />
-                      300项症状自检表
-                    </h3>
-                    
-                    {selectedUser.requirements?.symptoms300Checklist ? (
-                      <div className="space-y-6">
-                        <div className="bg-white p-4 rounded-lg shadow-sm border border-amber-100 text-center">
-                          <div className="text-sm text-amber-600 mb-1">已选中症状</div>
-                          <div className="font-bold text-3xl text-amber-700">
-                            {Array.isArray(selectedUser.requirements.symptoms300Checklist)
-                              ? selectedUser.requirements.symptoms300Checklist.length
-                              : 0} 项
-                          </div>
-                        </div>
+                    // 按类别分组
+                    const symptomsByCategory = BODY_SYMPTOMS.reduce((acc, symptom) => {
+                      if (!acc[symptom.category]) acc[symptom.category] = [];
+                      acc[symptom.category].push(symptom);
+                      return acc;
+                    }, {} as Record<string, any[]>);
 
-                        <div className="bg-white p-6 rounded-lg shadow-sm border border-amber-100">
-                          <div className="font-semibold text-lg text-amber-800 mb-4">选中的症状详情</div>
-                          <div className="space-y-4">
-                            {(() => {
-                              const symptomIds = selectedUser.requirements.symptoms300Checklist;
-                              if (!Array.isArray(symptomIds) || symptomIds.length === 0) {
-                                return <div className="text-center py-4 text-amber-600">暂无选中的症状</div>;
-                              }
-
-                              // 按类别分组显示
-                              const symptomsByCategory = symptomIds.reduce((acc, id: number) => {
-                                const symptom = BODY_SYMPTOMS_300.find(s => s.id === id);
-                                if (symptom) {
-                                  if (!acc[symptom.category]) acc[symptom.category] = [];
-                                  acc[symptom.category].push(symptom);
-                                }
-                                return acc;
-                              }, {} as Record<string, any[]>);
-
-                              return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
-                                <div key={category}>
-                                  <h4 className="font-semibold text-amber-700 mb-2">{category} {(symptoms as any[]).length}项)</h4>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                    {(symptoms as any[]).map((symptom: any) => (
-                                      <div key={symptom.id} className="flex items-start gap-2 p-2 bg-amber-50 rounded text-sm">
-                                        <span className="font-bold text-amber-600 flex-shrink-0">#{symptom.id}</span>
-                                        <div className="flex-1">
-                                          <div className="font-medium text-gray-800">{symptom.name}</div>
-                                          {symptom.description && (
-                                            <div className="text-xs text-purple-600 mt-1">{symptom.description}</div>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
+                    return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
+                      <div key={category} className="bg-white p-6 rounded-lg shadow-sm border border-green-100">
+                        <h4 className="font-semibold text-green-700 mb-4">{category} ({symptoms.length}项)</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {symptoms.map((symptom: any) => {
+                            const isSelected = symptomSet.has(symptom.id);
+                            return (
+                              <div key={symptom.id} className={`p-3 rounded-lg border-2 ${isSelected ? 'bg-green-50 border-green-400' : 'bg-gray-50 border-gray-200'}`}>
+                                <div className="flex items-start gap-2">
+                                  <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${isSelected ? 'bg-green-500' : 'bg-gray-300'}`}>
+                                    {isSelected ? (
+                                      <CheckCircle className="w-3 h-3 text-white" />
+                                    ) : null}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className={`font-medium text-sm ${isSelected ? 'text-green-900' : 'text-gray-600'}`}>
+                                      #{symptom.id} {symptom.name}
+                                    </div>
+                                    {symptom.description && (
+                                      <div className="text-xs text-green-600 mt-1">{symptom.description}</div>
+                                    )}
                                   </div>
                                 </div>
-                              ));
-                            })()}
-                          </div>
-                          {Array.isArray(selectedUser.requirements.symptoms300Checklist) && selectedUser.requirements.symptoms300Checklist.length > 100 && (
-                            <div className="text-sm text-amber-600 mt-4 text-center font-medium">
-                              共 {selectedUser.requirements.symptoms300Checklist.length} 项症状已全部显示
-                            </div>
-                          )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
-                    ) : (
-                      <div className="bg-white p-6 rounded-lg shadow-sm border border-amber-100 text-center">
-                        <FileText className="h-12 w-12 mx-auto text-amber-300 mb-3" />
-                        <p className="text-amber-600 font-medium">暂无300项症状数据</p>
-                      </div>
-                    )}
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* 300项症状自检表 - 显示所有症状，标记选中/未选中 */}
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-100 border-l-4 border-amber-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-amber-900">
+                  <FileText className="h-6 w-6 mr-3 text-amber-600" />
+                  300项症状自检表（全部300项）
+                </h3>
+
+                <div className="space-y-6">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-amber-100 text-center">
+                    <div className="text-sm text-amber-600 mb-1">已选中 / 总计</div>
+                    <div className="font-bold text-3xl text-amber-700">
+                      {(() => {
+                        const symptomIds = selectedUser.requirements?.symptoms300Checklist || [];
+                        return `${Array.isArray(symptomIds) ? symptomIds.length : 0} / ${BODY_SYMPTOMS_300.length}`;
+                      })()}
+                    </div>
                   </div>
-                </>
-              )}
+
+                  {(() => {
+                    const symptomIds = selectedUser.requirements?.symptoms300Checklist || [];
+                    const symptomSet = new Set(Array.isArray(symptomIds) ? symptomIds : []);
+
+                    // 按类别分组
+                    const symptomsByCategory = BODY_SYMPTOMS_300.reduce((acc, symptom) => {
+                      if (!acc[symptom.category]) acc[symptom.category] = [];
+                      acc[symptom.category].push(symptom);
+                      return acc;
+                    }, {} as Record<string, any[]>);
+
+                    return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
+                      <div key={category} className="bg-white p-6 rounded-lg shadow-sm border border-amber-100">
+                        <h4 className="font-semibold text-amber-700 mb-4">{category} ({symptoms.length}项)</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {symptoms.map((symptom: any) => {
+                            const isSelected = symptomSet.has(symptom.id);
+                            return (
+                              <div key={symptom.id} className={`p-2 rounded-lg border-2 ${isSelected ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-200'}`}>
+                                <div className="flex items-start gap-2">
+                                  <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${isSelected ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                                    {isSelected ? (
+                                      <CheckCircle className="w-2.5 h-2.5 text-white" />
+                                    ) : null}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className={`font-medium text-xs ${isSelected ? 'text-amber-900' : 'text-gray-600'}`}>
+                                      #{symptom.id} {symptom.name}
+                                    </div>
+                                    {symptom.description && (
+                                      <div className="text-xs text-purple-600 mt-0.5 leading-tight">{symptom.description}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
             </div>
           )}
         </DialogContent>
