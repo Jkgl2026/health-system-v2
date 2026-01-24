@@ -722,7 +722,7 @@ export default function AdminComparePage() {
 
               <Separator />
 
-              {/* 七问答案对比 */}
+              {/* 七问答案对比 - 左右并排 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center text-xl font-bold">
@@ -731,34 +731,43 @@ export default function AdminComparePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {SEVEN_QUESTIONS.map((q, index) => {
-                      const getAnswer = (data: FullUserData) => {
-                        const answers = data.requirements?.sevenQuestionsAnswers;
-                        const answerDict = answers as Record<string, any>;
-                        const answerData = answerDict?.[q.id.toString()];
-                        return typeof answerData === 'object' && answerData !== null ? answerData.answer : answerData;
-                      };
-
-                      const answers = compareData.map(getAnswer);
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {compareData.map((data, versionIndex) => {
+                      const answers = data.requirements?.sevenQuestionsAnswers;
+                      const answerDict = answers as Record<string, any>;
 
                       return (
-                        <div key={index} className="p-4 bg-gray-50 rounded-lg border">
-                          <div className="font-bold text-gray-900 mb-3">
-                            {index + 1}. {q.question}
+                        <div key={data.id} className="border-2 rounded-lg overflow-hidden shadow-sm">
+                          <div className={`bg-gradient-to-r px-4 py-3 ${versionIndex === 0 ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600'}`}>
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-white font-bold text-lg">版本 {versionIndex + 1}</h3>
+                              {data.isLatestVersion && (
+                                <Badge className="bg-white text-green-700 text-xs font-bold">最新</Badge>
+                              )}
+                            </div>
+                            <div className="text-white/80 text-sm mt-1">{formatDate(data.createdAt)}</div>
                           </div>
-                          <div className="text-xs text-gray-500 mb-2">
-                            {q.description}
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            {answers.map((answer, versionIndex) => (
-                              <div key={versionIndex} className={`p-3 rounded-lg ${answer ? 'bg-green-50 border border-green-200' : 'bg-gray-100 border border-gray-200'}`}>
-                                <div className="text-xs text-gray-500 mb-1">版本 {versionIndex + 1}</div>
-                                <div className="text-sm text-gray-700">
-                                  {answer || <span className="text-gray-400 italic">未填写</span>}
+                          <div className="p-4 bg-white space-y-3">
+                            {SEVEN_QUESTIONS.map((q, qIndex) => {
+                              const answerData = answerDict?.[q.id.toString()];
+                              const answer = typeof answerData === 'object' && answerData !== null ? answerData.answer : answerData;
+                              const isFilled = !!answer;
+
+                              return (
+                                <div key={qIndex} className={`p-3 rounded-lg border ${isFilled ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}>
+                                  <div className="flex items-start justify-between mb-2">
+                                    <span className="font-bold text-gray-900">{qIndex + 1}. {q.question}</span>
+                                    {isFilled && (
+                                      <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0 ml-2" />
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mb-2">{q.description}</div>
+                                  <div className="text-sm text-gray-700">
+                                    {answer || <span className="text-gray-400 italic">未填写</span>}
+                                  </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
                       );
@@ -769,7 +778,7 @@ export default function AdminComparePage() {
 
               <Separator />
 
-              {/* 不良生活习惯自检表对比 */}
+              {/* 不良生活习惯自检表对比 - 左右并排 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center text-xl font-bold">
@@ -778,42 +787,72 @@ export default function AdminComparePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    {(() => {
-                      const habitIdsList = compareData.map(data => {
-                        const habitIds = data.requirements?.badHabitsChecklist || [];
-                        return new Set(Array.isArray(habitIds) ? habitIds : []);
-                      });
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {compareData.map((data, versionIndex) => {
+                      const habitIds = new Set(Array.isArray(data.requirements?.badHabitsChecklist)
+                        ? data.requirements.badHabitsChecklist
+                        : []);
 
-                      return Object.entries(BAD_HABITS_CHECKLIST).map(([category, habits]) => (
-                        <div key={category} className="p-4 bg-gray-50 rounded-lg border">
-                          <h4 className="font-semibold text-pink-700 mb-4">{category} ({habits.length}项)</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                            {habits.map((habit: any) => (
-                              <div key={habit.id} className="p-2 bg-white rounded border">
-                                <div className="text-xs text-gray-500 mb-1">
-                                  #{habit.id} {habit.habit}
+                      return (
+                        <div key={data.id} className="border-2 rounded-lg overflow-hidden shadow-sm">
+                          <div className={`bg-gradient-to-r px-4 py-3 ${versionIndex === 0 ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600'}`}>
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-white font-bold text-lg">版本 {versionIndex + 1}</h3>
+                              {data.isLatestVersion && (
+                                <Badge className="bg-white text-green-700 text-xs font-bold">最新</Badge>
+                              )}
+                            </div>
+                            <div className="text-white/80 text-sm mt-1">
+                              已选择 {habitIds.size} / 252 项不良生活习惯
+                            </div>
+                          </div>
+                          <div className="p-4 bg-white space-y-4 max-h-[600px] overflow-y-auto">
+                            {Object.entries(BAD_HABITS_CHECKLIST).map(([category, habits]) => {
+                              const categorySelectedCount = habits.filter((habit: any) => habitIds.has(habit.id)).length;
+
+                              return (
+                                <div key={category} className="p-3 bg-gray-50 rounded-lg border">
+                                  <h4 className="font-semibold text-pink-700 mb-2">
+                                    {category} ({categorySelectedCount}/{habits.length}项)
+                                  </h4>
+                                  <div className="space-y-1">
+                                    {habits.map((habit: any) => {
+                                      const isSelected = habitIds.has(habit.id);
+
+                                      return (
+                                        <div
+                                          key={habit.id}
+                                          className={`p-2 rounded text-sm border ${
+                                            isSelected
+                                              ? 'bg-pink-50 border-pink-200 text-pink-900'
+                                              : 'bg-white border-gray-200 text-gray-600'
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-mono text-xs">#{habit.id}</span>
+                                            <span className="flex-1">{habit.habit}</span>
+                                            {isSelected && (
+                                              <CheckCircle2 className="h-4 w-4 text-pink-600 flex-shrink-0" />
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {habitIdsList.map((habitIds, versionIndex) => (
-                                    <div key={versionIndex} className={`text-xs px-2 py-1 rounded ${habitIds.has(habit.id) ? 'bg-pink-100 text-pink-700' : 'bg-gray-100 text-gray-400'}`}>
-                                      V{versionIndex + 1}: {habitIds.has(habit.id) ? '✓' : '✗'}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
-                      ));
-                    })()}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
 
               <Separator />
 
-              {/* 身体语言简表对比 */}
+              {/* 身体语言简表对比 - 左右并排 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center text-xl font-bold">
@@ -822,13 +861,10 @@ export default function AdminComparePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    {(() => {
-                      const symptomIdsList = compareData.map(data => {
-                        const symptomCheck = data.symptomChecks?.[0];
-                        const symptomIds = symptomCheck?.checkedSymptoms || [];
-                        return new Set(symptomIds.map((id: string) => parseInt(id)));
-                      });
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {compareData.map((data, versionIndex) => {
+                      const symptomCheck = data.symptomChecks?.[0];
+                      const symptomIds = new Set(symptomCheck?.checkedSymptoms?.map((id: string) => parseInt(id)) || []);
 
                       // 按类别分组
                       const symptomsByCategory = BODY_SYMPTOMS.reduce((acc, symptom) => {
@@ -837,35 +873,66 @@ export default function AdminComparePage() {
                         return acc;
                       }, {} as Record<string, any[]>);
 
-                      return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
-                        <div key={category} className="p-4 bg-gray-50 rounded-lg border">
-                          <h4 className="font-semibold text-green-700 mb-4">{category} ({symptoms.length}项)</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                            {symptoms.map((symptom: any) => (
-                              <div key={symptom.id} className="p-2 bg-white rounded border">
-                                <div className="text-xs text-gray-500 mb-1">
-                                  #{symptom.id} {symptom.name}
+                      return (
+                        <div key={data.id} className="border-2 rounded-lg overflow-hidden shadow-sm">
+                          <div className={`bg-gradient-to-r px-4 py-3 ${versionIndex === 0 ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600'}`}>
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-white font-bold text-lg">版本 {versionIndex + 1}</h3>
+                              {data.isLatestVersion && (
+                                <Badge className="bg-white text-green-700 text-xs font-bold">最新</Badge>
+                              )}
+                            </div>
+                            <div className="text-white/80 text-sm mt-1">
+                              已选择 {symptomIds.size} / 100 项症状
+                            </div>
+                          </div>
+                          <div className="p-4 bg-white space-y-4 max-h-[600px] overflow-y-auto">
+                            {Object.entries(symptomsByCategory).map(([category, symptoms]) => {
+                              const categorySelectedCount = symptoms.filter((s: any) => symptomIds.has(s.id)).length;
+
+                              return (
+                                <div key={category} className="p-3 bg-gray-50 rounded-lg border">
+                                  <h4 className="font-semibold text-green-700 mb-2">
+                                    {category} ({categorySelectedCount}/{symptoms.length}项)
+                                  </h4>
+                                  <div className="space-y-1">
+                                    {symptoms.map((symptom: any) => {
+                                      const isSelected = symptomIds.has(symptom.id);
+
+                                      return (
+                                        <div
+                                          key={symptom.id}
+                                          className={`p-2 rounded text-sm border ${
+                                            isSelected
+                                              ? 'bg-green-50 border-green-200 text-green-900'
+                                              : 'bg-white border-gray-200 text-gray-600'
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-mono text-xs">#{symptom.id}</span>
+                                            <span className="flex-1">{symptom.name}</span>
+                                            {isSelected && (
+                                              <CheckCircle2 className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {symptomIdsList.map((symptomIds, versionIndex) => (
-                                    <div key={versionIndex} className={`text-xs px-2 py-1 rounded ${symptomIds.has(symptom.id) ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
-                                      V{versionIndex + 1}: {symptomIds.has(symptom.id) ? '✓' : '✗'}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
-                      ));
-                    })()}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
 
               <Separator />
 
-              {/* 300项症状自检表对比 */}
+              {/* 300项症状自检表对比 - 左右并排 */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center text-xl font-bold">
@@ -874,12 +941,11 @@ export default function AdminComparePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-6">
-                    {(() => {
-                      const symptomIdsList = compareData.map(data => {
-                        const symptomIds = data.requirements?.symptoms300Checklist || [];
-                        return new Set(Array.isArray(symptomIds) ? symptomIds : []);
-                      });
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {compareData.map((data, versionIndex) => {
+                      const symptomIds = new Set(Array.isArray(data.requirements?.symptoms300Checklist)
+                        ? data.requirements.symptoms300Checklist
+                        : []);
 
                       // 按类别分组
                       const symptomsByCategory = BODY_SYMPTOMS_300.reduce((acc, symptom) => {
@@ -888,28 +954,62 @@ export default function AdminComparePage() {
                         return acc;
                       }, {} as Record<string, any[]>);
 
-                      return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
-                        <div key={category} className="p-4 bg-gray-50 rounded-lg border">
-                          <h4 className="font-semibold text-amber-700 mb-4">{category} ({symptoms.length}项)</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                            {symptoms.map((symptom: any) => (
-                              <div key={symptom.id} className="p-2 bg-white rounded border">
-                                <div className="text-xs text-gray-500 mb-1">
-                                  #{symptom.id} {symptom.name}
+                      return (
+                        <div key={data.id} className="border-2 rounded-lg overflow-hidden shadow-sm">
+                          <div className={`bg-gradient-to-r px-4 py-3 ${versionIndex === 0 ? 'from-blue-500 to-blue-600' : 'from-green-500 to-green-600'}`}>
+                            <div className="flex items-center justify-between">
+                              <h3 className="text-white font-bold text-lg">版本 {versionIndex + 1}</h3>
+                              {data.isLatestVersion && (
+                                <Badge className="bg-white text-green-700 text-xs font-bold">最新</Badge>
+                              )}
+                            </div>
+                            <div className="text-white/80 text-sm mt-1">
+                              已选择 {symptomIds.size} / 300 项症状
+                            </div>
+                          </div>
+                          <div className="p-4 bg-white space-y-4 max-h-[600px] overflow-y-auto">
+                            {Object.entries(symptomsByCategory).map(([category, symptoms]) => {
+                              const categorySelectedCount = symptoms.filter((s: any) => symptomIds.has(s.id)).length;
+
+                              return (
+                                <div key={category} className="p-3 bg-gray-50 rounded-lg border">
+                                  <h4 className="font-semibold text-amber-700 mb-2">
+                                    {category} ({categorySelectedCount}/{symptoms.length}项)
+                                  </h4>
+                                  <div className="space-y-1">
+                                    {symptoms.map((symptom: any) => {
+                                      const isSelected = symptomIds.has(symptom.id);
+
+                                      return (
+                                        <div
+                                          key={symptom.id}
+                                          className={`p-2 rounded text-sm border ${
+                                            isSelected
+                                              ? 'bg-amber-50 border-amber-200 text-amber-900'
+                                              : 'bg-white border-gray-200 text-gray-600'
+                                          }`}
+                                        >
+                                          <div className="flex items-center gap-2">
+                                            <span className="font-mono text-xs">#{symptom.id}</span>
+                                            <span className="flex-1">{symptom.name}</span>
+                                            {symptom.description && (
+                                              <span className="text-xs text-purple-600 italic mr-2">{symptom.description}</span>
+                                            )}
+                                            {isSelected && (
+                                              <CheckCircle2 className="h-4 w-4 text-amber-600 flex-shrink-0" />
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  {symptomIdsList.map((symptomIds, versionIndex) => (
-                                    <div key={versionIndex} className={`text-xs px-2 py-1 rounded ${symptomIds.has(symptom.id) ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-400'}`}>
-                                      V{versionIndex + 1}: {symptomIds.has(symptom.id) ? '✓' : '✗'}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         </div>
-                      ));
-                    })()}
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
