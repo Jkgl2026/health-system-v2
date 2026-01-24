@@ -511,15 +511,15 @@ export default function AdminComparePage() {
               <Separator />
 
               {/* 健康指标对比 */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Activity className="h-5 w-5 mr-2" />
-                    健康分析对比
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {compareData.some(data => data.healthAnalysis && data.healthAnalysis.length > 0) ? (
+              {compareData.some(data => data.healthAnalysis && data.healthAnalysis.length > 0) && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <Activity className="h-5 w-5 mr-2" />
+                      健康分析对比
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-gray-50">
@@ -570,13 +570,21 @@ export default function AdminComparePage() {
                         })}
                       </TableBody>
                     </Table>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      健康分析数据不足，无法对比
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* 数据不足提示 */}
+              {!compareData.some(data => data.healthAnalysis && data.healthAnalysis.length > 0) && (
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertTitle className="font-bold">健康分析数据不足</AlertTitle>
+                  <AlertDescription>
+                    所选版本中没有健康分析数据，仅显示基本信息和BMI对比。
+                    请确保用户已完成健康分析后再进行健康指标对比。
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
           )}
         </DialogContent>
