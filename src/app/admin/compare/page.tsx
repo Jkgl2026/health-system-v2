@@ -115,12 +115,28 @@ export default function AdminComparePage() {
         fetch(`/api/admin/users/${userId}`).then(res => res.json())
       );
       const results = await Promise.all(promises);
-      const fullData = results.filter(r => r.success).map(r => r.data.user);
+
+      // r.data 是完整的数据对象，包含 user, symptomChecks, healthAnalysis 等
+      // 我们需要展开其中的 user 字段作为基础，并添加其他字段
+      const fullData = results
+        .filter(r => r.success)
+        .map(r => ({
+          ...r.data.user,
+          symptomChecks: r.data.symptomChecks || [],
+          healthAnalysis: r.data.healthAnalysis || [],
+          userChoices: r.data.userChoices || [],
+          requirements: r.data.requirements || null
+        }));
 
       if (fullData.length < 2) {
         alert('获取完整数据失败');
         return;
       }
+
+      console.log('对比数据:', fullData.map(d => ({
+        name: d.name,
+        hasHealthAnalysis: d.healthAnalysis && d.healthAnalysis.length > 0
+      })));
 
       setCompareData(fullData);
       setShowCompareDialog(true);
