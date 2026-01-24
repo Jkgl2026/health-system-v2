@@ -326,6 +326,10 @@ export default function AdminDashboardPage() {
                 <Download className="h-4 w-4 mr-2" />
                 导出CSV
               </Button>
+              <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/compare'}>
+                <Activity className="h-4 w-4 mr-2" />
+                数据对比
+              </Button>
               <Button
                 variant="destructive"
                 size="sm"
