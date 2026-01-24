@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ChevronLeft, BookOpen, Activity, Shield, Heart, Droplets, Snowflake, Sparkles, Smile, MessageCircle, ArrowRight } from 'lucide-react';
+import { ChevronLeft, BookOpen, Activity, Shield, Heart, Droplets, Snowflake, Sparkles, Smile, MessageCircle, ArrowRight, AlertCircle, AlertTriangle } from 'lucide-react';
 import { SYSTEM_CAMPAIGN_STORY, HEALTH_ELEMENTS, KEY_QUESTION } from '@/lib/health-data';
 import Link from 'next/link';
 
@@ -107,22 +107,50 @@ export default function StoryPage() {
 
         {/* 健康要素原理详解 */}
         <section className="mb-12">
-          <h2 className="text-3xl font-bold text-center mb-8 text-gray-900 dark:text-white">
-            健康要素原理详解
-          </h2>
+          <div className="text-center mb-8">
+            <h2 className="text-4xl font-bold mb-3 bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
+              健康要素原理详解
+            </h2>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              深入了解影响健康的七个核心要素，掌握健康的根本
+            </p>
+          </div>
 
           <Tabs value={activeElement} onValueChange={(v) => setActiveElement(v as keyof typeof HEALTH_ELEMENTS)} className="w-full">
-            <TabsList className="grid w-full grid-cols-7 h-auto">
+            {/* 优化TabList - 添加渐变背景和更好的视觉层次 */}
+            <TabsList className="grid w-full grid-cols-7 h-auto bg-gradient-to-br from-blue-50 to-green-50 dark:from-gray-800 dark:to-gray-900 border-2 border-blue-200 dark:border-blue-800 p-2 gap-1">
               {(Object.keys(HEALTH_ELEMENTS) as Array<keyof typeof HEALTH_ELEMENTS>).map((key) => {
                 const Icon = elementIcons[key];
+                const isActive = activeElement === key;
+                const elementColors: Record<string, { bg: string; text: string; gradient: string }> = {
+                  气血: { bg: 'bg-red-500', text: 'text-red-600', gradient: 'from-red-500 to-red-600' },
+                  循环: { bg: 'bg-blue-500', text: 'text-blue-600', gradient: 'from-blue-500 to-blue-600' },
+                  毒素: { bg: 'bg-yellow-500', text: 'text-yellow-600', gradient: 'from-yellow-500 to-yellow-600' },
+                  血脂: { bg: 'bg-orange-500', text: 'text-orange-600', gradient: 'from-orange-500 to-orange-600' },
+                  寒凉: { bg: 'bg-cyan-500', text: 'text-cyan-600', gradient: 'from-cyan-500 to-cyan-600' },
+                  免疫: { bg: 'bg-green-500', text: 'text-green-600', gradient: 'from-green-500 to-green-600' },
+                  情绪: { bg: 'bg-purple-500', text: 'text-purple-600', gradient: 'from-purple-500 to-purple-600' },
+                };
+                const colors = elementColors[key] || elementColors.气血;
+
                 return (
                   <TabsTrigger
                     key={key}
                     value={key}
-                    className="flex flex-col items-center space-y-1 py-3 h-auto"
+                    className={`flex flex-col items-center space-y-2 py-4 h-auto transition-all duration-300 ${
+                      isActive
+                        ? `bg-gradient-to-br ${colors.gradient} text-white shadow-lg scale-105`
+                        : 'hover:bg-white dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                    }`}
                   >
-                    <Icon className="w-5 h-5" />
-                    <span className="text-xs">{HEALTH_ELEMENTS[key].name}</span>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      isActive ? 'bg-white/20' : colors.bg + ' text-white'
+                    }`}>
+                      <Icon className={`w-6 h-6 ${isActive ? 'text-white' : ''}`} />
+                    </div>
+                    <span className={`text-xs font-bold ${isActive ? 'text-white' : colors.text}`}>
+                      {HEALTH_ELEMENTS[key].name}
+                    </span>
                   </TabsTrigger>
                 );
               })}
@@ -131,73 +159,100 @@ export default function StoryPage() {
             {(Object.keys(HEALTH_ELEMENTS) as Array<keyof typeof HEALTH_ELEMENTS>).map((key) => {
               const element = HEALTH_ELEMENTS[key];
               const Icon = elementIcons[key];
+              const elementColors: Record<string, { bg: string; text: string; gradient: string; border: string }> = {
+                气血: { bg: 'bg-red-500', text: 'text-red-600', gradient: 'from-red-500 to-red-600', border: 'border-red-200' },
+                循环: { bg: 'bg-blue-500', text: 'text-blue-600', gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' },
+                毒素: { bg: 'bg-yellow-500', text: 'text-yellow-600', gradient: 'from-yellow-500 to-yellow-600', border: 'border-yellow-200' },
+                血脂: { bg: 'bg-orange-500', text: 'text-orange-600', gradient: 'from-orange-500 to-orange-600', border: 'border-orange-200' },
+                寒凉: { bg: 'bg-cyan-500', text: 'text-cyan-600', gradient: 'from-cyan-500 to-cyan-600', border: 'border-cyan-200' },
+                免疫: { bg: 'bg-green-500', text: 'text-green-600', gradient: 'from-green-500 to-green-600', border: 'border-green-200' },
+                情绪: { bg: 'bg-purple-500', text: 'text-purple-600', gradient: 'from-purple-500 to-purple-600', border: 'border-purple-200' },
+              };
+              const colors = elementColors[key] || elementColors.气血;
 
               return (
                 <TabsContent key={key} value={key} className="mt-6">
-                  <Card className="border-2 border-blue-100 dark:border-blue-900">
-                    <CardHeader>
+                  <Card className={`border-2 ${colors.border} dark:${colors.border.replace('border-', 'dark:border-')} shadow-lg`}>
+                    <CardHeader className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-gray-800 dark:to-gray-900">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white">
-                            <Icon className="w-6 h-6" />
+                        <div className="flex items-center space-x-4">
+                          <div className={`w-16 h-16 bg-gradient-to-br ${colors.gradient} rounded-xl flex items-center justify-center text-white shadow-lg`}>
+                            <Icon className="w-8 h-8" />
                           </div>
                           <div>
-                            <CardTitle className="text-2xl">{element.name}</CardTitle>
-                            <CardDescription>{element.description}</CardDescription>
+                            <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white">
+                              {element.name}
+                            </CardTitle>
+                            <CardDescription className="text-base mt-1 text-gray-600 dark:text-gray-400">
+                              {element.description}
+                            </CardDescription>
                           </div>
                         </div>
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setShowFullStory(!showFullStory)}
+                          className="font-semibold"
                         >
-                          {showFullStory ? '收起' : '查看完整故事'}
+                          {showFullStory ? '收起故事' : '查看完整故事'}
                         </Button>
                       </div>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                      {/* 原理说明 */}
-                      <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                    <CardContent className="space-y-6 mt-6">
+                      {/* 原理说明 - 使用渐变背景 */}
+                      <div className={`p-6 bg-gradient-to-br ${colors.gradient} bg-opacity-10 rounded-xl border-2 ${colors.border} dark:${colors.border.replace('border-', 'dark:border-')}`}>
+                        <h3 className={`text-xl font-bold mb-3 flex items-center ${colors.text}`}>
+                          <BookOpen className="w-5 h-5 mr-2" />
                           基本原理
                         </h3>
-                        <p className="text-gray-700 dark:text-gray-300">
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-base">
                           {element.principle}
                         </p>
                       </div>
 
-                      {/* 完整故事 */}
+                      {/* 完整故事 - 优化展示 */}
                       {showFullStory && element.fullStory && (
-                        <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
-                          <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                        <div className="p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl border-2 border-purple-200 dark:border-purple-800">
+                          <h3 className={`text-xl font-bold mb-3 flex items-center text-purple-700 dark:text-purple-400`}>
+                            <Sparkles className="w-5 h-5 mr-2" />
                             完整故事：{element.story}
                           </h3>
-                          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
+                          <div className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed text-base bg-white/50 dark:bg-gray-800/50 p-4 rounded-lg">
                             {element.fullStory}
-                          </p>
+                          </div>
                         </div>
                       )}
 
-                      {/* 相关症状 */}
+                      {/* 相关症状 - 使用卡片网格 */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-                          相关症状（对应到您的自检表）：
+                        <h3 className={`text-xl font-bold mb-4 flex items-center ${colors.text}`}>
+                          <AlertCircle className="w-5 h-5 mr-2" />
+                          相关症状（对应到您的自检表）
                         </h3>
-                        <div className="flex flex-wrap gap-2">
-                          {element.symptoms.map((id) => {
-                            return (
-                              <Badge key={id} variant="secondary" className="text-sm py-1 px-3">
-                                #{id} 相关症状
-                              </Badge>
-                            );
-                          })}
+                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
+                            {element.symptoms.map((id) => {
+                              return (
+                                <Badge
+                                  key={id}
+                                  variant="secondary"
+                                  className="justify-center py-2 px-3 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
+                                >
+                                  #{id} 症状
+                                </Badge>
+                              );
+                            })}
+                          </div>
                         </div>
                       </div>
 
-                      {/* 重要提示 */}
-                      <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                        <p className="text-sm text-gray-700 dark:text-gray-300">
-                          <strong>重要提示：</strong>
+                      {/* 重要提示 - 使用醒目的警告样式 */}
+                      <div className="p-5 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-xl border-2 border-yellow-300 dark:border-yellow-800">
+                        <h3 className={`text-lg font-bold mb-2 flex items-center ${colors.text}`}>
+                          <AlertTriangle className="w-5 h-5 mr-2" />
+                          重要提示
+                        </h3>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                           如果您在之前的症状自检中出现了与此要素相关的症状，说明该要素可能存在问题。
                           只有找到问题的根本原因，才能真正改善健康状况，而不是仅仅缓解症状。
                         </p>

@@ -302,27 +302,80 @@ export default function SolutionPage() {
                 </div>
               )}
 
-              {/* 症状统计 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <h4 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                    症状总数
+              {/* 症状统计 - 使用柱状图 */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 症状总数柱状图 */}
+                <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
+                  <h4 className="text-base font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+                    <Activity className="w-5 h-5 mr-2 text-green-600" />
+                    症状总数统计
                   </h4>
-                  <p className="text-3xl font-bold text-green-700 dark:text-green-400">
-                    {selectedSymptoms.length}
-                  </p>
-                </div>
-                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <h4 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                    主要健康要素
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {primaryElements.map((el, index) => (
-                      <Badge key={index} variant="secondary" className="text-sm">
-                        {el.name} ({el.count}项)
-                      </Badge>
-                    ))}
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-700 dark:text-gray-300">症状数量</span>
+                      <span className="text-2xl font-bold text-green-700 dark:text-green-400">{selectedSymptoms.length}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8">
+                      <div
+                        className="bg-gradient-to-r from-green-500 to-emerald-600 h-8 rounded-full transition-all duration-500 flex items-center justify-end pr-3"
+                        style={{ width: `${Math.min(selectedSymptoms.length * 2, 100)}%` }}
+                      >
+                        <span className="text-xs font-bold text-white">{Math.min(selectedSymptoms.length * 2, 100)}%</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
+                      基于身体语言简表100项症状
+                    </p>
                   </div>
+                </div>
+
+                {/* 主要健康要素柱状图 */}
+                <div className="p-6 bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+                  <h4 className="text-base font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+                    <Target className="w-5 h-5 mr-2 text-purple-600" />
+                    主要健康要素分布
+                  </h4>
+                  {primaryElements.length > 0 ? (
+                    <div className="space-y-3">
+                      {primaryElements.map((el, index) => {
+                        const maxCount = Math.max(...primaryElements.map(e => e.count));
+                        const percentage = (el.count / maxCount) * 100;
+                        const colors = [
+                          'from-red-500 to-red-600',
+                          'from-blue-500 to-blue-600',
+                          'from-yellow-500 to-yellow-600',
+                          'from-orange-500 to-orange-600',
+                          'from-cyan-500 to-cyan-600',
+                          'from-green-500 to-green-600',
+                          'from-purple-500 to-purple-600',
+                        ];
+                        const colorClass = colors[index % colors.length];
+
+                        return (
+                          <div key={index} className="space-y-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-semibold text-gray-900 dark:text-white">{el.name}</span>
+                              <span className="font-bold text-purple-700 dark:text-purple-400">{el.count} 项</span>
+                            </div>
+                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6">
+                              <div
+                                className={`bg-gradient-to-r ${colorClass} h-6 rounded-full transition-all duration-500 flex items-center justify-end pr-2`}
+                                style={{ width: `${percentage}%` }}
+                              >
+                                {percentage > 15 && (
+                                  <span className="text-xs font-bold text-white">{percentage.toFixed(0)}%</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4 text-gray-600 dark:text-gray-400">
+                      <p className="text-sm">暂无主要健康要素数据</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from '@/components/ui/separator';
 import { Pagination } from '@/components/admin/Pagination';
 import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw } from 'lucide-react';
-import { SEVEN_QUESTIONS } from '@/lib/health-data';
+import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
 
 interface UserSummary {
   user: {
@@ -1088,6 +1088,124 @@ export default function AdminDashboardPage() {
                         });
                       })()}
                     </div>
+                  </div>
+
+                  <Separator />
+                  
+                  {/* 不良生活习惯自检表 */}
+                  <div className="bg-gradient-to-br from-pink-50 to-rose-100 border-l-4 border-pink-500 p-6 rounded-lg shadow-sm">
+                    <h3 className="font-bold text-xl mb-6 flex items-center text-pink-900">
+                      <AlertCircle className="h-6 w-6 mr-3 text-pink-600" />
+                      不良生活习惯自检表
+                    </h3>
+                    
+                    {selectedUser.requirements?.badHabitsChecklist ? (
+                      <div className="space-y-6">
+                        <div className="bg-white p-4 rounded-lg shadow-sm border border-pink-100 text-center">
+                          <div className="text-sm text-pink-600 mb-1">已选中习惯</div>
+                          <div className="font-bold text-3xl text-pink-700">
+                            {Array.isArray(selectedUser.requirements.badHabitsChecklist)
+                              ? selectedUser.requirements.badHabitsChecklist.length
+                              : 0} 项
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-pink-100">
+                          <div className="font-semibold text-lg text-pink-800 mb-4">选中的不良生活习惯</div>
+                          <div className="space-y-3">
+                            {(() => {
+                              const habitIds = selectedUser.requirements.badHabitsChecklist;
+                              if (!Array.isArray(habitIds) || habitIds.length === 0) {
+                                return <div className="text-center py-4 text-pink-600">暂无选中的不良生活习惯</div>;
+                              }
+
+                              const habitsByCategory: Record<string, any[]> = {};
+                              Object.keys(BAD_HABITS_CHECKLIST).forEach(category => {
+                                BAD_HABITS_CHECKLIST[category as keyof typeof BAD_HABITS_CHECKLIST].forEach(habit => {
+                                  if (habitIds.includes(habit.id)) {
+                                    if (!habitsByCategory[category]) habitsByCategory[category] = [];
+                                    habitsByCategory[category].push(habit);
+                                  }
+                                });
+                              });
+
+                              return Object.entries(habitsByCategory).map(([category, habits]) => (
+                                <div key={category}>
+                                  <h4 className="font-semibold text-pink-700 mb-2">{category} ({habits.length}项)</h4>
+                                  <div className="space-y-1 pl-4">
+                                    {habits.map((habit: any) => (
+                                      <div key={habit.id} className="flex items-start gap-2 p-2 bg-pink-50 rounded text-sm">
+                                        <span className="font-bold text-pink-600">#{habit.id}</span>
+                                        <span className="flex-1">{habit.habit}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ));
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-pink-100 text-center">
+                        <AlertCircle className="h-12 w-12 mx-auto text-pink-300 mb-3" />
+                        <p className="text-pink-600 font-medium">暂无不良生活习惯数据</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <Separator />
+
+                  {/* 300项症状自检表 */}
+                  <div className="bg-gradient-to-br from-amber-50 to-yellow-100 border-l-4 border-amber-500 p-6 rounded-lg shadow-sm">
+                    <h3 className="font-bold text-xl mb-6 flex items-center text-amber-900">
+                      <FileText className="h-6 w-6 mr-3 text-amber-600" />
+                      300项症状自检表
+                    </h3>
+                    
+                    {selectedUser.requirements?.symptoms300Checklist ? (
+                      <div className="space-y-6">
+                        <div className="bg-white p-4 rounded-lg shadow-sm border border-amber-100 text-center">
+                          <div className="text-sm text-amber-600 mb-1">已选中症状</div>
+                          <div className="font-bold text-3xl text-amber-700">
+                            {Array.isArray(selectedUser.requirements.symptoms300Checklist)
+                              ? selectedUser.requirements.symptoms300Checklist.length
+                              : 0} 项
+                          </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-lg shadow-sm border border-amber-100">
+                          <div className="font-semibold text-lg text-amber-800 mb-4">选中的症状</div>
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                            {(() => {
+                              const symptomIds = selectedUser.requirements.symptoms300Checklist;
+                              if (!Array.isArray(symptomIds) || symptomIds.length === 0) {
+                                return <div className="col-span-full text-center py-4 text-amber-600">暂无选中的症状</div>;
+                              }
+
+                              return symptomIds.slice(0, 50).map((id: number) => {
+                                const symptom = BODY_SYMPTOMS_300.find(s => s.id === id);
+                                return symptom ? (
+                                  <Badge key={id} variant="secondary" className="justify-center py-2 px-3">
+                                    #{id} {symptom.name.length > 6 ? symptom.name.substring(0, 6) + '...' : symptom.name}
+                                  </Badge>
+                                ) : null;
+                              });
+                            })()}
+                          </div>
+                          {Array.isArray(selectedUser.requirements.symptoms300Checklist) && selectedUser.requirements.symptoms300Checklist.length > 50 && (
+                            <div className="text-sm text-amber-600 mt-4 text-center">
+                              ... 还有 {selectedUser.requirements.symptoms300Checklist.length - 50} 项症状
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-amber-100 text-center">
+                        <FileText className="h-12 w-12 mx-auto text-amber-300 mb-3" />
+                        <p className="text-amber-600 font-medium">暂无300项症状数据</p>
+                      </div>
+                    )}
                   </div>
                 </>
               )}

@@ -78,6 +78,70 @@ export async function POST(request: NextRequest) {
         },
       },
       {
+        description: '添加 requirements.bad_habits_checklist 列（不良生活习惯自检表）',
+        execute: async () => {
+          const db = await getDb();
+          const columnCheck = await db.execute(`
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'requirements'
+            AND column_name = 'bad_habits_checklist';
+          `);
+
+          if (!columnCheck.rows || columnCheck.rows.length === 0) {
+            await db.execute(`
+              ALTER TABLE requirements
+              ADD COLUMN bad_habits_checklist JSONB;
+            `);
+            console.log('✓ 已添加 requirements.bad_habits_checklist 列');
+          } else {
+            console.log('ℹ requirements.bad_habits_checklist 列已存在，跳过');
+          }
+        },
+        rollback: async () => {
+          // 删除列的回滚操作
+          const db = await getDb();
+          try {
+            await db.execute(`ALTER TABLE requirements DROP COLUMN IF EXISTS bad_habits_checklist;`);
+            console.log('✓ 已回滚 requirements.bad_habits_checklist 列');
+          } catch (error) {
+            console.error('回滚 requirements.bad_habits_checklist 列失败:', error);
+          }
+        },
+      },
+      {
+        description: '添加 requirements.symptoms_300_checklist 列（300项症状自检表）',
+        execute: async () => {
+          const db = await getDb();
+          const columnCheck = await db.execute(`
+            SELECT column_name
+            FROM information_schema.columns
+            WHERE table_name = 'requirements'
+            AND column_name = 'symptoms_300_checklist';
+          `);
+
+          if (!columnCheck.rows || columnCheck.rows.length === 0) {
+            await db.execute(`
+              ALTER TABLE requirements
+              ADD COLUMN symptoms_300_checklist JSONB;
+            `);
+            console.log('✓ 已添加 requirements.symptoms_300_checklist 列');
+          } else {
+            console.log('ℹ requirements.symptoms_300_checklist 列已存在，跳过');
+          }
+        },
+        rollback: async () => {
+          // 删除列的回滚操作
+          const db = await getDb();
+          try {
+            await db.execute(`ALTER TABLE requirements DROP COLUMN IF EXISTS symptoms_300_checklist;`);
+            console.log('✓ 已回滚 requirements.symptoms_300_checklist 列');
+          } catch (error) {
+            console.error('回滚 requirements.symptoms_300_checklist 列失败:', error);
+          }
+        },
+      },
+      {
         description: '创建 audit_logs 表（审计日志支持）',
         execute: async () => {
           const db = await getDb();

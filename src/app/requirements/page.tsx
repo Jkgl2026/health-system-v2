@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, ArrowRight, CheckCircle2, AlertCircle, BookOpen, ClipboardCheck, Users, GraduationCap } from 'lucide-react';
 import { FOUR_REQUIREMENTS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
+import { getOrGenerateUserId } from '@/lib/user-context';
 import Link from 'next/link';
 
 export default function RequirementsPage() {
@@ -35,11 +36,39 @@ export default function RequirementsPage() {
     setSelectedSymptoms300(newSelected);
   };
 
-  const handleContinue = () => {
-    // 保存到localStorage
-    localStorage.setItem('selectedHabitsRequirements', JSON.stringify([...selectedHabits]));
-    localStorage.setItem('selectedSymptoms300', JSON.stringify([...selectedSymptoms300]));
-    window.location.href = '/recovery';
+  const handleContinue = async () => {
+    try {
+      // 获取用户ID
+      const userId = getOrGenerateUserId();
+
+      // 保存到localStorage（备用）
+      localStorage.setItem('selectedHabitsRequirements', JSON.stringify([...selectedHabits]));
+      localStorage.setItem('selectedSymptoms300', JSON.stringify([...selectedSymptoms300]));
+
+      // 保存到数据库
+      const response = await fetch('/api/user/requirements', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId,
+          badHabitsChecklist: [...selectedHabits],
+          symptoms300Checklist: [...selectedSymptoms300],
+        }),
+      });
+
+      if (response.ok) {
+        window.location.href = '/recovery';
+      } else {
+        const error = await response.json();
+        console.error('保存失败:', error);
+        alert('保存失败，请重试：' + (error.error || '未知错误'));
+      }
+    } catch (error) {
+      console.error('保存失败:', error);
+      alert('保存失败，请检查网络连接后重试');
+    }
   };
 
   const habitCategories = Object.keys(BAD_HABITS_CHECKLIST) as Array<keyof typeof BAD_HABITS_CHECKLIST>;
