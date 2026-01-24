@@ -220,84 +220,84 @@ export default function RequirementsPage() {
           <div className="max-w-4xl mx-auto space-y-6">
             <Card className="border-2 border-blue-100 dark:border-blue-900">
               <CardHeader>
-                <CardTitle className="text-2xl text-center">调理服务的四个要求</CardTitle>
-                <CardDescription className="text-base text-center">
+                <CardTitle className="text-2xl md:text-3xl text-center font-bold">调理服务的四个要求</CardTitle>
+                <CardDescription className="text-base md:text-lg text-center">
                   为了确保调理效果，需要您配合完成以下四个要求
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <Alert>
-                  <AlertCircle className="w-4 h-4" />
-                  <AlertDescription>
-                    <strong>重要提醒：</strong>如果您无法完成这四个要求，我也不能给您调理。
+                <Alert className="border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  <AlertDescription className="text-base md:text-lg">
+                    <strong className="text-red-700 dark:text-red-300">重要提醒：</strong>如果您无法完成这四个要求，我也不能给您调理。
                     这些要求是调理成功的基础，缺一不可。
                     <br />
-                    <strong className="text-red-600 mt-2 block">请务必按顺序阅读完成所有四个要求！</strong>
+                    <strong className="text-red-600 dark:text-red-400 mt-2 block text-lg md:text-xl">请务必按顺序阅读完成所有四个要求！</strong>
                   </AlertDescription>
                 </Alert>
 
-                <div className="grid gap-4">
+                <div className="grid gap-4 md:gap-6">
                   <Card className="cursor-pointer hover:shadow-lg transition-all border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
                     <CardHeader>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="flex items-center space-x-3 md:space-x-4">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold text-xl md:text-2xl flex-shrink-0">
                           1
                         </div>
-                        <CardTitle className="text-xl">要求1：找病因 - 不良生活习惯表</CardTitle>
+                        <CardTitle className="text-xl md:text-2xl font-bold">要求1：找病因 - 不良生活习惯表</CardTitle>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement1.description}</p>
+                      <p className="text-base md:text-lg text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement1.description}</p>
                     </CardContent>
                   </Card>
 
                   <Card className="cursor-pointer hover:shadow-lg transition-all border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20">
                     <CardHeader>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="flex items-center space-x-3 md:space-x-4">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-xl md:text-2xl flex-shrink-0">
                           2
                         </div>
-                        <CardTitle className="text-xl">要求2：找病根 - 300症状自检表</CardTitle>
+                        <CardTitle className="text-xl md:text-2xl font-bold">要求2：找病根 - 300症状自检表</CardTitle>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement2.description}</p>
+                      <p className="text-base md:text-lg text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement2.description}</p>
                     </CardContent>
                   </Card>
 
                   <Card className="cursor-pointer hover:shadow-lg transition-all border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
                     <CardHeader>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="flex items-center space-x-3 md:space-x-4">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-xl md:text-2xl flex-shrink-0">
                           3
                         </div>
-                        <CardTitle className="text-xl">{FOUR_REQUIREMENTS.requirement3.title}</CardTitle>
+                        <CardTitle className="text-xl md:text-2xl font-bold">{FOUR_REQUIREMENTS.requirement3.title}</CardTitle>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement3.description}</p>
+                      <p className="text-base md:text-lg text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement3.description}</p>
                     </CardContent>
                   </Card>
 
                   <Card className="cursor-pointer hover:shadow-lg transition-all border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
                     <CardHeader>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                      <div className="flex items-center space-x-3 md:space-x-4">
+                        <div className="w-12 h-12 md:w-14 md:h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-xl md:text-2xl flex-shrink-0">
                           4
                         </div>
-                        <CardTitle className="text-xl">{FOUR_REQUIREMENTS.requirement4.title}</CardTitle>
+                        <CardTitle className="text-xl md:text-2xl font-bold">{FOUR_REQUIREMENTS.requirement4.title}</CardTitle>
                       </div>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement4.description}</p>
+                      <p className="text-base md:text-lg text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement4.description}</p>
                     </CardContent>
                   </Card>
                 </div>
 
-                <Alert className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
-                  <AlertCircle className="w-4 h-4 text-yellow-600" />
-                  <AlertDescription className="text-yellow-900 dark:text-yellow-100">
-                    <strong>下一步：</strong>请点击下方导航或"要求1-2"按钮，开始详细阅读并填写要求1和要求2。
+                <Alert className="border-2 border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />
+                  <AlertDescription className="text-base md:text-lg text-yellow-900 dark:text-yellow-100">
+                    <strong className="text-yellow-800 dark:text-yellow-200">下一步：</strong>请点击下方导航或"要求1-2"按钮，开始详细阅读并填写要求1和要求2。
                   </AlertDescription>
                 </Alert>
               </CardContent>
@@ -324,74 +324,75 @@ export default function RequirementsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <Alert>
-                  <AlertCircle className="w-4 h-4" />
-                  <AlertDescription>
-                    <strong>警告：</strong>{FOUR_REQUIREMENTS.requirement1.warning}
+                <Alert className="border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                  <AlertDescription className="text-base md:text-lg">
+                    <strong className="text-red-700 dark:text-red-300">警告：</strong>{FOUR_REQUIREMENTS.requirement1.warning}
                   </AlertDescription>
                 </Alert>
 
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>说明：</strong>{FOUR_REQUIREMENTS.requirement1.details}
+                <div className="p-5 md:p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                  <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed">
+                    <strong className="text-blue-800 dark:text-blue-200">说明：</strong>{FOUR_REQUIREMENTS.requirement1.details}
                   </p>
                 </div>
 
                 {/* 核心公式 */}
-                <div className="p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg border-2 border-blue-200 dark:border-blue-800 text-center">
-                  <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                <div className="p-6 md:p-8 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg border-2 border-blue-200 dark:border-blue-800 text-center">
+                  <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
                     疾病 = 坏习惯 + 时间
                   </p>
-                  <p className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  <p className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-3">
                     健康 = 好习惯 + 时间
                   </p>
-                  <p className="text-base text-gray-700 dark:text-gray-300 mt-4">
+                  <p className="text-lg md:text-xl text-gray-700 dark:text-gray-300 mt-4 font-medium">
                     养成一个好习惯可以抵消一些坏习惯
                   </p>
                 </div>
 
                 {/* 不良习惯表 */}
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      已选择 {selectedHabits.size} 项习惯
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+                    <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 font-medium">
+                      已选择 <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedHabits.size}</span> 项习惯
                     </p>
                     <div className="space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => {
+                      <Button variant="outline" size="default" className="text-base" onClick={() => {
                         const allHabitIds = Object.values(BAD_HABITS_CHECKLIST).flat().map(h => h.id);
                         setSelectedHabits(new Set(allHabitIds));
                       }}>
                         全选
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedHabits(new Set())}>
+                      <Button variant="outline" size="default" className="text-base" onClick={() => setSelectedHabits(new Set())}>
                         清空
                       </Button>
                     </div>
                   </div>
 
                   {habitCategories.map(category => (
-                    <Card key={category} className="border border-gray-200 dark:border-gray-700">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">{category}</CardTitle>
+                    <Card key={category} className="border-2 border-gray-200 dark:border-gray-700">
+                      <CardHeader className="pb-4 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/10 dark:to-gray-800">
+                        <CardTitle className="text-xl md:text-2xl font-bold">{category}</CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      <CardContent className="pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {BAD_HABITS_CHECKLIST[category].map(habit => (
-                            <div key={habit.id} className="flex items-start space-x-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                            <div key={habit.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors border border-transparent hover:border-blue-200 dark:hover:border-blue-800">
                               <Checkbox
                                 id={`habit-${habit.id}`}
                                 checked={selectedHabits.has(habit.id)}
                                 onCheckedChange={() => handleHabitToggle(habit.id)}
+                                className="mt-1 w-5 h-5"
                               />
                               <div className="flex-1">
                                 <label
                                   htmlFor={`habit-${habit.id}`}
-                                  className="text-xs text-gray-700 dark:text-gray-300 cursor-pointer"
+                                  className="text-sm md:text-base text-gray-700 dark:text-gray-300 cursor-pointer font-medium leading-relaxed block mb-1"
                                 >
-                                  {habit.name}
+                                  {habit.habit}
                                 </label>
                                 {habit.impact && (
-                                  <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                                  <p className="text-xs md:text-sm text-red-600 dark:text-red-400 mt-1 leading-relaxed">
                                     {habit.impact}
                                   </p>
                                 )}
@@ -422,50 +423,51 @@ export default function RequirementsPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <Alert>
-                  <AlertCircle className="w-4 h-4" />
-                  <AlertDescription>
-                    <strong>说明：</strong>{FOUR_REQUIREMENTS.requirement2.details}
+                <Alert className="border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20">
+                  <AlertCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <AlertDescription className="text-base md:text-lg">
+                    <strong className="text-purple-700 dark:text-purple-300">说明：</strong>{FOUR_REQUIREMENTS.requirement2.details}
                   </AlertDescription>
                 </Alert>
 
                 {/* 300症状表 */}
                 <div className="space-y-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      已选择 {selectedSymptoms300.size} 项症状
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
+                    <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 font-medium">
+                      已选择 <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">{selectedSymptoms300.size}</span> 项症状
                     </p>
                     <div className="space-x-2">
-                      <Button variant="outline" size="sm" onClick={() => {
+                      <Button variant="outline" size="default" className="text-base" onClick={() => {
                         const allSymptomIds = BODY_SYMPTOMS_300.map(s => s.id);
                         setSelectedSymptoms300(new Set(allSymptomIds));
                       }}>
                         全选
                       </Button>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedSymptoms300(new Set())}>
+                      <Button variant="outline" size="default" className="text-base" onClick={() => setSelectedSymptoms300(new Set())}>
                         清空
                       </Button>
                     </div>
                   </div>
 
                   {symptomCategories300.map(category => (
-                    <Card key={category} className="border border-gray-200 dark:border-gray-700">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg">{category}</CardTitle>
+                    <Card key={category} className="border-2 border-gray-200 dark:border-gray-700">
+                      <CardHeader className="pb-4 bg-gradient-to-r from-purple-50 to-white dark:from-purple-900/10 dark:to-gray-800">
+                        <CardTitle className="text-xl md:text-2xl font-bold">{category}</CardTitle>
                       </CardHeader>
-                      <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                      <CardContent className="pt-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {symptoms300ByCategory[category].map(symptom => (
-                            <div key={symptom.id} className="flex items-start space-x-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                            <div key={symptom.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors border border-transparent hover:border-purple-200 dark:hover:border-purple-800">
                               <Checkbox
                                 id={`symptom300-${symptom.id}`}
                                 checked={selectedSymptoms300.has(symptom.id)}
                                 onCheckedChange={() => handleSymptom300Toggle(symptom.id)}
+                                className="mt-1 w-5 h-5"
                               />
                               <div className="flex-1">
                                 <label
                                   htmlFor={`symptom300-${symptom.id}`}
-                                  className="text-xs text-gray-700 dark:text-gray-300 cursor-pointer"
+                                  className="text-sm md:text-base text-gray-700 dark:text-gray-300 cursor-pointer font-medium leading-relaxed"
                                 >
                                   {symptom.name}
                                 </label>
@@ -487,30 +489,30 @@ export default function RequirementsPage() {
           <div className="max-w-4xl mx-auto space-y-6">
             <Card className="border-2 border-green-100 dark:border-green-900">
               <CardHeader>
-                <div className="flex items-center space-x-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                <div className="flex flex-col md:flex-row md:items-center md:space-x-3 space-y-3 md:space-y-0">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold text-3xl flex-shrink-0">
                     3
                   </div>
-                  <div>
-                    <CardTitle className="text-3xl font-extrabold">{FOUR_REQUIREMENTS.requirement3.title}</CardTitle>
-                    <CardDescription className="text-lg mt-1">
+                  <div className="flex-1">
+                    <CardTitle className="text-3xl md:text-4xl font-extrabold">{FOUR_REQUIREMENTS.requirement3.title}</CardTitle>
+                    <CardDescription className="text-lg md:text-xl mt-2">
                       {FOUR_REQUIREMENTS.requirement3.description}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <Alert>
-                  <CheckCircle2 className="w-4 h-4 text-green-500" />
-                  <AlertDescription>
-                    <strong>重要：</strong>{FOUR_REQUIREMENTS.requirement3.details}
+                <Alert className="border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <AlertDescription className="text-base md:text-lg">
+                    <strong className="text-green-700 dark:text-green-300">重要：</strong>{FOUR_REQUIREMENTS.requirement3.details}
                   </AlertDescription>
                 </Alert>
 
-                <div className="space-y-4">
-                  <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">相信调理的原因</h4>
-                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="p-4 md:p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
+                    <h4 className="font-semibold mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">相信调理的原因</h4>
+                    <ul className="space-y-2 md:space-y-3 text-base md:text-lg text-gray-700 dark:text-gray-300">
                       <li>• 身体有强大的自我修复能力</li>
                       <li>• 找到病因，对症调理，效果显著</li>
                       <li>• 无数成功案例证明了调理的有效性</li>
@@ -518,9 +520,9 @@ export default function RequirementsPage() {
                     </ul>
                   </div>
 
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">如何建立信心</h4>
-                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                  <div className="p-4 md:p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                    <h4 className="font-semibold mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">如何建立信心</h4>
+                    <ul className="space-y-2 md:space-y-3 text-base md:text-lg text-gray-700 dark:text-gray-300">
                       <li>• 学习健康知识，了解调理原理</li>
                       <li>• 观察身体变化，感受进步</li>
                       <li>• 与导师沟通，获得鼓励和指导</li>
@@ -538,30 +540,30 @@ export default function RequirementsPage() {
           <div className="max-w-4xl mx-auto space-y-6">
             <Card className="border-2 border-orange-100 dark:border-orange-900">
               <CardHeader>
-                <div className="flex items-center space-x-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+                <div className="flex flex-col md:flex-row md:items-center md:space-x-3 space-y-3 md:space-y-0">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-3xl flex-shrink-0">
                     4
                   </div>
-                  <div>
-                    <CardTitle className="text-3xl font-extrabold">{FOUR_REQUIREMENTS.requirement4.title}</CardTitle>
-                    <CardDescription className="text-lg mt-1">
+                  <div className="flex-1">
+                    <CardTitle className="text-3xl md:text-4xl font-extrabold">{FOUR_REQUIREMENTS.requirement4.title}</CardTitle>
+                    <CardDescription className="text-lg md:text-xl mt-2">
                       {FOUR_REQUIREMENTS.requirement4.description}
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
-                <Alert>
-                  <BookOpen className="w-4 h-4 text-orange-500" />
-                  <AlertDescription>
-                    <strong>重要：</strong>{FOUR_REQUIREMENTS.requirement4.details}
+                <Alert className="border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
+                  <BookOpen className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  <AlertDescription className="text-base md:text-lg">
+                    <strong className="text-orange-700 dark:text-orange-300">重要：</strong>{FOUR_REQUIREMENTS.requirement4.details}
                   </AlertDescription>
                 </Alert>
 
-                <div className="space-y-4">
-                  <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">学习内容</h4>
-                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                <div className="space-y-4 md:space-y-6">
+                  <div className="p-4 md:p-6 bg-orange-50 dark:bg-orange-900/20 rounded-lg border-2 border-orange-200 dark:border-orange-800">
+                    <h4 className="font-semibold mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">学习内容</h4>
+                    <ul className="space-y-2 md:space-y-3 text-base md:text-lg text-gray-700 dark:text-gray-300">
                       <li>• 系统战役故事 - 了解七个健康要素</li>
                       <li>• 健康要素原理 - 深入理解每个要素</li>
                       <li>• 好转反应 - 理解调理过程中的反应</li>
@@ -571,9 +573,9 @@ export default function RequirementsPage() {
                     </ul>
                   </div>
 
-                  <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <h4 className="font-semibold mb-2 text-gray-900 dark:text-white">学习建议</h4>
-                    <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+                  <div className="p-4 md:p-6 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+                    <h4 className="font-semibold mb-3 md:mb-4 text-lg md:text-xl font-bold text-gray-900 dark:text-white">学习建议</h4>
+                    <ul className="space-y-2 md:space-y-3 text-base md:text-lg text-gray-700 dark:text-gray-300">
                       <li>• 认真阅读每一章节，不要跳跃</li>
                       <li>• 做好笔记，记录重要知识点</li>
                       <li>• 理论结合实践，将知识转化为行动</li>
@@ -590,11 +592,11 @@ export default function RequirementsPage() {
 
       {/* 底部导航 - 固定在底部 */}
       <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t shadow-lg z-50">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="container mx-auto px-4 py-4 md:py-5">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
             {/* 导航按钮 */}
             <div className="flex justify-center md:justify-start flex-1 overflow-x-auto pb-2 md:pb-0">
-              <div className="inline-flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+              <div className="inline-flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 md:p-1.5">
                 {steps.map((step, index) => {
                   const Icon = step.icon;
                   const accessible = isStepAccessible(step.key, index);
@@ -606,7 +608,7 @@ export default function RequirementsPage() {
                       key={step.key}
                       onClick={() => accessible && handleStepChange(step.key)}
                       disabled={!accessible}
-                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all whitespace-nowrap ${
+                      className={`flex items-center space-x-1.5 md:space-x-2 px-3 md:px-4 py-2 md:py-2.5 rounded-lg transition-all whitespace-nowrap ${
                         active
                           ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-md'
                           : accessible
@@ -614,16 +616,16 @@ export default function RequirementsPage() {
                           : 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
                       }`}
                     >
-                      <Icon className="w-4 h-4" />
-                      <span className="text-xs font-bold">{step.label}</span>
+                      <Icon className="w-4 h-4 md:w-5 md:h-5" />
+                      <span className="text-xs md:text-sm font-bold">{step.label}</span>
                       {visited && active && (
-                        <CheckCircle2 className="w-3 h-3" />
+                        <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4" />
                       )}
                       {!accessible && (
-                        <Lock className="w-3 h-3" />
+                        <Lock className="w-3 h-3 md:w-4 md:h-4" />
                       )}
                       {accessible && visited && !active && (
-                        <CheckCircle2 className="w-3 h-3 text-green-500" />
+                        <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4 text-green-500" />
                       )}
                     </button>
                   );
@@ -632,11 +634,11 @@ export default function RequirementsPage() {
             </div>
 
             {/* 操作按钮 */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 md:space-x-3">
               {!canContinue && (
-                <Alert className="flex-1 max-w-md border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 py-2">
+                <Alert className="flex-1 max-w-md border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 py-2 md:py-2.5">
                   <AlertCircle className="w-4 h-4 text-yellow-600" />
-                  <AlertDescription className="text-xs text-yellow-900 dark:text-yellow-100">
+                  <AlertDescription className="text-xs md:text-sm text-yellow-900 dark:text-yellow-100">
                     请完成所有四个要求后才能继续
                   </AlertDescription>
                 </Alert>
@@ -645,14 +647,14 @@ export default function RequirementsPage() {
                 onClick={handleContinue}
                 disabled={!canContinue}
                 size="lg"
-                className={`${
+                className={`text-sm md:text-base px-4 md:px-6 ${
                   canContinue
                     ? 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600'
                     : 'bg-gray-400 cursor-not-allowed'
                 }`}
               >
                 继续下一步
-                <ArrowRight className="w-5 h-5 ml-2" />
+                <ArrowRight className="w-4 h-4 md:w-5 md:h-5 ml-2" />
               </Button>
             </div>
           </div>
