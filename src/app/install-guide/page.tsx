@@ -197,8 +197,70 @@ export default function InstallGuidePage() {
         </div>
       </header>
 
+      {/* 正确访问地址提示 */}
+      <div className="bg-blue-50 border-b border-blue-200">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-center gap-2 text-sm text-blue-800">
+            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">正确访问地址：</span>
+            <code className="bg-white px-2 py-1 rounded text-xs font-mono">cd776816-213e-4c84-af60-dbe5b397d82e.dev.coze.site</code>
+            <span className="text-blue-600">（无需登录，可直接访问）</span>
+          </div>
+        </div>
+      </div>
+
       {/* 主内容 */}
       <main className="container mx-auto px-4 py-12">
+        {/* 正确访问地址重要提示 */}
+        <Card className="max-w-4xl mx-auto mb-8 border-2 border-red-400 bg-red-50">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-3 text-xl text-red-800">
+              <AlertCircle className="h-6 w-6" />
+              <span>⚠️ 重要：请使用正确的访问地址</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="bg-white rounded-lg p-4 border border-red-200">
+                <p className="text-red-900 font-semibold mb-2">
+                  ❌ 不要访问：https://code.coze.cn/p/7598103135101599785/...
+                </p>
+                <p className="text-red-700 text-sm">
+                  这是 Coze 平台项目页面，需要登录，无法正常使用应用
+                </p>
+              </div>
+              <div className="bg-emerald-100 rounded-lg p-4 border-2 border-emerald-400">
+                <p className="text-emerald-900 font-bold text-lg mb-1">
+                  ✅ 请访问：cd776816-213e-4c84-af60-dbe5b397d82e.dev.coze.site
+                </p>
+                <p className="text-emerald-800 text-sm">
+                  这是应用的实际部署地址，无需登录，可直接访问
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    onClick={() => window.location.href = '/'}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    立即打开应用
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.origin);
+                      alert('已复制地址到剪贴板');
+                    }}
+                    variant="outline"
+                    className="border-emerald-600 text-emerald-600 hover:bg-emerald-50"
+                  >
+                    复制地址
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* 当前设备信息 */}
         {deviceType !== 'unknown' && (
           <Card className="max-w-4xl mx-auto mb-8 border-2 border-emerald-200 bg-gradient-to-r from-emerald-50 to-blue-50">
