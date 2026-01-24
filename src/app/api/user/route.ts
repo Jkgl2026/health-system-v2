@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import type { InsertUser } from '@/storage/database';
 
-// POST /api/user - 创建新用户
+// POST /api/user - 创建新用户或查找已有用户
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
@@ -26,21 +26,35 @@ export async function POST(request: NextRequest) {
     if (data.phone) {
       const existingUser = await healthDataManager.getUserByPhone(data.phone);
       if (existingUser) {
-        return NextResponse.json(
-          { error: '该手机号已注册' },
-          { status: 400 }
-        );
+        console.log('找到已有用户，返回用户信息:', existingUser);
+        // 返回已有用户信息，让前端决定是更新还是继续
+        return NextResponse.json({
+          success: true,
+          exists: true,
+          user: existingUser,
+          message: '找到已有用户'
+        }, { status: 200 });
       }
     }
 
+    // 如果没有手机号或手机号不存在，创建新用户
     console.log('开始创建用户:', userData);
     const user = await healthDataManager.createUser(userData);
     console.log('用户创建成功:', user);
 
-    return NextResponse.json({ success: true, user }, { status: 201 });
+    return NextResponse.json({ success: true, exists: false, user }, { status: 201 });
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('Error in POST /api/user:', error);
     const errorMessage = error instanceof Error ? error.message : '未知错误';
+
+    // 检查是否是唯一约束冲突
+    if (errorMessage.includes('duplicate key') || errorMessage.includes('unique constraint')) {
+      return NextResponse.json(
+        { error: '用户已存在', details: errorMessage },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { error: '创建用户失败', details: errorMessage },
       { status: 500 }
@@ -53,16 +67,17 @@ export async function PATCH(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const userId = searchParams.get('userId');
+    const phone = searchParams.get('phone');
 
-    if (!userId) {
+    if (!userId && !phone) {
       return NextResponse.json(
-        { error: '必须提供 userId 参数' },
+        { error: '必须提供 userId 或 phone 参数' },
         { status: 400 }
       );
     }
 
     const data = await request.json();
-    console.log('PATCH /api/user - userId:', userId, '数据:', data);
+    console.log('PATCH /api/user - userId:', userId, 'phone:', phone, '数据:', data);
 
     const userData: Partial<InsertUser> = {};
 
@@ -78,18 +93,44 @@ export async function PATCH(request: NextRequest) {
     if (data.address !== undefined) userData.address = data.address;
     if (data.bmi !== undefined) userData.bmi = data.bmi;
 
-    console.log('开始更新用户:', { userId, userData });
-    const updatedUser = await healthDataManager.updateUser(userId, userData);
-    console.log('用户更新成功:', updatedUser);
+    // 优先使用 userId 更新
+    if (userId) {
+      console.log('开始更新用户（通过userId）:', { userId, userData });
+      const updatedUser = await healthDataManager.updateUser(userId, userData);
+      console.log('用户更新成功:', updatedUser);
 
-    if (!updatedUser) {
-      return NextResponse.json(
-        { error: '用户不存在' },
-        { status: 404 }
-      );
+      if (!updatedUser) {
+        return NextResponse.json(
+          { error: '用户不存在' },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({ success: true, user: updatedUser });
+    }
+    // 如果没有 userId，尝试通过 phone 更新
+    else if (phone) {
+      console.log('开始查找用户（通过phone）:', phone);
+      const existingUser = await healthDataManager.getUserByPhone(phone);
+
+      if (!existingUser) {
+        return NextResponse.json(
+          { error: '用户不存在' },
+          { status: 404 }
+        );
+      }
+
+      console.log('开始更新用户（通过phone）:', { userId: existingUser.id, userData });
+      const updatedUser = await healthDataManager.updateUser(existingUser.id, userData);
+      console.log('用户更新成功:', updatedUser);
+
+      return NextResponse.json({ success: true, user: updatedUser });
     }
 
-    return NextResponse.json({ success: true, user: updatedUser });
+    return NextResponse.json(
+      { error: '无法确定要更新的用户' },
+      { status: 400 }
+    );
   } catch (error) {
     console.error('Error updating user:', error);
     const errorMessage = error instanceof Error ? error.message : '未知错误';

@@ -24,6 +24,7 @@ interface ErrorResponse {
 export default function PersonalInfoPage() {
   const [formData, setFormData] = useState({
     name: '',
+    phone: '',
     gender: '',
     age: '',
     weight: '',
@@ -84,6 +85,7 @@ export default function PersonalInfoPage() {
         const user = response.user;
         setFormData({
           name: user.name || '',
+          phone: user.phone || '',
           gender: user.gender || '',
           age: user.age?.toString() || '',
           weight: user.weight || '',
@@ -193,30 +195,63 @@ export default function PersonalInfoPage() {
 
       console.log('[前端] 开始保存用户数据:', { userId, userData });
 
-      const userResponse = await getUser(userId);
-      console.log('[前端] 获取用户响应:', userResponse);
-
       let response;
-      let apiUrl = '';
 
-      if (userResponse.success && userResponse.user) {
-        console.log('[前端] 更新现有用户');
-        apiUrl = `/api/user?userId=${userId}`;
-        const res = await fetch(apiUrl, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(userData),
-        });
-        response = await safeParseResponse(res);
+      // 如果提供了手机号，优先通过手机号查找用户
+      if (formData.phone) {
+        console.log('[前端] 通过手机号查找用户');
+        const checkResponse = await fetch('/api/user?phone=' + encodeURIComponent(formData.phone));
+        const checkData = await safeParseResponse(checkResponse);
+        console.log('[前端] 手机号查找结果:', checkData);
+
+        if (checkData.success && checkData.user) {
+          // 找到用户，更新该用户
+          console.log('[前端] 通过手机号找到用户，更新用户');
+          const res = await fetch(`/api/user?phone=${encodeURIComponent(formData.phone)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData),
+          });
+          response = await safeParseResponse(res);
+
+          // 更新 localStorage 中的 userId，确保后续操作使用正确的 userId
+          localStorage.setItem('health_app_user_id', checkData.user.id);
+        } else {
+          // 手机号未找到，创建新用户
+          console.log('[前端] 手机号未找到，创建新用户');
+          const res = await fetch('/api/user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              ...userData,
+              phone: formData.phone,
+            }),
+          });
+          response = await safeParseResponse(res);
+        }
       } else {
-        console.log('[前端] 创建新用户');
-        apiUrl = '/api/user';
-        const res = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(userData),
-        });
-        response = await safeParseResponse(res);
+        // 没有手机号，通过 userId 查找
+        console.log('[前端] 通过 userId 查找用户');
+        const userResponse = await getUser(userId);
+        console.log('[前端] 获取用户响应:', userResponse);
+
+        if (userResponse.success && userResponse.user) {
+          console.log('[前端] 更新现有用户');
+          const res = await fetch(`/api/user?userId=${userId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData),
+          });
+          response = await safeParseResponse(res);
+        } else {
+          console.log('[前端] 创建新用户');
+          const res = await fetch('/api/user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData),
+          });
+          response = await safeParseResponse(res);
+        }
       }
 
       console.log('[前端] 保存响应:', response);
@@ -473,6 +508,23 @@ export default function PersonalInfoPage() {
                 value={formData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
               />
+            </div>
+
+            {/* 手机号 */}
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-base font-medium">
+                手机号（选填）
+              </Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="请输入您的手机号，用于数据关联"
+                value={formData.phone}
+                onChange={(e) => handleInputChange('phone', e.target.value)}
+              />
+              <p className="text-xs text-gray-500">
+                填写手机号后，换设备或清除浏览器数据时仍可找回您的记录
+              </p>
             </div>
 
             {/* 性别和年龄 */}
