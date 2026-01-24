@@ -199,8 +199,8 @@ export default function StoryPage() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-6 mt-6">
-                      {/* 原理说明 - 使用渐变背景 */}
-                      <div className={`p-6 bg-gradient-to-br ${colors.gradient} bg-opacity-10 rounded-xl border-2 ${colors.border} dark:${colors.border.replace('border-', 'dark:border-')}`}>
+                      {/* 原理说明 - 使用浅色背景 */}
+                      <div className={`p-6 bg-white dark:bg-gray-800 rounded-xl border-2 ${colors.border} dark:${colors.border.replace('border-', 'dark:border-')}`}>
                         <h3 className={`text-xl font-bold mb-3 flex items-center ${colors.text}`}>
                           <BookOpen className="w-5 h-5 mr-2" />
                           基本原理
