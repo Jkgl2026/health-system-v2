@@ -586,6 +586,38 @@ export default function AdminDashboardPage() {
                     <div className="text-sm text-blue-600 mb-1">注册时间</div>
                     <div className="font-bold text-lg">{formatDate(selectedUser.user?.createdAt)}</div>
                   </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">邮箱</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.email || '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">血压</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.bloodPressure ? `${selectedUser.user.bloodPressure} mmHg` : '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">职业</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.occupation || '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">地址</div>
+                    <div className="font-bold text-lg truncate" title={selectedUser.user?.address || ''}>
+                      {selectedUser.user?.address || '未填写'}
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">更新时间</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.updatedAt ? formatDate(selectedUser.user.updatedAt) : '未更新'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">账户状态</div>
+                    <div className="font-bold text-lg">
+                      {selectedUser.user?.deletedAt ? (
+                        <Badge className="bg-red-600 text-white">已删除</Badge>
+                      ) : (
+                        <Badge className="bg-green-600 text-white">正常</Badge>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -705,82 +737,62 @@ export default function AdminDashboardPage() {
                     <div>
                       <h4 className="font-semibold mb-4 text-green-800">各健康要素得分</h4>
                       <div className="space-y-4">
-                        {/* 气血 - 红色 */}
-                        <div className="flex items-center gap-4">
-                          <div className="w-24 text-sm font-medium text-red-700">气血</div>
-                          <div className="flex-1">
-                            <div className="w-full bg-gray-200 rounded-full h-4">
-                              <div className="bg-red-500 h-4 rounded-full transition-all" style={{ width: '70%' }} />
-                            </div>
-                          </div>
-                          <div className="w-12 text-right font-bold text-red-700">7分</div>
-                        </div>
-                        
-                        {/* 循环 - 蓝色 */}
-                        <div className="flex items-center gap-4">
-                          <div className="w-24 text-sm font-medium text-blue-700">循环</div>
-                          <div className="flex-1">
-                            <div className="w-full bg-gray-200 rounded-full h-4">
-                              <div className="bg-blue-500 h-4 rounded-full transition-all" style={{ width: '50%' }} />
-                            </div>
-                          </div>
-                          <div className="w-12 text-right font-bold text-blue-700">5分</div>
-                        </div>
-                        
-                        {/* 毒素 - 黄色 */}
-                        <div className="flex items-center gap-4">
-                          <div className="w-24 text-sm font-medium text-yellow-700">毒素</div>
-                          <div className="flex-1">
-                            <div className="w-full bg-gray-200 rounded-full h-4">
-                              <div className="bg-yellow-500 h-4 rounded-full transition-all" style={{ width: '60%' }} />
-                            </div>
-                          </div>
-                          <div className="w-12 text-right font-bold text-yellow-700">6分</div>
-                        </div>
-                        
-                        {/* 血脂 - 橙色 */}
-                        <div className="flex items-center gap-4">
-                          <div className="w-24 text-sm font-medium text-orange-700">血脂</div>
-                          <div className="flex-1">
-                            <div className="w-full bg-gray-200 rounded-full h-4">
-                              <div className="bg-orange-500 h-4 rounded-full transition-all" style={{ width: '40%' }} />
-                            </div>
-                          </div>
-                          <div className="w-12 text-right font-bold text-orange-700">4分</div>
-                        </div>
-                        
-                        {/* 寒凉 - 青色 */}
-                        <div className="flex items-center gap-4">
-                          <div className="w-24 text-sm font-medium text-cyan-700">寒凉</div>
-                          <div className="flex-1">
-                            <div className="w-full bg-gray-200 rounded-full h-4">
-                              <div className="bg-cyan-500 h-4 rounded-full transition-all" style={{ width: '30%' }} />
-                            </div>
-                          </div>
-                          <div className="w-12 text-right font-bold text-cyan-700">3分</div>
-                        </div>
-                        
-                        {/* 免疫 - 绿色 */}
-                        <div className="flex items-center gap-4">
-                          <div className="w-24 text-sm font-medium text-green-700">免疫</div>
-                          <div className="flex-1">
-                            <div className="w-full bg-gray-200 rounded-full h-4">
-                              <div className="bg-green-500 h-4 rounded-full transition-all" style={{ width: '80%' }} />
-                            </div>
-                          </div>
-                          <div className="w-12 text-right font-bold text-green-700">8分</div>
-                        </div>
-                        
-                        {/* 情绪 - 紫色 */}
-                        <div className="flex items-center gap-4">
-                          <div className="w-24 text-sm font-medium text-purple-700">情绪</div>
-                          <div className="flex-1">
-                            <div className="w-full bg-gray-200 rounded-full h-4">
-                              <div className="bg-purple-500 h-4 rounded-full transition-all" style={{ width: '55%' }} />
-                            </div>
-                          </div>
-                          <div className="w-12 text-right font-bold text-purple-700">5.5分</div>
-                        </div>
+                        {(() => {
+                          const latestSymptomCheck = getLatestSymptomCheck();
+                          if (!latestSymptomCheck?.elementScores) {
+                            return (
+                              <div className="text-center py-4 text-green-600">
+                                <AlertCircle className="h-8 w-8 mx-auto mb-2 text-green-300" />
+                                <p>暂无要素得分数据</p>
+                              </div>
+                            );
+                          }
+
+                          const elementScores = latestSymptomCheck.elementScores;
+                          if (typeof elementScores !== 'object' || elementScores === null) {
+                            return (
+                              <div className="text-center py-4 text-green-600">
+                                <AlertCircle className="h-8 w-8 mx-auto mb-2 text-green-300" />
+                                <p>要素得分数据格式错误</p>
+                              </div>
+                            );
+                          }
+
+                          // 定义健康要素映射（中文到数据库字段）
+                          const healthElementsMap = [
+                            { key: 'qiAndBlood', label: '气血', color: 'bg-red-500', textColor: 'text-red-700' },
+                            { key: 'circulation', label: '循环', color: 'bg-blue-500', textColor: 'text-blue-700' },
+                            { key: 'toxins', label: '毒素', color: 'bg-yellow-500', textColor: 'text-yellow-700' },
+                            { key: 'bloodLipids', label: '血脂', color: 'bg-orange-500', textColor: 'text-orange-700' },
+                            { key: 'coldness', label: '寒凉', color: 'bg-cyan-500', textColor: 'text-cyan-700' },
+                            { key: 'immunity', label: '免疫', color: 'bg-green-500', textColor: 'text-green-700' },
+                            { key: 'emotions', label: '情绪', color: 'bg-purple-500', textColor: 'text-purple-700' },
+                          ];
+
+                          return healthElementsMap.map((element) => {
+                            const score = elementScores[element.key] || 0;
+                            const normalizedScore = Math.min(Math.max(Number(score) || 0, 0), 100);
+                            
+                            return (
+                              <div key={element.key} className="flex items-center gap-4">
+                                <div className={`w-24 text-sm font-medium ${element.textColor}`}>
+                                  {element.label}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="w-full bg-gray-200 rounded-full h-4">
+                                    <div 
+                                      className={`${element.color} h-4 rounded-full transition-all`}
+                                      style={{ width: `${normalizedScore}%` }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className={`w-12 text-right font-bold ${element.textColor}`}>
+                                  {normalizedScore}分
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
 
@@ -937,6 +949,30 @@ export default function AdminDashboardPage() {
                       <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-100 text-center">
                         <div className="text-sm text-orange-600 mb-1">全部要求完成时间</div>
                         <div className="font-bold text-lg">{formatDate(selectedUser.requirements.completedAt)}</div>
+                      </div>
+                    )}
+
+                    {/* 要求2详细回答 */}
+                    {selectedUser.requirements.requirement2Answers && (
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-orange-100">
+                        <div className="font-semibold text-lg text-orange-800 mb-3">要求二详细回答</div>
+                        <div className="text-gray-700 leading-relaxed">
+                          {(() => {
+                            const answers = selectedUser.requirements.requirement2Answers;
+                            if (typeof answers === 'string') {
+                              return answers;
+                            } else if (typeof answers === 'object' && answers !== null) {
+                              // 如果是对象，格式化为列表
+                              return Object.entries(answers).map(([key, value]) => (
+                                <div key={key} className="mb-3">
+                                  <div className="font-medium text-orange-700 mb-1">{key}:</div>
+                                  <div className="text-gray-600">{String(value)}</div>
+                                </div>
+                              ));
+                            }
+                            return '无详细回答内容';
+                          })()}
+                        </div>
                       </div>
                     )}
                   </div>

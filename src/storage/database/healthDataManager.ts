@@ -326,13 +326,19 @@ export class HealthDataManager {
     return check;
   }
 
-  async getSymptomChecksByUserId(userId: string): Promise<SymptomCheck[]> {
+  async getSymptomChecksByUserId(userId: string, limit?: number): Promise<SymptomCheck[]> {
     const db = await getDb();
-    return db
+    let query = db
       .select()
       .from(symptomChecks)
       .where(eq(symptomChecks.userId, userId))
       .orderBy(desc(symptomChecks.checkedAt));
+    
+    if (limit !== undefined && limit > 0) {
+      query = query.limit(limit);
+    }
+    
+    return query;
   }
 
   async getLatestSymptomCheck(userId: string): Promise<SymptomCheck | null> {
@@ -374,13 +380,19 @@ export class HealthDataManager {
     return analysis;
   }
 
-  async getHealthAnalysisByUserId(userId: string): Promise<HealthAnalysis[]> {
+  async getHealthAnalysisByUserId(userId: string, limit?: number): Promise<HealthAnalysis[]> {
     const db = await getDb();
-    return db
+    let query = db
       .select()
       .from(healthAnalysis)
       .where(eq(healthAnalysis.userId, userId))
       .orderBy(desc(healthAnalysis.analyzedAt));
+    
+    if (limit !== undefined && limit > 0) {
+      query = query.limit(limit);
+    }
+    
+    return query;
   }
 
   async getLatestHealthAnalysis(userId: string): Promise<HealthAnalysis | null> {
@@ -553,18 +565,20 @@ export class HealthDataManager {
     userChoices: UserChoice[];
     requirements: Requirement | null;
   }> {
+    const DEFAULT_LIMIT = 10;
+    
     const [user] = await Promise.all([
       this.getUserById(userId),
-      this.getSymptomChecksByUserId(userId),
-      this.getHealthAnalysisByUserId(userId),
+      this.getSymptomChecksByUserId(userId, DEFAULT_LIMIT),
+      this.getHealthAnalysisByUserId(userId, DEFAULT_LIMIT),
       this.getUserChoicesByUserId(userId),
       this.getRequirementByUserId(userId),
     ]);
 
     const [symptomChecksResult, healthAnalysisResult, userChoicesResult, requirementsResult] =
       await Promise.all([
-        this.getSymptomChecksByUserId(userId),
-        this.getHealthAnalysisByUserId(userId),
+        this.getSymptomChecksByUserId(userId, DEFAULT_LIMIT),
+        this.getHealthAnalysisByUserId(userId, DEFAULT_LIMIT),
         this.getUserChoicesByUserId(userId),
         this.getRequirementByUserId(userId),
       ]);
