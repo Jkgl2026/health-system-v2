@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from '@/components/ui/separator';
 import { Pagination } from '@/components/admin/Pagination';
 import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw } from 'lucide-react';
-import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
+import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300 } from '@/lib/health-data';
 
 interface UserSummary {
   user: {
@@ -735,6 +735,29 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
 
+                    {/* 具体症状列表 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-green-100">
+                      <div className="font-semibold text-lg text-green-800 mb-4">选中的症状详情</div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {(() => {
+                          const symptomIds = getLatestSymptomCheck()!.checkedSymptoms;
+                          if (!Array.isArray(symptomIds) || symptomIds.length === 0) {
+                            return <div className="col-span-full text-center py-4 text-green-600">暂无选中的症状</div>;
+                          }
+
+                          return symptomIds.map((id: string) => {
+                            const symptomId = parseInt(id);
+                            const symptom = BODY_SYMPTOMS.find((s: any) => s.id === symptomId);
+                            return symptom ? (
+                              <Badge key={symptomId} variant="secondary" className="justify-center py-2 px-3">
+                                #{symptomId} {symptom.name}
+                              </Badge>
+                            ) : null;
+                          });
+                        })()}
+                      </div>
+                    </div>
+
                     {/* 各要素得分可视化 */}
                     <div>
                       <h4 className="font-semibold mb-4 text-green-800">各健康要素得分</h4>
@@ -1175,27 +1198,47 @@ export default function AdminDashboardPage() {
                         </div>
 
                         <div className="bg-white p-6 rounded-lg shadow-sm border border-amber-100">
-                          <div className="font-semibold text-lg text-amber-800 mb-4">选中的症状</div>
-                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                          <div className="font-semibold text-lg text-amber-800 mb-4">选中的症状详情</div>
+                          <div className="space-y-4">
                             {(() => {
                               const symptomIds = selectedUser.requirements.symptoms300Checklist;
                               if (!Array.isArray(symptomIds) || symptomIds.length === 0) {
-                                return <div className="col-span-full text-center py-4 text-amber-600">暂无选中的症状</div>;
+                                return <div className="text-center py-4 text-amber-600">暂无选中的症状</div>;
                               }
 
-                              return symptomIds.slice(0, 50).map((id: number) => {
+                              // 按类别分组显示
+                              const symptomsByCategory = symptomIds.reduce((acc, id: number) => {
                                 const symptom = BODY_SYMPTOMS_300.find(s => s.id === id);
-                                return symptom ? (
-                                  <Badge key={id} variant="secondary" className="justify-center py-2 px-3">
-                                    #{id} {symptom.name.length > 6 ? symptom.name.substring(0, 6) + '...' : symptom.name}
-                                  </Badge>
-                                ) : null;
-                              });
+                                if (symptom) {
+                                  if (!acc[symptom.category]) acc[symptom.category] = [];
+                                  acc[symptom.category].push(symptom);
+                                }
+                                return acc;
+                              }, {} as Record<string, any[]>);
+
+                              return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
+                                <div key={category}>
+                                  <h4 className="font-semibold text-amber-700 mb-2">{category} {(symptoms as any[]).length}项)</h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                    {(symptoms as any[]).map((symptom: any) => (
+                                      <div key={symptom.id} className="flex items-start gap-2 p-2 bg-amber-50 rounded text-sm">
+                                        <span className="font-bold text-amber-600 flex-shrink-0">#{symptom.id}</span>
+                                        <div className="flex-1">
+                                          <div className="font-medium text-gray-800">{symptom.name}</div>
+                                          {symptom.description && (
+                                            <div className="text-xs text-purple-600 mt-1">{symptom.description}</div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              ));
                             })()}
                           </div>
-                          {Array.isArray(selectedUser.requirements.symptoms300Checklist) && selectedUser.requirements.symptoms300Checklist.length > 50 && (
-                            <div className="text-sm text-amber-600 mt-4 text-center">
-                              ... 还有 {selectedUser.requirements.symptoms300Checklist.length - 50} 项症状
+                          {Array.isArray(selectedUser.requirements.symptoms300Checklist) && selectedUser.requirements.symptoms300Checklist.length > 100 && (
+                            <div className="text-sm text-amber-600 mt-4 text-center font-medium">
+                              共 {selectedUser.requirements.symptoms300Checklist.length} 项症状已全部显示
                             </div>
                           )}
                         </div>
