@@ -1,20 +1,29 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ChevronLeft, ArrowRight, CheckCircle2, AlertCircle, BookOpen, ClipboardCheck, Users, GraduationCap } from 'lucide-react';
+import { ChevronLeft, ArrowRight, CheckCircle2, AlertCircle, BookOpen, ClipboardCheck, Users, GraduationCap, Lock, Unlock } from 'lucide-react';
 import { FOUR_REQUIREMENTS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
 import Link from 'next/link';
 
+// 页面步骤类型
+type Step = 'overview' | 'req1-2' | 'req3' | 'req4';
+
 export default function RequirementsPage() {
   const [selectedHabits, setSelectedHabits] = useState<Set<number>>(new Set());
   const [selectedSymptoms300, setSelectedSymptoms300] = useState<Set<number>>(new Set());
-  const [activeTab, setActiveTab] = useState<'overview' | 'req1' | 'req2' | 'req3' | 'req4'>('overview');
+  const [activeStep, setActiveStep] = useState<Step>('overview');
+
+  // 记录用户已访问过的页面
+  const [visitedSteps, setVisitedSteps] = useState<Set<Step>>(new Set(['overview']));
+
+  // 记录每个步骤的完成状态
+  const [completedSteps, setCompletedSteps] = useState<Set<Step>>(new Set());
 
   const handleHabitToggle = (id: number) => {
     const newSelected = new Set(selectedHabits);
@@ -36,7 +45,40 @@ export default function RequirementsPage() {
     setSelectedSymptoms300(newSelected);
   };
 
+  // 切换步骤
+  const handleStepChange = (step: Step) => {
+    // 标记当前步骤为已访问
+    setVisitedSteps(prev => new Set([...prev, step]));
+
+    // 如果要跳转的步骤是要求1+2，检查是否已完成
+    if (step === 'req1-2') {
+      setVisitedSteps(prev => new Set([...prev, step]));
+    }
+    // 如果要跳转的步骤是要求3，检查是否已完成要求1+2
+    if (step === 'req3') {
+      if (visitedSteps.has('req1-2')) {
+        setVisitedSteps(prev => new Set([...prev, step]));
+      }
+    }
+    // 如果要跳转的步骤是要求4，检查是否已完成要求3
+    if (step === 'req4') {
+      if (visitedSteps.has('req3')) {
+        setVisitedSteps(prev => new Set([...prev, step]));
+      }
+    }
+
+    setActiveStep(step);
+  };
+
+  // 检查用户是否可以继续下一步
+  const canContinue = visitedSteps.has('req1-2') && visitedSteps.has('req3') && visitedSteps.has('req4');
+
   const handleContinue = async () => {
+    if (!canContinue) {
+      alert('请先完成所有四个要求的阅读！');
+      return;
+    }
+
     try {
       // 获取用户ID
       const userId = getOrGenerateUserId();
@@ -84,8 +126,35 @@ export default function RequirementsPage() {
 
   const symptomCategories300 = Object.keys(symptoms300ByCategory);
 
+  // 定义步骤顺序
+  const steps: { key: Step; label: string; icon: any }[] = [
+    { key: 'overview', label: '总览', icon: BookOpen },
+    { key: 'req1-2', label: '要求1-2', icon: ClipboardCheck },
+    { key: 'req3', label: '要求3', icon: Users },
+    { key: 'req4', label: '要求4', icon: GraduationCap },
+  ];
+
+  // 获取当前步骤的索引
+  const currentStepIndex = steps.findIndex(s => s.key === activeStep);
+
+  // 检查步骤是否已访问
+  const isStepVisited = (step: Step) => visitedSteps.has(step);
+
+  // 检查步骤是否可访问
+  const isStepAccessible = (step: Step, index: number) => {
+    // 总览总是可访问
+    if (step === 'overview') return true;
+    // 要求1-2总是可访问（看完总览后）
+    if (step === 'req1-2') return visitedSteps.has('overview');
+    // 要求3需要先看要求1-2
+    if (step === 'req3') return visitedSteps.has('req1-2');
+    // 要求4需要先看要求3
+    if (step === 'req4') return visitedSteps.has('req3');
+    return false;
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-24">
       {/* 头部 */}
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
@@ -98,35 +167,48 @@ export default function RequirementsPage() {
               <Badge variant="outline" className="text-sm">
                 四个要求
               </Badge>
+              <Badge variant={canContinue ? "default" : "secondary"} className="text-sm">
+                {visitedSteps.size}/4 完成
+              </Badge>
             </div>
           </div>
         </div>
       </header>
 
       <main className="container mx-auto px-4 py-8">
-        {/* Tab导航 */}
+        {/* 顶部 Tab 导航 */}
         <div className="flex justify-center mb-8">
           <div className="inline-flex bg-white dark:bg-gray-800 rounded-lg p-2 shadow-lg border-2 border-blue-200 dark:border-blue-800">
-            {[
-              { key: 'overview', label: '总览', icon: BookOpen },
-              { key: 'req1', label: '要求1', icon: ClipboardCheck },
-              { key: 'req2', label: '要求2', icon: ClipboardCheck },
-              { key: 'req3', label: '要求3', icon: Users },
-              { key: 'req4', label: '要求4', icon: GraduationCap },
-            ].map((tab) => {
-              const Icon = tab.icon;
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const accessible = isStepAccessible(step.key, index);
+              const visited = isStepVisited(step.key);
+              const active = activeStep === step.key;
+
               return (
                 <button
-                  key={tab.key}
-                  onClick={() => setActiveTab(tab.key as any)}
-                  className={`flex items-center space-x-2 px-6 py-3 rounded-lg transition-all ${
-                    activeTab === tab.key
+                  key={step.key}
+                  onClick={() => accessible && handleStepChange(step.key)}
+                  disabled={!accessible}
+                  className={`flex items-center space-x-2 px-4 py-3 rounded-lg transition-all relative ${
+                    active
                       ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-lg scale-105'
-                      : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : accessible
+                      ? 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      : 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
                   }`}
                 >
-                  <Icon className="w-6 h-6" />
-                  <span className="text-base font-bold">{tab.label}</span>
+                  <Icon className="w-5 h-5" />
+                  <span className="text-sm font-bold">{step.label}</span>
+                  {visited && active && (
+                    <CheckCircle2 className="w-4 h-4" />
+                  )}
+                  {!accessible && (
+                    <Lock className="w-4 h-4 absolute -top-1 -right-1 bg-gray-400 rounded-full p-0.5 text-white" />
+                  )}
+                  {accessible && visited && !active && (
+                    <CheckCircle2 className="w-4 h-4 text-green-500" />
+                  )}
                 </button>
               );
             })}
@@ -134,7 +216,7 @@ export default function RequirementsPage() {
         </div>
 
         {/* 总览页面 */}
-        {activeTab === 'overview' && (
+        {activeStep === 'overview' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <Card className="border-2 border-blue-100 dark:border-blue-900">
               <CardHeader>
@@ -149,52 +231,84 @@ export default function RequirementsPage() {
                   <AlertDescription>
                     <strong>重要提醒：</strong>如果您无法完成这四个要求，我也不能给您调理。
                     这些要求是调理成功的基础，缺一不可。
+                    <br />
+                    <strong className="text-red-600 mt-2 block">请务必按顺序阅读完成所有四个要求！</strong>
                   </AlertDescription>
                 </Alert>
 
                 <div className="grid gap-4">
-                  {Object.keys(FOUR_REQUIREMENTS).map((key, index) => {
-                    const req = FOUR_REQUIREMENTS[key as keyof typeof FOUR_REQUIREMENTS];
-                    return (
-                      <Card
-                        key={key}
-                        className="cursor-pointer hover:shadow-lg transition-all border-2 border-gray-200 dark:border-gray-700"
-                        onClick={() => setActiveTab(`req${index + 1}` as any)}
-                      >
-                        <CardHeader>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
-                              {index + 1}
-                            </div>
-                            <CardTitle className="text-xl">{req.title}</CardTitle>
-                          </div>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-700 dark:text-gray-300">{req.description}</p>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
+                  <Card className="cursor-pointer hover:shadow-lg transition-all border-2 border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20">
+                    <CardHeader>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center text-white font-bold">
+                          1
+                        </div>
+                        <CardTitle className="text-xl">要求1：找病因 - 不良生活习惯表</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement1.description}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:shadow-lg transition-all border-2 border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20">
+                    <CardHeader>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
+                          2
+                        </div>
+                        <CardTitle className="text-xl">要求2：找病根 - 300症状自检表</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement2.description}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:shadow-lg transition-all border-2 border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20">
+                    <CardHeader>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
+                          3
+                        </div>
+                        <CardTitle className="text-xl">{FOUR_REQUIREMENTS.requirement3.title}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement3.description}</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="cursor-pointer hover:shadow-lg transition-all border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
+                    <CardHeader>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                          4
+                        </div>
+                        <CardTitle className="text-xl">{FOUR_REQUIREMENTS.requirement4.title}</CardTitle>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-700 dark:text-gray-300">{FOUR_REQUIREMENTS.requirement4.description}</p>
+                    </CardContent>
+                  </Card>
                 </div>
 
-                <div className="text-center mt-8">
-                  <Button
-                    onClick={handleContinue}
-                    size="lg"
-                    className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-                  >
-                    继续下一步
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </div>
+                <Alert className="border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20">
+                  <AlertCircle className="w-4 h-4 text-yellow-600" />
+                  <AlertDescription className="text-yellow-900 dark:text-yellow-100">
+                    <strong>下一步：</strong>请点击下方导航或"要求1-2"按钮，开始详细阅读并填写要求1和要求2。
+                  </AlertDescription>
+                </Alert>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* 要求1：找病因 - 不良生活习惯表 */}
-        {activeTab === 'req1' && (
+        {/* 要求1+2：找病因和找病根 */}
+        {activeStep === 'req1-2' && (
           <div className="max-w-6xl mx-auto space-y-6">
+            {/* 要求1：找病因 */}
             <Card className="border-2 border-blue-100 dark:border-blue-900">
               <CardHeader>
                 <div className="flex items-center space-x-3">
@@ -261,9 +375,9 @@ export default function RequirementsPage() {
                         <CardTitle className="text-lg">{category}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
                           {BAD_HABITS_CHECKLIST[category].map(habit => (
-                            <div key={habit.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
+                            <div key={habit.id} className="flex items-start space-x-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors">
                               <Checkbox
                                 id={`habit-${habit.id}`}
                                 checked={selectedHabits.has(habit.id)}
@@ -272,10 +386,15 @@ export default function RequirementsPage() {
                               <div className="flex-1">
                                 <label
                                   htmlFor={`habit-${habit.id}`}
-                                  className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer"
+                                  className="text-xs text-gray-700 dark:text-gray-300 cursor-pointer"
                                 >
-                                  {habit.habit}
+                                  {habit.name}
                                 </label>
+                                {habit.impact && (
+                                  <p className="text-xs text-red-600 dark:text-red-400 mt-0.5">
+                                    {habit.impact}
+                                  </p>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -286,12 +405,8 @@ export default function RequirementsPage() {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        )}
 
-        {/* 要求2：详细了解 - 300个症状 */}
-        {activeTab === 'req2' && (
-          <div className="max-w-6xl mx-auto space-y-6">
+            {/* 要求2：找病根 */}
             <Card className="border-2 border-purple-100 dark:border-purple-900">
               <CardHeader>
                 <div className="flex items-center space-x-3">
@@ -368,7 +483,7 @@ export default function RequirementsPage() {
         )}
 
         {/* 要求3：相信调理 */}
-        {activeTab === 'req3' && (
+        {activeStep === 'req3' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <Card className="border-2 border-green-100 dark:border-green-900">
               <CardHeader>
@@ -419,7 +534,7 @@ export default function RequirementsPage() {
         )}
 
         {/* 要求4：学习知识 */}
-        {activeTab === 'req4' && (
+        {activeStep === 'req4' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <Card className="border-2 border-orange-100 dark:border-orange-900">
               <CardHeader>
@@ -471,28 +586,78 @@ export default function RequirementsPage() {
             </Card>
           </div>
         )}
+      </main>
 
-        {/* 底部导航 */}
-        {activeTab !== 'overview' && (
-          <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t p-4">
-            <div className="container mx-auto flex justify-between items-center">
-              <Button
-                variant="outline"
-                onClick={() => setActiveTab('overview')}
-              >
-                返回总览
-              </Button>
+      {/* 底部导航 - 固定在底部 */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t shadow-lg z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            {/* 导航按钮 */}
+            <div className="flex justify-center md:justify-start flex-1 overflow-x-auto pb-2 md:pb-0">
+              <div className="inline-flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+                {steps.map((step, index) => {
+                  const Icon = step.icon;
+                  const accessible = isStepAccessible(step.key, index);
+                  const visited = isStepVisited(step.key);
+                  const active = activeStep === step.key;
+
+                  return (
+                    <button
+                      key={step.key}
+                      onClick={() => accessible && handleStepChange(step.key)}
+                      disabled={!accessible}
+                      className={`flex items-center space-x-2 px-3 py-2 rounded-lg transition-all whitespace-nowrap ${
+                        active
+                          ? 'bg-gradient-to-r from-blue-500 to-green-500 text-white shadow-md'
+                          : accessible
+                          ? 'text-gray-700 dark:text-gray-300 hover:bg-white dark:hover:bg-gray-600'
+                          : 'text-gray-400 dark:text-gray-600 cursor-not-allowed opacity-50'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="text-xs font-bold">{step.label}</span>
+                      {visited && active && (
+                        <CheckCircle2 className="w-3 h-3" />
+                      )}
+                      {!accessible && (
+                        <Lock className="w-3 h-3" />
+                      )}
+                      {accessible && visited && !active && (
+                        <CheckCircle2 className="w-3 h-3 text-green-500" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 操作按钮 */}
+            <div className="flex items-center space-x-3">
+              {!canContinue && (
+                <Alert className="flex-1 max-w-md border-yellow-200 bg-yellow-50 dark:bg-yellow-900/20 py-2">
+                  <AlertCircle className="w-4 h-4 text-yellow-600" />
+                  <AlertDescription className="text-xs text-yellow-900 dark:text-yellow-100">
+                    请完成所有四个要求后才能继续
+                  </AlertDescription>
+                </Alert>
+              )}
               <Button
                 onClick={handleContinue}
-                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+                disabled={!canContinue}
+                size="lg"
+                className={`${
+                  canContinue
+                    ? 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600'
+                    : 'bg-gray-400 cursor-not-allowed'
+                }`}
               >
                 继续下一步
-                <ArrowRight className="w-4 h-4 ml-2" />
+                <ArrowRight className="w-5 h-5 ml-2" />
               </Button>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      </div>
     </div>
   );
 }
