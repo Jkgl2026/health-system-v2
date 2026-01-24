@@ -74,12 +74,21 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <Button
-              onClick={() => window.location.href = '/personal-info'}
-              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
-            >
-              开始自检
-            </Button>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => window.location.href = '/install-guide'}
+                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+              >
+                如何安装到桌面
+              </Button>
+              <Button
+                onClick={() => window.location.href = '/personal-info'}
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                开始自检
+              </Button>
+            </div>
           </div>
         </div>
       </header>
