@@ -24,9 +24,26 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: '健康管理团队' }],
   generator: 'Next.js',
-  // icons: {
-  //   icon: '',
-  // },
+  icons: {
+    icon: [
+      { url: '/icons/icon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icons/icon-152x152.png', sizes: '152x152', type: 'image/png' },
+      { url: '/icons/icon-180x180.png', sizes: '180x180', type: 'image/png' },
+      { url: '/icons/icon-167x167.png', sizes: '167x167', type: 'image/png' },
+    ],
+  },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: '健康管理',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: '健康自我管理 | 把健康把握在自己手里',
     description:

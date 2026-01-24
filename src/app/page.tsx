@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck } from 'lucide-react';
+import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 
 export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
@@ -252,6 +253,9 @@ export default function Home() {
           <p className="mt-2 text-sm">让老百姓少花钱甚至不花钱解决问题</p>
         </div>
       </footer>
+
+      {/* PWA 安装提示 */}
+      <PWAInstallPrompt />
     </div>
   );
 }
