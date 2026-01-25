@@ -18,6 +18,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { formatBytes } from '@/lib/compressionUtils';
+import { AutoMaintenance } from '@/components/admin/AutoMaintenance';
 
 type MaintenanceAction =
   | 'vacuum'
@@ -297,6 +298,9 @@ export default function MaintenancePage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* 自动维护 */}
+        <AutoMaintenance />
 
         {/* 表大小详情 */}
         <Card className="mb-8">

@@ -3,6 +3,7 @@ import { getDb } from 'coze-coding-dev-sdk';
 import { sql } from 'drizzle-orm';
 import { enhancedBackupManager } from '@/storage/database/enhancedBackupManager';
 import { archiveManager } from '@/storage/database/archiveManager';
+import { autoMaintenanceScheduler } from '@/lib/autoMaintenanceScheduler';
 
 /**
  * 数据库维护API
@@ -78,6 +79,22 @@ export async function POST(request: NextRequest) {
         results.cleanup = await performCleanup();
         results.backup = await performBackup();
         break;
+      case 'auto-start':
+        results.autoMaintenance = await startAutoMaintenance(body.task);
+        break;
+      case 'auto-stop':
+        results.autoMaintenance = await stopAutoMaintenance(body.task);
+        break;
+      case 'auto-update':
+        results.autoMaintenance = await updateAutoMaintenance(
+          body.task,
+          body.schedule,
+          body.enabled
+        );
+        break;
+      case 'auto-run':
+        results.autoMaintenance = await runAutoMaintenanceNow(body.task);
+        break;
       default:
         return NextResponse.json(
           {
@@ -120,7 +137,7 @@ export async function POST(request: NextRequest) {
  * 执行VACUUM操作
  * 清理死元组，回收空间
  */
-async function performVacuum(): Promise<{
+export async function performVacuum(): Promise<{
   success: boolean;
   message: string;
   duration: number;
@@ -150,7 +167,7 @@ async function performVacuum(): Promise<{
  * 执行ANALYZE操作
  * 更新统计信息，优化查询计划
  */
-async function performAnalyze(): Promise<{
+export async function performAnalyze(): Promise<{
   success: boolean;
   message: string;
   duration: number;
@@ -180,7 +197,7 @@ async function performAnalyze(): Promise<{
  * 执行REINDEX操作
  * 重建索引，提高查询性能
  */
-async function performReindex(): Promise<{
+export async function performReindex(): Promise<{
   success: boolean;
   message: string;
   duration: number;
@@ -364,5 +381,77 @@ export async function GET() {
       },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * 启动自动维护
+ */
+async function startAutoMaintenance(task?: string) {
+  try {
+    autoMaintenanceScheduler.start(task as any);
+
+    return {
+      success: true,
+      message: task ? `任务 ${task} 已启动` : '所有任务已启动',
+      schedules: autoMaintenanceScheduler.getSchedules(),
+    };
+  } catch (error) {
+    console.error('启动自动维护失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 停止自动维护
+ */
+async function stopAutoMaintenance(task?: string) {
+  try {
+    autoMaintenanceScheduler.stop(task as any);
+
+    return {
+      success: true,
+      message: task ? `任务 ${task} 已停止` : '所有任务已停止',
+      schedules: autoMaintenanceScheduler.getSchedules(),
+    };
+  } catch (error) {
+    console.error('停止自动维护失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 更新自动维护调度
+ */
+async function updateAutoMaintenance(task: string, schedule: string, enabled: boolean) {
+  try {
+    autoMaintenanceScheduler.updateSchedule(task as any, schedule, enabled);
+
+    return {
+      success: true,
+      message: `任务 ${task} 已更新`,
+      schedules: autoMaintenanceScheduler.getSchedules(),
+    };
+  } catch (error) {
+    console.error('更新自动维护失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 立即运行自动维护任务
+ */
+async function runAutoMaintenanceNow(task: string) {
+  try {
+    const result = await autoMaintenanceScheduler.runNow(task as any);
+
+    return {
+      success: true,
+      message: `任务 ${task} 已执行`,
+      result,
+    };
+  } catch (error) {
+    console.error('执行自动维护任务失败:', error);
+    throw error;
   }
 }
