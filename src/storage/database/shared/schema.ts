@@ -41,6 +41,9 @@ export const users = pgTable(
   (table) => ({
     phoneIdx: index("users_phone_idx").on(table.phone),
     phoneGroupIdx: index("users_phone_group_idx").on(table.phoneGroupId),
+    deletedAtIdx: index("users_deleted_at_idx").on(table.deletedAt),
+    createdAtIdx: index("users_created_at_idx").on(table.createdAt),
+    isLatestVersionIdx: index("users_is_latest_version_idx").on(table.isLatestVersion),
   })
 );
 
@@ -63,6 +66,8 @@ export const symptomChecks = pgTable(
   },
   (table) => ({
     userIdIdx: index("symptom_checks_user_id_idx").on(table.userId),
+    userIdCheckedAtIdx: index("symptom_checks_user_id_checked_at_idx").on(table.userId, table.checkedAt),
+    checkedAtIdx: index("symptom_checks_checked_at_idx").on(table.checkedAt),
   })
 );
 
@@ -90,6 +95,8 @@ export const healthAnalysis = pgTable(
   },
   (table) => ({
     userIdIdx: index("health_analysis_user_id_idx").on(table.userId),
+    userIdAnalyzedAtIdx: index("health_analysis_user_id_analyzed_at_idx").on(table.userId, table.analyzedAt),
+    analyzedAtIdx: index("health_analysis_analyzed_at_idx").on(table.analyzedAt),
   })
 );
 
@@ -137,6 +144,12 @@ export const requirements = pgTable(
   },
   (table) => ({
     userIdIdx: index("requirements_user_id_idx").on(table.userId),
+    completedAtIdx: index("requirements_completed_at_idx").on(table.completedAt),
+    updatedAtIdx: index("requirements_updated_at_idx").on(table.updatedAt),
+    req1Idx: index("requirements_requirement1_completed_idx").on(table.requirement1Completed),
+    req2Idx: index("requirements_requirement2_completed_idx").on(table.requirement2Completed),
+    req3Idx: index("requirements_requirement3_completed_idx").on(table.requirement3Completed),
+    req4Idx: index("requirements_requirement4_completed_idx").on(table.requirement4Completed),
   })
 );
 
@@ -187,6 +200,71 @@ export const auditLogs = pgTable(
     recordIdx: index("audit_logs_record_idx").on(table.tableName, table.recordId),
     operatorIdx: index("audit_logs_operator_idx").on(table.operatorId),
     createdAtIdx: index("audit_logs_created_at_idx").on(table.createdAt),
+    actionIdx: index("audit_logs_action_idx").on(table.action),
+    tableNameIdx: index("audit_logs_table_name_idx").on(table.tableName),
+  })
+);
+
+// 审计日志归档表 - 用于存储超过1年的审计日志
+export const auditLogsArchive = pgTable(
+  "audit_logs_archive",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    action: varchar("action", { length: 20 }).notNull(), // CREATE, UPDATE, DELETE, RESTORE
+    tableName: varchar("table_name", { length: 50 }).notNull(), // 表名
+    recordId: varchar("record_id", { length: 36 }).notNull(), // 记录ID
+    operatorId: varchar("operator_id", { length: 36 }), // 操作人ID（管理员或系统）
+    operatorName: varchar("operator_name", { length: 128 }), // 操作人名称
+    operatorType: varchar("operator_type", { length: 20 }).notNull(), // ADMIN, SYSTEM, USER
+    oldData: jsonb("old_data"), // 修改前的数据
+    newData: jsonb("new_data"), // 修改后的数据
+    ip: varchar("ip", { length: 45 }), // 操作IP地址
+    userAgent: text("user_agent"), // 用户代理
+    description: text("description"), // 操作描述
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull(),
+    archivedAt: timestamp("archived_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(), // 归档时间
+  },
+  (table) => ({
+    recordIdx: index("audit_logs_archive_record_idx").on(table.tableName, table.recordId),
+    operatorIdx: index("audit_logs_archive_operator_idx").on(table.operatorId),
+    createdAtIdx: index("audit_logs_archive_created_at_idx").on(table.createdAt),
+    archivedAtIdx: index("audit_logs_archive_archived_at_idx").on(table.archivedAt),
+    actionIdx: index("audit_logs_archive_action_idx").on(table.action),
+    tableNameIdx: index("audit_logs_archive_table_name_idx").on(table.tableName),
+  })
+);
+
+// 备份记录表 - 用于管理备份文件
+export const backupRecords = pgTable(
+  "backup_records",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    backupId: varchar("backup_id", { length: 100 }).notNull().unique(), // 备份ID
+    backupType: varchar("backup_type", { length: 20 }).notNull(), // FULL 或 INCREMENTAL
+    fileKey: varchar("file_key", { length: 500 }).notNull(), // 对象存储中的文件key
+    fileSize: integer("file_size").notNull(), // 文件大小（字节）
+    tableCount: integer("table_count").notNull(), // 表数量
+    totalRecords: integer("total_records").notNull(), // 总记录数
+    previousBackupId: varchar("previous_backup_id", { length: 100 }), // 上一次备份ID
+    checksum: varchar("checksum", { length: 64 }), // 数据校验和
+    description: text("description"), // 备份描述
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    createdBy: varchar("created_by", { length: 128 }).notNull(), // 创建者
+  },
+  (table) => ({
+    backupIdIdx: index("backup_records_backup_id_idx").on(table.backupId),
+    backupTypeIdx: index("backup_records_backup_type_idx").on(table.backupType),
+    createdAtIdx: index("backup_records_created_at_idx").on(table.createdAt),
+    previousBackupIdx: index("backup_records_previous_backup_idx").on(table.previousBackupId),
   })
 );
 
