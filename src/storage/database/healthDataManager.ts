@@ -1,6 +1,7 @@
 import { eq, and, desc, SQL, isNull } from "drizzle-orm";
 import { getDb } from "coze-coding-dev-sdk";
 import { hashPassword, verifyPassword } from "@/lib/password";
+import { defaultCompressionUtils, isCompressedData, decompressFromStorage } from "@/lib/compressionUtils";
 import {
   users,
   symptomChecks,
@@ -128,6 +129,74 @@ export class HealthDataManager {
    */
   async getOperatorAuditLogs(operatorId: string, limit = 100): Promise<AuditLog[]> {
     return this.getAuditLogs({ operatorId, limit });
+  }
+
+  // ==================== 数据压缩辅助方法 ====================
+
+  /**
+   * 压缩JSONB数据
+   */
+  private compressJSONB(data: any): any {
+    // 对于数组，压缩每个元素
+    if (Array.isArray(data) && data.length > 10) {
+      // 数组元素超过10个才压缩
+      const result = defaultCompressionUtils.smartCompress(data);
+      return {
+        _compressed: result.compressed,
+        _algorithm: result.algorithm,
+        _originalSize: result.originalSize,
+        _compressedSize: result.compressedSize,
+        data: result.data,
+      };
+    }
+
+    // 对于对象，检查是否需要压缩
+    if (typeof data === 'object' && data !== null) {
+      const jsonString = JSON.stringify(data);
+      const size = Buffer.byteLength(jsonString, 'utf8');
+
+      // 超过2KB才压缩
+      if (size > 2048) {
+        const result = defaultCompressionUtils.smartCompress(data);
+        return {
+          _compressed: result.compressed,
+          _algorithm: result.algorithm,
+          _originalSize: result.originalSize,
+          _compressedSize: result.compressedSize,
+          data: result.data,
+        };
+      }
+    }
+
+    // 不需要压缩，直接返回
+    return data;
+  }
+
+  /**
+   * 解压缩JSONB数据
+   */
+  private decompressJSONB(data: any): any {
+    // 检查是否是压缩数据
+    if (isCompressedData(data)) {
+      return decompressFromStorage(data);
+    }
+
+    // 对于数组，检查每个元素是否是压缩数据
+    if (Array.isArray(data)) {
+      return data.map(item => this.decompressJSONB(item));
+    }
+
+    // 对于对象，递归处理
+    if (typeof data === 'object' && data !== null) {
+      const result: any = {};
+      for (const [key, value] of Object.entries(data)) {
+        result[key] = this.decompressJSONB(value);
+      }
+      return result;
+    }
+
+    // 原始数据，直接返回
+    return data;
   }
   // ==================== 用户管理 ====================
 
