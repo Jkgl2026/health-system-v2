@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Smartphone, Monitor, Download, Share2, Plus, ArrowRight, CheckCircle, Globe } from 'lucide-react';
+import { Smartphone, Monitor, Download, Share2, Plus, ArrowRight, CheckCircle, Globe, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
