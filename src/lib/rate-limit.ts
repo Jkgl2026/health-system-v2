@@ -287,5 +287,4 @@ export function getIdentifierFromRequest(request: Request): string {
   return ip;
 }
 
-export { RateLimiter, RateLimitConfig, RateLimitResult };
 export default RateLimiter;
