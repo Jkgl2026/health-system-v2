@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SessionManager } from '@/lib/session-manager';
+import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import { getDb } from 'coze-coding-dev-sdk';
 
 // GET /api/admin/pool-stats - 获取数据库连接池统计信息
 export async function GET(request: NextRequest) {
   try {
     // 验证管理员身份
-    const session = await SessionManager.validateSession();
-    if (!session) {
-      return NextResponse.json(
-        { error: '未授权，请先登录' },
-        { status: 401 }
-      );
+    const auth = await withAuth(request);
+    if (!auth.success) {
+      return unauthorizedResponse(auth.error);
     }
 
     const db = await getDb();

@@ -2,7 +2,8 @@ import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
 
 // JWT配置
-const JWT_SECRET = process.env.JWT_SECRET || crypto.randomUUID();
+// 使用固定的密钥以确保开发环境中的稳定性
+const JWT_SECRET = process.env.JWT_SECRET || 'health-admin-jwt-secret-key-2024-please-change-in-production';
 const JWT_EXPIRES_IN = '24h'; // token有效期24小时
 const REFRESH_TOKEN_EXPIRES_IN = '7d'; // 刷新token有效期7天
 

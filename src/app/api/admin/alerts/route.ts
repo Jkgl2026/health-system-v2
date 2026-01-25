@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SessionManager } from '@/lib/session-manager';
+import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import { alertManager, AlertLevel, AlertType } from '@/lib/alertManager';
 
 // GET /api/admin/alerts - 获取告警历史
 export async function GET(request: NextRequest) {
   try {
     // 验证管理员身份
-    const session = await SessionManager.validateSession();
-    if (!session) {
-      return NextResponse.json(
-        { error: '未授权，请先登录' },
-        { status: 401 }
-      );
+    const auth = await withAuth(request);
+    if (!auth.success) {
+      return unauthorizedResponse(auth.error);
     }
 
     // 解析查询参数

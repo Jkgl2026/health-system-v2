@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { SessionManager } from '@/lib/session-manager';
+import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import { healthDataManager } from '@/storage/database';
 
 // GET /api/admin/verify - 验证管理员会话
 export async function GET(request: NextRequest) {
   try {
     // 验证会话
-    const session = await SessionManager.validateSession();
-
-    if (!session) {
+    const auth = await withAuth(request);
+    
+    if (!auth.success) {
       return NextResponse.json(
         { 
           success: false, 
@@ -18,6 +18,8 @@ export async function GET(request: NextRequest) {
         { status: 401 }
       );
     }
+
+    const session = auth.session!;
 
     // 获取管理员详细信息
     const admins = await healthDataManager.getAllAdmins();

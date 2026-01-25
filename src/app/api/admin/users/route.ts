@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
+import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 
 // GET /api/admin/users - 管理员获取所有用户数据（含概要信息）
 export async function GET(request: NextRequest) {
   try {
+    // 身份验证
+    const auth = await withAuth(request);
+    if (!auth.success) {
+      return unauthorizedResponse(auth.error);
+    }
+
     const searchParams = request.nextUrl.searchParams;
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');

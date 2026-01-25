@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import { getDb } from 'coze-coding-dev-sdk';
 import { sql } from 'drizzle-orm';
 import { enhancedBackupManager } from '@/storage/database/enhancedBackupManager';
@@ -21,6 +22,11 @@ import { autoMaintenanceScheduler } from '@/lib/autoMaintenanceScheduler';
  */
 export async function POST(request: NextRequest) {
   try {
+    // 验证管理员身份
+    const auth = await withAuth(request);
+    if (!auth.success) {
+      return unauthorizedResponse(auth.error);
+    }
     const body = await request.json();
     const { action } = body;
 
