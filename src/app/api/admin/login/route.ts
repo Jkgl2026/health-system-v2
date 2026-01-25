@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import { SessionManager } from '@/lib/session-manager';
-import { getRateLimiter, applyRateLimit, getIdentifierFromRequest } from '@/lib/rate-limit';
+import { getRateLimiter, getIdentifierFromRequest } from '@/lib/rate-limit';
+import { applyRateLimit } from '@/lib/rate-limit-middleware';
 
 // 创建速率限制器（严格模式：15分钟内最多5次登录尝试）
 const loginRateLimiter = getRateLimiter('admin-login', 'strict');
