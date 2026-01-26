@@ -256,7 +256,10 @@ export default function Home() {
                 </div>
                 <Button
                   size="sm"
-                  onClick={() => setCurrentPage(2)}
+                  onClick={() => {
+                    setCurrentPage(2);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white min-h-[44px] px-4"
                 >
                   下一页
@@ -721,7 +724,10 @@ export default function Home() {
               {/* 第一页底部 - 下一页按钮（手机版） */}
               <div className="md:hidden px-4">
                 <Button
-                  onClick={() => setCurrentPage(2)}
+                  onClick={() => {
+                    setCurrentPage(2);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   className="w-full min-h-[48px] bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all active:scale-95"
                 >
                   下一页：健康理念
@@ -742,7 +748,10 @@ export default function Home() {
               <div className="flex items-center justify-between">
                 <Button
                   size="sm"
-                  onClick={() => setCurrentPage(1)}
+                  onClick={() => {
+                    setCurrentPage(1);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
                   variant="outline"
                   className="border-indigo-500 text-indigo-600 hover:bg-indigo-50 min-h-[44px] px-4"
                 >
