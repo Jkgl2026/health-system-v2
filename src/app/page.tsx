@@ -202,7 +202,7 @@ export default function Home() {
                   variant="outline"
                   onClick={loadDemoData}
                   size="sm"
-                  className="border-purple-500 text-purple-600 hover:bg-purple-50 text-xs md:text-sm"
+                  className="border-purple-500 text-purple-600 hover:bg-purple-50 text-xs md:text-sm min-h-[36px]"
                 >
                   演示模式
                 </Button>
@@ -211,14 +211,14 @@ export default function Home() {
                 variant="outline"
                 onClick={() => window.location.href = '/install-guide'}
                 size="sm"
-                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-xs md:text-sm"
+                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-xs md:text-sm min-h-[36px]"
               >
                 如何安装到桌面
               </Button>
               <Button
                 size="sm"
                 onClick={() => window.location.href = '/personal-info'}
-                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 min-h-[36px]"
               >
                 开始自检
               </Button>
@@ -454,10 +454,21 @@ export default function Home() {
               </div>
             </CardContent>
           </Card>
+
+          {/* 第一页底部 - 下一页按钮 */}
+          <div className="md:hidden px-4">
+            <Button
+              onClick={() => setCurrentPage(2)}
+              className="w-full min-h-[48px] bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all active:scale-95"
+            >
+              下一页：健康理念
+              <ArrowRight className="w-5 h-5 ml-2" />
+            </Button>
+          </div>
         </section>
       )}
 
-      {hasHealthData && healthData && (
+      {hasHealthData && healthData && currentPage === 1 && (
           <section className="mb-16">
             <div className="max-w-5xl mx-auto space-y-8">
               <Card className="border-2 border-indigo-100 dark:border-indigo-900/30">
