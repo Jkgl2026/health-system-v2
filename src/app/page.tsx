@@ -12,6 +12,39 @@ export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
   const [healthData, setHealthData] = useState<any>(null);
   const [hasHealthData, setHasHealthData] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // 加载演示数据
+  const loadDemoData = () => {
+    const demoUserInfo = {
+      name: "演示用户",
+      age: 35,
+      gender: "男",
+      height: 175,
+      weight: 70,
+      bmi: 22.86
+    };
+
+    const demoSymptoms = [1, 5, 10, 15, 20];
+    const demoBadHabits = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+    const demoSymptoms300 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    const demoTarget = [1, 5, 10];
+    const demoChoice = "调理方案A";
+
+    setHealthData({
+      userInfo: demoUserInfo,
+      totalSymptoms: 32,
+      targetSymptoms: 3,
+      targetSymptomNames: ['头晕', '乏力', '失眠'],
+      choice: demoChoice,
+      healthScore: 68,
+      bodySymptomsCount: 5,
+      badHabitsCount: 12,
+      symptoms300Count: 15,
+    });
+    setHasHealthData(true);
+    setIsDemoMode(true);
+  };
 
   // 检查是否有健康数据
   useEffect(() => {
@@ -152,6 +185,15 @@ export default function Home() {
               </div>
             </div>
             <div className="flex gap-3">
+              {!hasHealthData && !isDemoMode && (
+                <Button
+                  variant="outline"
+                  onClick={loadDemoData}
+                  className="border-purple-500 text-purple-600 hover:bg-purple-50"
+                >
+                  演示模式
+                </Button>
+              )}
               <Button
                 variant="outline"
                 onClick={() => window.location.href = '/install-guide'}
