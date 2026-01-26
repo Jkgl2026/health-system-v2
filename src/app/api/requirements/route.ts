@@ -13,6 +13,9 @@ export async function POST(request: NextRequest) {
       requirement3Completed: data.requirement3Completed || false,
       requirement4Completed: data.requirement4Completed || false,
       requirement2Answers: data.requirement2Answers || null,
+      sevenQuestionsAnswers: data.sevenQuestionsAnswers || null,
+      badHabitsChecklist: data.badHabitsChecklist || null,
+      symptoms300Checklist: data.symptoms300Checklist || null,
     };
 
     // 检查是否已存在

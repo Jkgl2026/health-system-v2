@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, CheckCircle2, Sparkles, AlertTriangle, ArrowRight, BookOpen, Flame, Target, Activity, Droplets, Heart, Zap } from 'lucide-react';
-import { BODY_SYMPTOMS, HEALTH_ELEMENTS, TWENTY_ONE_COURSES } from '@/lib/health-data';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ChevronLeft, Sparkles, Flame, Target, Activity, Droplets, Heart, Zap, BookOpen, AlertCircle, User, Calendar } from 'lucide-react';
+import { BODY_SYMPTOMS, HEALTH_ELEMENTS, TWENTY_ONE_COURSES, SEVEN_QUESTIONS } from '@/lib/health-data';
 import Link from 'next/link';
+import { getOrGenerateUserId } from '@/lib/user-context';
+import { getUser } from '@/lib/api-client';
 
 interface ProductMatch {
   name: string;
@@ -27,43 +29,71 @@ interface CourseMatch {
   relevance: 'high' | 'medium' | 'low';
 }
 
-export default function SolutionPage() {
-  const [selectedSymptoms, setSelectedSymptoms] = useState<number[]>([]);
-  const [targetSymptoms, setTargetSymptoms] = useState<number[]>([]);
-  const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
-  const [selectedHabits, setSelectedHabits] = useState<number[]>([]);
+export default function MySolutionPage() {
+  const [userData, setUserData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
-    const savedSymptoms = localStorage.getItem('selectedSymptoms');
-    const savedTarget = localStorage.getItem('targetSymptom');
-    const savedChoice = localStorage.getItem('selectedChoice');
-    const savedHabits = localStorage.getItem('selectedHabitsRequirements');
-
-    if (savedSymptoms) {
-      setSelectedSymptoms(JSON.parse(savedSymptoms));
-    }
-    if (savedTarget) {
-      const targetSymptomArray = JSON.parse(savedTarget);
-      setTargetSymptoms(Array.isArray(targetSymptomArray) ? targetSymptomArray : [parseInt(savedTarget)].filter(Boolean));
-    }
-    if (savedChoice) {
-      setSelectedChoice(savedChoice);
-    }
-    if (savedHabits) {
-      setSelectedHabits(JSON.parse(savedHabits));
-    }
+    loadUserData();
   }, []);
 
-  const getTargetSymptoms = () => {
-    return targetSymptoms.map(id => BODY_SYMPTOMS.find(s => s.id === id)).filter(Boolean);
+  const loadUserData = async () => {
+    setLoading(true);
+    try {
+      const userId = getOrGenerateUserId();
+      const userResponse = await getUser(userId);
+      
+      if (userResponse.success && userResponse.user) {
+        setUserData(userResponse.user);
+        
+        // 检查是否有足够的数据显示方案
+        const hasSymptoms = localStorage.getItem('selectedSymptoms');
+        const hasTargetSymptoms = localStorage.getItem('targetSymptoms') || localStorage.getItem('targetSymptom');
+        const hasChoice = localStorage.getItem('selectedChoice');
+        
+        setHasData(!!(hasSymptoms && hasTargetSymptoms && hasChoice));
+      } else {
+        setHasData(false);
+      }
+    } catch (error) {
+      console.error('加载用户数据失败:', error);
+      setHasData(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 计算主要健康要素
+  const getSelectedSymptoms = () => {
+    const savedSymptoms = localStorage.getItem('selectedSymptoms');
+    if (!savedSymptoms) return [];
+    const symptoms = JSON.parse(savedSymptoms);
+    return symptoms
+      .map((id: number) => BODY_SYMPTOMS.find(s => s.id === id))
+      .filter((s): s is typeof BODY_SYMPTOMS[0] => s !== undefined);
+  };
+
+  const getTargetSymptoms = () => {
+    const savedTarget = localStorage.getItem('targetSymptoms') || localStorage.getItem('targetSymptom');
+    if (!savedTarget) return [];
+    const targetSymptomArray = JSON.parse(savedTarget);
+    if (!Array.isArray(targetSymptomArray)) return [];
+    return targetSymptomArray
+      .map((id: number) => BODY_SYMPTOMS.find(s => s.id === id))
+      .filter((s): s is typeof BODY_SYMPTOMS[0] => s !== undefined);
+  };
+
+  const getSelectedChoice = () => {
+    const savedChoice = localStorage.getItem('selectedChoice');
+    return savedChoice || null;
+  };
+
   const getPrimaryElements = () => {
+    const selectedSymptoms = getSelectedSymptoms();
     const counts: Record<string, number> = {};
     (Object.keys(HEALTH_ELEMENTS) as Array<keyof typeof HEALTH_ELEMENTS>).forEach(key => {
       const element = HEALTH_ELEMENTS[key];
-      const count = element.symptoms.filter(id => selectedSymptoms.includes(id)).length;
+      const count = element.symptoms.filter(id => selectedSymptoms.some((s) => s.id === id)).length;
       if (count > 0) {
         counts[element.name] = count;
       }
@@ -74,13 +104,17 @@ export default function SolutionPage() {
       .map(([name, count]) => ({ name, count }));
   };
 
-  const primaryElements = getPrimaryElements();
-
-  // 产品匹配逻辑
   const getProductMatches = (): ProductMatch[] => {
+    const primaryElements = getPrimaryElements();
     const matches: ProductMatch[] = [];
 
-    // 艾灸 - 适合气血、寒凉、循环问题
+    const calculateMatchScore = (elementNames: string[]): number => {
+      return primaryElements
+        .filter(el => elementNames.includes(el.name))
+        .reduce((sum, el) => sum + el.count, 0);
+    };
+
+    // 艾灸
     const aiJiuScore = calculateMatchScore(['气血', '寒凉', '循环']);
     if (aiJiuScore > 0) {
       matches.push({
@@ -98,7 +132,7 @@ export default function SolutionPage() {
       });
     }
 
-    // 火灸 - 适合气血、毒素、循环问题
+    // 火灸
     const huoJiuScore = calculateMatchScore(['气血', '毒素', '循环']);
     if (huoJiuScore > 0) {
       matches.push({
@@ -116,9 +150,10 @@ export default function SolutionPage() {
       });
     }
 
-    // 正骨 - 适合骨骼、肌肉、循环问题
+    // 正骨
     const zhengGuScore = calculateMatchScore(['循环', '气血']);
-    if (zhengGuScore > 0 || selectedSymptoms.some(s => [30, 31, 32, 33, 34, 35].includes(s))) {
+    const selectedSymptoms = getSelectedSymptoms();
+    if (zhengGuScore > 0 || selectedSymptoms.some((s: any) => [30, 31, 32, 33, 34, 35].includes(s.id))) {
       matches.push({
         name: '正骨调理',
         description: '通过手法矫正骨骼位置，恢复脊柱生理曲度，改善神经受压和循环障碍',
@@ -134,7 +169,7 @@ export default function SolutionPage() {
       });
     }
 
-    // 空腹禅 - 身心调理，适合情绪、毒素、气血问题
+    // 空腹禅
     const kongFuChanScore = calculateMatchScore(['情绪', '毒素', '气血', '血脂']);
     if (kongFuChanScore > 0) {
       matches.push({
@@ -152,7 +187,7 @@ export default function SolutionPage() {
       });
     }
 
-    // 经络调理 - 适合循环、气血、毒素问题
+    // 经络调理
     const jingLiaoScore = calculateMatchScore(['循环', '气血', '毒素']);
     if (jingLiaoScore > 0) {
       matches.push({
@@ -170,7 +205,7 @@ export default function SolutionPage() {
       });
     }
 
-    // 药王产品 - 综合调理
+    // 药王产品
     const yaoWangScore = primaryElements.length > 0 ? primaryElements[0].count : 0;
     matches.push({
       name: '药王产品',
@@ -186,7 +221,7 @@ export default function SolutionPage() {
       ]
     });
 
-    // 膏药 - 局部调理
+    // 膏药
     const gaoYaoScore = calculateMatchScore(['气血', '循环', '寒凉']);
     matches.push({
       name: '膏药调理',
@@ -205,18 +240,11 @@ export default function SolutionPage() {
     return matches.sort((a, b) => b.matchScore - a.matchScore);
   };
 
-  const calculateMatchScore = (elementNames: string[]): number => {
-    return primaryElements
-      .filter(el => elementNames.includes(el.name))
-      .reduce((sum, el) => sum + el.count, 0);
-  };
-
-  // 课程匹配逻辑
   const getCourseMatches = (): CourseMatch[] => {
+    const primaryElements = getPrimaryElements();
     return TWENTY_ONE_COURSES.map(course => {
       let relevance: 'high' | 'medium' | 'low' = 'low';
 
-      // 根据健康要素匹配课程
       if (primaryElements.length > 0) {
         const primaryElementNames = primaryElements.map(el => el.name);
 
@@ -246,8 +274,75 @@ export default function SolutionPage() {
     });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+        <header className="bg-white/80 backdrop-blur-sm border-b sticky top-0 z-10">
+          <div className="container mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <Link href="/" className="flex items-center space-x-2">
+                <ChevronLeft className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-600">返回首页</span>
+              </Link>
+              <Badge variant="outline" className="text-sm">我的方案</Badge>
+            </div>
+          </div>
+        </header>
+
+        <main className="container mx-auto px-4 py-12">
+          <Card className="max-w-2xl mx-auto border-2 border-yellow-200">
+            <CardHeader className="text-center">
+              <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
+              <CardTitle className="text-2xl">尚未完成健康自检</CardTitle>
+              <CardDescription className="text-base mt-2">
+                您需要先完成健康自检流程，才能查看您的个性化调理方案
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Alert>
+                <AlertCircle className="w-4 h-4" />
+                <AlertDescription>
+                  请按照以下步骤完成健康自检：
+                  <ol className="list-decimal list-inside mt-2 space-y-1">
+                    <li>填写个人信息</li>
+                    <li>填写身体语言简表</li>
+                    <li>选择重点改善的症状</li>
+                    <li>完成健康要素分析</li>
+                    <li>了解系统战役故事</li>
+                    <li>选择适合的调理方案</li>
+                  </ol>
+                </AlertDescription>
+              </Alert>
+              <Button
+                onClick={() => (window.location.href = '/personal-info')}
+                className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                开始健康自检
+              </Button>
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+    );
+  }
+
   const productMatches = getProductMatches();
   const courseMatches = getCourseMatches();
+  const selectedChoice = getSelectedChoice();
+  const primaryElements = getPrimaryElements();
+  const selectedSymptoms = getSelectedSymptoms();
+  const targetSymptoms = getTargetSymptoms();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-20">
@@ -255,14 +350,18 @@ export default function SolutionPage() {
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/recovery-speed" className="flex items-center space-x-2">
+            <Link href="/" className="flex items-center space-x-2">
               <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-              <span className="text-gray-600 dark:text-gray-400">返回上一步</span>
+              <span className="text-gray-600 dark:text-gray-400">返回首页</span>
             </Link>
             <div className="flex items-center space-x-2">
-              <Badge variant="outline" className="text-sm">
-                健康管理方案
-              </Badge>
+              <Badge variant="outline" className="text-sm">我的方案</Badge>
+              {userData?.name && (
+                <Badge variant="secondary" className="text-sm flex items-center">
+                  <User className="w-3 h-3 mr-1" />
+                  {userData.name}
+                </Badge>
+              )}
             </div>
           </div>
         </div>
@@ -278,8 +377,14 @@ export default function SolutionPage() {
               </div>
               <CardTitle className="text-3xl">您的个性化健康管理方案</CardTitle>
               <CardDescription className="text-base mt-2">
-                恭喜您完成了健康自检流程！根据您的情况，为您量身定制以下方案
+                基于您的健康自检结果，为您量身定制的调理方案
               </CardDescription>
+              {userData?.createdAt && (
+                <div className="flex items-center justify-center mt-3 text-sm text-gray-600 dark:text-gray-400">
+                  <Calendar className="w-4 h-4 mr-1" />
+                  方案生成时间：{new Date(userData.createdAt).toLocaleDateString('zh-CN')}
+                </div>
+              )}
             </CardHeader>
           </Card>
         </section>
@@ -292,14 +397,14 @@ export default function SolutionPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {/* 重点症状 */}
-              {targetSymptoms.length > 0 && getTargetSymptoms().length > 0 && (
+              {targetSymptoms.length > 0 && (
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
                   <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
                     您重点改善的症状（{targetSymptoms.length}个）：
                   </h3>
                   <div className="space-y-1">
-                    {getTargetSymptoms().map((symptom, index) => (
-                      <p key={symptom.id} className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                    {targetSymptoms.map((symptom, index) => (
+                      <p key={symptom.id} className="text-xl font-bold text-blue-700 dark:text-blue-400">
                         {index + 1}. {symptom.name}
                       </p>
                     ))}
@@ -307,9 +412,9 @@ export default function SolutionPage() {
                 </div>
               )}
 
-              {/* 症状统计 - 使用柱状图 */}
+              {/* 症状统计 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* 症状总数柱状图 */}
+                {/* 症状总数 */}
                 <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
                   <h4 className="text-base font-bold mb-4 text-gray-900 dark:text-white flex items-center">
                     <Activity className="w-5 h-5 mr-2 text-green-600" />
@@ -334,7 +439,7 @@ export default function SolutionPage() {
                   </div>
                 </div>
 
-                {/* 主要健康要素柱状图 */}
+                {/* 主要健康要素 */}
                 <div className="p-6 bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
                   <h4 className="text-base font-bold mb-4 text-gray-900 dark:text-white flex items-center">
                     <Target className="w-5 h-5 mr-2 text-purple-600" />
@@ -349,10 +454,6 @@ export default function SolutionPage() {
                           'from-red-500 to-red-600',
                           'from-blue-500 to-blue-600',
                           'from-yellow-500 to-yellow-600',
-                          'from-orange-500 to-orange-600',
-                          'from-cyan-500 to-cyan-600',
-                          'from-green-500 to-green-600',
-                          'from-purple-500 to-purple-600',
                         ];
                         const colorClass = colors[index % colors.length];
 
@@ -403,45 +504,35 @@ export default function SolutionPage() {
         <section className="mb-12">
           <Card className="border-2 border-blue-100 dark:border-blue-900">
             <CardHeader>
-              <CardTitle className="text-2xl flex items-center">
-                <Target className="w-6 h-6 text-blue-500 mr-2" />
-                推荐调理产品
-              </CardTitle>
-              <CardDescription>
-                根据您的健康要素分析，为您推荐以下调理产品
-              </CardDescription>
+              <CardTitle className="text-2xl">推荐调理产品</CardTitle>
+              <CardDescription>根据您的健康要素分析，推荐以下调理产品</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {productMatches.map((product, index) => {
                   const Icon = product.icon;
                   return (
-                    <Card key={index} className="border-2 border-gray-100 dark:border-gray-800 hover:shadow-lg transition-shadow">
+                    <Card key={index} className="hover:shadow-lg transition-shadow border-2">
                       <CardHeader>
-                        <div className="flex items-center space-x-3">
-                          <div className={`w-12 h-12 bg-gradient-to-br ${product.color} rounded-lg flex items-center justify-center`}>
-                            <Icon className="w-6 h-6 text-white" />
-                          </div>
-                          <div className="flex-1">
-                            <CardTitle className="text-lg">{product.name}</CardTitle>
-                            <Badge variant="secondary" className="text-xs mt-1">
-                              匹配度: {Math.min(95, 70 + product.matchScore * 5)}%
-                            </Badge>
-                          </div>
+                        <div className={`w-12 h-12 bg-gradient-to-br ${product.color} rounded-lg flex items-center justify-center mb-3`}>
+                          <Icon className="w-6 h-6 text-white" />
                         </div>
+                        <CardTitle className="text-lg">{product.name}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                           {product.description}
                         </p>
-                        <div className="space-y-1">
-                          <p className="text-xs font-semibold text-gray-900 dark:text-white mb-1">调理作用：</p>
-                          {product.reasons.map((reason, idx) => (
-                            <p key={idx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
-                              <span className="text-green-500 mr-1">•</span>
-                              {reason}
-                            </p>
-                          ))}
+                        <div className="space-y-2">
+                          <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">调理原理：</p>
+                          <ul className="space-y-1">
+                            {product.reasons.map((reason, idx) => (
+                              <li key={idx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                <span className="text-green-500 mr-1">•</span>
+                                {reason}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
                       </CardContent>
                     </Card>
@@ -456,39 +547,53 @@ export default function SolutionPage() {
         <section className="mb-12">
           <Card className="border-2 border-purple-100 dark:border-purple-900">
             <CardHeader>
-              <CardTitle className="text-2xl flex items-center">
-                <BookOpen className="w-6 h-6 text-purple-500 mr-2" />
-                推荐学习课程
-              </CardTitle>
-              <CardDescription>
-                根据您的情况，重点学习以下课程
-              </CardDescription>
+              <CardTitle className="text-2xl">推荐学习课程</CardTitle>
+              <CardDescription>根据您的健康状况，推荐以下学习课程</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {courseMatches.slice(0, 9).map((course) => (
-                  <Card key={course.id} className="border border-gray-200 dark:border-gray-700">
-                    <CardHeader>
-                      <div className="flex items-center justify-between mb-2">
-                        <Badge variant="secondary" className="text-xs">
-                          第{course.id}课
-                        </Badge>
-                        {course.relevance === 'high' && (
-                          <Badge className="text-xs bg-red-500">重点</Badge>
+              <div className="space-y-4">
+                {courseMatches.slice(0, 7).map((course) => {
+                  const relevanceColors = {
+                    high: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
+                    medium: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
+                    low: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
+                  };
+                  const relevanceLabels = {
+                    high: '高度推荐',
+                    medium: '推荐学习',
+                    low: '可选学习',
+                  };
+
+                  return (
+                    <Card key={course.id} className="hover:shadow-md transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg">{course.title}</CardTitle>
+                            {course.module && (
+                              <Badge variant="outline" className="mt-2 text-xs">
+                                {course.module}
+                              </Badge>
+                            )}
+                          </div>
+                          <Badge className={relevanceColors[course.relevance]}>
+                            {relevanceLabels[course.relevance]}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                          {course.content}
+                        </p>
+                        {course.duration && (
+                          <p className="text-xs text-gray-500 dark:text-gray-500">
+                            课程时长：{course.duration}
+                          </p>
                         )}
-                      </div>
-                      <CardTitle className="text-base">{course.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                        {course.content}
-                      </p>
-                      <div className="text-xs text-gray-500 dark:text-gray-400">
-                        📚 {course.duration} | {course.module}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -496,43 +601,39 @@ export default function SolutionPage() {
 
         {/* 重要提示 */}
         <section className="mb-12">
-          <Alert className="border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
-            <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+          <Alert className="border-2 border-yellow-200 dark:border-yellow-800 bg-yellow-50 dark:bg-yellow-900/20">
+            <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
             <AlertDescription className="mt-2">
               <p className="font-semibold text-gray-900 dark:text-white mb-2">
                 重要提示
               </p>
-              <p className="text-sm text-gray-700 dark:text-gray-300">
-                以上调理方案仅供参考，具体调理方法和产品选择请咨询专业调理导师。
-                调理过程中如出现不适，请及时暂停并寻求专业指导。
-              </p>
+              <ul className="space-y-1 text-sm text-gray-700 dark:text-gray-300">
+                <li>• 请按照方案坚持调理，健康改善需要时间</li>
+                <li>• 如在调理过程中出现好转反应，请继续坚持</li>
+                <li>• 建议定期重新填写自检表，跟踪健康改善情况</li>
+                <li>• 如有任何疑问，请咨询专业健康管理师</li>
+              </ul>
             </AlertDescription>
           </Alert>
         </section>
 
-        {/* 下一步 */}
+        {/* 操作按钮 */}
         <section className="text-center">
-          <Card className="border-2 border-green-100 dark:border-green-900">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-center space-x-2 mb-4">
-                <CheckCircle2 className="w-6 h-6 text-green-500" />
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  恭喜您完成了整个健康自检流程！
-                </p>
-              </div>
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                现在请根据以上方案，开始您的健康管理之旅。如有任何疑问，请及时联系您的调理导师。
-              </p>
-              <Button
-                size="lg"
-                className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
-                onClick={() => window.location.href = '/courses'}
-              >
-                学习21堂必修课程
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              onClick={() => (window.location.href = '/personal-info')}
+              variant="outline"
+              className="flex-1 sm:flex-none"
+            >
+              重新自检
+            </Button>
+            <Button
+              onClick={() => (window.location.href = '/')}
+              className="flex-1 sm:flex-none bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+            >
+              返回首页
+            </Button>
+          </div>
         </section>
       </main>
     </div>

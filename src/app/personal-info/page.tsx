@@ -24,7 +24,17 @@ interface ErrorResponse {
 }
 
 export default function PersonalInfoPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    phone: string;
+    gender: string;
+    age: string;
+    weight: string;
+    height: string;
+    bloodPressure: string;
+    occupation: string;
+    address: string;
+  }>({
     name: '',
     phone: '',
     gender: '',
@@ -46,6 +56,10 @@ export default function PersonalInfoPage() {
   const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // 先显示表单，不等待 API 响应
+    setLoading(false);
+
+    // 然后在后台异步加载用户数据
     loadUserData();
   }, []);
 
@@ -53,7 +67,7 @@ export default function PersonalInfoPage() {
   useEffect(() => {
     const savedFormData = loadFromStorage(STORAGE_KEYS.USER_INFO);
     if (savedFormData) {
-      setFormData(savedFormData);
+      setFormData(savedFormData as typeof formData);
       console.log('[PersonalInfo] 从 localStorage 恢复表单数据');
     }
   }, []);

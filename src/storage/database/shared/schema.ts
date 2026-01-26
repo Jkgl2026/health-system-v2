@@ -323,6 +323,8 @@ export const insertRequirementSchema = createCoercedInsertSchema(requirements).p
   requirement4Completed: true,
   requirement2Answers: true,
   sevenQuestionsAnswers: true,
+  badHabitsChecklist: true,
+  symptoms300Checklist: true,
   completedAt: true,
 });
 

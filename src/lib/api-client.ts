@@ -163,6 +163,9 @@ export async function saveRequirements(data: {
   requirement3Completed?: boolean;
   requirement4Completed?: boolean;
   requirement2Answers?: any | null;
+  sevenQuestionsAnswers?: Record<string, any> | null;
+  badHabitsChecklist?: number[] | null;
+  symptoms300Checklist?: number[] | null;
 }) {
   try {
     const response = await fetch(`${API_BASE}/requirements`, {

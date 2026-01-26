@@ -257,13 +257,23 @@ export default function Home() {
 
         {/* 开始按钮 */}
         <section className="text-center space-y-4">
-          <Button
-            onClick={() => window.location.href = '/personal-info'}
-            size="lg"
-            className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white text-lg px-12 py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
-          >
-            立即开始健康自检
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button
+              onClick={() => window.location.href = '/personal-info'}
+              size="lg"
+              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white text-lg px-12 py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
+            >
+              立即开始健康自检
+            </Button>
+            <Button
+              onClick={() => window.location.href = '/my-solution'}
+              size="lg"
+              variant="outline"
+              className="text-lg px-12 py-6 rounded-full shadow-md hover:shadow-lg transition-all border-2 border-blue-200 hover:border-blue-300"
+            >
+              查看我的方案
+            </Button>
+          </div>
           <p className="text-gray-600 dark:text-gray-400">
             花费约 15-20 分钟，全面了解您的健康状况
           </p>

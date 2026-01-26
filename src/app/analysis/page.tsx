@@ -10,7 +10,7 @@ import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Loader2 } from 'l
 import { ErrorAlert } from '@/components/ui/error-alert';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS, SEVEN_QUESTIONS } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
-import { saveHealthAnalysis, createUser, getUser } from '@/lib/api-client';
+import { saveHealthAnalysis, saveRequirements, createUser, getUser } from '@/lib/api-client';
 import Link from 'next/link';
 
 interface QuestionAnswer {
@@ -29,12 +29,14 @@ export default function AnalysisPage() {
 
   useEffect(() => {
     const savedSymptoms = localStorage.getItem('selectedSymptoms');
-    const savedTarget = localStorage.getItem('targetSymptom');
+    const savedTarget = localStorage.getItem('targetSymptoms');
     if (savedSymptoms) {
       setSelectedSymptoms(JSON.parse(savedSymptoms));
     }
     if (savedTarget) {
-      setTargetSymptom(parseInt(savedTarget));
+      const targetSymptomArray = JSON.parse(savedTarget);
+      // 如果是数组，取第一个作为主要目标症状（向后兼容）
+      setTargetSymptom(Array.isArray(targetSymptomArray) ? targetSymptomArray[0] || null : parseInt(savedTarget));
     }
   }, []);
 
@@ -51,6 +53,17 @@ export default function AnalysisPage() {
   // 获取目标症状
   const getTargetSymptom = () => {
     return BODY_SYMPTOMS.find(s => s.id === targetSymptom);
+  };
+
+  // 获取所有目标症状（用于显示）
+  const getTargetSymptoms = () => {
+    const savedTarget = localStorage.getItem('targetSymptoms');
+    if (!savedTarget) return [];
+    const targetSymptomArray = JSON.parse(savedTarget);
+    if (!Array.isArray(targetSymptomArray)) return [];
+    return targetSymptomArray
+      .map(id => BODY_SYMPTOMS.find(s => s.id === id))
+      .filter(Boolean);
   };
 
   // 处理回答保存
@@ -105,6 +118,20 @@ export default function AnalysisPage() {
         };
 
         await saveHealthAnalysis(analysisData);
+
+        // 保存七问答案到 requirements 表
+        const sevenQuestionsData: Record<string, any> = {};
+        answers.forEach(a => {
+          sevenQuestionsData[a.questionId] = {
+            answer: a.answer,
+            date: new Date().toISOString(),
+          };
+        });
+
+        await saveRequirements({
+          userId,
+          sevenQuestionsAnswers: sevenQuestionsData,
+        });
 
         // 保存成功后清除错误状态，然后跳转
         setSaveError(null);
@@ -178,11 +205,15 @@ export default function AnalysisPage() {
                 {targetSymptom && getTargetSymptom() && (
                   <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
-                      您重点关注改善的症状：
+                      您重点关注改善的症状（{getTargetSymptoms().length}个）：
                     </h3>
-                    <p className="text-xl font-medium text-blue-700 dark:text-blue-400">
-                      {getTargetSymptom()!.name}
-                    </p>
+                    <div className="space-y-1">
+                      {getTargetSymptoms().map((symptom, index) => (
+                        <p key={symptom.id} className="text-xl font-medium text-blue-700 dark:text-blue-400">
+                          {index + 1}. {symptom.name}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                 )}
               </CardContent>

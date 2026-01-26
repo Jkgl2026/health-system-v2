@@ -18,7 +18,7 @@ import Link from 'next/link';
 export default function CheckPage() {
   const [selectedSymptoms, setSelectedSymptoms] = useState<Set<number>>(new Set());
   const [currentStep, setCurrentStep] = useState<'intro' | 'select' | 'confirm'>('intro');
-  const [targetSymptom, setTargetSymptom] = useState<number | null>(null);
+  const [targetSymptoms, setTargetSymptoms] = useState<number[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<any>(null);
   const [lastSaveTime, setLastSaveTime] = useState<number | null>(null);
@@ -36,8 +36,9 @@ export default function CheckPage() {
       }
 
       if (savedTargetSymptom) {
-        setTargetSymptom(parseInt(savedTargetSymptom));
-        console.log('[CheckPage] 恢复目标症状:', savedTargetSymptom);
+        const targetSymptomArray = JSON.parse(savedTargetSymptom);
+        setTargetSymptoms(Array.isArray(targetSymptomArray) ? targetSymptomArray : []);
+        console.log('[CheckPage] 恢复目标症状:', targetSymptomArray);
       }
     } catch (error) {
       console.error('[CheckPage] 恢复数据失败:', error);
@@ -57,18 +58,18 @@ export default function CheckPage() {
     }
   }, [selectedSymptoms]);
 
-  // 自动保存目标症状
+  // 自动保存目标症状（防抖）
   useEffect(() => {
-    if (targetSymptom !== null) {
+    if (targetSymptoms.length > 0) {
       const timeout = setTimeout(() => {
-        localStorage.setItem('targetSymptom', targetSymptom.toString());
+        localStorage.setItem('targetSymptoms', JSON.stringify(targetSymptoms));
         setLastSaveTime(Date.now());
-        console.log('[CheckPage] 目标症状已自动保存');
+        console.log('[CheckPage] 目标症状已自动保存:', targetSymptoms);
       }, 500);
 
       return () => clearTimeout(timeout);
     }
-  }, [targetSymptom]);
+  }, [targetSymptoms]);
 
 // 按类别分组症状
   const symptomsByCategory = BODY_SYMPTOMS.reduce((acc, symptom) => {
@@ -119,14 +120,14 @@ export default function CheckPage() {
       }
       setCurrentStep('confirm');
     } else if (currentStep === 'confirm') {
-      if (!targetSymptom) {
-        alert('请选择一个您最想改善的症状，这样我们可以为您提供更精准的分析。');
+      if (targetSymptoms.length === 0) {
+        alert('请至少选择一个您最想改善的症状，这样我们可以为您提供更精准的分析。');
         return;
       }
 
       // 保存到 localStorage
       localStorage.setItem('selectedSymptoms', JSON.stringify([...selectedSymptoms]));
-      localStorage.setItem('targetSymptom', targetSymptom.toString());
+      localStorage.setItem('targetSymptoms', JSON.stringify(targetSymptoms));
 
       // 保存到数据库
       setIsSaving(true);
@@ -206,8 +207,8 @@ export default function CheckPage() {
     return selectedCount > 0 && selectedCount < categorySymptoms.length;
   };
 
-  const getTargetSymptom = () => {
-    return BODY_SYMPTOMS.find(s => s.id === targetSymptom);
+  const getTargetSymptoms = () => {
+    return targetSymptoms.map(id => BODY_SYMPTOMS.find(s => s.id === id)).filter(Boolean);
   };
 
   return (
@@ -446,14 +447,14 @@ export default function CheckPage() {
               <CardHeader>
                 <CardTitle className="text-2xl">选择重点改善的症状</CardTitle>
                 <CardDescription>
-                  症状很多，没法一个个讲。请您从已选择的症状中，选择一个最想改善的
+                  症状很多，没法一个个讲。请您从已选择的症状中，选择1-3个最想改善的
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <Alert>
                   <AlertCircle className="w-4 h-4" />
                   <AlertDescription>
-                    选择一个最困扰您的症状，我们会针对这个症状进行深入分析，
+                    选择1-3个最困扰您的症状，我们会针对这些症状进行深入分析，
                     找出背后的健康要素和原因，为您提供针对性的解决方案。
                   </AlertDescription>
                 </Alert>
@@ -465,18 +466,29 @@ export default function CheckPage() {
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mb-6">
                     {Array.from(selectedSymptoms).map(id => {
                       const symptom = BODY_SYMPTOMS.find(s => s.id === id);
+                      const isSelected = targetSymptoms.includes(id);
                       return symptom ? (
                         <div
                           key={id}
                           className={`p-3 rounded-lg border-2 cursor-pointer transition-all text-center ${
-                            targetSymptom === id
+                            isSelected
                               ? 'border-green-500 bg-green-50 dark:bg-green-900/30 ring-2 ring-green-500'
                               : 'border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700'
-                          }`}
-                          onClick={() => setTargetSymptom(id)}
+                          } ${targetSymptoms.length >= 3 && !isSelected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          onClick={() => {
+                            if (targetSymptoms.length >= 3 && !isSelected) {
+                              alert('最多只能选择3个重点改善的症状');
+                              return;
+                            }
+                            if (isSelected) {
+                              setTargetSymptoms(targetSymptoms.filter(t => t !== id));
+                            } else {
+                              setTargetSymptoms([...targetSymptoms, id]);
+                            }
+                          }}
                         >
                           <span className="text-sm">{symptom.name}</span>
-                          {targetSymptom === id && (
+                          {isSelected && (
                             <CheckCircle2 className="w-4 h-4 text-green-500 mx-auto mt-1" />
                           )}
                         </div>
@@ -485,17 +497,21 @@ export default function CheckPage() {
                   </div>
                 </div>
 
-                {targetSymptom && getTargetSymptom() && (
+                {targetSymptoms.length > 0 && getTargetSymptoms().length > 0 && (
                   <div className="p-6 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
                     <h4 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-                      您选择重点改善的症状：
+                      您选择重点改善的症状（{targetSymptoms.length}个）：
                     </h4>
-                    <p className="text-xl font-medium text-green-700 dark:text-green-400 mb-2">
-                      {getTargetSymptom()!.name}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      在接下来的步骤中，我们将针对这个症状进行深入分析，
-                      了解它背后的健康要素，为您提供有针对性的解决方案。
+                    <div className="space-y-2">
+                      {getTargetSymptoms().map((symptom, index) => (
+                        <p key={symptom.id} className="text-xl font-medium text-green-700 dark:text-green-400">
+                          {index + 1}. {symptom.name}
+                        </p>
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-3">
+                      在接下来的步骤中，我们将针对这些症状进行深入分析，
+                      了解它们背后的健康要素，为您提供有针对性的解决方案。
                     </p>
                   </div>
                 )}
