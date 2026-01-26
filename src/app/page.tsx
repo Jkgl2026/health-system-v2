@@ -475,7 +475,7 @@ export default function Home() {
                     <div className="flex items-start gap-3">
                       <Award className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-1" />
                       <div>
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-3">老中医专家分析：</h3>
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-3">健康分析报告：</h3>
                         <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm md:text-base">
                           根据您的自检结果，您共有<strong className="text-indigo-600 dark:text-indigo-400 font-semibold mx-1">{healthData.totalSymptoms}项</strong>健康异常，
                           其中身体语言简表<strong className="text-blue-600 dark:text-blue-400 font-semibold mx-1">{healthData.bodySymptomsCount}项</strong>、
@@ -544,8 +544,8 @@ export default function Home() {
                       <Flame className="w-6 h-6 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-2xl">推荐调理产品</CardTitle>
-                      <CardDescription>根据您的症状匹配的调理方案</CardDescription>
+                      <CardTitle className="text-2xl">推荐调理方向</CardTitle>
+                      <CardDescription>根据您的症状制定的调理建议</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -553,94 +553,44 @@ export default function Home() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {(healthData.bodySymptomsCount > 0 || healthData.badHabitsCount > 0) && (
                       <div className="p-5 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border-2 border-orange-200 dark:border-orange-800">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
-                              <Flame className="w-7 h-7 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="text-xl font-bold text-gray-900 dark:text-white">艾灸调理</h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                <TrendingUp className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                                <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
-                                  匹配度：{Math.min(95, 70 + healthData.bodySymptomsCount * 2)}%
-                                </span>
-                              </div>
-                            </div>
+                        <div className="flex items-start gap-3 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Flame className="w-7 h-7 text-white" />
                           </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
-                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                              <strong className="text-orange-600 dark:text-orange-400">老中医推荐：</strong>
-                              艾灸是中医外治法的瑰宝，通过艾火的热力和药性，温通经络、调和气血、驱寒除湿。
-                              对于您出现的寒凉、气血不足、循环不畅等症状，艾灸能够起到标本兼治的效果。
-                              建议选择关元、气海、足三里等穴位进行调理，每次20-30分钟，每周3-4次。
+                          <div>
+                            <h4 className="text-xl font-bold text-gray-900 dark:text-white">艾灸调理</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              适用于寒凉、气血不足、循环不畅等问题
                             </p>
                           </div>
-                          <div className="space-y-2">
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">调理原理：</p>
-                            <ul className="space-y-1">
-                              {[
-                                '温通经络，促进气血运行，改善末梢循环',
-                                '驱寒除湿，温补阳气，增强身体抵抗力',
-                                '调和脏腑功能，促进新陈代谢',
-                                '缓解疼痛，改善慢性炎症'
-                              ].map((item, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                  <Droplets className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
-                                  <span>{item}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                        </div>
+                        <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                            通过艾火的热力温通经络、调和气血，建议每次20-30分钟，每周3-4次。
+                            可选择关元、气海、足三里等穴位进行调理。
+                          </p>
                         </div>
                       </div>
                     )}
 
                     {(healthData.bodySymptomsCount > 5 || healthData.badHabitsCount > 10) && (
                       <div className="p-5 bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-lg border-2 border-red-200 dark:border-red-800">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
-                              <Zap className="w-7 h-7 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="text-xl font-bold text-gray-900 dark:text-white">火灸调理</h4>
-                              <div className="flex items-center gap-2 mt-1">
-                                <TrendingUp className="w-4 h-4 text-red-600 dark:text-red-400" />
-                                <span className="text-sm font-semibold text-red-600 dark:text-red-400">
-                                  匹配度：{Math.min(92, 65 + healthData.bodySymptomsCount * 1.5 + healthData.badHabitsCount)}%
-                                </span>
-                              </div>
-                            </div>
+                        <div className="flex items-start gap-3 mb-4">
+                          <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <Zap className="w-7 h-7 text-white" />
                           </div>
-                        </div>
-                        <div className="space-y-3">
-                          <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
-                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                              <strong className="text-red-600 dark:text-red-400">老中医推荐：</strong>
-                              火灸是比艾灸更强烈的调理方法，以火之力，温阳散寒，活血化瘀。
-                              对于您体内存在的淤堵、毒素、寒湿等问题，火灸能够强力疏通，净化体内环境。
-                              建议在专业指导下进行，重点调理大椎、命门、肾俞等穴位，每次15-20分钟。
+                          <div>
+                            <h4 className="text-xl font-bold text-gray-900 dark:text-white">火灸调理</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              适用于体内淤堵、毒素积压、寒湿较重的情况
                             </p>
                           </div>
-                          <div className="space-y-2">
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">调理原理：</p>
-                            <ul className="space-y-1">
-                              {[
-                                '强力活血化瘀，疏通经络淤堵',
-                                '温阳补气，提升身体能量水平',
-                                '祛除体内毒素和湿气，净化血液',
-                                '改善微循环，促进细胞修复'
-                              ].map((item, i) => (
-                                <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
-                                  <Sparkles className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
-                                  <span>{item}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                        </div>
+                        <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                            通过火之力强力疏通经络、祛除寒湿，建议在专业指导下进行，
+                            重点调理大椎、命门、肾俞等穴位，每次15-20分钟。
+                          </p>
                         </div>
                       </div>
                     )}
