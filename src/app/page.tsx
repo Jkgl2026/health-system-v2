@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info } from 'lucide-react';
+import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info, AlertCircle } from 'lucide-react';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { PWARedirect } from './page-pwa-redirect';
 
@@ -16,20 +16,49 @@ export default function Home() {
   useEffect(() => {
     const checkHealthData = () => {
       try {
-        const savedSymptoms = localStorage.getItem('selectedSymptoms');
-        const savedTarget = localStorage.getItem('targetSymptoms') || localStorage.getItem('targetSymptom');
+        // 读取所有健康相关数据
+        const savedSymptoms = localStorage.getItem('selectedSymptoms'); // 100项身体语言简表
+        const savedBadHabits = localStorage.getItem('selectedHabitsRequirements'); // 252项不良生活习惯
+        const savedSymptoms300 = localStorage.getItem('selectedSymptoms300'); // 300项症状表
+        const savedTarget = localStorage.getItem('targetSymptoms') || localStorage.getItem('targetSymptom'); // 重点症状
         const savedChoice = localStorage.getItem('selectedChoice');
 
-        if (savedSymptoms && savedTarget && savedChoice) {
-          const symptoms = JSON.parse(savedSymptoms);
-          const targetSymptoms = JSON.parse(savedTarget);
-          const choice = savedChoice;
+        // 解析数据
+        const bodySymptoms = savedSymptoms ? JSON.parse(savedSymptoms) : [];
+        const badHabits = savedBadHabits ? JSON.parse(savedBadHabits) : [];
+        const symptoms300 = savedSymptoms300 ? JSON.parse(savedSymptoms300) : [];
+        const targetSymptoms = savedTarget ? JSON.parse(savedTarget) : [];
+        const choice = savedChoice || '';
 
+        // 计算症状总数（包含三种表）
+        const totalSymptoms = bodySymptoms.length + badHabits.length + symptoms300.length;
+
+        // 计算健康评分（更科学的算法）
+        // 基础分100分，根据不同类型症状权重扣分
+        // 身体语言简表（高权重）：每项扣0.3分
+        // 不良生活习惯（中权重）：每项扣0.2分
+        // 300症状表（低权重）：每项扣0.1分
+        const bodySymptomsScore = Math.max(0, bodySymptoms.length * 0.3); // 最多扣30分
+        const badHabitsScore = Math.max(0, badHabits.length * 0.2); // 最多扣50.4分
+        const symptoms300Score = Math.max(0, symptoms300.length * 0.1); // 最多扣30分
+        const totalDeduction = bodySymptomsScore + badHabitsScore + symptoms300Score;
+        const healthScore = Math.max(0, Math.round(100 - totalDeduction));
+
+        // 计算各类型症状数量
+        const bodySymptomsCount = bodySymptoms.length;
+        const badHabitsCount = badHabits.length;
+        const symptoms300Count = symptoms300.length;
+
+        // 只要有任何数据就显示概览
+        if (savedSymptoms || savedBadHabits || savedSymptoms300) {
           setHealthData({
-            totalSymptoms: symptoms.length,
-            targetSymptoms: Array.isArray(targetSymptoms) ? targetSymptoms.length : 1,
+            totalSymptoms,
+            targetSymptoms: Array.isArray(targetSymptoms) ? targetSymptoms.length : (targetSymptoms ? 1 : 0),
             choice,
-            healthScore: Math.max(0, Math.round(100 - symptoms.length * 0.5)),
+            healthScore,
+            bodySymptomsCount,
+            badHabitsCount,
+            symptoms300Count,
           });
           setHasHealthData(true);
         } else {
@@ -164,26 +193,79 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* 健康评分 */}
-                <div className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white text-center">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* 健康评分 - 占2格 */}
+                <div className="md:col-span-2 p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white text-center">
                   <div className="text-sm font-medium mb-2 opacity-90">健康评分</div>
-                  <div className="text-5xl font-bold mb-1">{healthData.healthScore}</div>
+                  <div className="text-6xl font-bold mb-1">{healthData.healthScore}</div>
                   <div className="text-sm opacity-80">分（满分100）</div>
+                  <div className="mt-3 text-xs opacity-70">
+                    综合身体语言简表、不良生活习惯表、300症状表计算
+                  </div>
                 </div>
 
-                {/* 症状统计 */}
-                <div className="p-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white text-center">
-                  <div className="text-sm font-medium mb-2 opacity-90">症状总数</div>
-                  <div className="text-5xl font-bold mb-1">{healthData.totalSymptoms}</div>
-                  <div className="text-sm opacity-80">项（基于100项简表）</div>
+                {/* 身体语言简表 */}
+                <div className="p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium opacity-90">身体语言简表</div>
+                    <Activity className="w-4 h-4 opacity-80" />
+                  </div>
+                  <div className="text-4xl font-bold mb-1">{healthData.bodySymptomsCount}</div>
+                  <div className="text-xs opacity-80">/ 100项</div>
+                  <div className="mt-2 bg-white/20 rounded-full h-1.5">
+                    <div
+                      className="bg-white h-1.5 rounded-full"
+                      style={{ width: `${Math.min(100, healthData.bodySymptomsCount)}%` }}
+                    />
+                  </div>
                 </div>
 
-                {/* 重点症状 */}
-                <div className="p-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white text-center">
-                  <div className="text-sm font-medium mb-2 opacity-90">重点症状</div>
-                  <div className="text-5xl font-bold mb-1">{healthData.targetSymptoms}</div>
-                  <div className="text-sm opacity-80">个需要改善</div>
+                {/* 不良生活习惯表 */}
+                <div className="p-5 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium opacity-90">不良生活习惯</div>
+                    <AlertCircle className="w-4 h-4 opacity-80" />
+                  </div>
+                  <div className="text-4xl font-bold mb-1">{healthData.badHabitsCount}</div>
+                  <div className="text-xs opacity-80">/ 252项</div>
+                  <div className="mt-2 bg-white/20 rounded-full h-1.5">
+                    <div
+                      className="bg-white h-1.5 rounded-full"
+                      style={{ width: `${Math.min(100, Math.round(healthData.badHabitsCount * 100 / 252))}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* 300症状表 */}
+                <div className="p-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium opacity-90">300症状表</div>
+                    <Heart className="w-4 h-4 opacity-80" />
+                  </div>
+                  <div className="text-4xl font-bold mb-1">{healthData.symptoms300Count}</div>
+                  <div className="text-xs opacity-80">/ 300项</div>
+                  <div className="mt-2 bg-white/20 rounded-full h-1.5">
+                    <div
+                      className="bg-white h-1.5 rounded-full"
+                      style={{ width: `${Math.min(100, Math.round(healthData.symptoms300Count * 100 / 300))}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* 重点症状和症状总数 */}
+                <div className="p-5 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg text-white">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium opacity-90">重点症状</div>
+                    <Target className="w-4 h-4 opacity-80" />
+                  </div>
+                  <div className="text-4xl font-bold mb-1">{healthData.targetSymptoms}</div>
+                  <div className="text-xs opacity-80">个需要改善（最多3个）</div>
+                  <div className="mt-3 pt-3 border-t border-white/20">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs opacity-80">症状总数</span>
+                      <span className="text-lg font-bold">{healthData.totalSymptoms}项</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -204,6 +286,9 @@ export default function Home() {
                       <span className="text-xs font-bold text-white">{healthData.healthScore}%</span>
                     )}
                   </div>
+                </div>
+                <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  健康评分基于综合分析：身体语言简表（权重30%）、不良生活习惯（权重20%）、300症状表（权重10%）
                 </div>
               </div>
             </CardContent>

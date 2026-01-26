@@ -49,10 +49,12 @@ export default function MySolutionPage() {
         
         // 检查是否有足够的数据显示方案
         const hasSymptoms = localStorage.getItem('selectedSymptoms');
+        const hasBadHabits = localStorage.getItem('selectedHabitsRequirements');
+        const hasSymptoms300 = localStorage.getItem('selectedSymptoms300');
         const hasTargetSymptoms = localStorage.getItem('targetSymptoms') || localStorage.getItem('targetSymptom');
         const hasChoice = localStorage.getItem('selectedChoice');
         
-        setHasData(!!(hasSymptoms && hasTargetSymptoms && hasChoice));
+        setHasData(!!((hasSymptoms || hasBadHabits || hasSymptoms300) && hasTargetSymptoms && hasChoice));
       } else {
         setHasData(false);
       }
@@ -62,6 +64,25 @@ export default function MySolutionPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 计算综合健康评分（基于三种症状表）
+  const calculateHealthScore = () => {
+    const bodySymptoms = getSelectedSymptoms();
+    const badHabits = JSON.parse(localStorage.getItem('selectedHabitsRequirements') || '[]');
+    const symptoms300 = JSON.parse(localStorage.getItem('selectedSymptoms300') || '[]');
+
+    // 计算健康评分（更科学的算法）
+    // 基础分100分，根据不同类型症状权重扣分
+    // 身体语言简表（高权重）：每项扣0.3分
+    // 不良生活习惯（中权重）：每项扣0.2分
+    // 300症状表（低权重）：每项扣0.1分
+    const bodySymptomsScore = Math.max(0, bodySymptoms.length * 0.3);
+    const badHabitsScore = Math.max(0, badHabits.length * 0.2);
+    const symptoms300Score = Math.max(0, symptoms300.length * 0.1);
+    const totalDeduction = bodySymptomsScore + badHabitsScore + symptoms300Score;
+
+    return Math.max(0, Math.round(100 - totalDeduction));
   };
 
   const getSelectedSymptoms = () => {
@@ -422,10 +443,6 @@ export default function MySolutionPage() {
                   {primaryElements.length > 0 ? (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {primaryElements.map((el, index) => {
-                        const totalSymptoms = 100;
-                        const completionPercentage = ((totalSymptoms - selectedSymptoms.length) / totalSymptoms) * 100;
-                        const healthScore = 100 - (selectedSymptoms.length * 0.5);
-                        
                         return (
                           <div key={index} className="text-center p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
                             <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">{el.name}</div>
@@ -436,13 +453,13 @@ export default function MySolutionPage() {
                           </div>
                         );
                       })}
-                      {/* 健康评分 */}
+                      {/* 健康评分 - 使用综合评分 */}
                       <div className="text-center p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-sm">
                         <div className="text-xs text-white/80 mb-1">健康评分</div>
                         <div className="text-2xl font-bold text-white mb-1">
-                          {Math.max(0, Math.round(100 - selectedSymptoms.length * 0.5))}
+                          {calculateHealthScore()}
                         </div>
-                        <div className="text-xs text-white/70">分</div>
+                        <div className="text-xs text-white/70">分（综合）</div>
                       </div>
                     </div>
                   ) : (
@@ -456,20 +473,23 @@ export default function MySolutionPage() {
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300">整体健康改善进度</span>
                       <span className="text-sm font-bold text-indigo-700 dark:text-indigo-400">
-                        {Math.round(((100 - selectedSymptoms.length) / 100) * 100)}%
+                        {calculateHealthScore()}%
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
                       <div
                         className="bg-gradient-to-r from-indigo-500 to-blue-600 h-4 rounded-full transition-all duration-500 flex items-center justify-center"
-                        style={{ width: `${((100 - selectedSymptoms.length) / 100) * 100}%` }}
+                        style={{ width: `${calculateHealthScore()}%` }}
                       >
-                        {((100 - selectedSymptoms.length) / 100) * 100 > 10 && (
+                        {calculateHealthScore() > 10 && (
                           <span className="text-xs font-bold text-white">
-                            {Math.round(((100 - selectedSymptoms.length) / 100) * 100)}%
+                            {calculateHealthScore()}%
                           </span>
                         )}
                       </div>
+                    </div>
+                    <div className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                      综合评分基于身体语言简表、不良生活习惯表、300症状表的科学分析
                     </div>
                   </div>
                 </div>
