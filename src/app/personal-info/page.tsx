@@ -393,16 +393,16 @@ export default function PersonalInfoPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* 头部 */}
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
-        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center space-x-1.5 sm:space-x-2">
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600 dark:text-gray-400" />
-              <span className="text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-gray-400">返回首页</span>
+            <Link href="/" className="flex items-center space-x-2">
+              <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <span className="text-gray-600 dark:text-gray-400">返回首页</span>
             </Link>
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <div className="flex items-center space-x-1.5 sm:space-x-2">
-                <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-                <span className="text-[10px] sm:text-xs md:text-sm font-medium text-gray-900 dark:text-white">个人信息</span>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <User className="w-5 h-5 text-blue-500" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">个人信息</span>
               </div>
               <AutoSaveIndicator
                 isSaving={false}
@@ -414,22 +414,22 @@ export default function PersonalInfoPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-3xl">
+      <main className="container mx-auto px-4 py-8 max-w-3xl">
         {/* 标题卡片 */}
-        <Card className="mb-4 sm:mb-6 border-2 border-blue-100 dark:border-blue-900">
+        <Card className="mb-6 border-2 border-blue-100 dark:border-blue-900">
           <CardHeader>
-            <CardTitle className="text-lg sm:text-xl md:text-2xl text-center flex items-center justify-center gap-2">
-              <User className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+            <CardTitle className="text-2xl text-center flex items-center justify-center gap-2">
+              <User className="w-6 h-6 text-blue-500" />
               填写个人信息
             </CardTitle>
-            <CardDescription className="text-center text-sm sm:text-base">
+            <CardDescription className="text-center text-base">
               请填写您的基本信息，以便我们为您提供更精准的健康分析和方案
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Alert>
-              <Calculator className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <AlertDescription className="text-[10px] sm:text-xs md:text-sm">
+              <Calculator className="w-4 h-4" />
+              <AlertDescription>
                 我们会根据您的身高和体重自动计算身体质量指数（BMI），帮助您了解身体状况。
               </AlertDescription>
             </Alert>
@@ -438,27 +438,27 @@ export default function PersonalInfoPage() {
 
         {/* 表单卡片 */}
         <Card>
-          <CardContent className="pt-4 sm:pt-6 space-y-4 sm:space-y-6">
+          <CardContent className="pt-6 space-y-6">
             {/* 错误提示 */}
             {error && (
               <Alert variant="destructive" className="border-red-200 dark:border-red-800">
-                <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                <AlertTitle className="flex items-center justify-between text-sm sm:text-base">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle className="flex items-center justify-between">
                   <span>保存失败</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={copyError}
-                    className="h-6 sm:h-8 px-2 text-[10px] sm:text-xs"
+                    className="h-6 px-2 text-xs"
                   >
                     {copied ? (
                       <>
-                        <CheckCircle2 className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                        <CheckCircle2 className="w-3 h-3 mr-1" />
                         已复制
                       </>
                     ) : (
                       <>
-                        <Copy className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                        <Copy className="w-3 h-3 mr-1" />
                         复制错误信息
                       </>
                     )}
@@ -466,8 +466,8 @@ export default function PersonalInfoPage() {
                 </AlertTitle>
                 <AlertDescription className="mt-2">
                   <div className="space-y-2">
-                    <p className="font-medium text-[10px] sm:text-xs md:text-sm">{error.message}</p>
-                    <p className="text-[9px] sm:text-xs opacity-90">{getErrorSuggestion(error)}</p>
+                    <p className="font-medium">{error.message}</p>
+                    <p className="text-sm opacity-90">{getErrorSuggestion(error)}</p>
 
                     {/* 详细错误信息（可折叠） */}
                     <details className="mt-3">
@@ -503,8 +503,8 @@ export default function PersonalInfoPage() {
             )}
 
             {/* 姓名 */}
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="name" className="text-sm sm:text-base font-medium">
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-base font-medium">
                 姓名 <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -516,8 +516,8 @@ export default function PersonalInfoPage() {
             </div>
 
             {/* 手机号 */}
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="phone" className="text-sm sm:text-base font-medium">
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-base font-medium">
                 手机号（选填）
               </Label>
               <Input
@@ -527,15 +527,15 @@ export default function PersonalInfoPage() {
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
               />
-              <p className="text-[9px] sm:text-xs text-gray-500">
+              <p className="text-xs text-gray-500">
                 填写手机号后，换设备或清除浏览器数据时仍可找回您的记录
               </p>
             </div>
 
             {/* 性别和年龄 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="gender" className="text-sm sm:text-base font-medium">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="gender" className="text-base font-medium">
                   性别 <span className="text-red-500">*</span>
                 </Label>
                 <Select
@@ -552,8 +552,8 @@ export default function PersonalInfoPage() {
                 </Select>
               </div>
 
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="age" className="text-sm sm:text-base font-medium">
+              <div className="space-y-2">
+                <Label htmlFor="age" className="text-base font-medium">
                   年龄 <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -567,9 +567,9 @@ export default function PersonalInfoPage() {
             </div>
 
             {/* 身高和体重 */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="height" className="text-sm sm:text-base font-medium">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="height" className="text-base font-medium">
                   身高（cm） <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -581,8 +581,8 @@ export default function PersonalInfoPage() {
                 />
               </div>
 
-              <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="weight" className="text-sm sm:text-base font-medium">
+              <div className="space-y-2">
+                <Label htmlFor="weight" className="text-base font-medium">
                   体重（kg） <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -597,15 +597,15 @@ export default function PersonalInfoPage() {
 
             {/* BMI 显示 */}
             {bmi && (
-              <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg border-2 border-blue-100 dark:border-blue-900">
-                <div className="flex items-center justify-center gap-3 sm:gap-4">
-                  <Calculator className="w-5 h-5 sm:w-6 sm:h-6 text-blue-500" />
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-lg border-2 border-blue-100 dark:border-blue-900">
+                <div className="flex items-center justify-center gap-4">
+                  <Calculator className="w-6 h-6 text-blue-500" />
                   <div className="text-center">
-                    <div className="text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-0.5 sm:mb-1">身体质量指数（BMI）</div>
-                    <div className="text-2xl sm:text-3xl font-bold text-blue-600 dark:text-blue-400">
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">身体质量指数（BMI）</div>
+                    <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
                       {bmi}
                     </div>
-                    <div className={`text-base sm:text-lg font-medium mt-0.5 sm:mt-1 ${getBMIColor()}`}>
+                    <div className={`text-lg font-medium mt-1 ${getBMIColor()}`}>
                       {bmiCategory}
                     </div>
                   </div>
@@ -614,8 +614,8 @@ export default function PersonalInfoPage() {
             )}
 
             {/* 血压 */}
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="bloodPressure" className="text-sm sm:text-base font-medium">
+            <div className="space-y-2">
+              <Label htmlFor="bloodPressure" className="text-base font-medium">
                 血压（mmHg）
               </Label>
               <Input
@@ -624,14 +624,14 @@ export default function PersonalInfoPage() {
                 value={formData.bloodPressure}
                 onChange={(e) => handleInputChange('bloodPressure', e.target.value)}
               />
-              <p className="text-[9px] sm:text-xs md:text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 如果您最近测量过血压，请填写此项
               </p>
             </div>
 
             {/* 职业 */}
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="occupation" className="text-sm sm:text-base font-medium">
+            <div className="space-y-2">
+              <Label htmlFor="occupation" className="text-base font-medium">
                 职业
               </Label>
               <Input
@@ -643,8 +643,8 @@ export default function PersonalInfoPage() {
             </div>
 
             {/* 地址 */}
-            <div className="space-y-1.5 sm:space-y-2">
-              <Label htmlFor="address" className="text-sm sm:text-base font-medium">
+            <div className="space-y-2">
+              <Label htmlFor="address" className="text-base font-medium">
                 地址
               </Label>
               <Input
@@ -659,11 +659,11 @@ export default function PersonalInfoPage() {
             <Button
               onClick={handleSubmit}
               disabled={isSaving}
-              className="w-full h-10 sm:h-12 text-sm sm:text-base md:text-lg bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              className="w-full h-12 text-lg bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
             >
               {isSaving ? (
                 <>
-                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 mr-2 animate-spin" />
+                  <Activity className="w-5 h-5 mr-2 animate-spin" />
                   保存中...
                 </>
               ) : (

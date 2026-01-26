@@ -183,28 +183,28 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* 头部 */}
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
-        <div className="container mx-auto px-2 sm:px-3 md:px-4 py-2 sm:py-3 md:py-4">
+        <div className="container mx-auto px-3 md:px-4 py-4 md:py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 sm:space-x-3">
-              <div className="w-7 h-7 sm:w-8 sm:h-9 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
-                <Heart className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 text-white" />
+            <div className="flex items-center space-x-2 md:space-x-3">
+              <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                <Heart className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-sm sm:text-base md:text-xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                   健康自我管理
                 </h1>
-                <p className="text-[10px] sm:text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
                   把健康把握在自己手里
                 </p>
               </div>
             </div>
-            <div className="flex gap-1.5 sm:gap-2 md:gap-3">
+            <div className="flex gap-2 md:gap-3">
               {!hasHealthData && !isDemoMode && (
                 <Button
                   variant="outline"
                   onClick={loadDemoData}
                   size="sm"
-                  className="border-purple-500 text-purple-600 hover:bg-purple-50 text-[10px] sm:text-xs md:text-sm min-h-[32px] sm:min-h-[36px] px-2 sm:px-3"
+                  className="border-purple-500 text-purple-600 hover:bg-purple-50 text-xs md:text-sm min-h-[36px]"
                 >
                   演示模式
                 </Button>
@@ -213,14 +213,14 @@ export default function Home() {
                 variant="outline"
                 onClick={() => router.push('/install-guide')}
                 size="sm"
-                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-[10px] sm:text-xs md:text-sm min-h-[32px] sm:min-h-[36px] px-2 sm:px-3"
+                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-xs md:text-sm min-h-[36px]"
               >
-                如何安装
+                如何安装到桌面
               </Button>
               <Button
                 size="sm"
                 onClick={() => router.push('/personal-info')}
-                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 min-h-[32px] sm:min-h-[36px] px-2 sm:px-4"
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 min-h-[36px]"
               >
                 开始自检
               </Button>
@@ -231,14 +231,14 @@ export default function Home() {
 
       {/* 正确访问地址提示 */}
       <div className="bg-blue-50 border-b border-blue-200">
-        <div className="container mx-auto px-2 sm:px-4 py-2 sm:py-3">
-          <div className="flex items-center justify-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs md:text-sm text-blue-800">
-            <svg className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-center gap-2 text-sm text-blue-800">
+            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
             </svg>
-            <span className="font-medium hidden sm:inline">正确访问地址：</span>
-            <code className="bg-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[9px] sm:text-xs font-mono">cd776816-213e-4c84-af60-dbe5b397d82e.dev.coze.site</code>
-            <span className="text-blue-600 hidden sm:inline">（无需登录，可直接访问）</span>
+            <span className="font-medium">正确访问地址：</span>
+            <code className="bg-white px-2 py-1 rounded text-xs font-mono">cd776816-213e-4c84-af60-dbe5b397d82e.dev.coze.site</code>
+            <span className="text-blue-600">（无需登录，可直接访问）</span>
           </div>
         </div>
       </div>
@@ -247,14 +247,14 @@ export default function Home() {
       {hasHealthData && healthData && currentPage === 1 && (
         <section className="mb-16">
           {/* 手机版页面切换提示 */}
-          <div className="md:hidden mb-3 px-3">
-            <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-3 border border-indigo-200 dark:border-indigo-800">
+          <div className="md:hidden mb-4 px-4">
+            <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4 border border-indigo-200 dark:border-indigo-800">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xs sm:text-sm">
+                  <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                     1
                   </div>
-                  <span className="text-xs sm:text-sm font-medium text-indigo-900 dark:text-indigo-100">健康评分</span>
+                  <span className="text-sm font-medium text-indigo-900 dark:text-indigo-100">健康评分</span>
                 </div>
                 <Button
                   size="sm"
@@ -262,10 +262,10 @@ export default function Home() {
                     setCurrentPage(2);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
-                  className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white min-h-[36px] sm:min-h-[44px] px-3 sm:px-4 text-xs sm:text-sm"
+                  className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white min-h-[44px] px-4"
                 >
                   下一页
-                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1" />
+                  <ArrowRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
             </div>
@@ -273,15 +273,15 @@ export default function Home() {
 
           <Card className="max-w-5xl mx-auto border-2 border-indigo-100 dark:border-indigo-900 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-2 sm:gap-3 mb-1.5 sm:mb-2">
-                    <div className="w-9 h-9 sm:w-10 sm:h-11 md:w-12 md:h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center">
-                      <Activity className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 text-white" />
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center">
+                      <Activity className="w-7 h-7 text-white" />
                     </div>
                     <div>
-                      <CardTitle className="text-lg sm:text-xl md:text-2xl lg:text-3xl">您的健康数据概览</CardTitle>
-                      <CardDescription className="text-xs sm:text-sm md:text-base mt-0.5 sm:mt-1">
+                      <CardTitle className="text-2xl md:text-3xl">您的健康数据概览</CardTitle>
+                      <CardDescription className="text-base mt-1">
                         基于上次自检的综合分析报告
                       </CardDescription>
                     </div>
@@ -290,111 +290,111 @@ export default function Home() {
                 <Button
                   size="lg"
                   onClick={() => router.push('/my-solution')}
-                  className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all group text-xs sm:text-sm md:text-base px-3 sm:px-4 md:px-6 py-2 sm:py-2.5"
+                  className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all group"
                 >
-                  <Eye className="w-4 h-4 sm:w-5 sm:h-5 mr-1.5 sm:mr-2" />
+                  <Eye className="w-5 h-5 mr-2" />
                   查看完整方案
-                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1.5 sm:ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent className="p-3 sm:p-4 md:p-6">
-              <div className="grid grid-cols-2 md:grid-cols-2 gap-2 sm:gap-3 md:gap-5">
-                <div className="md:col-span-2 p-3 sm:p-4 md:p-5 lg:p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white text-center">
-                  <div className="text-[10px] sm:text-xs md:text-sm font-medium mb-1.5 sm:mb-2 opacity-90">健康评分</div>
-                  <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-0.5 sm:mb-1">{healthData.healthScore}</div>
-                  <div className="text-[10px] sm:text-xs md:text-sm opacity-80">分（满分100）</div>
-                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs opacity-70">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-5">
+                <div className="md:col-span-2 p-5 md:p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white text-center">
+                  <div className="text-sm font-medium mb-2 opacity-90">健康评分</div>
+                  <div className="text-5xl md:text-6xl font-bold mb-1">{healthData.healthScore}</div>
+                  <div className="text-sm opacity-80">分（满分100）</div>
+                  <div className="mt-3 text-xs opacity-70">
                     综合身体语言简表、不良生活习惯表、300症状表计算
                   </div>
                 </div>
 
                 <div
                   onClick={() => router.push('/check')}
-                  className="p-3 sm:p-4 md:p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
+                  className="p-5 md:p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
-                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <div className="text-[10px] sm:text-xs md:text-sm font-medium opacity-90">身体语言简表</div>
-                    <Activity className="w-4 h-4 sm:w-5 sm:h-5 opacity-80 group-hover:scale-110 transition-transform" />
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium opacity-90">身体语言简表</div>
+                    <Activity className="w-5 h-5 opacity-80 group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-0.5 sm:mb-1">{healthData.bodySymptomsCount}</div>
-                  <div className="text-[9px] sm:text-xs opacity-80">/ 100项</div>
-                  <div className="mt-1.5 sm:mt-2 bg-white/20 rounded-full h-1.5 sm:h-2">
+                  <div className="text-4xl font-bold mb-1">{healthData.bodySymptomsCount}</div>
+                  <div className="text-xs opacity-80">/ 100项</div>
+                  <div className="mt-2 bg-white/20 rounded-full h-2">
                     <div
-                      className="bg-white h-1.5 sm:h-2 rounded-full"
+                      className="bg-white h-2 rounded-full"
                       style={{ width: `${Math.min(100, healthData.bodySymptomsCount)}%` }}
                     />
                   </div>
-                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs opacity-70 flex items-center gap-0.5 sm:gap-1">
-                    <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <div className="mt-3 text-xs opacity-70 flex items-center gap-1">
+                    <ArrowRight className="w-3 h-3" />
                     点击查看详情
                   </div>
                 </div>
 
                 <div
                   onClick={() => router.push('/requirements?step=habits')}
-                  className="p-3 sm:p-4 md:p-5 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
+                  className="p-5 md:p-5 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
-                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <div className="text-[10px] sm:text-xs md:text-sm font-medium opacity-90">不良生活习惯</div>
-                    <AlertCircle className="w-4 h-4 sm:w-5 sm:h-5 opacity-80 group-hover:scale-110 transition-transform" />
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium opacity-90">不良生活习惯</div>
+                    <AlertCircle className="w-5 h-5 opacity-80 group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-0.5 sm:mb-1">{healthData.badHabitsCount}</div>
-                  <div className="text-[9px] sm:text-xs opacity-80">/ 252项</div>
-                  <div className="mt-1.5 sm:mt-2 bg-white/20 rounded-full h-1.5 sm:h-2">
+                  <div className="text-4xl font-bold mb-1">{healthData.badHabitsCount}</div>
+                  <div className="text-xs opacity-80">/ 252项</div>
+                  <div className="mt-2 bg-white/20 rounded-full h-2">
                     <div
-                      className="bg-white h-1.5 sm:h-2 rounded-full"
+                      className="bg-white h-2 rounded-full"
                       style={{ width: `${Math.min(100, Math.round(healthData.badHabitsCount * 100 / 252))}%` }}
                     />
                   </div>
-                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs opacity-70 flex items-center gap-0.5 sm:gap-1">
-                    <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <div className="mt-3 text-xs opacity-70 flex items-center gap-1">
+                    <ArrowRight className="w-3 h-3" />
                     点击查看详情
                   </div>
                 </div>
 
                 <div
                   onClick={() => router.push('/requirements?step=symptoms300')}
-                  className="p-3 sm:p-4 md:p-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
+                  className="p-5 md:p-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
-                  <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                    <div className="text-[10px] sm:text-xs md:text-sm font-medium opacity-90">300症状表</div>
-                    <Heart className="w-4 h-4 sm:w-5 sm:h-5 opacity-80 group-hover:scale-110 transition-transform" />
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="text-sm font-medium opacity-90">300症状表</div>
+                    <Heart className="w-5 h-5 opacity-80 group-hover:scale-110 transition-transform" />
                   </div>
-                  <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-0.5 sm:mb-1">{healthData.symptoms300Count}</div>
-                  <div className="text-[9px] sm:text-xs opacity-80">/ 300项</div>
-                  <div className="mt-1.5 sm:mt-2 bg-white/20 rounded-full h-1.5 sm:h-2">
+                  <div className="text-4xl font-bold mb-1">{healthData.symptoms300Count}</div>
+                  <div className="text-xs opacity-80">/ 300项</div>
+                  <div className="mt-2 bg-white/20 rounded-full h-2">
                     <div
-                      className="bg-white h-1.5 sm:h-2 rounded-full"
+                      className="bg-white h-2 rounded-full"
                       style={{ width: `${Math.min(100, Math.round(healthData.symptoms300Count * 100 / 300))}%` }}
                     />
                   </div>
-                  <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs opacity-70 flex items-center gap-0.5 sm:gap-1">
-                    <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                  <div className="mt-3 text-xs opacity-70 flex items-center gap-1">
+                    <ArrowRight className="w-3 h-3" />
                     点击查看详情
                   </div>
                 </div>
 
                 <div
                   onClick={() => router.push('/check')}
-                  className="p-3 sm:p-4 md:p-5 bg-gradient-to-br from-red-600 to-red-700 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group relative overflow-hidden active:scale-95"
+                  className="p-5 md:p-5 bg-gradient-to-br from-red-600 to-red-700 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group relative overflow-hidden active:scale-95"
                 >
-                  <div className="absolute top-0 right-0 w-16 h-16 sm:w-20 sm:h-20 bg-white/10 rounded-full -mr-8 -mt-8 sm:-mr-10 sm:-mt-10 blur-2xl" />
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
                   <div className="relative">
-                    <div className="flex items-center justify-between mb-1.5 sm:mb-2">
-                      <div className="text-[10px] sm:text-xs md:text-sm font-medium opacity-90">重点症状</div>
-                      <Target className="w-4 h-4 sm:w-5 sm:h-5 opacity-90 group-hover:scale-110 transition-transform" />
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="text-sm font-medium opacity-90">重点症状</div>
+                      <Target className="w-5 h-5 opacity-90 group-hover:scale-110 transition-transform" />
                     </div>
-                    <div className="text-2xl sm:text-3xl md:text-4xl font-bold mb-0.5 sm:mb-1">{healthData.targetSymptoms}</div>
-                    <div className="text-[9px] sm:text-xs opacity-90 font-medium">个需要改善（最多3个）</div>
-                    <div className="mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-white/20">
+                    <div className="text-4xl font-bold mb-1">{healthData.targetSymptoms}</div>
+                    <div className="text-xs opacity-90 font-medium">个需要改善（最多3个）</div>
+                    <div className="mt-3 pt-3 border-t border-white/20">
                       <div className="flex justify-between items-center">
-                        <span className="text-[9px] sm:text-xs opacity-80">症状总数</span>
-                        <span className="text-base sm:text-lg font-bold">{healthData.totalSymptoms}项</span>
+                        <span className="text-xs opacity-80">症状总数</span>
+                        <span className="text-lg font-bold">{healthData.totalSymptoms}项</span>
                       </div>
                     </div>
-                    <div className="mt-2 sm:mt-3 text-[9px] sm:text-xs opacity-80 flex items-center gap-0.5 sm:gap-1 font-medium">
-                      <ArrowRight className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                    <div className="mt-3 text-xs opacity-80 flex items-center gap-1 font-medium">
+                      <ArrowRight className="w-3 h-3" />
                       点击查看详情
                     </div>
                   </div>
@@ -402,56 +402,56 @@ export default function Home() {
               </div>
 
               {/* 进度条和详细说明 */}
-              <div className="mt-3 sm:mt-4 md:mt-6 space-y-2 sm:space-y-3 md:space-y-4">
+              <div className="mt-4 md:mt-6 space-y-3 md:space-y-4">
                 {/* 主进度条 */}
-                <div className="p-3 sm:p-4 md:p-5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                  <div className="flex items-center justify-between mb-1.5 sm:mb-2 md:mb-3">
-                    <div className="flex items-center gap-1.5 sm:gap-2">
-                      <Activity className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 text-indigo-600 dark:text-indigo-400" />
-                      <span className="text-[10px] sm:text-xs md:text-sm font-semibold text-gray-900 dark:text-white">整体健康改善潜力</span>
+                <div className="p-4 md:p-5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                  <div className="flex items-center justify-between mb-2 md:mb-3">
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-4 h-4 md:w-5 md:h-5 text-indigo-600 dark:text-indigo-400" />
+                      <span className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white">整体健康改善潜力</span>
                     </div>
-                    <span className="text-sm sm:text-base md:text-lg font-bold text-indigo-700 dark:text-indigo-400">
+                    <span className="text-base md:text-lg font-bold text-indigo-700 dark:text-indigo-400">
                       {healthData.healthScore}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 sm:h-3 md:h-5 shadow-inner">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 md:h-5 shadow-inner">
                     <div
-                      className="bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-600 h-2 sm:h-3 md:h-5 rounded-full transition-all duration-700 ease-out flex items-center justify-center shadow-lg"
+                      className="bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-600 h-4 md:h-5 rounded-full transition-all duration-700 ease-out flex items-center justify-center shadow-lg"
                       style={{ width: `${healthData.healthScore}%` }}
                     >
                       {healthData.healthScore > 10 && (
-                        <span className="text-[9px] sm:text-xs md:text-xs font-bold text-white">{healthData.healthScore}%</span>
+                        <span className="text-xs font-bold text-white">{healthData.healthScore}%</span>
                       )}
                     </div>
                   </div>
                 </div>
 
                 {/* 详细说明 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-1.5 sm:gap-2 md:gap-3">
-                  <div className="p-2 sm:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-blue-500 rounded-full" />
-                      <span className="text-[9px] sm:text-xs font-semibold text-blue-900 dark:text-blue-300">身体语言简表</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                      <span className="text-xs font-semibold text-blue-900 dark:text-blue-300">身体语言简表</span>
                     </div>
-                    <div className="text-[9px] sm:text-xs text-blue-700 dark:text-blue-400">
+                    <div className="text-xs text-blue-700 dark:text-blue-400">
                       权重30% · {healthData.bodySymptomsCount}/100项
                     </div>
                   </div>
-                  <div className="p-2 sm:p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                    <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-orange-500 rounded-full" />
-                      <span className="text-[9px] sm:text-xs font-semibold text-orange-900 dark:text-orange-300">不良生活习惯</span>
+                  <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full" />
+                      <span className="text-xs font-semibold text-orange-900 dark:text-orange-300">不良生活习惯</span>
                     </div>
-                    <div className="text-[9px] sm:text-xs text-orange-700 dark:text-orange-400">
+                    <div className="text-xs text-orange-700 dark:text-orange-400">
                       权重20% · {healthData.badHabitsCount}/252项
                     </div>
                   </div>
-                  <div className="p-2 sm:p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
-                      <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-purple-500 rounded-full" />
-                      <span className="text-[9px] sm:text-xs font-semibold text-purple-900 dark:text-purple-300">300症状表</span>
+                  <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                      <span className="text-xs font-semibold text-purple-900 dark:text-purple-300">300症状表</span>
                     </div>
-                    <div className="text-[9px] sm:text-xs text-purple-700 dark:text-purple-400">
+                    <div className="text-xs text-purple-700 dark:text-purple-400">
                       权重10% · {healthData.symptoms300Count}/300项
                     </div>
                   </div>
