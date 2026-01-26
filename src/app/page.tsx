@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info } from 'lucide-react';
@@ -9,6 +9,40 @@ import { PWARedirect } from './page-pwa-redirect';
 
 export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
+  const [healthData, setHealthData] = useState<any>(null);
+  const [hasHealthData, setHasHealthData] = useState(false);
+
+  // 检查是否有健康数据
+  useEffect(() => {
+    const checkHealthData = () => {
+      try {
+        const savedSymptoms = localStorage.getItem('selectedSymptoms');
+        const savedTarget = localStorage.getItem('targetSymptoms') || localStorage.getItem('targetSymptom');
+        const savedChoice = localStorage.getItem('selectedChoice');
+
+        if (savedSymptoms && savedTarget && savedChoice) {
+          const symptoms = JSON.parse(savedSymptoms);
+          const targetSymptoms = JSON.parse(savedTarget);
+          const choice = savedChoice;
+
+          setHealthData({
+            totalSymptoms: symptoms.length,
+            targetSymptoms: Array.isArray(targetSymptoms) ? targetSymptoms.length : 1,
+            choice,
+            healthScore: Math.max(0, Math.round(100 - symptoms.length * 0.5)),
+          });
+          setHasHealthData(true);
+        } else {
+          setHasHealthData(false);
+        }
+      } catch (error) {
+        console.error('Failed to check health data:', error);
+        setHasHealthData(false);
+      }
+    };
+
+    checkHealthData();
+  }, []);
 
   const features = [
     {
@@ -107,6 +141,75 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* 健康数据概览卡片（如果有数据） */}
+      {hasHealthData && healthData && (
+        <section className="mb-16">
+          <Card className="max-w-4xl mx-auto border-2 border-indigo-100 dark:border-indigo-900">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-2xl">您的健康数据概览</CardTitle>
+                  <CardDescription className="text-base mt-2">
+                    上次自检结果摘要
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={() => window.location.href = '/my-solution'}
+                  className="border-indigo-500 text-indigo-600 hover:bg-indigo-50"
+                >
+                  查看完整方案
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* 健康评分 */}
+                <div className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white text-center">
+                  <div className="text-sm font-medium mb-2 opacity-90">健康评分</div>
+                  <div className="text-5xl font-bold mb-1">{healthData.healthScore}</div>
+                  <div className="text-sm opacity-80">分（满分100）</div>
+                </div>
+
+                {/* 症状统计 */}
+                <div className="p-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white text-center">
+                  <div className="text-sm font-medium mb-2 opacity-90">症状总数</div>
+                  <div className="text-5xl font-bold mb-1">{healthData.totalSymptoms}</div>
+                  <div className="text-sm opacity-80">项（基于100项简表）</div>
+                </div>
+
+                {/* 重点症状 */}
+                <div className="p-6 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white text-center">
+                  <div className="text-sm font-medium mb-2 opacity-90">重点症状</div>
+                  <div className="text-5xl font-bold mb-1">{healthData.targetSymptoms}</div>
+                  <div className="text-sm opacity-80">个需要改善</div>
+                </div>
+              </div>
+
+              {/* 进度条 */}
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">整体健康改善潜力</span>
+                  <span className="text-sm font-bold text-indigo-700 dark:text-indigo-400">
+                    {healthData.healthScore}%
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                  <div
+                    className="bg-gradient-to-r from-indigo-500 to-purple-600 h-4 rounded-full transition-all duration-500 flex items-center justify-center"
+                    style={{ width: `${healthData.healthScore}%` }}
+                  >
+                    {healthData.healthScore > 10 && (
+                      <span className="text-xs font-bold text-white">{healthData.healthScore}%</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+      )}
 
       {/* 主内容 */}
       <main className="container mx-auto px-4 py-12">

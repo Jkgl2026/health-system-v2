@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +19,7 @@ interface QuestionAnswer {
 }
 
 export default function AnalysisPage() {
+  const [loading, setLoading] = useState(true);
   const [selectedSymptoms, setSelectedSymptoms] = useState<number[]>([]);
   const [targetSymptom, setTargetSymptom] = useState<number | null>(null);
   const [currentStep, setCurrentStep] = useState<'elements' | 'questions'>('elements');
@@ -28,43 +29,61 @@ export default function AnalysisPage() {
   const [saveError, setSaveError] = useState<any>(null);
 
   useEffect(() => {
-    const savedSymptoms = localStorage.getItem('selectedSymptoms');
-    const savedTarget = localStorage.getItem('targetSymptoms');
-    if (savedSymptoms) {
-      setSelectedSymptoms(JSON.parse(savedSymptoms));
-    }
-    if (savedTarget) {
-      const targetSymptomArray = JSON.parse(savedTarget);
-      // 如果是数组，取第一个作为主要目标症状（向后兼容）
-      setTargetSymptom(Array.isArray(targetSymptomArray) ? targetSymptomArray[0] || null : parseInt(savedTarget));
-    }
+    // 优先设置loading为false，立即显示UI骨架
+    setLoading(false);
+
+    // 异步加载数据，避免阻塞UI渲染
+    const timer = setTimeout(() => {
+      try {
+        const savedSymptoms = localStorage.getItem('selectedSymptoms');
+        const savedTarget = localStorage.getItem('targetSymptoms');
+        if (savedSymptoms) {
+          setSelectedSymptoms(JSON.parse(savedSymptoms));
+        }
+        if (savedTarget) {
+          const targetSymptomArray = JSON.parse(savedTarget);
+          // 如果是数组，取第一个作为主要目标症状（向后兼容）
+          setTargetSymptom(Array.isArray(targetSymptomArray) ? targetSymptomArray[0] || null : parseInt(savedTarget));
+        }
+      } catch (error) {
+        console.error('Failed to load analysis data:', error);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   // 计算每个健康要素的症状数量
-  const getElementSymptomCount = (elementKey: keyof typeof HEALTH_ELEMENTS) => {
-    const element = HEALTH_ELEMENTS[elementKey];
-    return element.symptoms.filter(id => selectedSymptoms.includes(id)).length;
-  };
+  const getElementSymptomCount = useMemo(() => {
+    return (elementKey: keyof typeof HEALTH_ELEMENTS) => {
+      const element = HEALTH_ELEMENTS[elementKey];
+      return element.symptoms.filter(id => selectedSymptoms.includes(id)).length;
+    };
+  }, [selectedSymptoms]);
 
   // 按症状数量排序健康要素
-  const sortedElements = (Object.keys(HEALTH_ELEMENTS) as Array<keyof typeof HEALTH_ELEMENTS>)
-    .sort((a, b) => getElementSymptomCount(b) - getElementSymptomCount(a));
+  const sortedElements = useMemo(() => {
+    return (Object.keys(HEALTH_ELEMENTS) as Array<keyof typeof HEALTH_ELEMENTS>)
+      .sort((a, b) => getElementSymptomCount(b) - getElementSymptomCount(a));
+  }, [getElementSymptomCount]);
 
   // 获取目标症状
-  const getTargetSymptom = () => {
-    return BODY_SYMPTOMS.find(s => s.id === targetSymptom);
-  };
+  const getTargetSymptom = useMemo(() => {
+    return () => BODY_SYMPTOMS.find(s => s.id === targetSymptom);
+  }, [targetSymptom]);
 
   // 获取所有目标症状（用于显示）
-  const getTargetSymptoms = () => {
-    const savedTarget = localStorage.getItem('targetSymptoms');
-    if (!savedTarget) return [];
-    const targetSymptomArray = JSON.parse(savedTarget);
-    if (!Array.isArray(targetSymptomArray)) return [];
-    return targetSymptomArray
-      .map(id => BODY_SYMPTOMS.find(s => s.id === id))
-      .filter(Boolean);
-  };
+  const getTargetSymptoms = useMemo(() => {
+    return () => {
+      const savedTarget = localStorage.getItem('targetSymptoms');
+      if (!savedTarget) return [];
+      const targetSymptomArray = JSON.parse(savedTarget);
+      if (!Array.isArray(targetSymptomArray)) return [];
+      return targetSymptomArray
+        .map(id => BODY_SYMPTOMS.find(s => s.id === id))
+        .filter(Boolean);
+    };
+  }, []);
 
   // 处理回答保存
   const handleAnswerChange = (questionId: number, answer: string) => {

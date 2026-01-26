@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, CheckCircle2, Sparkles, AlertTriangle, ArrowRight, BookOpen, Flame, Target, Activity, Droplets, Heart, Zap } from 'lucide-react';
+import { ChevronLeft, CheckCircle2, Sparkles, AlertTriangle, ArrowRight, BookOpen, Flame, Target, Activity, Droplets, Heart, Zap, Loader2 } from 'lucide-react';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS, TWENTY_ONE_COURSES } from '@/lib/health-data';
 import Link from 'next/link';
 
@@ -28,38 +28,51 @@ interface CourseMatch {
 }
 
 export default function SolutionPage() {
+  const [loading, setLoading] = useState(true);
   const [selectedSymptoms, setSelectedSymptoms] = useState<number[]>([]);
   const [targetSymptoms, setTargetSymptoms] = useState<number[]>([]);
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [selectedHabits, setSelectedHabits] = useState<number[]>([]);
 
   useEffect(() => {
-    const savedSymptoms = localStorage.getItem('selectedSymptoms');
-    const savedTarget = localStorage.getItem('targetSymptom');
-    const savedChoice = localStorage.getItem('selectedChoice');
-    const savedHabits = localStorage.getItem('selectedHabitsRequirements');
+    // 优先设置loading为false，立即显示UI骨架
+    setLoading(false);
 
-    if (savedSymptoms) {
-      setSelectedSymptoms(JSON.parse(savedSymptoms));
-    }
-    if (savedTarget) {
-      const targetSymptomArray = JSON.parse(savedTarget);
-      setTargetSymptoms(Array.isArray(targetSymptomArray) ? targetSymptomArray : [parseInt(savedTarget)].filter(Boolean));
-    }
-    if (savedChoice) {
-      setSelectedChoice(savedChoice);
-    }
-    if (savedHabits) {
-      setSelectedHabits(JSON.parse(savedHabits));
-    }
+    // 异步加载数据，避免阻塞UI渲染
+    const timer = setTimeout(() => {
+      try {
+        const savedSymptoms = localStorage.getItem('selectedSymptoms');
+        const savedTarget = localStorage.getItem('targetSymptom');
+        const savedChoice = localStorage.getItem('selectedChoice');
+        const savedHabits = localStorage.getItem('selectedHabitsRequirements');
+
+        if (savedSymptoms) {
+          setSelectedSymptoms(JSON.parse(savedSymptoms));
+        }
+        if (savedTarget) {
+          const targetSymptomArray = JSON.parse(savedTarget);
+          setTargetSymptoms(Array.isArray(targetSymptomArray) ? targetSymptomArray : [parseInt(savedTarget)].filter(Boolean));
+        }
+        if (savedChoice) {
+          setSelectedChoice(savedChoice);
+        }
+        if (savedHabits) {
+          setSelectedHabits(JSON.parse(savedHabits));
+        }
+      } catch (error) {
+        console.error('Failed to load solution data:', error);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const getTargetSymptoms = () => {
     return targetSymptoms.map(id => BODY_SYMPTOMS.find(s => s.id === id)).filter(Boolean);
   };
 
-  // 计算主要健康要素
-  const getPrimaryElements = () => {
+  // 使用useMemo缓存计算结果，避免重复计算
+  const primaryElements = useMemo(() => {
     const counts: Record<string, number> = {};
     (Object.keys(HEALTH_ELEMENTS) as Array<keyof typeof HEALTH_ELEMENTS>).forEach(key => {
       const element = HEALTH_ELEMENTS[key];
@@ -72,12 +85,16 @@ export default function SolutionPage() {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
       .map(([name, count]) => ({ name, count }));
+  }, [selectedSymptoms]);
+
+  const calculateMatchScore = (elementNames: string[]): number => {
+    return primaryElements
+      .filter(el => elementNames.includes(el.name))
+      .reduce((sum, el) => sum + el.count, 0);
   };
 
-  const primaryElements = getPrimaryElements();
-
-  // 产品匹配逻辑
-  const getProductMatches = (): ProductMatch[] => {
+  // 使用useMemo缓存产品匹配结果
+  const productMatches = useMemo((): ProductMatch[] => {
     const matches: ProductMatch[] = [];
 
     // 艾灸 - 适合气血、寒凉、循环问题
@@ -203,16 +220,10 @@ export default function SolutionPage() {
     });
 
     return matches.sort((a, b) => b.matchScore - a.matchScore);
-  };
+  }, [primaryElements, selectedSymptoms]);
 
-  const calculateMatchScore = (elementNames: string[]): number => {
-    return primaryElements
-      .filter(el => elementNames.includes(el.name))
-      .reduce((sum, el) => sum + el.count, 0);
-  };
-
-  // 课程匹配逻辑
-  const getCourseMatches = (): CourseMatch[] => {
+  // 使用useMemo缓存课程匹配结果
+  const courseMatches = useMemo((): CourseMatch[] => {
     return TWENTY_ONE_COURSES.map(course => {
       let relevance: 'high' | 'medium' | 'low' = 'low';
 
@@ -244,10 +255,7 @@ export default function SolutionPage() {
       const relevanceOrder = { high: 3, medium: 2, low: 1 };
       return relevanceOrder[b.relevance] - relevanceOrder[a.relevance];
     });
-  };
-
-  const productMatches = getProductMatches();
-  const courseMatches = getCourseMatches();
+  }, [primaryElements]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-20">

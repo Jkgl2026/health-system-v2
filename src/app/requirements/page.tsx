@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,6 +15,7 @@ import Link from 'next/link';
 type Step = 'overview' | 'req1-2' | 'req3' | 'req4';
 
 export default function RequirementsPage() {
+  const [loading, setLoading] = useState(true);
   const [selectedHabits, setSelectedHabits] = useState<Set<number>>(new Set());
   const [selectedSymptoms300, setSelectedSymptoms300] = useState<Set<number>>(new Set());
   const [activeStep, setActiveStep] = useState<Step>('overview');
@@ -35,26 +36,34 @@ export default function RequirementsPage() {
     setSelectedHabits(newSelected);
   };
 
-  // 从 localStorage 恢复之前的数据
+  // 从 localStorage 恢复之前的数据 - 优化为异步加载
   useEffect(() => {
-    try {
-      const savedHabits = localStorage.getItem('selectedHabitsRequirements');
-      const savedSymptoms300 = localStorage.getItem('selectedSymptoms300');
+    // 优先设置loading为false，立即显示UI骨架
+    setLoading(false);
 
-      if (savedHabits) {
-        const habits = JSON.parse(savedHabits);
-        setSelectedHabits(new Set(habits));
-        console.log('[RequirementsPage] 恢复已选择的不良习惯:', habits.length);
-      }
+    // 异步加载数据，避免阻塞UI渲染
+    const timer = setTimeout(() => {
+      try {
+        const savedHabits = localStorage.getItem('selectedHabitsRequirements');
+        const savedSymptoms300 = localStorage.getItem('selectedSymptoms300');
 
-      if (savedSymptoms300) {
-        const symptoms = JSON.parse(savedSymptoms300);
-        setSelectedSymptoms300(new Set(symptoms));
-        console.log('[RequirementsPage] 恢复已选择的300症状:', symptoms.length);
+        if (savedHabits) {
+          const habits = JSON.parse(savedHabits);
+          setSelectedHabits(new Set(habits));
+          console.log('[RequirementsPage] 恢复已选择的不良习惯:', habits.length);
+        }
+
+        if (savedSymptoms300) {
+          const symptoms = JSON.parse(savedSymptoms300);
+          setSelectedSymptoms300(new Set(symptoms));
+          console.log('[RequirementsPage] 恢复已选择的300症状:', symptoms.length);
+        }
+      } catch (error) {
+        console.error('[RequirementsPage] 恢复数据失败:', error);
       }
-    } catch (error) {
-      console.error('[RequirementsPage] 恢复数据失败:', error);
-    }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, []);
 
   const handleSymptom300Toggle = (id: number) => {
@@ -137,14 +146,16 @@ export default function RequirementsPage() {
 
   const habitCategories = Object.keys(BAD_HABITS_CHECKLIST) as Array<keyof typeof BAD_HABITS_CHECKLIST>;
 
-  // 按类别分组300项症状
-  const symptoms300ByCategory = BODY_SYMPTOMS_300.reduce((acc, symptom) => {
-    if (!acc[symptom.category]) {
-      acc[symptom.category] = [];
-    }
-    acc[symptom.category].push(symptom);
-    return acc;
-  }, {} as Record<string, typeof BODY_SYMPTOMS_300>);
+  // 使用useMemo缓存300项症状的分组计算
+  const symptoms300ByCategory = useMemo(() => {
+    return BODY_SYMPTOMS_300.reduce((acc, symptom) => {
+      if (!acc[symptom.category]) {
+        acc[symptom.category] = [];
+      }
+      acc[symptom.category].push(symptom);
+      return acc;
+    }, {} as Record<string, typeof BODY_SYMPTOMS_300>);
+  }, []);
 
   const symptomCategories300 = Object.keys(symptoms300ByCategory);
 

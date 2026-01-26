@@ -412,90 +412,68 @@ export default function MySolutionPage() {
                 </div>
               )}
 
-              {/* 症状统计 */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* 症状总数 */}
-                <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
-                  <h4 className="text-base font-bold mb-4 text-gray-900 dark:text-white flex items-center">
-                    <Activity className="w-5 h-5 mr-2 text-green-600" />
-                    症状总数统计
-                  </h4>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-700 dark:text-gray-300">症状数量</span>
-                      <span className="text-2xl font-bold text-green-700 dark:text-green-400">{selectedSymptoms.length}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-8">
-                      <div
-                        className="bg-gradient-to-r from-green-500 to-emerald-600 h-8 rounded-full transition-all duration-500 flex items-center justify-end pr-3"
-                        style={{ width: `${Math.min(selectedSymptoms.length * 2, 100)}%` }}
-                      >
-                        <span className="text-xs font-bold text-white">{Math.min(selectedSymptoms.length * 2, 100)}%</span>
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
-                      基于身体语言简表100项症状
-                    </p>
-                  </div>
-                </div>
-
-                {/* 主要健康要素 */}
-                <div className="p-6 bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
-                  <h4 className="text-base font-bold mb-4 text-gray-900 dark:text-white flex items-center">
-                    <Target className="w-5 h-5 mr-2 text-purple-600" />
-                    主要健康要素分布
-                  </h4>
+              {/* 健康指标完成度 */}
+              <div className="p-6 bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-lg border-2 border-indigo-200 dark:border-indigo-800">
+                <h4 className="text-base font-bold mb-4 text-gray-900 dark:text-white flex items-center">
+                  <Activity className="w-5 h-5 mr-2 text-indigo-600" />
+                  健康指标完成度
+                </h4>
+                <div className="space-y-4">
                   {primaryElements.length > 0 ? (
-                    <div className="space-y-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {primaryElements.map((el, index) => {
-                        const maxCount = Math.max(...primaryElements.map(e => e.count));
-                        const percentage = (el.count / maxCount) * 100;
-                        const colors = [
-                          'from-red-500 to-red-600',
-                          'from-blue-500 to-blue-600',
-                          'from-yellow-500 to-yellow-600',
-                        ];
-                        const colorClass = colors[index % colors.length];
-
+                        const totalSymptoms = 100;
+                        const completionPercentage = ((totalSymptoms - selectedSymptoms.length) / totalSymptoms) * 100;
+                        const healthScore = 100 - (selectedSymptoms.length * 0.5);
+                        
                         return (
-                          <div key={index} className="space-y-1">
-                            <div className="flex items-center justify-between text-sm">
-                              <span className="font-semibold text-gray-900 dark:text-white">{el.name}</span>
-                              <span className="font-bold text-purple-700 dark:text-purple-400">{el.count} 项</span>
+                          <div key={index} className="text-center p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">{el.name}</div>
+                            <div className="text-2xl font-bold text-indigo-700 dark:text-indigo-400 mb-1">
+                              {el.count}
                             </div>
-                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-6">
-                              <div
-                                className={`bg-gradient-to-r ${colorClass} h-6 rounded-full transition-all duration-500 flex items-center justify-end pr-2`}
-                                style={{ width: `${percentage}%` }}
-                              >
-                                {percentage > 15 && (
-                                  <span className="text-xs font-bold text-white">{percentage.toFixed(0)}%</span>
-                                )}
-                              </div>
-                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-500">项症状</div>
                           </div>
                         );
                       })}
+                      {/* 健康评分 */}
+                      <div className="text-center p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-sm">
+                        <div className="text-xs text-white/80 mb-1">健康评分</div>
+                        <div className="text-2xl font-bold text-white mb-1">
+                          {Math.max(0, Math.round(100 - selectedSymptoms.length * 0.5))}
+                        </div>
+                        <div className="text-xs text-white/70">分</div>
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-4 text-gray-600 dark:text-gray-400">
-                      <p className="text-sm">暂无主要健康要素数据</p>
+                      <p className="text-sm">暂无健康指标数据</p>
                     </div>
                   )}
+                  
+                  {/* 整体进度 */}
+                  <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">整体健康改善进度</span>
+                      <span className="text-sm font-bold text-indigo-700 dark:text-indigo-400">
+                        {Math.round(((100 - selectedSymptoms.length) / 100) * 100)}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                      <div
+                        className="bg-gradient-to-r from-indigo-500 to-blue-600 h-4 rounded-full transition-all duration-500 flex items-center justify-center"
+                        style={{ width: `${((100 - selectedSymptoms.length) / 100) * 100}%` }}
+                      >
+                        {((100 - selectedSymptoms.length) / 100) * 100 > 10 && (
+                          <span className="text-xs font-bold text-white">
+                            {Math.round(((100 - selectedSymptoms.length) / 100) * 100)}%
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              {/* 选择方案 */}
-              {selectedChoice && (
-                <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border-2 border-orange-200 dark:border-orange-800">
-                  <h4 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
-                    您选择的方案：
-                  </h4>
-                  <p className="text-lg font-medium text-orange-700 dark:text-orange-400">
-                    {selectedChoice === 'choice1' ? '自我调理' : selectedChoice === 'choice2' ? '产品调理' : '系统调理'}
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
         </section>
