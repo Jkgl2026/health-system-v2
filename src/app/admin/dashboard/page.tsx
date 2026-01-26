@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -85,6 +86,7 @@ const HEALTH_ELEMENTS = [
 ];
 
 export default function AdminDashboardPage() {
+  const router = useRouter();
   const [users, setUsers] = useState<UserSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<UserFullData | null>(null);
@@ -114,7 +116,7 @@ export default function AdminDashboardPage() {
   const checkAuth = () => {
     const isLoggedIn = localStorage.getItem('adminLoggedIn');
     if (!isLoggedIn) {
-      window.location.href = '/admin/login';
+      router.push('/admin/login');
     }
   };
 
@@ -180,7 +182,7 @@ export default function AdminDashboardPage() {
   const handleLogout = () => {
     localStorage.removeItem('adminLoggedIn');
     localStorage.removeItem('admin');
-    window.location.href = '/admin/login';
+    router.push('/admin/login');
   };
 
   const handleViewDetail = async (userId: string) => {
@@ -354,7 +356,7 @@ export default function AdminDashboardPage() {
                 <Download className="h-4 w-4 mr-2" />
                 导出CSV
               </Button>
-              <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/compare'}>
+              <Button variant="outline" size="sm" onClick={() => router.push('/admin/compare')}>
                 <Activity className="h-4 w-4 mr-2" />
                 数据对比
               </Button>

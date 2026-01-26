@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,6 +17,7 @@ import { saveSymptomCheck, createUser, getUser } from '@/lib/api-client';
 import Link from 'next/link';
 
 export default function CheckPage() {
+  const router = useRouter();
   const [selectedSymptoms, setSelectedSymptoms] = useState<Set<number>>(new Set());
   const [currentStep, setCurrentStep] = useState<'intro' | 'select' | 'confirm'>('intro');
   const [targetSymptoms, setTargetSymptoms] = useState<number[]>([]);
@@ -183,11 +185,9 @@ export default function CheckPage() {
         // 保存成功后清除错误状态，然后跳转
         setSaveError(null);
         setIsSaving(false);
-        
-        // 使用更可靠的跳转方式
-        setTimeout(() => {
-          window.location.href = '/analysis';
-        }, 100);
+
+        // 立即跳转，无延迟
+        router.push('/analysis');
       } catch (error) {
         console.error('保存症状自检数据失败:', error);
         setSaveError(error);

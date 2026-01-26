@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,6 +20,7 @@ interface QuestionAnswer {
 }
 
 export default function AnalysisPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [selectedSymptoms, setSelectedSymptoms] = useState<number[]>([]);
   const [targetSymptom, setTargetSymptom] = useState<number | null>(null);
@@ -155,11 +157,9 @@ export default function AnalysisPage() {
         // 保存成功后清除错误状态，然后跳转
         setSaveError(null);
         setIsSaving(false);
-        
-        // 使用更可靠的跳转方式
-        setTimeout(() => {
-          window.location.href = '/story';
-        }, 100);
+
+        // 立即跳转，无延迟
+        router.push('/story');
       } catch (error) {
         console.error('保存健康要素分析失败:', error);
         setSaveError(error);

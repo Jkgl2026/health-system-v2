@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -28,6 +29,7 @@ interface CourseMatch {
 }
 
 export default function SolutionPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [selectedSymptoms, setSelectedSymptoms] = useState<number[]>([]);
   const [targetSymptoms, setTargetSymptoms] = useState<number[]>([]);
@@ -534,7 +536,7 @@ export default function SolutionPage() {
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600"
-                onClick={() => window.location.href = '/courses'}
+                onClick={() => router.push('/courses')}
               >
                 学习21堂必修课程
                 <ArrowRight className="w-5 h-5 ml-2" />

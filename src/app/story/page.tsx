@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +12,7 @@ import { SYSTEM_CAMPAIGN_STORY, HEALTH_ELEMENTS, KEY_QUESTION } from '@/lib/heal
 import Link from 'next/link';
 
 export default function StoryPage() {
+  const router = useRouter();
   const [activeElement, setActiveElement] = useState<keyof typeof HEALTH_ELEMENTS>('气血');
   const [showFullStory, setShowFullStory] = useState(false);
 
@@ -234,7 +236,7 @@ export default function StoryPage() {
         {/* 下一步按钮 */}
         <section className="text-center space-y-4 mb-12">
           <Button
-            onClick={() => window.location.href = '/choices'}
+            onClick={() => router.push('/choices')}
             size="lg"
             className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600"
           >

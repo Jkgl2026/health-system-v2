@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,6 +9,7 @@ import { TWENTY_ONE_COURSES, HEART_INSPIRATION } from '@/lib/health-data';
 import Link from 'next/link';
 
 export default function CoursesPage() {
+  const router = useRouter();
   // 按模块分组课程
   const coursesByModule = TWENTY_ONE_COURSES.reduce((acc, course) => {
     const moduleIndex = Math.ceil(course.id / 7);
@@ -284,7 +286,7 @@ export default function CoursesPage() {
         {/* 下一步按钮 */}
         <section className="text-center space-y-4 mb-12">
           <Button
-            onClick={() => window.location.href = '/'}
+            onClick={() => router.push('/')}
             size="lg"
             className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
           >

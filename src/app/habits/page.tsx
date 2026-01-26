@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,6 +12,7 @@ import { BAD_HABITS_CHECKLIST } from '@/lib/health-data';
 import Link from 'next/link';
 
 export default function HabitsPage() {
+  const router = useRouter();
   const [selectedHabits, setSelectedHabits] = useState<Set<number>>(new Set());
   const [currentStep, setCurrentStep] = useState<'intro' | 'select' | 'confirm'>('intro');
 
@@ -32,7 +34,7 @@ export default function HabitsPage() {
     } else if (currentStep === 'confirm') {
       // 保存到localStorage并跳转到下一页
       localStorage.setItem('selectedHabits', JSON.stringify([...selectedHabits]));
-      window.location.href = '/requirements';
+      router.push('/requirements');
     }
   };
 

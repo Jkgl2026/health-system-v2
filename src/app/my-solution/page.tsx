@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,7 @@ interface CourseMatch {
 }
 
 export default function MySolutionPage() {
+  const router = useRouter();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [hasData, setHasData] = useState(false);
@@ -341,7 +343,7 @@ export default function MySolutionPage() {
                 </AlertDescription>
               </Alert>
               <Button
-                onClick={() => (window.location.href = '/personal-info')}
+                onClick={() => router.push('/personal-info')}
                 className="w-full bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
               >
                 开始健康自检
@@ -614,14 +616,14 @@ export default function MySolutionPage() {
         <section className="text-center">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
-              onClick={() => (window.location.href = '/personal-info')}
+              onClick={() => router.push('/personal-info')}
               variant="outline"
               className="flex-1 sm:flex-none"
             >
               重新自检
             </Button>
             <Button
-              onClick={() => (window.location.href = '/')}
+              onClick={() => router.push('/')}
               className="flex-1 sm:flex-none bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
             >
               返回首页

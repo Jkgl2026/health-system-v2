@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -9,6 +10,7 @@ import { RECOVERY_SPEED_FACTORS } from '@/lib/health-data';
 import Link from 'next/link';
 
 export default function RecoverySpeedPage() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* 头部 */}
@@ -168,7 +170,7 @@ export default function RecoverySpeedPage() {
         {/* 下一步按钮 */}
         <section className="text-center space-y-4 mb-12">
           <Button
-            onClick={() => window.location.href = '/solution'}
+            onClick={() => router.push('/solution')}
             size="lg"
             className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
           >

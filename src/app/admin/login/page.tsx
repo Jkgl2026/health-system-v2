@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock, AlertCircle, Shield } from 'lucide-react';
 
 export default function AdminLoginPage() {
+  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -38,7 +40,7 @@ export default function AdminLoginPage() {
       localStorage.setItem('adminLoggedIn', 'true');
 
       // 跳转到管理后台主页
-      window.location.href = '/admin/dashboard';
+      router.push('/admin/dashboard');
     } catch (err) {
       setError('网络错误，请重试');
     } finally {
@@ -100,7 +102,7 @@ export default function AdminLoginPage() {
           <div className="mt-6 text-center">
             <Button
               variant="ghost"
-              onClick={() => (window.location.href = '/')}
+              onClick={() => router.push('/')}
               className="text-sm"
             >
               返回首页

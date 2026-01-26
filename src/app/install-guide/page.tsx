@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Smartphone, Monitor, Download, Share2, Plus, ArrowRight, CheckCircle, Globe, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export default function InstallGuidePage() {
+  const router = useRouter();
   const [deviceType, setDeviceType] = useState<'android' | 'ios' | 'desktop' | 'unknown'>('unknown');
   const [browserName, setBrowserName] = useState<string>('');
   const [showIOSGuide, setShowIOSGuide] = useState(false);
@@ -173,7 +175,7 @@ export default function InstallGuidePage() {
             <div className="flex items-center gap-3">
               <Button
                 variant="ghost"
-                onClick={() => window.location.href = '/'}
+                onClick={() => router.push('/')}
                 className="text-gray-600 hover:text-gray-900"
               >
                 <ArrowRight className="h-5 w-5 rotate-180" />
@@ -188,7 +190,7 @@ export default function InstallGuidePage() {
               </div>
             </div>
             <Button
-              onClick={() => window.location.href = '/'}
+              onClick={() => router.push('/')}
               className="bg-gradient-to-r from-emerald-600 to-blue-600 hover:from-emerald-700 hover:to-blue-700"
             >
               返回首页
@@ -240,7 +242,7 @@ export default function InstallGuidePage() {
                 </p>
                 <div className="mt-3 flex gap-2">
                   <Button
-                    onClick={() => window.location.href = '/'}
+                    onClick={() => router.push('/')}
                     className="bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
                     立即打开应用
@@ -555,7 +557,7 @@ export default function InstallGuidePage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   size="lg"
-                  onClick={() => window.location.href = '/'}
+                  onClick={() => router.push('/')}
                   className="bg-white text-emerald-600 hover:bg-emerald-50 px-8 py-6 text-lg font-semibold"
                 >
                   返回首页开始自检

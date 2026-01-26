@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,6 +15,7 @@ import { saveUserChoice, saveRequirements, createUser, getUser } from '@/lib/api
 import Link from 'next/link';
 
 export default function ChoicesPage() {
+  const router = useRouter();
   const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
   const [acceptedRequirements, setAcceptedRequirements] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
@@ -120,11 +122,9 @@ export default function ChoicesPage() {
       // 保存成功后清除错误状态，然后跳转
       setSaveError(null);
       setIsSaving(false);
-      
-      // 使用更可靠的跳转方式
-      setTimeout(() => {
-        window.location.href = '/requirements';
-      }, 100);
+
+      // 立即跳转，无延迟
+      router.push('/requirements');
     } catch (error) {
       console.error('保存用户选择和要求数据失败:', error);
       setSaveError(error);

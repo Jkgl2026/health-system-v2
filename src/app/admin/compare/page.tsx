@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -183,6 +184,7 @@ const analyzeSevenQuestionsChange = (answers1: Record<string, any>, answers2: Re
 };
 
 export default function AdminComparePage() {
+  const router = useRouter();
   const [queryType, setQueryType] = useState<'phone' | 'name'>('phone');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
@@ -201,7 +203,7 @@ export default function AdminComparePage() {
   const checkAuth = () => {
     const isLoggedIn = localStorage.getItem('adminLoggedIn');
     if (!isLoggedIn) {
-      window.location.href = '/admin/login';
+      router.push('/admin/login');
     }
   };
 
@@ -403,7 +405,7 @@ export default function AdminComparePage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={() => window.location.href = '/admin/dashboard'}>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/admin/dashboard')}>
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 返回
               </Button>
@@ -428,7 +430,7 @@ export default function AdminComparePage() {
               <Button variant="destructive" size="sm" onClick={() => {
                 localStorage.removeItem('adminLoggedIn');
                 localStorage.removeItem('admin');
-                window.location.href = '/admin/login';
+                router.push('/admin/login');
               }}>
                 <LogOut className="h-4 w-4 mr-2" />
                 退出登录
@@ -564,7 +566,7 @@ export default function AdminComparePage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => window.location.href = `/admin/dashboard?userId=${user.id}`}
+                            onClick={() => router.push(`/admin/dashboard?userId=${user.id}`)}
                           >
                             <Eye className="h-4 w-4 mr-1" />
                             详情

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -15,6 +16,7 @@ import Link from 'next/link';
 type Step = 'overview' | 'req1-2' | 'req3' | 'req4';
 
 export default function RequirementsPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [selectedHabits, setSelectedHabits] = useState<Set<number>>(new Set());
   const [selectedSymptoms300, setSelectedSymptoms300] = useState<Set<number>>(new Set());
@@ -132,7 +134,7 @@ export default function RequirementsPage() {
       });
 
       if (response.ok) {
-        window.location.href = '/recovery';
+        router.push('/recovery');
       } else {
         const error = await response.json();
         console.error('保存失败:', error);
