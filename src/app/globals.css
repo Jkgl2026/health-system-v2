@@ -135,3 +135,61 @@
 body {
   @apply font-sans;
 }
+
+/* 移动端紧凑优化 */
+@media (max-width: 640px) {
+  /* 减小全局间距 */
+  * {
+    @apply text-sm;
+  }
+  
+  /* 卡片紧凑布局 */
+  [data-slot='card'] {
+    @apply py-3 gap-3 rounded-lg;
+  }
+  
+  [data-slot='card-header'],
+  [data-slot='card-content'],
+  [data-slot='card-footer'] {
+    @apply px-4;
+  }
+  
+  /* 按钮紧凑 */
+  [data-slot='button'] {
+    @apply text-sm;
+  }
+  
+  [data-slot='button'][data-size='default'] {
+    @apply h-8 px-3 py-1.5;
+  }
+  
+  [data-slot='button'][data-size='lg'] {
+    @apply h-9 px-4;
+  }
+  
+  [data-slot='button'][data-size='sm'] {
+    @apply h-7 px-2.5;
+  }
+  
+  /* 输入框紧凑 */
+  input,
+  textarea,
+  select {
+    @apply text-sm py-1.5;
+  }
+  
+  /* 徽章紧凑 */
+  .badge {
+    @apply text-xs px-2 py-0.5;
+  }
+  
+  /* 列表项紧凑 */
+  .list-item {
+    @apply py-2;
+  }
+  
+  /* 进度条紧凑 */
+  [role='progressbar'] {
+    @apply h-1.5;
+  }
+}
