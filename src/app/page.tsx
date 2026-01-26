@@ -13,9 +13,11 @@ export default function Home() {
   const [healthData, setHealthData] = useState<any>(null);
   const [hasHealthData, setHasHealthData] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // 加载演示数据
   const loadDemoData = () => {
+    setIsLoading(true);
     const demoUserInfo = {
       name: "演示用户",
       age: 35,
@@ -31,19 +33,22 @@ export default function Home() {
     const demoTarget = [1, 5, 10];
     const demoChoice = "调理方案A";
 
-    setHealthData({
-      userInfo: demoUserInfo,
-      totalSymptoms: 32,
-      targetSymptoms: 3,
-      targetSymptomNames: ['头晕', '乏力', '失眠'],
-      choice: demoChoice,
-      healthScore: 68,
-      bodySymptomsCount: 5,
-      badHabitsCount: 12,
-      symptoms300Count: 15,
-    });
-    setHasHealthData(true);
-    setIsDemoMode(true);
+    setTimeout(() => {
+      setHealthData({
+        userInfo: demoUserInfo,
+        totalSymptoms: 32,
+        targetSymptoms: 3,
+        targetSymptomNames: ['头晕', '乏力', '失眠'],
+        choice: demoChoice,
+        healthScore: 68,
+        bodySymptomsCount: 5,
+        badHabitsCount: 12,
+        symptoms300Count: 15,
+      });
+      setHasHealthData(true);
+      setIsDemoMode(true);
+      setIsLoading(false);
+    }, 100);
   };
 
   // 检查是否有健康数据
@@ -110,13 +115,19 @@ export default function Home() {
         } else {
           setHasHealthData(false);
         }
+        setIsLoading(false);
       } catch (error) {
         console.error('Failed to check health data:', error);
         setHasHealthData(false);
+        setIsLoading(false);
       }
     };
 
-    checkHealthData();
+    // 使用requestIdleCallback或setTimeout延迟加载，避免阻塞渲染
+    if (typeof window !== 'undefined') {
+      const timer = setTimeout(checkHealthData, 50);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const features = [
@@ -169,27 +180,28 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* 头部 */}
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
-        <div className="container mx-auto px-4 py-6">
+        <div className="container mx-auto px-3 md:px-4 py-4 md:py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
-                <Heart className="w-6 h-6 text-white" />
+            <div className="flex items-center space-x-2 md:space-x-3">
+              <div className="w-9 h-9 md:w-10 md:h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center">
+                <Heart className="w-5 h-5 md:w-6 md:h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                   健康自我管理
                 </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">
                   把健康把握在自己手里
                 </p>
               </div>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2 md:gap-3">
               {!hasHealthData && !isDemoMode && (
                 <Button
                   variant="outline"
                   onClick={loadDemoData}
-                  className="border-purple-500 text-purple-600 hover:bg-purple-50"
+                  size="sm"
+                  className="border-purple-500 text-purple-600 hover:bg-purple-50 text-xs md:text-sm"
                 >
                   演示模式
                 </Button>
@@ -197,11 +209,13 @@ export default function Home() {
               <Button
                 variant="outline"
                 onClick={() => window.location.href = '/install-guide'}
-                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+                size="sm"
+                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-xs md:text-sm"
               >
                 如何安装到桌面
               </Button>
               <Button
+                size="sm"
                 onClick={() => window.location.href = '/personal-info'}
                 className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
               >
@@ -257,10 +271,10 @@ export default function Home() {
               </div>
             </CardHeader>
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="md:col-span-2 p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white text-center">
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-5">
+                <div className="md:col-span-2 p-5 md:p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white text-center">
                   <div className="text-sm font-medium mb-2 opacity-90">健康评分</div>
-                  <div className="text-6xl font-bold mb-1">{healthData.healthScore}</div>
+                  <div className="text-5xl md:text-6xl font-bold mb-1">{healthData.healthScore}</div>
                   <div className="text-sm opacity-80">分（满分100）</div>
                   <div className="mt-3 text-xs opacity-70">
                     综合身体语言简表、不良生活习惯表、300症状表计算
@@ -269,17 +283,17 @@ export default function Home() {
 
                 <div
                   onClick={() => window.location.href = '/check'}
-                  className="p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group"
+                  className="p-5 md:p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm font-medium opacity-90">身体语言简表</div>
-                    <Activity className="w-4 h-4 opacity-80 group-hover:scale-110 transition-transform" />
+                    <Activity className="w-5 h-5 opacity-80 group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="text-4xl font-bold mb-1">{healthData.bodySymptomsCount}</div>
                   <div className="text-xs opacity-80">/ 100项</div>
-                  <div className="mt-2 bg-white/20 rounded-full h-1.5">
+                  <div className="mt-2 bg-white/20 rounded-full h-2">
                     <div
-                      className="bg-white h-1.5 rounded-full"
+                      className="bg-white h-2 rounded-full"
                       style={{ width: `${Math.min(100, healthData.bodySymptomsCount)}%` }}
                     />
                   </div>
@@ -291,17 +305,17 @@ export default function Home() {
 
                 <div
                   onClick={() => window.location.href = '/requirements?step=habits'}
-                  className="p-5 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group"
+                  className="p-5 md:p-5 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm font-medium opacity-90">不良生活习惯</div>
-                    <AlertCircle className="w-4 h-4 opacity-80 group-hover:scale-110 transition-transform" />
+                    <AlertCircle className="w-5 h-5 opacity-80 group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="text-4xl font-bold mb-1">{healthData.badHabitsCount}</div>
                   <div className="text-xs opacity-80">/ 252项</div>
-                  <div className="mt-2 bg-white/20 rounded-full h-1.5">
+                  <div className="mt-2 bg-white/20 rounded-full h-2">
                     <div
-                      className="bg-white h-1.5 rounded-full"
+                      className="bg-white h-2 rounded-full"
                       style={{ width: `${Math.min(100, Math.round(healthData.badHabitsCount * 100 / 252))}%` }}
                     />
                   </div>
@@ -313,17 +327,17 @@ export default function Home() {
 
                 <div
                   onClick={() => window.location.href = '/requirements?step=symptoms300'}
-                  className="p-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group"
+                  className="p-5 md:p-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="text-sm font-medium opacity-90">300症状表</div>
-                    <Heart className="w-4 h-4 opacity-80 group-hover:scale-110 transition-transform" />
+                    <Heart className="w-5 h-5 opacity-80 group-hover:scale-110 transition-transform" />
                   </div>
                   <div className="text-4xl font-bold mb-1">{healthData.symptoms300Count}</div>
                   <div className="text-xs opacity-80">/ 300项</div>
-                  <div className="mt-2 bg-white/20 rounded-full h-1.5">
+                  <div className="mt-2 bg-white/20 rounded-full h-2">
                     <div
-                      className="bg-white h-1.5 rounded-full"
+                      className="bg-white h-2 rounded-full"
                       style={{ width: `${Math.min(100, Math.round(healthData.symptoms300Count * 100 / 300))}%` }}
                     />
                   </div>
@@ -335,7 +349,7 @@ export default function Home() {
 
                 <div
                   onClick={() => window.location.href = '/check'}
-                  className="p-5 bg-gradient-to-br from-red-600 to-red-700 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group relative overflow-hidden"
+                  className="p-5 md:p-5 bg-gradient-to-br from-red-600 to-red-700 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group relative overflow-hidden active:scale-95"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
                   <div className="relative">
@@ -360,21 +374,21 @@ export default function Home() {
               </div>
 
               {/* 进度条和详细说明 */}
-              <div className="mt-6 space-y-4">
+              <div className="mt-4 md:mt-6 space-y-3 md:space-y-4">
                 {/* 主进度条 */}
-                <div className="p-5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                  <div className="flex items-center justify-between mb-3">
+                <div className="p-4 md:p-5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                  <div className="flex items-center justify-between mb-2 md:mb-3">
                     <div className="flex items-center gap-2">
-                      <Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">整体健康改善潜力</span>
+                      <Activity className="w-4 h-4 md:w-5 md:h-5 text-indigo-600 dark:text-indigo-400" />
+                      <span className="text-xs md:text-sm font-semibold text-gray-900 dark:text-white">整体健康改善潜力</span>
                     </div>
-                    <span className="text-lg font-bold text-indigo-700 dark:text-indigo-400">
+                    <span className="text-base md:text-lg font-bold text-indigo-700 dark:text-indigo-400">
                       {healthData.healthScore}%
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-5 shadow-inner">
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 md:h-5 shadow-inner">
                     <div
-                      className="bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-600 h-5 rounded-full transition-all duration-700 ease-out flex items-center justify-center shadow-lg"
+                      className="bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-600 h-4 md:h-5 rounded-full transition-all duration-700 ease-out flex items-center justify-center shadow-lg"
                       style={{ width: `${healthData.healthScore}%` }}
                     >
                       {healthData.healthScore > 10 && (
@@ -385,7 +399,7 @@ export default function Home() {
                 </div>
 
                 {/* 详细说明 */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3">
                   <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-2 mb-1">
                       <div className="w-2 h-2 bg-blue-500 rounded-full" />

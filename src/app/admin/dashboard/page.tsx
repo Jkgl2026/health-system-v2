@@ -278,15 +278,43 @@ export default function AdminDashboardPage() {
     if (overallHealth === null || overallHealth === undefined) {
       return { label: '未检测', color: 'bg-gray-500' };
     }
-    if (overallHealth >= 80) {
-      return { label: '优秀', color: 'bg-green-500' };
-    } else if (overallHealth >= 60) {
-      return { label: '良好', color: 'bg-blue-500' };
-    } else if (overallHealth >= 40) {
-      return { label: '一般', color: 'bg-yellow-500' };
-    } else {
-      return { label: '需关注', color: 'bg-red-500' };
-    }
+    const score = Number(overallHealth);
+    if (score >= 80) return { label: '优秀', color: 'bg-green-500' };
+    if (score >= 60) return { label: '良好', color: 'bg-blue-500' };
+    if (score >= 40) return { label: '一般', color: 'bg-yellow-500' };
+    if (score >= 20) return { label: '需关注', color: 'bg-orange-500' };
+    return { label: '需改善', color: 'bg-red-500' };
+  };
+
+  // 计算综合健康评分（参考首页算法）
+  const calculateHealthScore = () => {
+    if (!selectedUser) return null;
+
+    const latestSymptomCheck = getLatestSymptomCheck();
+    const badHabits = selectedUser.requirements?.badHabitsChecklist || [];
+    const symptoms300 = selectedUser.requirements?.symptoms300Checklist || [];
+
+    const bodySymptomsCount = latestSymptomCheck?.checkedSymptoms?.length || 0;
+    const badHabitsCount = Array.isArray(badHabits) ? badHabits.length : 0;
+    const symptoms300Count = Array.isArray(symptoms300) ? symptoms300.length : 0;
+
+    // 基础分100分，根据不同类型症状权重扣分
+    // 身体语言简表（高权重）：每项扣0.3分
+    // 不良生活习惯（中权重）：每项扣0.2分
+    // 300症状表（低权重）：每项扣0.1分
+    const bodySymptomsScore = Math.max(0, bodySymptomsCount * 0.3);
+    const badHabitsScore = Math.max(0, badHabitsCount * 0.2);
+    const symptoms300Score = Math.max(0, symptoms300Count * 0.1);
+    const totalDeduction = bodySymptomsScore + badHabitsScore + symptoms300Score;
+    const healthScore = Math.max(0, Math.round(100 - totalDeduction));
+
+    return {
+      healthScore,
+      bodySymptomsCount,
+      badHabitsCount,
+      symptoms300Count,
+      totalSymptoms: bodySymptomsCount + badHabitsCount + symptoms300Count
+    };
   };
 
   return (
@@ -663,6 +691,147 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                 </div>
+              </div>
+
+              {/* 综合健康评分 - 紫色渐变背景 */}
+              <div className="bg-gradient-to-br from-purple-50 to-violet-100 border-l-4 border-purple-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-purple-900">
+                  <TrendingUp className="h-6 w-6 mr-3 text-purple-600" />
+                  综合健康评分
+                </h3>
+
+                {(() => {
+                  const healthData = calculateHealthScore();
+                  if (!healthData) {
+                    return (
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-100 text-center">
+                        <Activity className="h-12 w-12 mx-auto text-purple-300 mb-3" />
+                        <p className="text-purple-600 font-medium">暂无健康评分数据</p>
+                        <p className="text-sm text-purple-500 mt-1">用户尚未完成症状自检</p>
+                      </div>
+                    );
+                  }
+
+                  const { healthScore, bodySymptomsCount, badHabitsCount, symptoms300Count, totalSymptoms } = healthData;
+
+                  return (
+                    <div className="space-y-6">
+                      {/* 综合健康评分大卡片 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-100">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {/* 健康评分主卡片 */}
+                          <div className="md:col-span-1 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-6 text-white text-center">
+                            <div className="text-sm font-medium mb-2 opacity-90">综合健康评分</div>
+                            <div className="text-6xl font-bold mb-1">{healthScore}</div>
+                            <div className="text-sm opacity-80">分（满分100）</div>
+                            <div className="mt-4 text-xs opacity-70">
+                              {healthScore >= 80 ? '健康状况优秀' :
+                               healthScore >= 60 ? '健康状况良好' :
+                               healthScore >= 40 ? '健康状况一般' :
+                               healthScore >= 20 ? '健康状况需关注' : '健康状况需改善'}
+                            </div>
+                          </div>
+
+                          {/* 症状总数 */}
+                          <div className="bg-white border-2 border-gray-100 rounded-lg p-5">
+                            <div className="text-sm text-gray-600 mb-2">症状总数</div>
+                            <div className="text-5xl font-bold text-gray-800 mb-1">{totalSymptoms}</div>
+                            <div className="text-xs text-gray-500">
+                              基于三个症状表统计
+                            </div>
+                          </div>
+
+                          {/* 健康状态 */}
+                          <div className="bg-white border-2 border-gray-100 rounded-lg p-5">
+                            <div className="text-sm text-gray-600 mb-2">健康状态</div>
+                            <div className="text-3xl font-bold mb-2">
+                              {healthScore >= 80 ? <span className="text-green-600">优秀</span> :
+                               healthScore >= 60 ? <span className="text-blue-600">良好</span> :
+                               healthScore >= 40 ? <span className="text-yellow-600">一般</span> :
+                               healthScore >= 20 ? <span className="text-orange-600">需关注</span> :
+                               <span className="text-red-600">需改善</span>}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              基于{totalSymptoms}项症状评估
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 三个症状表详情 */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* 身体语言简表 */}
+                        <div className="bg-white p-5 rounded-lg shadow-sm border border-purple-100 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-sm font-medium text-purple-600">身体语言简表</div>
+                            <Activity className="w-4 h-4 text-purple-400" />
+                          </div>
+                          <div className="text-4xl font-bold text-purple-700 mb-1">{bodySymptomsCount}</div>
+                          <div className="text-xs text-gray-500 mb-3">/ 100项</div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-purple-500 h-2 rounded-full transition-all"
+                              style={{ width: `${Math.min(100, bodySymptomsCount)}%` }}
+                            />
+                          </div>
+                          <div className="mt-2 text-xs text-gray-600">
+                            权重30%，扣{Math.round(bodySymptomsCount * 0.3 * 10) / 10}分
+                          </div>
+                        </div>
+
+                        {/* 不良生活习惯 */}
+                        <div className="bg-white p-5 rounded-lg shadow-sm border border-pink-100 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-sm font-medium text-pink-600">不良生活习惯</div>
+                            <AlertCircle className="w-4 h-4 text-pink-400" />
+                          </div>
+                          <div className="text-4xl font-bold text-pink-700 mb-1">{badHabitsCount}</div>
+                          <div className="text-xs text-gray-500 mb-3">/ 252项</div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-pink-500 h-2 rounded-full transition-all"
+                              style={{ width: `${Math.min(100, (badHabitsCount / 252) * 100)}%` }}
+                            />
+                          </div>
+                          <div className="mt-2 text-xs text-gray-600">
+                            权重20%，扣{Math.round(badHabitsCount * 0.2 * 10) / 10}分
+                          </div>
+                        </div>
+
+                        {/* 300症状表 */}
+                        <div className="bg-white p-5 rounded-lg shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-sm font-medium text-amber-600">300症状表</div>
+                            <FileText className="w-4 h-4 text-amber-400" />
+                          </div>
+                          <div className="text-4xl font-bold text-amber-700 mb-1">{symptoms300Count}</div>
+                          <div className="text-xs text-gray-500 mb-3">/ 300项</div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-amber-500 h-2 rounded-full transition-all"
+                              style={{ width: `${Math.min(100, (symptoms300Count / 300) * 100)}%` }}
+                            />
+                          </div>
+                          <div className="mt-2 text-xs text-gray-600">
+                            权重10%，扣{Math.round(symptoms300Count * 0.1 * 10) / 10}分
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 详细说明 */}
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-100">
+                        <div className="text-sm font-semibold text-purple-800 mb-2">评分说明</div>
+                        <div className="text-xs text-gray-600 space-y-1">
+                          <p>• 基础分100分，根据不同类型症状权重扣分</p>
+                          <p>• 身体语言简表：权重30%，每项扣0.3分</p>
+                          <p>• 不良生活习惯：权重20%，每项扣0.2分</p>
+                          <p>• 300症状表：权重10%，每项扣0.1分</p>
+                          <p>• 最终得分 = 100 - 总扣分（最低0分）</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* 健康要素分析 - 蓝色渐变背景 */}
