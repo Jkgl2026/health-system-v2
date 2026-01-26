@@ -319,9 +319,9 @@ export default function Home() {
             </CardContent>
           </Card>
         </section>
-        )}
+      )}
 
-        {hasHealthData && healthData && (
+      {hasHealthData && healthData && (
           <section className="mb-16">
             <div className="max-w-5xl mx-auto space-y-8">
               <Card className="border-2 border-indigo-100 dark:border-indigo-900/30">
