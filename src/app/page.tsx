@@ -373,6 +373,7 @@ export default function Home() {
             </CardContent>
           </Card>
         </section>
+      )}
 
         {hasHealthData && healthData && (
           <section className="mb-16">
