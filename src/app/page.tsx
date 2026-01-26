@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info, AlertCircle, ArrowRight, Eye } from 'lucide-react';
+import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info, AlertCircle, ArrowRight, Eye, User, Flame, Droplets, Zap, Sparkles, Award, TrendingUp } from 'lucide-react';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { PWARedirect } from './page-pwa-redirect';
+import { BODY_SYMPTOMS } from '@/lib/health-data';
 
 export default function Home() {
   const [showIntro, setShowIntro] = useState(true);
@@ -17,6 +18,7 @@ export default function Home() {
     const checkHealthData = () => {
       try {
         // 读取所有健康相关数据
+        const savedUserInfo = localStorage.getItem('userInfo'); // 用户基本信息
         const savedSymptoms = localStorage.getItem('selectedSymptoms'); // 100项身体语言简表
         const savedBadHabits = localStorage.getItem('selectedHabitsRequirements'); // 252项不良生活习惯
         const savedSymptoms300 = localStorage.getItem('selectedSymptoms300'); // 300项症状表
@@ -24,6 +26,7 @@ export default function Home() {
         const savedChoice = localStorage.getItem('selectedChoice');
 
         // 解析数据
+        const userInfo = savedUserInfo ? JSON.parse(savedUserInfo) : null;
         const bodySymptoms = savedSymptoms ? JSON.parse(savedSymptoms) : [];
         const badHabits = savedBadHabits ? JSON.parse(savedBadHabits) : [];
         const symptoms300 = savedSymptoms300 ? JSON.parse(savedSymptoms300) : [];
@@ -38,9 +41,9 @@ export default function Home() {
         // 身体语言简表（高权重）：每项扣0.3分
         // 不良生活习惯（中权重）：每项扣0.2分
         // 300症状表（低权重）：每项扣0.1分
-        const bodySymptomsScore = Math.max(0, bodySymptoms.length * 0.3); // 最多扣30分
-        const badHabitsScore = Math.max(0, badHabits.length * 0.2); // 最多扣50.4分
-        const symptoms300Score = Math.max(0, symptoms300.length * 0.1); // 最多扣30分
+        const bodySymptomsScore = Math.max(0, bodySymptoms.length * 0.3);
+        const badHabitsScore = Math.max(0, badHabits.length * 0.2);
+        const symptoms300Score = Math.max(0, symptoms300.length * 0.1);
         const totalDeduction = bodySymptomsScore + badHabitsScore + symptoms300Score;
         const healthScore = Math.max(0, Math.round(100 - totalDeduction));
 
@@ -49,11 +52,21 @@ export default function Home() {
         const badHabitsCount = badHabits.length;
         const symptoms300Count = symptoms300.length;
 
+        // 获取重点症状名称
+        const targetSymptomNames = targetSymptoms
+          .map((id: number) => {
+            const symptom = BODY_SYMPTOMS.find(s => s.id === id);
+            return symptom ? symptom.name : '';
+          })
+          .filter((name: string) => name);
+
         // 只要有任何数据就显示概览
         if (savedSymptoms || savedBadHabits || savedSymptoms300) {
           setHealthData({
+            userInfo,
             totalSymptoms,
             targetSymptoms: Array.isArray(targetSymptoms) ? targetSymptoms.length : (targetSymptoms ? 1 : 0),
+            targetSymptomNames,
             choice,
             healthScore,
             bodySymptomsCount,
@@ -203,7 +216,6 @@ export default function Home() {
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* 健康评分 - 占2格 */}
                 <div className="md:col-span-2 p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white text-center">
                   <div className="text-sm font-medium mb-2 opacity-90">健康评分</div>
                   <div className="text-6xl font-bold mb-1">{healthData.healthScore}</div>
@@ -213,7 +225,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* 身体语言简表 */}
                 <div
                   onClick={() => window.location.href = '/check'}
                   className="p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group"
@@ -236,7 +247,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* 不良生活习惯表 */}
                 <div
                   onClick={() => window.location.href = '/requirements?step=habits'}
                   className="p-5 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group"
@@ -259,7 +269,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* 300症状表 */}
                 <div
                   onClick={() => window.location.href = '/requirements?step=symptoms300'}
                   className="p-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group"
@@ -282,7 +291,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* 重点症状和症状总数 - 改为大红色 */}
                 <div
                   onClick={() => window.location.href = '/check'}
                   className="p-5 bg-gradient-to-br from-red-600 to-red-700 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group relative overflow-hidden"
@@ -309,9 +317,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 进度条和详细说明 */}
               <div className="mt-6 space-y-4">
-                {/* 主进度条 */}
                 <div className="p-5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-lg border border-indigo-200 dark:border-indigo-800">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
@@ -334,7 +340,6 @@ export default function Home() {
                   </div>
                 </div>
 
-                {/* 详细说明 */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
                     <div className="flex items-center gap-2 mb-1">
@@ -368,7 +373,320 @@ export default function Home() {
             </CardContent>
           </Card>
         </section>
-      )}
+
+        {hasHealthData && healthData && (
+          <section className="mb-16">
+            <div className="max-w-5xl mx-auto space-y-8">
+              <Card className="border-2 border-indigo-100 dark:border-indigo-900/30">
+                <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl">健康状况总结</CardTitle>
+                      <CardDescription>基于您的自检数据的综合评估</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6 space-y-6">
+                  {healthData.userInfo && (
+                    <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                      <div className="flex items-center gap-2 mb-3">
+                        <User className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        <h3 className="font-semibold text-gray-900 dark:text-white">基本信息</h3>
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">姓名：</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {healthData.userInfo.name || '未填写'}
+                          </span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">年龄：</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {healthData.userInfo.age || '未填写'}岁
+                          </span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">性别：</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {healthData.userInfo.gender || '未填写'}
+                          </span>
+                        </div>
+                        <div className="text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">BMI：</span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {healthData.userInfo.bmi ? healthData.userInfo.bmi.toFixed(1) : '未计算'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="p-5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
+                    <div className="flex items-start gap-3">
+                      <Award className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-1" />
+                      <div>
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-3">老中医专家分析：</h3>
+                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm md:text-base">
+                          根据您的自检结果，您共有<strong className="text-indigo-600 dark:text-indigo-400 font-semibold mx-1">{healthData.totalSymptoms}项</strong>健康异常，
+                          其中身体语言简表<strong className="text-blue-600 dark:text-blue-400 font-semibold mx-1">{healthData.bodySymptomsCount}项</strong>、
+                          不良生活习惯<strong className="text-orange-600 dark:text-orange-400 font-semibold mx-1">{healthData.badHabitsCount}项</strong>、
+                          300症状表<strong className="text-purple-600 dark:text-purple-400 font-semibold mx-1">{healthData.symptoms300Count}项</strong>。
+                          您的综合健康评分为<strong className="text-green-600 dark:text-green-400 font-semibold mx-1">{healthData.healthScore}分</strong>。
+                          {healthData.healthScore >= 80 ? '您的整体健康状况良好，继续保持健康的生活方式。' :
+                           healthData.healthScore >= 60 ? '您的健康状况处于亚健康状态，建议及时调理。' :
+                           '您的健康状况需要重点关注，建议尽快进行系统调理。'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {healthData.targetSymptomNames && healthData.targetSymptomNames.length > 0 && (
+                    <div className="p-5 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-lg border-2 border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Target className="w-6 h-6 text-red-600 dark:text-red-400" />
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white">重点改善症状</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {healthData.targetSymptomNames.map((name: string, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg border border-red-200 dark:border-red-800 shadow-sm"
+                          >
+                            <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-white font-bold text-sm">{index + 1}</span>
+                            </div>
+                            <span className="font-medium text-gray-900 dark:text-white text-sm">{name}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                        <p className="text-sm text-red-800 dark:text-red-300">
+                          <strong className="mr-2">专家建议：</strong>
+                          以上{healthData.targetSymptomNames.length}个症状是当前最困扰您的问题，也是调理的重点。
+                          我们将针对这些症状制定个性化的调理方案，通过系统的调理方法，从根本上改善这些症状。
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {healthData.choice && (
+                    <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Shield className="w-6 h-6 text-green-600 dark:text-green-400" />
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white">您的选择方案</h3>
+                      </div>
+                      <div className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-green-200 dark:border-green-800">
+                        <p className="text-gray-900 dark:text-white text-base font-medium mb-3">{healthData.choice}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                          这个方案是您根据自己的情况选择的，我们将基于这个方向为您提供具体的调理建议。
+                          请相信，只要坚持下去，您一定能够改善健康状况。
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+                      <Flame className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl">推荐调理产品</CardTitle>
+                      <CardDescription>根据您的症状匹配的调理方案</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {(healthData.bodySymptomsCount > 0 || healthData.badHabitsCount > 0) && (
+                      <div className="p-5 bg-gradient-to-br from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border-2 border-orange-200 dark:border-orange-800">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center">
+                              <Flame className="w-7 h-7 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="text-xl font-bold text-gray-900 dark:text-white">艾灸调理</h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                <TrendingUp className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                                <span className="text-sm font-semibold text-orange-600 dark:text-orange-400">
+                                  匹配度：{Math.min(95, 70 + healthData.bodySymptomsCount * 2)}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                              <strong className="text-orange-600 dark:text-orange-400">老中医推荐：</strong>
+                              艾灸是中医外治法的瑰宝，通过艾火的热力和药性，温通经络、调和气血、驱寒除湿。
+                              对于您出现的寒凉、气血不足、循环不畅等症状，艾灸能够起到标本兼治的效果。
+                              建议选择关元、气海、足三里等穴位进行调理，每次20-30分钟，每周3-4次。
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">调理原理：</p>
+                            <ul className="space-y-1">
+                              {[
+                                '温通经络，促进气血运行，改善末梢循环',
+                                '驱寒除湿，温补阳气，增强身体抵抗力',
+                                '调和脏腑功能，促进新陈代谢',
+                                '缓解疼痛，改善慢性炎症'
+                              ].map((item, i) => (
+                                <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                  <Droplets className="w-4 h-4 text-orange-500 mt-0.5 flex-shrink-0" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {(healthData.bodySymptomsCount > 5 || healthData.badHabitsCount > 10) && (
+                      <div className="p-5 bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-lg border-2 border-red-200 dark:border-red-800">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
+                              <Zap className="w-7 h-7 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="text-xl font-bold text-gray-900 dark:text-white">火灸调理</h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                <TrendingUp className="w-4 h-4 text-red-600 dark:text-red-400" />
+                                <span className="text-sm font-semibold text-red-600 dark:text-red-400">
+                                  匹配度：{Math.min(92, 65 + healthData.bodySymptomsCount * 1.5 + healthData.badHabitsCount)}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <div className="p-3 bg-white dark:bg-gray-800 rounded-lg">
+                            <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                              <strong className="text-red-600 dark:text-red-400">老中医推荐：</strong>
+                              火灸是比艾灸更强烈的调理方法，以火之力，温阳散寒，活血化瘀。
+                              对于您体内存在的淤堵、毒素、寒湿等问题，火灸能够强力疏通，净化体内环境。
+                              建议在专业指导下进行，重点调理大椎、命门、肾俞等穴位，每次15-20分钟。
+                            </p>
+                          </div>
+                          <div className="space-y-2">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">调理原理：</p>
+                            <ul className="space-y-1">
+                              {[
+                                '强力活血化瘀，疏通经络淤堵',
+                                '温阳补气，提升身体能量水平',
+                                '祛除体内毒素和湿气，净化血液',
+                                '改善微循环，促进细胞修复'
+                              ].map((item, i) => (
+                                <li key={i} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-300">
+                                  <Sparkles className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                      <TrendingUp className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-2xl">分阶段调理计划</CardTitle>
+                      <CardDescription>循序渐进，科学调理</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-6">
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                          1
+                        </div>
+                      </div>
+                      <div className="flex-1 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">第一阶段：清理排毒（1-2周）</h4>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
+                          先清理体内的毒素和淤堵，为后续调理打好基础。重点改善消化系统、血液循环。
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            <span className="font-semibold">调理重点：</span>肠胃排毒、疏通经络
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            <span className="font-semibold">推荐产品：</span>艾灸、火灸
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
+                          2
+                        </div>
+                      </div>
+                      <div className="flex-1 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">第二阶段：补益调理（3-4周）</h4>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
+                          在清理的基础上，补充气血，调理脏腑功能，增强身体自愈能力。
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            <span className="font-semibold">调理重点：</span>补气血、强免疫
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            <span className="font-semibold">推荐产品：</span>艾灸、营养补充
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <div className="flex-shrink-0">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                          3
+                        </div>
+                      </div>
+                      <div className="flex-1 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                        <h4 className="font-bold text-gray-900 dark:text-white mb-2">第三阶段：巩固养护（4-6周）</h4>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed mb-3">
+                          巩固调理成果，建立健康的生活习惯，维持长期的健康状态。
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            <span className="font-semibold">调理重点：</span>巩固疗效、健康养生
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400">
+                            <span className="font-semibold">推荐产品：</span>养生灸、生活习惯调整
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        )}
 
       {/* 主内容 */}
       <main className="container mx-auto px-4 py-12">
