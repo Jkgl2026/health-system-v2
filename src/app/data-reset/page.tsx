@@ -100,7 +100,7 @@ export default function DataResetPage() {
             <CardHeader>
               <CardTitle className="text-2xl">数据管理工具</CardTitle>
               <CardDescription>
-                管理您的健康自检数据，包括备份、恢复和清除操作
+                管理您的健康自检数据，包括备份和恢复操作
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -198,27 +198,6 @@ export default function DataResetPage() {
                 </div>
               </div>
 
-              {/* 清除数据 */}
-              <div className="flex items-center justify-between p-4 border border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/20">
-                <div>
-                  <h3 className="font-semibold text-red-900 dark:text-red-100">清除所有数据</h3>
-                  <p className="text-sm text-red-700 dark:text-red-300">
-                    删除所有已保存的表单数据（不可恢复）
-                  </p>
-                </div>
-                <Button
-                  variant="destructive"
-                  onClick={handleClearAll}
-                  disabled={isClearing}
-                >
-                  {isClearing ? (
-                    <RefreshCw className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Trash2 className="w-4 h-4 mr-2" />
-                  )}
-                  {isClearing ? '清除中...' : '清除数据'}
-                </Button>
-              </div>
             </CardContent>
           </Card>
 
