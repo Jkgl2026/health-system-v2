@@ -520,7 +520,7 @@ export const TWENTY_ONE_COURSES = [
   },
   {
     id: 5,
-    title: '第5课：系统战役模型',
+    title: '第5课：系统战役故事',
     duration: '10分钟',
     content: '通过军事战役的比喻，理解健康系统的运作原理。',
   },
@@ -1011,8 +1011,7 @@ export const BODY_LANGUAGE_CHECK_FORM = {
 
 // 系统战役故事（包含图片位置标记）
 export const SYSTEM_CAMPAIGN_STORY = {
-  title: '系统战役模型',
-  imagePlaceholder: '[此处插入系统战役故事示意图]',
+  title: '系统战役故事',
   content: [
     {
       section: '战场保障',

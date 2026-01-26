@@ -57,17 +57,6 @@ export default function StoryPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* 图片位置标记（备用） */}
-              {SYSTEM_CAMPAIGN_STORY.imagePlaceholder && (
-                <div className="flex justify-center mb-6">
-                  <div className="w-full max-w-2xl h-64 bg-gradient-to-br from-blue-100 to-green-100 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg flex items-center justify-center border-2 border-dashed border-blue-300 dark:border-blue-700">
-                    <p className="text-gray-500 dark:text-gray-400 text-center px-4">
-                      {SYSTEM_CAMPAIGN_STORY.imagePlaceholder}
-                    </p>
-                  </div>
-                </div>
-              )}
-
               {SYSTEM_CAMPAIGN_STORY.content.map((section, index) => (
                 <div key={index} className="space-y-3">
                   <h3 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
@@ -238,7 +227,7 @@ export default function StoryPage() {
                                   variant="secondary"
                                   className="justify-center py-2 px-3 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
                                 >
-                                  #{id} 症状
+                                  {id}
                                 </Badge>
                               );
                             })}
