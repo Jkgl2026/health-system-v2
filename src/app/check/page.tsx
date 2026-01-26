@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle, ArrowRight, ChevronLeft, Loader2 } from 'lucide-react';
 import { ErrorAlert } from '@/components/ui/error-alert';
+import { AutoSaveIndicator } from '@/components/ui/auto-save-indicator';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
 import { saveSymptomCheck, createUser, getUser } from '@/lib/api-client';
@@ -20,6 +21,54 @@ export default function CheckPage() {
   const [targetSymptom, setTargetSymptom] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<any>(null);
+  const [lastSaveTime, setLastSaveTime] = useState<number | null>(null);
+
+  // 从 localStorage 恢复之前的数据
+  useEffect(() => {
+    try {
+      const savedSymptoms = localStorage.getItem('selectedSymptoms');
+      const savedTargetSymptom = localStorage.getItem('targetSymptom');
+
+      if (savedSymptoms) {
+        const symptoms = JSON.parse(savedSymptoms);
+        setSelectedSymptoms(new Set(symptoms));
+        console.log('[CheckPage] 恢复已选择的症状:', symptoms.length);
+      }
+
+      if (savedTargetSymptom) {
+        setTargetSymptom(parseInt(savedTargetSymptom));
+        console.log('[CheckPage] 恢复目标症状:', savedTargetSymptom);
+      }
+    } catch (error) {
+      console.error('[CheckPage] 恢复数据失败:', error);
+    }
+  }, []);
+
+  // 自动保存症状选择（防抖）
+  useEffect(() => {
+    if (selectedSymptoms.size > 0) {
+      const timeout = setTimeout(() => {
+        localStorage.setItem('selectedSymptoms', JSON.stringify([...selectedSymptoms]));
+        setLastSaveTime(Date.now());
+        console.log('[CheckPage] 症状选择已自动保存');
+      }, 1000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [selectedSymptoms]);
+
+  // 自动保存目标症状
+  useEffect(() => {
+    if (targetSymptom !== null) {
+      const timeout = setTimeout(() => {
+        localStorage.setItem('targetSymptom', targetSymptom.toString());
+        setLastSaveTime(Date.now());
+        console.log('[CheckPage] 目标症状已自动保存');
+      }, 500);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [targetSymptom]);
 
 // 按类别分组症状
   const symptomsByCategory = BODY_SYMPTOMS.reduce((acc, symptom) => {
@@ -171,11 +220,18 @@ export default function CheckPage() {
               <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               <span className="text-gray-600 dark:text-gray-400">返回首页</span>
             </Link>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                已选择 {selectedSymptoms.size} 项症状
-              </span>
-              {selectedSymptoms.size > 0 && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  已选择 {selectedSymptoms.size} 项症状
+                </span>
+                {selectedSymptoms.size > 0 && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+              </div>
+              <AutoSaveIndicator
+                isSaving={false}
+                lastSaveTime={lastSaveTime}
+                error={saveError?.message}
+              />
             </div>
           </div>
         </div>

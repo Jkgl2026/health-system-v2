@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,6 +18,27 @@ export default function ChoicesPage() {
   const [acceptedRequirements, setAcceptedRequirements] = useState<Set<number>>(new Set());
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<any>(null);
+
+  // 从 localStorage 恢复之前的数据
+  useEffect(() => {
+    try {
+      const savedChoice = localStorage.getItem('selectedChoice');
+      const savedRequirements = localStorage.getItem('acceptedRequirements');
+
+      if (savedChoice) {
+        setSelectedChoice(savedChoice);
+        console.log('[ChoicesPage] 恢复已选择的方案:', savedChoice);
+      }
+
+      if (savedRequirements) {
+        const requirements = JSON.parse(savedRequirements);
+        setAcceptedRequirements(new Set(requirements));
+        console.log('[ChoicesPage] 恢复已接受的要求:', requirements.length);
+      }
+    } catch (error) {
+      console.error('[ChoicesPage] 恢复数据失败:', error);
+    }
+  }, []);
 
   const handleChoiceSelect = (choice: string) => {
     setSelectedChoice(choice);

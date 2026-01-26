@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck } from 'lucide-react';
+import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info } from 'lucide-react';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { PWARedirect } from './page-pwa-redirect';
 
@@ -256,7 +256,7 @@ export default function Home() {
         </section>
 
         {/* 开始按钮 */}
-        <section className="text-center">
+        <section className="text-center space-y-4">
           <Button
             onClick={() => window.location.href = '/personal-info'}
             size="lg"
@@ -264,9 +264,21 @@ export default function Home() {
           >
             立即开始健康自检
           </Button>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 dark:text-gray-400">
             花费约 15-20 分钟，全面了解您的健康状况
           </p>
+
+          {/* 数据管理入口 */}
+          <div className="pt-4">
+            <Button
+              variant="outline"
+              onClick={() => window.location.href = '/data-reset'}
+              className="text-sm"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              数据管理（备份/恢复/清除）
+            </Button>
+          </div>
         </section>
       </main>
 

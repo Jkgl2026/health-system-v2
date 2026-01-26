@@ -35,6 +35,28 @@ export default function RequirementsPage() {
     setSelectedHabits(newSelected);
   };
 
+  // 从 localStorage 恢复之前的数据
+  useEffect(() => {
+    try {
+      const savedHabits = localStorage.getItem('selectedHabitsRequirements');
+      const savedSymptoms300 = localStorage.getItem('selectedSymptoms300');
+
+      if (savedHabits) {
+        const habits = JSON.parse(savedHabits);
+        setSelectedHabits(new Set(habits));
+        console.log('[RequirementsPage] 恢复已选择的不良习惯:', habits.length);
+      }
+
+      if (savedSymptoms300) {
+        const symptoms = JSON.parse(savedSymptoms300);
+        setSelectedSymptoms300(new Set(symptoms));
+        console.log('[RequirementsPage] 恢复已选择的300症状:', symptoms.length);
+      }
+    } catch (error) {
+      console.error('[RequirementsPage] 恢复数据失败:', error);
+    }
+  }, []);
+
   const handleSymptom300Toggle = (id: number) => {
     const newSelected = new Set(selectedSymptoms300);
     if (newSelected.has(id)) {

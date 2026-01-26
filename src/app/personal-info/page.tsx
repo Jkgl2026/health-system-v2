@@ -8,8 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ChevronLeft, User, Calculator, Activity, AlertCircle, Copy, CheckCircle2 } from 'lucide-react';
+import { AutoSaveIndicator } from '@/components/ui/auto-save-indicator';
 import { getOrGenerateUserId } from '@/lib/user-context';
 import { createUser, getUser, updateUser } from '@/lib/api-client';
+import { saveToStorage, loadFromStorage, STORAGE_KEYS } from '@/lib/formDataManager';
 import Link from 'next/link';
 
 interface ErrorResponse {
@@ -40,9 +42,20 @@ export default function PersonalInfoPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ErrorResponse | null>(null);
   const [copied, setCopied] = useState(false);
+  const [lastSaveTime, setLastSaveTime] = useState<number | null>(null);
+  const [autoSaveTimeout, setAutoSaveTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     loadUserData();
+  }, []);
+
+  // 从 localStorage 加载保存的数据
+  useEffect(() => {
+    const savedFormData = loadFromStorage(STORAGE_KEYS.USER_INFO);
+    if (savedFormData) {
+      setFormData(savedFormData);
+      console.log('[PersonalInfo] 从 localStorage 恢复表单数据');
+    }
   }, []);
 
   // 计算BMI
@@ -107,10 +120,24 @@ export default function PersonalInfoPage() {
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
+    const newFormData = {
+      ...formData,
       [field]: value,
-    }));
+    };
+    setFormData(newFormData);
+
+    // 自动保存到 localStorage（防抖）
+    if (autoSaveTimeout) {
+      clearTimeout(autoSaveTimeout);
+    }
+
+    const timeout = setTimeout(() => {
+      saveToStorage(STORAGE_KEYS.USER_INFO, newFormData);
+      setLastSaveTime(Date.now());
+      console.log('[PersonalInfo] 表单数据已自动保存');
+    }, 1000);
+
+    setAutoSaveTimeout(timeout);
   };
 
   // 安全解析响应的工具函数
@@ -356,9 +383,16 @@ export default function PersonalInfoPage() {
               <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               <span className="text-gray-600 dark:text-gray-400">返回首页</span>
             </Link>
-            <div className="flex items-center space-x-2">
-              <User className="w-5 h-5 text-blue-500" />
-              <span className="text-sm font-medium text-gray-900 dark:text-white">个人信息</span>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-2">
+                <User className="w-5 h-5 text-blue-500" />
+                <span className="text-sm font-medium text-gray-900 dark:text-white">个人信息</span>
+              </div>
+              <AutoSaveIndicator
+                isSaving={false}
+                lastSaveTime={lastSaveTime}
+                error={error?.message}
+              />
             </div>
           </div>
         </div>
