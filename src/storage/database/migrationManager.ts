@@ -1,4 +1,5 @@
 import { getDb } from "coze-coding-dev-sdk";
+import { sql } from "drizzle-orm";
 import { backupManager } from "./backupManager";
 
 // 迁移类型
@@ -79,23 +80,16 @@ export class MigrationManager {
   private async recordMigration(record: Omit<MigrationRecord, 'id' | 'executedAt'>): Promise<void> {
     const db = await getDb();
     try {
-      await db.execute(`
-        INSERT INTO ${this.MIGRATION_HISTORY_TABLE} (
-          migration_id, migration_type, table_name, description, status, 
+      await db.execute(sql`
+        INSERT INTO ${sql.raw(this.MIGRATION_HISTORY_TABLE)} (
+          migration_id, migration_type, table_name, description, status,
           backup_id, rollback_sql, executed_at, completed_at, error_message
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      `, [
-        record.migrationId,
-        record.migrationType,
-        record.tableName,
-        record.description,
-        record.status,
-        record.backupId,
-        record.rollbackSql,
-        new Date().toISOString(),
-        record.completedAt || null,
-        record.errorMessage || null,
-      ]);
+        ) VALUES (
+          ${record.migrationId}, ${record.migrationType}, ${record.tableName}, ${record.description},
+          ${record.status}, ${record.backupId}, ${record.rollbackSql}, ${new Date().toISOString()},
+          ${record.completedAt || null}, ${record.errorMessage || null}
+        )
+      `);
     } catch (error) {
       console.error('[MigrationManager] 记录迁移失败:', error);
       throw error;
@@ -111,16 +105,11 @@ export class MigrationManager {
   } = {}): Promise<void> {
     const db = await getDb();
     try {
-      await db.execute(`
-        UPDATE ${this.MIGRATION_HISTORY_TABLE}
-        SET status = $1, completed_at = $2, error_message = $3
-        WHERE migration_id = $4
-      `, [
-        status,
-        options.completedAt || null,
-        options.errorMessage || null,
-        migrationId,
-      ]);
+      await db.execute(sql`
+        UPDATE ${sql.raw(this.MIGRATION_HISTORY_TABLE)}
+        SET status = ${status}, completed_at = ${options.completedAt || null}, error_message = ${options.errorMessage || null}
+        WHERE migration_id = ${migrationId}
+      `);
     } catch (error) {
       console.error('[MigrationManager] 更新迁移状态失败:', error);
       throw error;
@@ -218,10 +207,10 @@ export class MigrationManager {
 
       // 1. 检查迁移是否存在
       const db = await getDb();
-      const migrationResult = await db.execute(`
-        SELECT * FROM ${this.MIGRATION_HISTORY_TABLE}
-        WHERE migration_id = $1
-      `, [migrationId]);
+      const migrationResult = await db.execute(sql`
+        SELECT * FROM ${sql.raw(this.MIGRATION_HISTORY_TABLE)}
+        WHERE migration_id = ${migrationId}
+      `);
 
       if (!migrationResult.rows || migrationResult.rows.length === 0) {
         return {
@@ -230,7 +219,7 @@ export class MigrationManager {
         };
       }
 
-      const migration = migrationResult.rows[0] as MigrationRecord;
+      const migration = migrationResult.rows[0] as unknown as MigrationRecord;
 
       // 2. 如果有备份，从备份恢复
       if (migration.backupId) {
@@ -280,13 +269,13 @@ export class MigrationManager {
     try {
       await this.initMigrationHistoryTable();
       const db = await getDb();
-      const result = await db.execute(`
-        SELECT * FROM ${this.MIGRATION_HISTORY_TABLE}
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.raw(this.MIGRATION_HISTORY_TABLE)}
         ORDER BY executed_at DESC
-        LIMIT $1
-      `, [limit]);
+        LIMIT ${limit}
+      `);
 
-      return result.rows as MigrationRecord[];
+      return result.rows as unknown as MigrationRecord[];
     } catch (error) {
       console.error('[MigrationManager] 获取迁移历史失败:', error);
       return [];

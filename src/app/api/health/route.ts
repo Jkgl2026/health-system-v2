@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
+import { sql } from 'drizzle-orm';
 import { checkDatabaseSchema, ensureDatabaseSchema } from '@/lib/databaseMigration';
 import { alertManager, AlertLevel, AlertType, AlertRule } from '@/lib/alertManager';
 
@@ -17,11 +18,12 @@ if (!alertManager['rules'] || alertManager['rules'].size === 0) {
     checkFn: async () => {
       try {
         const db = await getDb();
-        const result = await db.execute(`
-          SELECT count(*) as count FROM pg_stat_activity 
+        const result = await db.execute(sql`
+          SELECT count(*) as count FROM pg_stat_activity
           WHERE datname = current_database();
         `);
-        const count = parseInt(result.rows[0].count);
+        const row = result.rows[0] as { count: string };
+        const count = parseInt(row.count);
         return {
           triggered: count > 80,
           value: count,

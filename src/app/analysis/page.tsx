@@ -228,8 +228,8 @@ export default function AnalysisPage() {
                     </h3>
                     <div className="space-y-1">
                       {getTargetSymptoms().map((symptom, index) => (
-                        <p key={symptom.id} className="text-xl font-medium text-blue-700 dark:text-blue-400">
-                          {index + 1}. {symptom.name}
+                        <p key={symptom?.id} className="text-xl font-medium text-blue-700 dark:text-blue-400">
+                          {index + 1}. {symptom?.name}
                         </p>
                       ))}
                     </div>

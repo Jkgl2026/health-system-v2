@@ -87,8 +87,8 @@ export default function MySolutionPage() {
     if (!savedSymptoms) return [];
     const symptoms = JSON.parse(savedSymptoms);
     return symptoms
-      .map((id: number) => BODY_SYMPTOMS.find(s => s.id === id))
-      .filter((s): s is typeof BODY_SYMPTOMS[0] => s !== undefined);
+      .map((id: number) => BODY_SYMPTOMS.find((s: typeof BODY_SYMPTOMS[0]) => s.id === id))
+      .filter((s: typeof BODY_SYMPTOMS[0] | undefined): s is typeof BODY_SYMPTOMS[0] => s !== undefined);
   };
 
   const getTargetSymptoms = () => {
@@ -97,7 +97,7 @@ export default function MySolutionPage() {
     const targetSymptomArray = JSON.parse(savedTarget);
     if (!Array.isArray(targetSymptomArray)) return [];
     return targetSymptomArray
-      .map((id: number) => BODY_SYMPTOMS.find(s => s.id === id))
+      .map((id: number) => BODY_SYMPTOMS.find((s: typeof BODY_SYMPTOMS[0]) => s.id === id))
       .filter((s): s is typeof BODY_SYMPTOMS[0] => s !== undefined);
   };
 
@@ -111,7 +111,7 @@ export default function MySolutionPage() {
     const counts: Record<string, number> = {};
     (Object.keys(HEALTH_ELEMENTS) as Array<keyof typeof HEALTH_ELEMENTS>).forEach(key => {
       const element = HEALTH_ELEMENTS[key];
-      const count = element.symptoms.filter(id => selectedSymptoms.some((s) => s.id === id)).length;
+      const count = element.symptoms.filter(id => selectedSymptoms.some((s: typeof BODY_SYMPTOMS[0]) => s.id === id)).length;
       if (count > 0) {
         counts[element.name] = count;
       }

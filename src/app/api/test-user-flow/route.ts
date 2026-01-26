@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
+import { sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 
 // GET /api/test-user-flow - 测试完整用户流程
@@ -11,11 +12,12 @@ export async function GET(request: NextRequest) {
     console.log('[测试流程] 开始创建测试用户:', userId);
 
     // 1. 创建用户
-    const [user] = await db.execute(`
+    const userResult = await db.execute(sql`
       INSERT INTO users (id, name, gender, age, weight, height, bmi, created_at)
-      VALUES ('${userId}', '测试流程用户', '男', 30, 70, 175, '22.9', NOW())
+      VALUES (${userId}, '测试流程用户', '男', 30, 70, 175, '22.9', NOW())
       RETURNING *
     `);
+    const user = userResult.rows[0];
     console.log('[测试流程] 创建用户成功');
 
     // 2. 创建自检记录

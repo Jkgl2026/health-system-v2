@@ -87,10 +87,13 @@ export class AlertManager {
   private ruleStates: Map<string, { startTime: Date; triggered: boolean }> = new Map();
 
   constructor(config: AlertConfig = {} as AlertConfig) {
-    this.config = {
+    const defaultConfig = {
       enabled: true,
       checkInterval: 60,
       retentionDays: 7,
+    };
+    this.config = {
+      ...defaultConfig,
       ...(config || {}),
     };
   }

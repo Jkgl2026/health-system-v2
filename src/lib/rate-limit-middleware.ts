@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { RateLimiter, getIdentifierFromRequest } from './rate-limit';
 
 /**
+ * 速率限制结果
+ */
+export interface RateLimitSuccessResult {
+  success: true;
+  headers: Headers;
+}
+
+/**
  * 速率限制选项
  */
 export interface RateLimitOptions {
@@ -22,7 +30,7 @@ export function createRateLimitMiddleware(options: RateLimitOptions) {
     onLimitReached,
   } = options;
 
-  return async (request: NextRequest): Promise<NextResponse> => {
+  return async (request: NextRequest): Promise<NextResponse | RateLimitSuccessResult> => {
     // 生成唯一标识符
     const identifier = keyGenerator(request);
 
@@ -60,17 +68,6 @@ export function createRateLimitMiddleware(options: RateLimitOptions) {
     // 注意：这个函数需要在API路由中手动调用，而不是作为中间件
     // 由于Next.js的限制，我们返回success标志
     return { success: true, headers };
-
-    // 添加速率限制头到响应
-    response.headers.set('X-RateLimit-Limit', result.limit.toString());
-    response.headers.set('X-RateLimit-Remaining', result.remaining.toString());
-    response.headers.set('X-RateLimit-Reset', result.resetTime.getTime().toString());
-
-    if (onSuccess) {
-      return onSuccess(request, response);
-    }
-
-    return response;
   };
 }
 

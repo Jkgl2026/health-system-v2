@@ -504,8 +504,8 @@ export default function CheckPage() {
                     </h4>
                     <div className="space-y-2">
                       {getTargetSymptoms().map((symptom, index) => (
-                        <p key={symptom.id} className="text-xl font-medium text-green-700 dark:text-green-400">
-                          {index + 1}. {symptom.name}
+                        <p key={symptom?.id} className="text-xl font-medium text-green-700 dark:text-green-400">
+                          {index + 1}. {symptom?.name}
                         </p>
                       ))}
                     </div>

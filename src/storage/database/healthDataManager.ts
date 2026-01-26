@@ -99,19 +99,18 @@ export class HealthDataManager {
     const { skip = 0, limit = 100, tableName, recordId, operatorId, action } = options;
     const db = await getDb();
 
-    let query = db.select().from(auditLogs);
-
     const conditions = [];
     if (tableName) conditions.push(eq(auditLogs.tableName, tableName));
     if (recordId) conditions.push(eq(auditLogs.recordId, recordId));
     if (operatorId) conditions.push(eq(auditLogs.operatorId, operatorId));
     if (action) conditions.push(eq(auditLogs.action, action));
 
-    if (conditions.length > 0) {
-      query = query.where(and(...conditions));
-    }
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
-    return query
+    return db
+      .select()
+      .from(auditLogs)
+      .where(whereClause)
       .orderBy(desc(auditLogs.createdAt))
       .limit(limit)
       .offset(skip);
@@ -407,17 +406,7 @@ export class HealthDataManager {
     }
   }
 
-  async getAllUsers(options: { skip?: number; limit?: number } = {}): Promise<User[]> {
-    const { skip = 0, limit = 100 } = options;
-    const db = await getDb();
-    return db
-      .select()
-      .from(users)
-      .orderBy(desc(users.createdAt))
-      .limit(limit)
-      .offset(skip);
-  }
-
+  // ==================== 用户管理 ====================
   /**
    * 软删除用户（标记为已删除，而非真正删除）
    */
@@ -526,17 +515,17 @@ export class HealthDataManager {
 
   async getSymptomChecksByUserId(userId: string, limit?: number): Promise<SymptomCheck[]> {
     const db = await getDb();
-    let query = db
+    const baseQuery = db
       .select()
       .from(symptomChecks)
       .where(eq(symptomChecks.userId, userId))
       .orderBy(desc(symptomChecks.checkedAt));
     
     if (limit !== undefined && limit > 0) {
-      query = query.limit(limit);
+      return baseQuery.limit(limit);
     }
     
-    return query;
+    return baseQuery;
   }
 
   async getLatestSymptomCheck(userId: string): Promise<SymptomCheck | null> {
@@ -580,17 +569,17 @@ export class HealthDataManager {
 
   async getHealthAnalysisByUserId(userId: string, limit?: number): Promise<HealthAnalysis[]> {
     const db = await getDb();
-    let query = db
+    const baseQuery = db
       .select()
       .from(healthAnalysis)
       .where(eq(healthAnalysis.userId, userId))
       .orderBy(desc(healthAnalysis.analyzedAt));
     
     if (limit !== undefined && limit > 0) {
-      query = query.limit(limit);
+      return baseQuery.limit(limit);
     }
     
-    return query;
+    return baseQuery;
   }
 
   async getLatestHealthAnalysis(userId: string): Promise<HealthAnalysis | null> {

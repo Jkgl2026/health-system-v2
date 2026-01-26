@@ -110,17 +110,19 @@ export async function GET(request: NextRequest) {
       auditLogsCount.count;
 
     const userCount = usersCount?.count || 1; // 避免除以零
-    const avgDataPerUser = dbSizeResult.rows[0]?.total_size_bytes / userCount;
+    const dbSizeRow = dbSizeResult.rows[0] as { total_size_bytes: number; total_size: string } | undefined;
+    const totalSizeBytes = dbSizeRow?.total_size_bytes || 0;
+    const avgDataPerUser = totalSizeBytes / userCount;
 
     return NextResponse.json({
       success: true,
       data: {
         databaseSize: {
-          total: dbSizeResult.rows[0]?.total_size_bytes || 0,
-          totalPretty: dbSizeResult.rows[0]?.total_size || 'Unknown',
+          total: totalSizeBytes,
+          totalPretty: dbSizeRow?.total_size || 'Unknown',
           avgPerUser: avgDataPerUser,
           avgPerUserPretty: formatBytes(avgDataPerUser),
-          usagePercent: Math.min(100, ((dbSizeResult.rows[0]?.total_size_bytes || 0) / (10 * 1024 * 1024 * 1024)) * 100),
+          usagePercent: Math.min(100, (totalSizeBytes / (10 * 1024 * 1024 * 1024)) * 100),
           // 假设最大容量为 10 GB
           estimatedMaxUsers: Math.floor((10 * 1024 * 1024 * 1024) / avgDataPerUser),
         },

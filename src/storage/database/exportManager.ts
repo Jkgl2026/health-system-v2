@@ -1,5 +1,6 @@
 import { getDb } from "coze-coding-dev-sdk";
 import { S3Storage } from "coze-coding-dev-sdk";
+import { eq, desc, sql } from "drizzle-orm";
 import {
   users,
   symptomChecks,
@@ -227,12 +228,14 @@ export class ExportManager {
       for (const user of exportData.data.users) {
         if (options.overwrite) {
           // 覆盖模式：插入或更新
-          await db.execute(`
+          await db.execute(sql`
             INSERT INTO users (
-              id, name, phone, email, age, gender, weight, height, blood_pressure, 
+              id, name, phone, email, age, gender, weight, height, blood_pressure,
               occupation, address, bmi, deleted_at, created_at, updated_at
             ) VALUES (
-              $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+              ${user.id}, ${user.name}, ${user.phone}, ${user.email}, ${user.age}, ${user.gender},
+              ${user.weight}, ${user.height}, ${user.bloodPressure}, ${user.occupation},
+              ${user.address}, ${user.bmi}, ${user.deletedAt}, ${user.createdAt}, ${user.updatedAt}
             )
             ON CONFLICT (id) DO UPDATE SET
               name = EXCLUDED.name,
@@ -248,26 +251,10 @@ export class ExportManager {
               bmi = EXCLUDED.bmi,
               deleted_at = EXCLUDED.deleted_at,
               updated_at = EXCLUDED.updated_at
-          `, [
-            user.id,
-            user.name,
-            user.phone,
-            user.email,
-            user.age,
-            user.gender,
-            user.weight,
-            user.height,
-            user.bloodPressure,
-            user.occupation,
-            user.address,
-            user.bmi,
-            user.deletedAt,
-            user.createdAt,
-            user.updatedAt,
-          ]);
+          `);
 
           // 检查是否是插入还是更新
-          const existingUser = await db.select().from(users).where(requirement => requirement.id === user.id);
+          const existingUser = await db.select().from(users).where(eq(users.id, user.id));
           if (existingUser.length > 0) {
             stats.updated++;
           } else {
@@ -276,30 +263,16 @@ export class ExportManager {
         } else {
           // 非覆盖模式：只插入不存在的记录
           try {
-            await db.execute(`
+            await db.execute(sql`
               INSERT INTO users (
                 id, name, phone, email, age, gender, weight, height, blood_pressure, 
                 occupation, address, bmi, deleted_at, created_at, updated_at
               ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+                ${user.id}, ${user.name}, ${user.phone}, ${user.email}, ${user.age}, ${user.gender},
+                ${user.weight}, ${user.height}, ${user.bloodPressure}, ${user.occupation},
+                ${user.address}, ${user.bmi}, ${user.deletedAt}, ${user.createdAt}, ${user.updatedAt}
               )
-            `, [
-              user.id,
-              user.name,
-              user.phone,
-              user.email,
-              user.age,
-              user.gender,
-              user.weight,
-              user.height,
-              user.bloodPressure,
-              user.occupation,
-              user.address,
-              user.bmi,
-              user.deletedAt,
-              user.createdAt,
-              user.updatedAt,
-            ]);
+            `);
             stats.inserted++;
           } catch (error: any) {
             if (error.code === '23505') { // 唯一约束冲突

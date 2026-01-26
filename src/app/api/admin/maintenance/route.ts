@@ -338,14 +338,15 @@ export async function GET() {
     const db = await getDb();
 
     // 获取数据库大小信息
-    const [dbSize] = await db.execute(sql`
+    const dbSizeResult = await db.execute(sql`
       SELECT
         pg_size_pretty(pg_database_size(current_database())) AS total_size,
         pg_database_size(current_database()) AS total_size_bytes
     `);
+    const dbSize = dbSizeResult.rows[0];
 
     // 获取表大小信息
-    const tableSizes = await db.execute(sql`
+    const tableSizesResult = await db.execute(sql`
       SELECT
         tablename,
         pg_size_pretty(pg_total_relation_size('public.' || tablename)) AS total_size,
@@ -354,6 +355,7 @@ export async function GET() {
       WHERE schemaname = 'public'
       ORDER BY pg_total_relation_size('public.' || tablename) DESC
     `);
+    const tableSizes = tableSizesResult.rows;
 
     // 获取备份统计
     const backupStats = await enhancedBackupManager.getBackupStats();
@@ -365,10 +367,10 @@ export async function GET() {
       success: true,
       data: {
         databaseSize: {
-          total: dbSize.rows[0]?.total_size_bytes || 0,
-          totalPretty: dbSize.rows[0]?.total_size || 'Unknown',
+          total: (dbSize as any)?.total_size_bytes || 0,
+          totalPretty: (dbSize as any)?.total_size || 'Unknown',
         },
-        tableSizes: (tableSizes.rows as any[]).map((row) => ({
+        tableSizes: (tableSizes as any[]).map((row: any) => ({
           tableName: row.tablename,
           totalSize: row.total_size_bytes,
           totalSizePretty: row.total_size,

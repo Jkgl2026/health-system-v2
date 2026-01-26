@@ -24,7 +24,7 @@ type TaskResult = {
 };
 
 class AutoMaintenanceScheduler {
-  private tasks: Map<MaintenanceTask, cron.ScheduledTask> = new Map();
+  private tasks: Map<MaintenanceTask, any> = new Map();
   private schedules: Map<MaintenanceTask, TaskSchedule> = new Map();
   private results: TaskResult[] = [];
   private maxResults = 100; // 最多保留100条结果
@@ -218,16 +218,22 @@ class AutoMaintenanceScheduler {
       // 简单计算下次运行时间（仅用于显示，实际由cron库控制）
       const nextRun = new Date();
       const parts = schedule.schedule.split(' ');
-      const minute = parseInt(parts[0]);
-      const hour = parseInt(parts[1]);
-      const dayOfMonth = parseInt(parts[2]);
-      const month = parseInt(parts[3]);
-      const dayOfWeek = parseInt(parts[4]);
+      const minuteStr = parts[0];
+      const hourStr = parts[1];
+      const dayOfMonthStr = parts[2];
+      const monthStr = parts[3];
+      const dayOfWeekStr = parts[4];
 
-      if (dayOfMonth !== '*') {
+      const minute = parseInt(minuteStr);
+      const hour = parseInt(hourStr);
+      const dayOfMonth = parseInt(dayOfMonthStr);
+      const month = parseInt(monthStr);
+      const dayOfWeek = parseInt(dayOfWeekStr);
+
+      if (dayOfMonthStr !== '*') {
         // 每月特定日期
         nextRun.setMonth(nextRun.getMonth() + 1, dayOfMonth);
-      } else if (dayOfWeek !== '*') {
+      } else if (dayOfWeekStr !== '*') {
         // 每周特定星期
         const daysUntil = (dayOfWeek - nextRun.getDay() + 7) % 7 || 7;
         nextRun.setDate(nextRun.getDate() + daysUntil);

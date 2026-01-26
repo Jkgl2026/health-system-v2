@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import { healthDataManager } from '@/storage/database';
+import { SessionManager } from '@/lib/session-manager';
 
 // GET /api/admin/verify - 验证管理员会话
 export async function GET(request: NextRequest) {
