@@ -316,63 +316,10 @@ export default function Home() {
                   </div>
                 </div>
               </div>
-
-              <div className="mt-6 space-y-4">
-                <div className="p-5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Activity className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">整体健康改善潜力</span>
-                    </div>
-                    <span className="text-lg font-bold text-indigo-700 dark:text-indigo-400">
-                      {healthData.healthScore}%
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-5 shadow-inner">
-                    <div
-                      className="bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-600 h-5 rounded-full transition-all duration-700 ease-out flex items-center justify-center shadow-lg"
-                      style={{ width: `${healthData.healthScore}%` }}
-                    >
-                      {healthData.healthScore > 10 && (
-                        <span className="text-xs font-bold text-white">{healthData.healthScore}%</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                      <span className="text-xs font-semibold text-blue-900 dark:text-blue-300">身体语言简表</span>
-                    </div>
-                    <div className="text-xs text-blue-700 dark:text-blue-400">
-                      权重30% · {healthData.bodySymptomsCount}/100项
-                    </div>
-                  </div>
-                  <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full" />
-                      <span className="text-xs font-semibold text-orange-900 dark:text-orange-300">不良生活习惯</span>
-                    </div>
-                    <div className="text-xs text-orange-700 dark:text-orange-400">
-                      权重20% · {healthData.badHabitsCount}/252项
-                    </div>
-                  </div>
-                  <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full" />
-                      <span className="text-xs font-semibold text-purple-900 dark:text-purple-300">300症状表</span>
-                    </div>
-                    <div className="text-xs text-purple-700 dark:text-purple-400">
-                      权重10% · {healthData.symptoms300Count}/300项
-                    </div>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </section>
+        )}
 
         {hasHealthData && healthData && (
           <section className="mb-16">
