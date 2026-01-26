@@ -31,38 +31,33 @@ interface CourseMatch {
 
 export default function MySolutionPage() {
   const [userData, setUserData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [hasData, setHasData] = useState(false);
 
   useEffect(() => {
+    // 立即检查 localStorage，先显示内容
+    const hasSymptoms = localStorage.getItem('selectedSymptoms');
+    const hasBadHabits = localStorage.getItem('selectedHabitsRequirements');
+    const hasSymptoms300 = localStorage.getItem('selectedSymptoms300');
+    const hasTargetSymptoms = localStorage.getItem('targetSymptoms') || localStorage.getItem('targetSymptom');
+    const hasChoice = localStorage.getItem('selectedChoice');
+
+    setHasData(!!((hasSymptoms || hasBadHabits || hasSymptoms300) && hasTargetSymptoms && hasChoice));
+
+    // 后台异步加载用户数据
     loadUserData();
   }, []);
 
   const loadUserData = async () => {
-    setLoading(true);
     try {
       const userId = getOrGenerateUserId();
       const userResponse = await getUser(userId);
-      
+
       if (userResponse.success && userResponse.user) {
         setUserData(userResponse.user);
-        
-        // 检查是否有足够的数据显示方案
-        const hasSymptoms = localStorage.getItem('selectedSymptoms');
-        const hasBadHabits = localStorage.getItem('selectedHabitsRequirements');
-        const hasSymptoms300 = localStorage.getItem('selectedSymptoms300');
-        const hasTargetSymptoms = localStorage.getItem('targetSymptoms') || localStorage.getItem('targetSymptom');
-        const hasChoice = localStorage.getItem('selectedChoice');
-        
-        setHasData(!!((hasSymptoms || hasBadHabits || hasSymptoms300) && hasTargetSymptoms && hasChoice));
-      } else {
-        setHasData(false);
       }
     } catch (error) {
       console.error('加载用户数据失败:', error);
-      setHasData(false);
-    } finally {
-      setLoading(false);
     }
   };
 

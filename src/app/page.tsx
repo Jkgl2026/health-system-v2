@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info, AlertCircle, ArrowRight, Eye, User, Flame, Droplets, Zap, Sparkles, Award, TrendingUp } from 'lucide-react';
@@ -9,6 +10,7 @@ import { PWARedirect } from './page-pwa-redirect';
 import { BODY_SYMPTOMS } from '@/lib/health-data';
 
 export default function Home() {
+  const router = useRouter();
   const [showIntro, setShowIntro] = useState(true);
   const [healthData, setHealthData] = useState<any>(null);
   const [hasHealthData, setHasHealthData] = useState(false);
@@ -209,7 +211,7 @@ export default function Home() {
               )}
               <Button
                 variant="outline"
-                onClick={() => window.location.href = '/install-guide'}
+                onClick={() => router.push('/install-guide')}
                 size="sm"
                 className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-xs md:text-sm min-h-[36px]"
               >
@@ -217,7 +219,7 @@ export default function Home() {
               </Button>
               <Button
                 size="sm"
-                onClick={() => window.location.href = '/personal-info'}
+                onClick={() => router.push('/personal-info')}
                 className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 min-h-[36px]"
               >
                 开始自检
@@ -287,7 +289,7 @@ export default function Home() {
                 </div>
                 <Button
                   size="lg"
-                  onClick={() => window.location.href = '/my-solution'}
+                  onClick={() => router.push('/my-solution')}
                   className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all group"
                 >
                   <Eye className="w-5 h-5 mr-2" />
@@ -308,7 +310,7 @@ export default function Home() {
                 </div>
 
                 <div
-                  onClick={() => window.location.href = '/check'}
+                  onClick={() => router.push('/check')}
                   className="p-5 md:p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -330,7 +332,7 @@ export default function Home() {
                 </div>
 
                 <div
-                  onClick={() => window.location.href = '/requirements?step=habits'}
+                  onClick={() => router.push('/requirements?step=habits')}
                   className="p-5 md:p-5 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -352,7 +354,7 @@ export default function Home() {
                 </div>
 
                 <div
-                  onClick={() => window.location.href = '/requirements?step=symptoms300'}
+                  onClick={() => router.push('/requirements?step=symptoms300')}
                   className="p-5 md:p-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -374,7 +376,7 @@ export default function Home() {
                 </div>
 
                 <div
-                  onClick={() => window.location.href = '/check'}
+                  onClick={() => router.push('/check')}
                   className="p-5 md:p-5 bg-gradient-to-br from-red-600 to-red-700 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group relative overflow-hidden active:scale-95"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
@@ -922,14 +924,14 @@ export default function Home() {
         <section className="text-center space-y-4 md:space-y-6 px-4">
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center w-full max-w-lg mx-auto">
             <Button
-              onClick={() => window.location.href = '/personal-info'}
+              onClick={() => router.push('/personal-info')}
               size="lg"
               className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white text-base md:text-lg px-6 md:px-12 py-4 md:py-6 rounded-full shadow-lg hover:shadow-xl transition-all w-full min-h-[48px] active:scale-95"
             >
               立即开始健康自检
             </Button>
             <Button
-              onClick={() => window.location.href = '/my-solution'}
+              onClick={() => router.push('/my-solution')}
               size="lg"
               variant="outline"
               className="text-base md:text-lg px-6 md:px-12 py-4 md:py-6 rounded-full shadow-md hover:shadow-lg transition-all border-2 border-blue-200 hover:border-blue-300 w-full min-h-[48px] active:scale-95"
@@ -945,7 +947,7 @@ export default function Home() {
           <div className="pt-4 md:pt-6">
             <Button
               variant="outline"
-              onClick={() => window.location.href = '/data-reset'}
+              onClick={() => router.push('/data-reset')}
               className="text-sm min-h-[44px] px-4"
             >
               <Settings className="w-4 h-4 mr-2" />
