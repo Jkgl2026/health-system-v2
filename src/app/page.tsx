@@ -454,17 +454,6 @@ export default function Home() {
               </div>
             </CardContent>
           </Card>
-
-          {/* 第一页底部 - 下一页按钮 */}
-          <div className="md:hidden px-4">
-            <Button
-              onClick={() => setCurrentPage(2)}
-              className="w-full min-h-[48px] bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all active:scale-95"
-            >
-              下一页：健康理念
-              <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-          </div>
         </section>
       )}
 
@@ -728,6 +717,17 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
+
+              {/* 第一页底部 - 下一页按钮（手机版） */}
+              <div className="md:hidden px-4">
+                <Button
+                  onClick={() => setCurrentPage(2)}
+                  className="w-full min-h-[48px] bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white font-semibold text-base shadow-lg hover:shadow-xl transition-all active:scale-95"
+                >
+                  下一页：健康理念
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </div>
             </div>
           </section>
         )}
@@ -831,19 +831,19 @@ export default function Home() {
           <h3 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white mb-6 md:mb-8">
             健康自检流程
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto px-2">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 max-w-6xl mx-auto px-2">
             {steps.map((step, index) => (
               <Card key={index} className="relative hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center px-3 md:px-6 py-4 md:py-6">
-                  <div className="mx-auto w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center mb-3 md:mb-4 text-white">
-                    <div className="w-7 h-7 md:w-8 md:h-8">
+                <CardHeader className="text-center px-2 md:px-6 py-3 md:py-6">
+                  <div className="mx-auto w-10 h-10 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center mb-2 md:mb-4 text-white">
+                    <div className="w-5 h-5 md:w-8 md:h-8">
                       {step.icon}
                     </div>
                   </div>
-                  <CardTitle className="text-base md:text-lg">{step.title}</CardTitle>
+                  <CardTitle className="text-sm md:text-lg">{step.title}</CardTitle>
                 </CardHeader>
-                <CardContent className="px-3 md:px-6 pb-4 md:pb-6">
-                  <p className="text-center text-sm md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                <CardContent className="px-2 md:px-6 pb-3 md:pb-6">
+                  <p className="text-center text-xs md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                     {step.description}
                   </p>
                 </CardContent>
@@ -864,21 +864,21 @@ export default function Home() {
           <h3 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white mb-6 md:mb-8">
             为什么选择我们
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto px-2">
+          <div className="grid grid-cols-2 gap-3 md:gap-6 max-w-4xl mx-auto px-2">
             {features.map((feature, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="px-4 md:px-6 py-4 md:py-5">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white flex-shrink-0">
-                      <div className="w-5 h-5 md:w-6 md:h-6">
+                <CardHeader className="px-2 md:px-6 py-3 md:py-5">
+                  <div className="flex items-center space-x-2 md:space-x-3">
+                    <div className="w-8 h-8 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white flex-shrink-0">
+                      <div className="w-4 h-4 md:w-6 md:h-6">
                         {feature.icon}
                       </div>
                     </div>
-                    <CardTitle className="text-base md:text-xl">{feature.title}</CardTitle>
+                    <CardTitle className="text-sm md:text-xl">{feature.title}</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
-                  <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
+                <CardContent className="px-2 md:px-6 pb-3 md:pb-6">
+                  <p className="text-xs md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                     {feature.description}
                   </p>
                 </CardContent>
