@@ -14,6 +14,7 @@ export default function Home() {
   const [hasHealthData, setHasHealthData] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1); // 1 = 健康评分页，2 = 介绍页
 
   // 加载演示数据
   const loadDemoData = () => {
@@ -240,9 +241,31 @@ export default function Home() {
         </div>
       </div>
 
-      {/* 健康数据概览卡片（如果有数据） */}
-      {hasHealthData && healthData && (
+      {/* 健康数据概览卡片（如果有数据） - 仅在有数据且在第一页时显示 */}
+      {hasHealthData && healthData && currentPage === 1 && (
         <section className="mb-16">
+          {/* 手机版页面切换提示 */}
+          <div className="md:hidden mb-4 px-4">
+            <div className="bg-indigo-50 dark:bg-indigo-900/30 rounded-lg p-4 border border-indigo-200 dark:border-indigo-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                    1
+                  </div>
+                  <span className="text-sm font-medium text-indigo-900 dark:text-indigo-100">健康评分</span>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setCurrentPage(2)}
+                  className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white min-h-[44px] px-4"
+                >
+                  下一页
+                  <ArrowRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <Card className="max-w-5xl mx-auto border-2 border-indigo-100 dark:border-indigo-900 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/30 dark:to-blue-900/30">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -698,12 +721,38 @@ export default function Home() {
           </section>
         )}
 
-      {/* 主内容 */}
+      {/* 主内容 - 没有健康数据时显示，或者有健康数据且在第二页时显示 */}
+      {(!hasHealthData || currentPage === 2) && (
       <main className="container mx-auto px-4 py-12">
+        {/* 手机版页面切换提示（有数据时显示） */}
+        {hasHealthData && (
+          <div className="md:hidden mb-6 px-4">
+            <div className="bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center justify-between">
+                <Button
+                  size="sm"
+                  onClick={() => setCurrentPage(1)}
+                  variant="outline"
+                  className="border-indigo-500 text-indigo-600 hover:bg-indigo-50 min-h-[44px] px-4"
+                >
+                  <ArrowRight className="w-4 h-4 mr-1 rotate-180" />
+                  返回评分
+                </Button>
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                    2
+                  </div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">健康理念</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 欢迎区域 */}
-        <section className="mb-16">
-          <div className="text-center max-w-3xl mx-auto mb-12">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+        <section className="mb-12 md:mb-16">
+          <div className="text-center max-w-3xl mx-auto mb-8 md:mb-12 px-4">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-4 md:mb-6 leading-tight">
               让老百姓
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-green-600">
                 少花钱
@@ -714,7 +763,7 @@ export default function Home() {
               </span>
               解决问题
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
+            <p className="text-base md:text-xl text-gray-600 dark:text-gray-400 leading-relaxed">
               健康自我管理的核心价值在于教会您健康观念，把健康把握在自己手里。
               最省钱的方法就是学会健康自我管理，少生病，把健康掌握在自己手里。
             </p>
@@ -722,41 +771,41 @@ export default function Home() {
 
           {/* 核心问题 */}
           <Card className="max-w-4xl mx-auto border-2 border-blue-100 dark:border-blue-900">
-            <CardHeader>
-              <CardTitle className="text-2xl text-center">三个核心问题</CardTitle>
-              <CardDescription className="text-center text-base">
+            <CardHeader className="px-4 md:px-6 py-4 md:py-6">
+              <CardTitle className="text-xl md:text-2xl text-center">三个核心问题</CardTitle>
+              <CardDescription className="text-center text-sm md:text-base">
                 思考这些问题，认识健康的重要性
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <CardContent className="px-4 md:px-6 py-4 md:py-6">
+              <div className="space-y-4 md:space-y-6">
+                <div className="p-4 md:p-5 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                  <p className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     1. 老百姓是舒服的时候去医院检查，还是难受的时候？
                   </p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
                     大多数人都是难受的时候才去医院检查
                   </p>
                 </div>
-                <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <div className="p-4 md:p-5 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <p className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     2. 有没有这种情况？明明难受，但医院检查结论却是"正常"？
                   </p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
                     这种情况还挺多的
                   </p>
                 </div>
-                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <div className="p-4 md:p-5 bg-purple-50 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                  <p className="text-base md:text-lg font-semibold text-gray-900 dark:text-white mb-2">
                     3. 大病检查出来一般是什么期？
                   </p>
-                  <p className="text-gray-600 dark:text-gray-400">
+                  <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
                     一般都是中晚期了。早期去哪儿了呢？其实早期就是症状！
                   </p>
                 </div>
               </div>
-              <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg">
-                <p className="text-lg font-medium text-gray-900 dark:text-white text-center">
+              <div className="mt-6 md:mt-8 p-4 md:p-6 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/30 dark:to-green-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-base md:text-lg font-medium text-gray-900 dark:text-white text-center leading-relaxed">
                   如果我们能够真正帮助每一个人在出现症状的时候，就能够发现症状，找到原因，
                   并把症状调理好，实际上就是属于健康自我管理的一个部分。
                   用这种方式就可以实现让老百姓少花钱、不花钱来解决问题！
@@ -767,21 +816,23 @@ export default function Home() {
         </section>
 
         {/* 服务流程 */}
-        <section className="mb-16">
-          <h3 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">
+        <section className="mb-12 md:mb-16">
+          <h3 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white mb-6 md:mb-8">
             健康自检流程
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 max-w-6xl mx-auto px-2">
             {steps.map((step, index) => (
               <Card key={index} className="relative hover:shadow-lg transition-shadow">
-                <CardHeader className="text-center">
-                  <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center mb-4 text-white">
-                    {step.icon}
+                <CardHeader className="text-center px-3 md:px-6 py-4 md:py-6">
+                  <div className="mx-auto w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center mb-3 md:mb-4 text-white">
+                    <div className="w-7 h-7 md:w-8 md:h-8">
+                      {step.icon}
+                    </div>
                   </div>
-                  <CardTitle className="text-lg">{step.title}</CardTitle>
+                  <CardTitle className="text-base md:text-lg">{step.title}</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-center text-gray-600 dark:text-gray-400">
+                <CardContent className="px-3 md:px-6 pb-4 md:pb-6">
+                  <p className="text-center text-sm md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                     {step.description}
                   </p>
                 </CardContent>
@@ -798,23 +849,25 @@ export default function Home() {
         </section>
 
         {/* 特点介绍 */}
-        <section className="mb-16">
-          <h3 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-8">
+        <section className="mb-12 md:mb-16">
+          <h3 className="text-2xl md:text-3xl font-bold text-center text-gray-900 dark:text-white mb-6 md:mb-8">
             为什么选择我们
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 max-w-4xl mx-auto px-2">
             {features.map((feature, index) => (
               <Card key={index} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
+                <CardHeader className="px-4 md:px-6 py-4 md:py-5">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white">
-                      {feature.icon}
+                    <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-blue-500 to-green-500 rounded-lg flex items-center justify-center text-white flex-shrink-0">
+                      <div className="w-5 h-5 md:w-6 md:h-6">
+                        {feature.icon}
+                      </div>
                     </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                    <CardTitle className="text-base md:text-xl">{feature.title}</CardTitle>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-400">
+                <CardContent className="px-4 md:px-6 pb-4 md:pb-6">
+                  <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
                     {feature.description}
                   </p>
                 </CardContent>
@@ -824,20 +877,20 @@ export default function Home() {
         </section>
 
         {/* 核心价值 */}
-        <section className="mb-16">
+        <section className="mb-12 md:mb-16">
           <Card className="max-w-4xl mx-auto border-2 border-green-100 dark:border-green-900">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">我们的使命</CardTitle>
+            <CardHeader className="text-center px-4 md:px-6 py-4 md:py-6">
+              <CardTitle className="text-xl md:text-2xl">我们的使命</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <p className="text-lg text-gray-700 dark:text-gray-300 text-center">
+            <CardContent className="px-4 md:px-6 py-4 md:py-6">
+              <div className="space-y-3 md:space-y-4">
+                <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 text-center leading-relaxed">
                   有钱的顾客我们要服务，没有钱的顾客我们更要服务。
                 </p>
-                <p className="text-lg text-gray-700 dark:text-gray-300 text-center">
+                <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 text-center leading-relaxed">
                   老百姓生不起病，我们要教他们会生活、少生病，把健康把握在自己手里。
                 </p>
-                <p className="text-lg text-gray-700 dark:text-gray-300 text-center font-semibold">
+                <p className="text-base md:text-lg text-gray-700 dark:text-gray-300 text-center font-semibold leading-relaxed">
                   这才是最实在的！
                 </p>
               </div>
@@ -846,12 +899,12 @@ export default function Home() {
         </section>
 
         {/* 开始按钮 */}
-        <section className="text-center space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+        <section className="text-center space-y-4 md:space-y-6 px-4">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center items-center w-full max-w-lg mx-auto">
             <Button
               onClick={() => window.location.href = '/personal-info'}
               size="lg"
-              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white text-lg px-12 py-6 rounded-full shadow-lg hover:shadow-xl transition-all"
+              className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 text-white text-base md:text-lg px-6 md:px-12 py-4 md:py-6 rounded-full shadow-lg hover:shadow-xl transition-all w-full min-h-[48px] active:scale-95"
             >
               立即开始健康自检
             </Button>
@@ -859,21 +912,21 @@ export default function Home() {
               onClick={() => window.location.href = '/my-solution'}
               size="lg"
               variant="outline"
-              className="text-lg px-12 py-6 rounded-full shadow-md hover:shadow-lg transition-all border-2 border-blue-200 hover:border-blue-300"
+              className="text-base md:text-lg px-6 md:px-12 py-4 md:py-6 rounded-full shadow-md hover:shadow-lg transition-all border-2 border-blue-200 hover:border-blue-300 w-full min-h-[48px] active:scale-95"
             >
               查看我的方案
             </Button>
           </div>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400">
             花费约 15-20 分钟，全面了解您的健康状况
           </p>
 
           {/* 数据管理入口 */}
-          <div className="pt-4">
+          <div className="pt-4 md:pt-6">
             <Button
               variant="outline"
               onClick={() => window.location.href = '/data-reset'}
-              className="text-sm"
+              className="text-sm min-h-[44px] px-4"
             >
               <Settings className="w-4 h-4 mr-2" />
               数据管理（备份/恢复）
@@ -881,6 +934,7 @@ export default function Home() {
           </div>
         </section>
       </main>
+      )}
 
       {/* PWA 启动重定向 */}
       <PWARedirect />
