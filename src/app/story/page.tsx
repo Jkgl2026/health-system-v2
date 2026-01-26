@@ -212,29 +212,6 @@ export default function StoryPage() {
                         </div>
                       )}
 
-                      {/* 相关症状 - 使用卡片网格 */}
-                      <div>
-                        <h3 className={`text-xl font-bold mb-4 flex items-center ${colors.text}`}>
-                          <AlertCircle className="w-5 h-5 mr-2" />
-                          相关症状（对应到您的自检表）
-                        </h3>
-                        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                            {element.symptoms.map((id) => {
-                              return (
-                                <Badge
-                                  key={id}
-                                  variant="secondary"
-                                  className="justify-center py-2 px-3 text-sm font-medium border border-gray-200 dark:border-gray-700 hover:shadow-md transition-shadow"
-                                >
-                                  {id}
-                                </Badge>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </div>
-
                       {/* 重要提示 - 使用醒目的警告样式 */}
                       <div className="p-5 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-xl border-2 border-yellow-300 dark:border-yellow-800">
                         <h3 className={`text-lg font-bold mb-2 flex items-center ${colors.text}`}>
