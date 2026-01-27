@@ -775,123 +775,344 @@ export default function AdminDashboardPage() {
 
                   return (
                     <div className="space-y-6">
-                      {/* 综合健康评分大卡片 */}
-                      <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-100">
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                          {/* 健康评分主卡片 */}
-                          <div className="md:col-span-1 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-6 text-white text-center">
-                            <div className="text-sm font-medium mb-2 opacity-90">综合健康评分</div>
-                            <div className="text-6xl font-bold mb-1">{healthScore}</div>
-                            <div className="text-sm opacity-80">分（满分100）</div>
-                            <div className="mt-4 text-xs opacity-70">
-                              健康状态：{healthStatus}
-                            </div>
-                            <div className="mt-2 text-xs opacity-60">
-                              总扣分：{totalDeduction.toFixed(1)}分
+                      {/* 综合健康评分主展示区 */}
+                      <div className="bg-white p-8 rounded-xl shadow-lg border-2 border-purple-100">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                          {/* 左侧：主评分卡片 - 占据2/3宽度 */}
+                          <div className="lg:col-span-2 bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 rounded-2xl p-8 text-white shadow-2xl">
+                            <div className="flex flex-col lg:flex-row items-center gap-8">
+                              {/* 评分数字和圆形进度 */}
+                              <div className="flex-shrink-0 text-center">
+                                <div className="relative inline-block">
+                                  <div className="w-40 h-40 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                                    <div className="text-center">
+                                      <div className="text-7xl font-bold mb-1 drop-shadow-lg">{healthScore}</div>
+                                      <div className="text-sm opacity-80">分</div>
+                                    </div>
+                                  </div>
+                                  {/* 环形进度条（CSS模拟） */}
+                                  <svg className="absolute top-0 left-0 w-40 h-40 -rotate-90" viewBox="0 0 160 160">
+                                    <circle
+                                      cx="80"
+                                      cy="80"
+                                      r="70"
+                                      fill="none"
+                                      stroke="rgba(255,255,255,0.2)"
+                                      strokeWidth="8"
+                                    />
+                                    <circle
+                                      cx="80"
+                                      cy="80"
+                                      r="70"
+                                      fill="none"
+                                      stroke="white"
+                                      strokeWidth="8"
+                                      strokeLinecap="round"
+                                      strokeDasharray={`${2 * Math.PI * 70}`}
+                                      strokeDashoffset={`${2 * Math.PI * 70 * (1 - healthScore / 100)}`}
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+
+                              {/* 评分详情和状态 */}
+                              <div className="flex-1 space-y-4">
+                                <div>
+                                  <div className="text-sm font-medium opacity-80 mb-1">综合健康评分</div>
+                                  <div className="text-2xl font-bold">满分 100 分</div>
+                                </div>
+
+                                {/* 健康状态标签 */}
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg">
+                                  <div className={`w-3 h-3 rounded-full ${
+                                    healthScore >= 80 ? 'bg-green-400' :
+                                    healthScore >= 60 ? 'bg-yellow-400' :
+                                    'bg-red-400'
+                                  }`} />
+                                  <span className="font-medium">健康状态：{healthStatus}</span>
+                                </div>
+
+                                {/* 扣分信息 */}
+                                <div className="flex items-center gap-6">
+                                  <div className="text-sm">
+                                    <span className="opacity-70">总扣分：</span>
+                                    <span className="font-bold text-lg ml-1">{totalDeduction.toFixed(1)}分</span>
+                                  </div>
+                                  <div className="text-sm">
+                                    <span className="opacity-70">剩余：</span>
+                                    <span className="font-bold text-lg ml-1">{(100 - healthScore).toFixed(1)}分</span>
+                                  </div>
+                                </div>
+
+                                {/* 评分进度条 */}
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-xs opacity-80">
+                                    <span>健康评分进度</span>
+                                    <span>{healthScore}%</span>
+                                  </div>
+                                  <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+                                    <div
+                                      className={`h-3 rounded-full transition-all duration-1000 ${
+                                        healthScore >= 80 ? 'bg-green-400' :
+                                        healthScore >= 60 ? 'bg-yellow-400' :
+                                        'bg-red-400'
+                                      }`}
+                                      style={{ width: `${healthScore}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                           </div>
 
-                          {/* 症状总数 */}
-                          <div className="bg-white border-2 border-gray-100 rounded-lg p-5">
-                            <div className="text-sm text-gray-600 mb-2">症状总数</div>
-                            <div className="text-5xl font-bold text-gray-800 mb-1">{totalSymptoms}</div>
-                            <div className="text-xs text-gray-500">
-                              基于三个症状表统计
+                          {/* 右侧：关键指标卡片 - 占据1/3宽度 */}
+                          <div className="space-y-4">
+                            {/* 症状总数卡片 */}
+                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-100 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                    <Activity className="w-5 h-5 text-white" />
+                                  </div>
+                                  <span className="text-sm font-medium text-blue-800">症状总数</span>
+                                </div>
+                              </div>
+                              <div className="text-5xl font-bold text-blue-700 mb-2">{totalSymptoms}</div>
+                              <div className="text-xs text-blue-600">
+                                基于三个症状表统计
+                              </div>
                             </div>
-                          </div>
 
-                          {/* 严重症状数 */}
-                          <div className="bg-white border-2 border-red-100 rounded-lg p-5">
-                            <div className="text-sm text-red-600 mb-2">严重+紧急症状</div>
-                            <div className="text-5xl font-bold text-red-700 mb-1">
-                              {breakdown.bodyLanguage.severityBreakdown.emergency + 
-                               breakdown.bodyLanguage.severityBreakdown.severe +
-                               breakdown.symptoms300.severityBreakdown.emergency +
-                               breakdown.symptoms300.severityBreakdown.severe}
+                            {/* 严重症状卡片 */}
+                            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-5 border-2 border-red-100 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
+                                    <AlertTriangle className="w-5 h-5 text-white" />
+                                  </div>
+                                  <span className="text-sm font-medium text-red-800">严重+紧急症状</span>
+                                </div>
+                              </div>
+                              <div className="text-5xl font-bold text-red-700 mb-2">
+                                {breakdown.bodyLanguage.severityBreakdown.emergency + 
+                                 breakdown.bodyLanguage.severityBreakdown.severe +
+                                 breakdown.symptoms300.severityBreakdown.emergency +
+                                 breakdown.symptoms300.severityBreakdown.severe}
+                              </div>
+                              <div className="text-xs text-red-600 font-medium">
+                                ⚠️ 需重点关注
+                              </div>
                             </div>
-                            <div className="text-xs text-gray-500">
-                              需重点关注
-                            </div>
-                          </div>
 
-                          {/* 指数系数 */}
-                          <div className="bg-white border-2 border-gray-100 rounded-lg p-5">
-                            <div className="text-sm text-gray-600 mb-2">指数系数</div>
-                            <div className="text-5xl font-bold text-gray-800 mb-1">
-                              {Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x
-                            </div>
-                            <div className="text-xs text-gray-500">
-                              基于症状数量调整
+                            {/* 指数系数卡片 */}
+                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border-2 border-purple-100 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                                    <Zap className="w-5 h-5 text-white" />
+                                  </div>
+                                  <span className="text-sm font-medium text-purple-800">指数系数</span>
+                                </div>
+                              </div>
+                              <div className="text-5xl font-bold text-purple-700 mb-2">
+                                {Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x
+                              </div>
+                              <div className="text-xs text-purple-600">
+                                基于症状数量调整
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* 三个症状表详情 - 使用新的评分算法显示 */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* 三个症状表详情 - 美化版 */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* 身体语言简表 */}
-                        <div className="bg-white p-5 rounded-lg shadow-sm border border-purple-100 hover:shadow-md transition-shadow">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="text-sm font-medium text-purple-600">身体语言简表</div>
-                            <Activity className="w-4 h-4 text-purple-400" />
+                        <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-6 border-2 border-purple-100 hover:shadow-lg transition-all duration-300">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
+                                <Activity className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-purple-900">身体语言简表</div>
+                                <div className="text-xs text-purple-600">100项症状</div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-4xl font-bold text-purple-700 mb-1">{bodySymptomsCount}</div>
-                          <div className="text-xs text-gray-500 mb-2">/ 100项</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                            <div
-                              className="bg-purple-500 h-2 rounded-full transition-all"
-                              style={{ width: `${Math.min(100, bodySymptomsCount)}%` }}
-                            />
+
+                          <div className="text-center mb-4">
+                            <div className="text-5xl font-bold text-purple-700 mb-2">{bodySymptomsCount}</div>
+                            <div className="text-sm text-purple-600">已勾选症状</div>
                           </div>
-                          <div className="mt-2 text-xs text-gray-600">
-                            权重1.0，扣{breakdown.bodyLanguage.deduction.toFixed(1)}分（系数{breakdown.bodyLanguage.factor.toFixed(1)}x）
+
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                              <span>完成度</span>
+                              <span className="font-medium">{bodySymptomsCount}%</span>
+                            </div>
+                            <div className="w-full bg-white rounded-full h-3 overflow-hidden shadow-inner">
+                              <div
+                                className="bg-gradient-to-r from-purple-500 to-violet-600 h-3 rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(100, bodySymptomsCount)}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="mt-2 text-xs text-purple-600">
-                            紧急{breakdown.bodyLanguage.severityBreakdown.emergency} 严重{breakdown.bodyLanguage.severityBreakdown.severe}
+
+                          <div className="bg-white rounded-lg p-3 space-y-2">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">权重</span>
+                              <span className="font-bold text-purple-700">1.0</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">扣分</span>
+                              <span className="font-bold text-red-600">{breakdown.bodyLanguage.deduction.toFixed(1)}分</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">系数</span>
+                              <span className="font-bold text-purple-700">{breakdown.bodyLanguage.factor.toFixed(1)}x</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex gap-2">
+                            {breakdown.bodyLanguage.severityBreakdown.emergency > 0 && (
+                              <div className="flex-1 bg-red-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-red-600 mb-1">紧急</div>
+                                <div className="text-lg font-bold text-red-700">{breakdown.bodyLanguage.severityBreakdown.emergency}</div>
+                              </div>
+                            )}
+                            {breakdown.bodyLanguage.severityBreakdown.severe > 0 && (
+                              <div className="flex-1 bg-orange-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-orange-600 mb-1">严重</div>
+                                <div className="text-lg font-bold text-orange-700">{breakdown.bodyLanguage.severityBreakdown.severe}</div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
                         {/* 不良生活习惯 */}
-                        <div className="bg-white p-5 rounded-lg shadow-sm border border-pink-100 hover:shadow-md transition-shadow">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="text-sm font-medium text-pink-600">不良生活习惯</div>
-                            <AlertCircle className="w-4 h-4 text-pink-400" />
+                        <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-6 border-2 border-pink-100 hover:shadow-lg transition-all duration-300">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
+                                <AlertCircle className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-pink-900">不良生活习惯</div>
+                                <div className="text-xs text-pink-600">252项习惯</div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-4xl font-bold text-pink-700 mb-1">{badHabitsCount}</div>
-                          <div className="text-xs text-gray-500 mb-2">/ 252项</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                            <div
-                              className="bg-pink-500 h-2 rounded-full transition-all"
-                              style={{ width: `${Math.min(100, (badHabitsCount / 252) * 100)}%` }}
-                            />
+
+                          <div className="text-center mb-4">
+                            <div className="text-5xl font-bold text-pink-700 mb-2">{badHabitsCount}</div>
+                            <div className="text-sm text-pink-600">已勾选习惯</div>
                           </div>
-                          <div className="mt-2 text-xs text-gray-600">
-                            权重0.6，扣{breakdown.habits.deduction.toFixed(1)}分（系数{breakdown.habits.factor.toFixed(1)}x）
+
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                              <span>完成度</span>
+                              <span className="font-medium">{Math.round(badHabitsCount * 100 / 252)}%</span>
+                            </div>
+                            <div className="w-full bg-white rounded-full h-3 overflow-hidden shadow-inner">
+                              <div
+                                className="bg-gradient-to-r from-pink-500 to-rose-600 h-3 rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(100, (badHabitsCount / 252) * 100)}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="mt-2 text-xs text-pink-600">
-                            中等{breakdown.habits.severityBreakdown.moderate} 轻微{breakdown.habits.severityBreakdown.mild}
+
+                          <div className="bg-white rounded-lg p-3 space-y-2">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">权重</span>
+                              <span className="font-bold text-pink-700">0.6</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">扣分</span>
+                              <span className="font-bold text-red-600">{breakdown.habits.deduction.toFixed(1)}分</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">系数</span>
+                              <span className="font-bold text-pink-700">{breakdown.habits.factor.toFixed(1)}x</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex gap-2">
+                            {breakdown.habits.severityBreakdown.moderate > 0 && (
+                              <div className="flex-1 bg-yellow-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-yellow-600 mb-1">中等</div>
+                                <div className="text-lg font-bold text-yellow-700">{breakdown.habits.severityBreakdown.moderate}</div>
+                              </div>
+                            )}
+                            {breakdown.habits.severityBreakdown.mild > 0 && (
+                              <div className="flex-1 bg-green-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-green-600 mb-1">轻微</div>
+                                <div className="text-lg font-bold text-green-700">{breakdown.habits.severityBreakdown.mild}</div>
+                              </div>
+                            )}
                           </div>
                         </div>
 
                         {/* 300症状表 */}
-                        <div className="bg-white p-5 rounded-lg shadow-sm border border-amber-100 hover:shadow-md transition-shadow">
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="text-sm font-medium text-amber-600">300症状表</div>
-                            <FileText className="w-4 h-4 text-amber-400" />
+                        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border-2 border-amber-100 hover:shadow-lg transition-all duration-300">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl flex items-center justify-center">
+                                <FileText className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-amber-900">300症状表</div>
+                                <div className="text-xs text-amber-600">300项症状</div>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-4xl font-bold text-amber-700 mb-1">{symptoms300Count}</div>
-                          <div className="text-xs text-gray-500 mb-2">/ 300项</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
-                            <div
-                              className="bg-amber-500 h-2 rounded-full transition-all"
-                              style={{ width: `${Math.min(100, (symptoms300Count / 300) * 100)}%` }}
-                            />
+
+                          <div className="text-center mb-4">
+                            <div className="text-5xl font-bold text-amber-700 mb-2">{symptoms300Count}</div>
+                            <div className="text-sm text-amber-600">已勾选症状</div>
                           </div>
-                          <div className="mt-2 text-xs text-gray-600">
-                            权重0.8，扣{breakdown.symptoms300.deduction.toFixed(1)}分（系数{breakdown.symptoms300.factor.toFixed(1)}x）
+
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                              <span>完成度</span>
+                              <span className="font-medium">{Math.round(symptoms300Count * 100 / 300)}%</span>
+                            </div>
+                            <div className="w-full bg-white rounded-full h-3 overflow-hidden shadow-inner">
+                              <div
+                                className="bg-gradient-to-r from-amber-500 to-yellow-600 h-3 rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(100, (symptoms300Count / 300) * 100)}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="mt-2 text-xs text-amber-600">
-                            紧急{breakdown.symptoms300.severityBreakdown.emergency} 严重{breakdown.symptoms300.severityBreakdown.severe}
+
+                          <div className="bg-white rounded-lg p-3 space-y-2">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">权重</span>
+                              <span className="font-bold text-amber-700">0.8</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">扣分</span>
+                              <span className="font-bold text-red-600">{breakdown.symptoms300.deduction.toFixed(1)}分</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">系数</span>
+                              <span className="font-bold text-amber-700">{breakdown.symptoms300.factor.toFixed(1)}x</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex gap-2">
+                            {breakdown.symptoms300.severityBreakdown.emergency > 0 && (
+                              <div className="flex-1 bg-red-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-red-600 mb-1">紧急</div>
+                                <div className="text-lg font-bold text-red-700">{breakdown.symptoms300.severityBreakdown.emergency}</div>
+                              </div>
+                            )}
+                            {breakdown.symptoms300.severityBreakdown.severe > 0 && (
+                              <div className="flex-1 bg-orange-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-orange-600 mb-1">严重</div>
+                                <div className="text-lg font-bold text-orange-700">{breakdown.symptoms300.severityBreakdown.severe}</div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
