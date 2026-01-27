@@ -129,9 +129,9 @@ export default function AnalysisPage() {
       setSaveSuccess(true);
       setIsSaving(false);
 
-      // 延迟1秒后跳转，让用户看到成功提示
+      // 延迟1秒后跳转到症状分析页面
       setTimeout(() => {
-        router.push('/story');
+        router.push('/my-solution');
       }, 1000);
     } catch (error) {
       console.error('[健康要素保存] 保存失败:', error);
