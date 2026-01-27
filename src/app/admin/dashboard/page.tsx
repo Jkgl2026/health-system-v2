@@ -646,10 +646,10 @@ export default function AdminDashboardPage() {
 
       {/* 用户详情对话框 */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="w-[95vw] max-w-[1600px] max-h-[97vh] overflow-y-auto p-6">
+        <DialogContent className="w-[95vw] max-w-[1800px] max-h-[97vh] overflow-y-auto p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl">用户详细信息</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-3xl font-bold">用户详细信息</DialogTitle>
+            <DialogDescription className="text-base">
               {selectedUser?.user?.name || '未知用户'}的完整健康数据
             </DialogDescription>
           </DialogHeader>
