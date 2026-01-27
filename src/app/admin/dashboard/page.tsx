@@ -305,6 +305,9 @@ export default function AdminDashboardPage() {
 
     const totalSymptoms = bodySymptomIds.length + habitIds.length + symptom300Ids.length;
 
+    // 将 BAD_HABITS_CHECKLIST 对象转换为扁平数组
+    const allBadHabits = Object.values(BAD_HABITS_CHECKLIST).flat();
+
     // 体质辨识
     const getConstitution = () => {
       if (totalSymptoms < 10) return { type: '平和质', color: 'green', desc: '阴阳气血调和，体态适中，面色红润，精力充沛' };
@@ -389,9 +392,9 @@ export default function AdminDashboardPage() {
     // 阴阳平衡
     const getYinYangBalance = () => {
       const hasColdSymptoms = bodySymptomIds.some(id => [4, 5, 42, 55].includes(id)) ||
-                              habitIds.some(id => BAD_HABITS_CHECKLIST.some(h => h.id === id && h.habit.includes('生冷')));
+                              habitIds.some(id => allBadHabits.some(h => h.id === id && h.habit.includes('生冷')));
       const hasHeatSymptoms = bodySymptomIds.some(id => [16, 35, 36, 37, 95].includes(id)) ||
-                              habitIds.some(id => BAD_HABITS_CHECKLIST.some(h => h.id === id && h.habit.includes('辛辣')));
+                              habitIds.some(id => allBadHabits.some(h => h.id === id && h.habit.includes('辛辣')));
 
       if (hasColdSymptoms && hasHeatSymptoms) return { type: '阴阳两虚', color: 'purple', desc: '时而怕冷时而怕热，自汗盗汗，脉象细数' };
       if (hasHeatSymptoms) return { type: '阳盛阴衰', color: 'red', desc: '面红目赤，烦躁易怒，便秘尿黄，舌红苔黄' };
@@ -404,7 +407,7 @@ export default function AdminDashboardPage() {
       const hasCold = bodySymptomIds.some(id => [4, 5, 42, 55].includes(id));
       const hasHeat = bodySymptomIds.some(id => [16, 35, 36, 37, 41, 95].includes(id));
       const hasDampness = bodySymptomIds.some(id => [11, 39, 68, 69, 70, 91].includes(id)) ||
-                           habitIds.some(id => BAD_HABITS_CHECKLIST.some(h => h.id === id && (h.habit.includes('甜') || h.habit.includes('油腻'))));
+                           habitIds.some(id => allBadHabits.some(h => h.id === id && (h.habit.includes('甜') || h.habit.includes('油腻'))));
       const hasDryness = bodySymptomIds.some(id => [16, 42, 53].includes(id));
 
       if (hasCold && hasDampness) return { type: '寒湿', color: 'blue', desc: '寒湿内盛，关节冷痛，身体困重，舌淡苔腻' };

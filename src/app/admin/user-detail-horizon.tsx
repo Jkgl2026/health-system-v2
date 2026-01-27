@@ -173,6 +173,9 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
   const selectedBodySymptoms = getSelectedBodySymptoms();
   const selectedSymptoms300 = getSelectedSymptoms300();
 
+  // 将 BAD_HABITS_CHECKLIST 对象转换为扁平数组
+  const allBadHabits = Object.values(BAD_HABITS_CHECKLIST).flat();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[98vw] max-w-[2200px] max-h-[98vh] overflow-y-auto p-6">
@@ -579,7 +582,7 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-8 gap-1 max-h-[400px] overflow-y-auto">
-                    {BAD_HABITS_CHECKLIST.map((habit) => (
+                    {allBadHabits.map((habit) => (
                       <div
                         key={habit.id}
                         className={`p-1 rounded text-xs cursor-pointer transition-colors ${
