@@ -29,6 +29,7 @@ export default function AnalysisPage() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<any>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
     // 优先设置loading为false，立即显示UI骨架
@@ -105,17 +106,27 @@ export default function AnalysisPage() {
     if (currentQuestionIndex < SEVEN_QUESTIONS.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
     } else {
-      // 保存答案
-      localStorage.setItem('sevenAnswers', JSON.stringify(answers));
+      // 保存答案到本地存储作为备份
+      const backupData = {
+        answers,
+        timestamp: new Date().toISOString(),
+        userId: getOrGenerateUserId(),
+      };
+      localStorage.setItem('sevenQuestionsBackup', JSON.stringify(backupData));
+      console.log('[七问保存] 本地备份已创建:', backupData);
 
       // 保存健康要素分析到数据库
       setIsSaving(true);
+      setSaveError(null); // 清除之前的错误
+
       try {
         const userId = getOrGenerateUserId();
+        console.log('[七问保存] 开始保存，userId:', userId);
         
         // 确保用户存在
         const userResponse = await getUser(userId);
         if (!userResponse.success || !userResponse.user) {
+          console.log('[七问保存] 用户不存在，创建新用户');
           await createUser({
             name: null,
             phone: null,
@@ -138,7 +149,9 @@ export default function AnalysisPage() {
           overallHealth: selectedSymptoms.length,
         };
 
+        console.log('[七问保存] 保存健康要素分析:', analysisData);
         await saveHealthAnalysis(analysisData);
+        console.log('[七问保存] 健康要素分析保存成功');
 
         // 保存七问答案到 requirements 表
         const sevenQuestionsData: Record<string, any> = {};
@@ -150,21 +163,53 @@ export default function AnalysisPage() {
           };
         });
 
-        await saveRequirements({
+        console.log('[七问保存] 保存七问答案，数据量:', Object.keys(sevenQuestionsData).length);
+        const requirementsData = {
           userId,
           sevenQuestionsAnswers: sevenQuestionsData,
-        });
+        };
 
-        // 保存成功后清除错误状态，然后跳转
+        await saveRequirements(requirementsData);
+        console.log('[七问保存] 七问答案保存成功');
+
+        // 保存成功后清除错误状态，显示成功提示
         setSaveError(null);
+        setSaveSuccess(true);
         setIsSaving(false);
 
-        // 立即跳转，无延迟
-        router.push('/story');
+        // 清除本地备份
+        localStorage.removeItem('sevenQuestionsBackup');
+        console.log('[七问保存] 本地备份已清除');
+
+        // 延迟1秒后跳转，让用户看到成功提示
+        setTimeout(() => {
+          router.push('/story');
+        }, 1000);
       } catch (error) {
-        console.error('保存健康要素分析失败:', error);
-        setSaveError(error);
+        console.error('[七问保存] 保存失败:', error);
+        
+        // 记录详细错误信息
+        const errorDetails = {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          timestamp: new Date().toISOString(),
+          userId: getOrGenerateUserId(),
+          answersCount: answers.length,
+        };
+        console.error('[七问保存] 错误详情:', errorDetails);
+
+        // 保存错误信息到本地存储，便于调试
+        localStorage.setItem('sevenQuestionsSaveError', JSON.stringify(errorDetails));
+
+        setSaveError({
+          message: error instanceof Error ? error.message : String(error),
+          timestamp: new Date().toISOString(),
+        });
         setIsSaving(false);
+        
+        // 保存失败时，本地备份仍然保留
+        console.log('[七问保存] 本地备份已保留，可以稍后重试');
+        
         // ⚠️ 保存失败时不跳转，让用户看到错误并决定下一步
       }
     }
@@ -330,6 +375,15 @@ export default function AnalysisPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {saveSuccess && (
+              <Alert className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
+                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertDescription className="text-green-800 dark:text-green-200">
+                  <strong>保存成功！</strong> 您的七问答案已成功保存到数据库。
+                </AlertDescription>
+              </Alert>
+            )}
 
             {saveError && (
               <ErrorAlert
