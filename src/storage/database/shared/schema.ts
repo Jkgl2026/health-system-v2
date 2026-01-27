@@ -268,6 +268,37 @@ export const backupRecords = pgTable(
   })
 );
 
+// 课程表 - 存储所有课程信息
+export const courses = pgTable(
+  "courses",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    title: varchar("title", { length: 255 }).notNull(), // 课程标题
+    content: text("content").notNull(), // 课程内容
+    duration: varchar("duration", { length: 50 }), // 课程时长
+    module: varchar("module", { length: 100 }), // 课程模块/分类（如因果、寒湿、排毒等）
+    relatedElements: jsonb("related_elements"), // 相关的健康要素（如["气血", "循环", "毒素"]）
+    relatedSymptoms: jsonb("related_symptoms"), // 相关的症状ID数组
+    relatedDiseases: jsonb("related_diseases"), // 相关的疾病
+    priority: integer("priority").default(0), // 优先级（用于匹配排序）
+    isHidden: boolean("is_hidden").default(false).notNull(), // 是否隐藏（不在用户端显示）
+    courseNumber: integer("course_number"), // 课程编号（如1, 2, 3...）
+    season: varchar("season", { length: 50 }), // 季度（如第1季、第2季）
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+  },
+  (table) => ({
+    moduleIdx: index("courses_module_idx").on(table.module),
+    isHiddenIdx: index("courses_is_hidden_idx").on(table.isHidden),
+    priorityIdx: index("courses_priority_idx").on(table.priority),
+    courseNumberIdx: index("courses_course_number_idx").on(table.courseNumber),
+  })
+);
+
 // 使用 createSchemaFactory 配置 date coercion（处理前端 string → Date 转换）
 const { createInsertSchema: createCoercedInsertSchema } = createSchemaFactory({
   coerce: { date: true },
@@ -349,6 +380,20 @@ export const insertAuditLogSchema = createCoercedInsertSchema(auditLogs).pick({
   description: true,
 });
 
+export const insertCourseSchema = createCoercedInsertSchema(courses).pick({
+  title: true,
+  content: true,
+  duration: true,
+  module: true,
+  relatedElements: true,
+  relatedSymptoms: true,
+  relatedDiseases: true,
+  priority: true,
+  isHidden: true,
+  courseNumber: true,
+  season: true,
+});
+
 // TypeScript types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -371,6 +416,8 @@ export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 
+export type Course = typeof courses.$inferSelect;
+export type InsertCourse = z.infer<typeof insertCourseSchema>;
 
 
 
