@@ -359,6 +359,10 @@ export default function AdminDashboardPage() {
                 <Download className="h-4 w-4 mr-2" />
                 导出CSV
               </Button>
+              <Button variant="outline" size="sm" onClick={() => router.push('/admin/seven-questions-manager')}>
+                <HelpCircle className="h-4 w-4 mr-2" />
+                七问管理
+              </Button>
               <Button variant="outline" size="sm" onClick={() => router.push('/admin/compare')}>
                 <Activity className="h-4 w-4 mr-2" />
                 数据对比
