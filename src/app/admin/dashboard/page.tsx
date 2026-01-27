@@ -2170,10 +2170,10 @@ export default function AdminDashboardPage() {
 
       {/* 历史记录对比对话框 */}
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="w-[95vw] max-w-[1600px] max-h-[95vh] overflow-y-auto p-6">
+        <DialogContent className="w-[95vw] max-w-[1800px] max-h-[95vh] overflow-y-auto p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl">历史记录对比</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-3xl font-bold">历史记录对比</DialogTitle>
+            <DialogDescription className="text-base">
               {historyPhone} 的所有填写记录（共 {historyUsers.length} 次）
             </DialogDescription>
           </DialogHeader>
