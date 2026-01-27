@@ -166,18 +166,18 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
 
         {user && (
           <div className="space-y-4 mt-6">
-            {/* ==================== 第一行：基本信息 + 综合健康评分 + 健康状况全面解析 + 健康改善路径 + 中医深入分析 ==================== */}
-            <div className="grid grid-cols-6 gap-6">
-              {/* 基本信息（占2列） */}
-              <div className="col-span-2">
-                <Card className="h-full p-6 bg-gradient-to-br from-blue-50 to-indigo-100 shadow-xl border-2 border-blue-200">
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-2xl font-bold flex items-center gap-3 text-blue-800">
-                      <Users className="w-8 h-8" />
-                      基本信息
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+            {/* ==================== 用户基本信息与健康数据 ==================== */}
+            <div className="space-y-6">
+              {/* 基本信息（全宽） */}
+              <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-100 shadow-xl border-2 border-blue-200">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-2xl font-bold flex items-center gap-3 text-blue-800">
+                    <Users className="w-8 h-8" />
+                    基本信息
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-white p-4 rounded-xl border-2 border-blue-300 shadow">
                         <div className="text-lg text-gray-600 mb-2 font-semibold">姓名</div>
@@ -216,12 +216,10 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     </div>
                   </CardContent>
                 </Card>
-              </div>
 
-              {/* 综合健康评分（占1列） */}
-              <div className="col-span-1">
-                <Card className="h-full p-6 bg-gradient-to-br from-green-50 to-emerald-100 shadow-2xl border-4 border-green-200">
-                  <CardHeader className="pb-4">
+              {/* 综合健康评分（全宽） */}
+              <Card className="p-6 bg-gradient-to-br from-green-50 to-emerald-100 shadow-xl border-2 border-green-200">
+                <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold flex items-center gap-3 text-green-800">
                       <Activity className="w-8 h-8" />
                       健康评分
@@ -258,12 +256,10 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     )}
                   </CardContent>
                 </Card>
-              </div>
 
-              {/* 健康状况全面解析（占1列） */}
-              <div className="col-span-1">
-                <Card className="h-full p-6 bg-gradient-to-br from-purple-50 to-violet-100 shadow-2xl border-4 border-purple-200">
-                  <CardHeader className="pb-4">
+              {/* 健康状况全面解析（全宽） */}
+              <Card className="p-6 bg-gradient-to-br from-purple-50 to-violet-100 shadow-xl border-2 border-purple-200">
+                <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold flex items-center gap-3 text-purple-800">
                       <TrendingUp className="w-8 h-8" />
                       健康解析
@@ -300,10 +296,9 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                 </Card>
               </div>
 
-              {/* 健康改善路径（占1列） */}
-              <div className="col-span-1">
-                <Card className="h-full p-6 bg-gradient-to-br from-orange-50 to-amber-100 shadow-2xl border-4 border-orange-200">
-                  <CardHeader className="pb-4">
+              {/* 健康改善路径（全宽） */}
+              <Card className="p-6 bg-gradient-to-br from-orange-50 to-amber-100 shadow-xl border-2 border-orange-200">
+                <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold flex items-center gap-3 text-orange-800">
                       <Target className="w-8 h-8" />
                       改善路径
@@ -342,12 +337,10 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     </div>
                   </CardContent>
                 </Card>
-              </div>
 
-              {/* 中医深入分析（占1列） */}
-              <div className="col-span-1">
-                <Card className="h-full p-6 bg-gradient-to-br from-pink-50 to-rose-100 shadow-2xl border-4 border-pink-200">
-                  <CardHeader className="pb-4">
+              {/* 中医深入分析（全宽） */}
+              <Card className="p-6 bg-gradient-to-br from-pink-50 to-rose-100 shadow-xl border-2 border-pink-200">
+                <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold flex items-center gap-3 text-pink-800">
                       <Sparkles className="w-8 h-8" />
                       中医分析
@@ -391,12 +384,9 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </div>
             </div>
 
-            {/* ==================== 第二行：健康七问V2 + 推荐调理产品 + 推荐学习课程 ==================== */}
-            <div className="grid grid-cols-6 gap-6">
-              {/* 健康七问V2（占2列） */}
-              <div className="col-span-2">
-                <Card className="h-full p-6 bg-gradient-to-br from-teal-50 to-cyan-100 shadow-2xl border-4 border-teal-200">
-                  <CardHeader className="pb-4">
+            {/* ==================== 健康七问V2 ==================== */}
+            <Card className="p-6 bg-gradient-to-br from-teal-50 to-cyan-100 shadow-xl border-2 border-teal-200">
+              <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold flex items-center gap-3 text-teal-800">
                       <HelpCircle className="w-8 h-8" />
                       健康七问（V2）
@@ -424,10 +414,9 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                 </Card>
               </div>
 
-              {/* 推荐调理产品（占2列） */}
-              <div className="col-span-2">
-                <Card className="h-full p-6 bg-gradient-to-br from-indigo-50 to-blue-100 shadow-2xl border-4 border-indigo-200">
-                  <CardHeader className="pb-4">
+            {/* 推荐调理产品（全宽） */}
+            <Card className="p-6 bg-gradient-to-br from-indigo-50 to-blue-100 shadow-xl border-2 border-indigo-200">
+              <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold flex items-center gap-3 text-indigo-800">
                       <Shield className="w-8 h-8" />
                       推荐调理产品
@@ -468,10 +457,9 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                 </Card>
               </div>
 
-              {/* 推荐学习课程（占2列） */}
-              <div className="col-span-2">
-                <Card className="h-full p-6 bg-gradient-to-br from-rose-50 to-pink-100 shadow-2xl border-4 border-rose-200">
-                  <CardHeader className="pb-4">
+            {/* 推荐学习课程（全宽） */}
+            <Card className="p-6 bg-gradient-to-br from-rose-50 to-pink-100 shadow-xl border-2 border-rose-200">
+              <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold flex items-center gap-3 text-rose-800">
                       <BookOpen className="w-8 h-8" />
                       推荐学习课程
@@ -513,9 +501,10 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </div>
             </div>
 
-            {/* ==================== 第三行：分阶段调理计划（3个阶段） ==================== */}
-            <div className="grid grid-cols-3 gap-12">
-              <Card className="p-12 bg-gradient-to-br from-green-50 to-emerald-100 shadow-2xl border-4 border-green-200">
+            {/* ==================== 分阶段调理计划 ==================== */}
+            <div className="space-y-6">
+              {/* 第一阶段 */}
+              <Card className="p-8 bg-gradient-to-br from-green-50 to-emerald-100 shadow-xl border-2 border-green-200">
                 <CardHeader className="pb-8">
                   <CardTitle className="text-4xl font-bold flex items-center gap-6 text-green-800">
                     <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl flex items-center justify-center shadow-xl">
@@ -549,7 +538,8 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                 </CardContent>
               </Card>
 
-              <Card className="p-12 bg-gradient-to-br from-yellow-50 to-amber-100 shadow-2xl border-4 border-yellow-200">
+              {/* 第二阶段 */}
+              <Card className="p-8 bg-gradient-to-br from-yellow-50 to-amber-100 shadow-xl border-2 border-yellow-200">
                 <CardHeader className="pb-8">
                   <CardTitle className="text-4xl font-bold flex items-center gap-6 text-yellow-800">
                     <div className="w-20 h-20 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-3xl flex items-center justify-center shadow-xl">
@@ -583,7 +573,8 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                 </CardContent>
               </Card>
 
-              <Card className="p-12 bg-gradient-to-br from-blue-50 to-indigo-100 shadow-2xl border-4 border-blue-200">
+              {/* 第三阶段 */}
+              <Card className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 shadow-xl border-2 border-blue-200">
                 <CardHeader className="pb-8">
                   <CardTitle className="text-4xl font-bold flex items-center gap-6 text-blue-800">
                     <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-xl">
@@ -618,16 +609,16 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </Card>
             </div>
 
-            {/* ==================== 第四行：不良生活习惯自检表（8列网格） ==================== */}
-            <Card className="p-12 bg-gradient-to-br from-red-50 to-orange-100 shadow-2xl border-4 border-red-200">
-              <CardHeader className="pb-8">
+            {/* ==================== 不良生活习惯自检表 ==================== */}
+            <Card className="p-8 bg-gradient-to-br from-red-50 to-orange-100 shadow-xl border-2 border-red-200">
+              <CardHeader className="pb-6">
                 <CardTitle className="text-2xl font-bold flex items-center gap-6 text-red-800">
                   <AlertCircle className="w-16 h-16" />
                   不良生活习惯自检表（全部252项）
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-8 gap-6 max-h-[600px] overflow-y-auto p-8 bg-white rounded-3xl border-4">
+                <div className="grid grid-cols-4 gap-4 max-h-[400px] overflow-y-auto p-4 bg-white rounded-xl border-2">
                   {allBadHabits.map((habit) => (
                     <div
                       key={habit.id}
@@ -645,16 +636,16 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </CardContent>
             </Card>
 
-            {/* ==================== 第五行：身体语言简表（8列网格） ==================== */}
-            <Card className="p-12 bg-gradient-to-br from-blue-50 to-cyan-100 shadow-2xl border-4 border-blue-200">
-              <CardHeader className="pb-8">
+            {/* ==================== 身体语言简表 ==================== */}
+            <Card className="p-8 bg-gradient-to-br from-blue-50 to-cyan-100 shadow-xl border-2 border-blue-200">
+              <CardHeader className="pb-6">
                 <CardTitle className="text-2xl font-bold flex items-center gap-6 text-blue-800">
                   <FileText className="w-16 h-16" />
                   身体语言简表（全部100项）
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-8 gap-6 max-h-[600px] overflow-y-auto p-8 bg-white rounded-3xl border-4">
+                <div className="grid grid-cols-4 gap-4 max-h-[400px] overflow-y-auto p-4 bg-white rounded-xl border-2">
                   {BODY_SYMPTOMS.map((symptom) => (
                     <div
                       key={symptom.id}
@@ -672,16 +663,16 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </CardContent>
             </Card>
 
-            {/* ==================== 第六行：300项症状自检表（10列网格） ==================== */}
-            <Card className="p-12 bg-gradient-to-br from-purple-50 to-violet-100 shadow-2xl border-4 border-purple-200">
-              <CardHeader className="pb-8">
+            {/* ==================== 300项症状自检表 ==================== */}
+            <Card className="p-8 bg-gradient-to-br from-purple-50 to-violet-100 shadow-xl border-2 border-purple-200">
+              <CardHeader className="pb-6">
                 <CardTitle className="text-2xl font-bold flex items-center gap-6 text-purple-800">
                   <FileText className="w-16 h-16" />
                   300项症状自检表（全部300项）
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-10 gap-6 max-h-[800px] overflow-y-auto p-8 bg-white rounded-3xl border-4">
+                <div className="grid grid-cols-5 gap-4 max-h-[500px] overflow-y-auto p-4 bg-white rounded-xl border-2">
                   {BODY_SYMPTOMS_300.map((symptom) => (
                     <div
                       key={symptom.id}
