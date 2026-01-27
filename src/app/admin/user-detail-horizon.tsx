@@ -382,7 +382,8 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     )}
                   </CardContent>
                 </Card>
-              </div>
+
+            </div>
 
             {/* ==================== 健康七问V2 ==================== */}
             <Card className="p-6 bg-gradient-to-br from-teal-50 to-cyan-100 shadow-xl border-2 border-teal-200">
