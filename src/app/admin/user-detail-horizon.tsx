@@ -387,12 +387,12 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
             {/* ==================== 健康七问V2 ==================== */}
             <Card className="p-6 bg-gradient-to-br from-teal-50 to-cyan-100 shadow-xl border-2 border-teal-200">
               <CardHeader className="pb-4">
-                    <CardTitle className="text-2xl font-bold flex items-center gap-3 text-teal-800">
-                      <HelpCircle className="w-8 h-8" />
-                      健康七问（V2）
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
+                <CardTitle className="text-2xl font-bold flex items-center gap-3 text-teal-800">
+                  <HelpCircle className="w-8 h-8" />
+                  健康七问（V2）
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                     <div className="grid grid-cols-2 gap-6">
                       {SEVEN_QUESTIONS.slice(0, 6).map((q, i) => {
                         const isAnswered = sevenQuestionsAnswers[q.id] !== undefined && sevenQuestionsAnswers[q.id] !== null;
