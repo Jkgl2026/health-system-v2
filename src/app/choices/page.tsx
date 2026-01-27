@@ -63,12 +63,6 @@ export default function ChoicesPage() {
       return;
     }
     
-    // 如果选择前两个方案，提示但允许继续
-    if (selectedChoice === 'choice1' || selectedChoice === 'choice2') {
-      alert('感谢您的选择！虽然前两个选择不需要购买产品，但仍然需要完成填表和学习的任务。我们推荐您选择第三个方案，这样可以获得更快的恢复效果。');
-      // 移除 return，允许继续保存数据
-    }
-    
     // 如果选择第三个方案，必须完成所有四个要求
     if (selectedChoice === 'choice3' && acceptedRequirements.size !== 4) {
       alert('请同意并承诺完成所有四个要求，这样才能确保健康管理的效果。如果做不到四个要求，我也不能给您调理。');
@@ -119,12 +113,18 @@ export default function ChoicesPage() {
       
       await saveRequirements(requirementsData);
 
-      // 保存成功后清除错误状态，然后跳转
+      // 保存成功后清除错误状态，然后根据选择跳转
       setSaveError(null);
       setIsSaving(false);
 
-      // 立即跳转，无延迟
-      router.push('/requirements');
+      // 根据选择跳转到不同页面
+      if (selectedChoice === 'choice1' || selectedChoice === 'choice2') {
+        // 方案1和2直接跳转到好转反应页面
+        router.push('/recovery');
+      } else {
+        // 方案3跳转到填表和学习任务页面
+        router.push('/requirements');
+      }
     } catch (error) {
       console.error('保存用户选择和要求数据失败:', error);
       setSaveError(error);

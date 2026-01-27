@@ -1305,56 +1305,52 @@ export default function AdminDashboardPage() {
                   {SEVEN_QUESTIONS.map((q, index) => {
                     const answers = selectedUser.requirements?.sevenQuestionsAnswers;
 
-                    // 调试日志：输出原始数据
-                    if (index === 0) {
-                      console.log('[七问] 原始 sevenQuestionsAnswers 数据:', answers);
-                      console.log('[七问] 问题 q.id:', q.id, '类型:', typeof q.id);
-                    }
-
                     // 尝试多种方式获取答案
                     let answerData = null;
                     let answer = null;
                     let date = null;
 
                     if (answers) {
-                      // 方式1：使用数字ID作为key
-                      if (answers[q.id]) {
+                      // 格式1：简单对象格式 {"1": "答案字符串", "2": "答案字符串"}
+                      if (answers[q.id] && typeof answers[q.id] === 'string') {
+                        answer = answers[q.id];
+                      }
+                      // 格式2：带metadata的对象格式 {"1": {"answer": "...", "date": "..."}}
+                      else if (answers[q.id] && typeof answers[q.id] === 'object') {
                         answerData = answers[q.id];
+                        answer = answerData?.answer || answerData?.content || answerData?.text;
+                        date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
                       }
-                      // 方式2：使用字符串ID作为key
-                      else if (answers[q.id.toString()]) {
+                      // 格式3：使用字符串ID作为key
+                      else if (answers[q.id.toString()] && typeof answers[q.id.toString()] === 'string') {
+                        answer = answers[q.id.toString()];
+                      }
+                      else if (answers[q.id.toString()] && typeof answers[q.id.toString()] === 'object') {
                         answerData = answers[q.id.toString()];
+                        answer = answerData?.answer || answerData?.content || answerData?.text;
+                        date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
                       }
-                      // 方式3：如果数据是数组，按索引匹配
+                      // 格式4：数组格式 [{"answer": "...", "question": "...", "date": "..."}, ...]
                       else if (Array.isArray(answers) && answers[index]) {
                         answerData = answers[index];
-                      }
-                      // 方式4：遍历查找匹配的问题
-                      else if (typeof answers === 'object') {
-                        for (const key in answers) {
-                          const item = answers[key];
-                          if (item && (item.questionId === q.id || item.questionId === q.id.toString())) {
-                            answerData = item;
-                            break;
-                          }
-                        }
-                      }
-
-                      // 提取答案和日期
-                      if (answerData) {
                         if (typeof answerData === 'object' && answerData !== null) {
-                          answer = answerData.answer || answerData.content || answerData.text;
-                          date = answerData.date || answerData.timestamp || answerData.createdAt;
+                          answer = answerData?.answer || answerData?.content || answerData?.text;
+                          date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
                         } else {
                           answer = answerData;
                         }
                       }
-
-                      // 调试日志：输出匹配结果
-                      if (index === 0) {
-                        console.log('[七问] 匹配到的 answerData:', answerData);
-                        console.log('[七问] 提取的 answer:', answer);
-                        console.log('[七问] 提取的 date:', date);
+                      // 格式5：数组格式，按question字段匹配
+                      else if (Array.isArray(answers)) {
+                        const matched = answers.find((item: any) => 
+                          item?.question === q.question || 
+                          item?.questionId === q.id || 
+                          item?.questionId === q.id.toString()
+                        );
+                        if (matched) {
+                          answer = matched?.answer || matched?.content || matched?.text;
+                          date = matched?.date || matched?.timestamp || matched?.createdAt;
+                        }
                       }
                     }
 
