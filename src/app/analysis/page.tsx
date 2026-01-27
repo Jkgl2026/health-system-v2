@@ -127,13 +127,19 @@ export default function AnalysisPage() {
         const userResponse = await getUser(userId);
         if (!userResponse.success || !userResponse.user) {
           console.log('[七问保存] 用户不存在，创建新用户');
-          await createUser({
+          const createResponse = await createUser({
             name: null,
             phone: null,
             email: null,
             age: null,
             gender: null,
           });
+
+          // 检查用户创建是否成功
+          if (!createResponse.success || !createResponse.user) {
+            throw new Error('用户创建失败，无法保存数据');
+          }
+          console.log('[七问保存] 用户创建成功，ID:', createResponse.user.id);
         }
 
         // 计算各要素得分
