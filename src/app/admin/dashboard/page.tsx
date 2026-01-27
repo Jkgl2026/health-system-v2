@@ -656,101 +656,79 @@ export default function AdminDashboardPage() {
 
           {selectedUser && (
             <div className="space-y-6">
-              {/* 基本信息 */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center text-xl font-bold">
-                    <Users className="h-6 w-6 mr-2" />
-                    基本信息
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="border-2 rounded-lg overflow-hidden shadow-sm">
-                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-white font-bold text-lg">当前信息</h3>
-                        <span className="text-white/80 text-sm">
-                          {selectedUser.user?.createdAt ? formatDate(selectedUser.user.createdAt) : '-'}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="p-4 bg-white space-y-3">
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">姓名</span>
-                        <span className="font-semibold">{selectedUser.user?.name || '-'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">手机号</span>
-                        <span className="font-semibold font-mono">{selectedUser.user?.phone || '-'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">年龄</span>
-                        <span className="font-semibold">{selectedUser.user?.age || '-'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">性别</span>
-                        <span className="font-semibold">{selectedUser.user?.gender || '-'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">身高</span>
-                        <span className="font-semibold">{selectedUser.user?.height ? `${selectedUser.user.height} cm` : '-'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">体重</span>
-                        <span className="font-semibold">{selectedUser.user?.weight ? `${selectedUser.user.weight} kg` : '-'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">BMI</span>
-                        <span className="font-semibold">
-                          {selectedUser.user?.bmi && !isNaN(Number(selectedUser.user.bmi))
-                            ? Number(selectedUser.user.bmi).toFixed(1)
-                            : '-'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">血压</span>
-                        <span className="font-semibold">
-                          {selectedUser.user?.bloodPressure
-                            ? `${selectedUser.user.bloodPressure} mmHg`
-                            : '-'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">职业</span>
-                        <span className="font-semibold">{selectedUser.user?.occupation || '-'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">邮箱</span>
-                        <span className="font-semibold">{selectedUser.user?.email || '-'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">注册时间</span>
-                        <span className="font-semibold">{formatDate(selectedUser.user?.createdAt)}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">更新时间</span>
-                        <span className="font-semibold">{selectedUser.user?.updatedAt ? formatDate(selectedUser.user.updatedAt) : '-'}</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b">
-                        <span className="text-gray-600">账户状态</span>
-                        <span className="font-semibold">
-                          {selectedUser.user?.deletedAt ? (
-                            <Badge className="bg-red-600 text-white">已删除</Badge>
-                          ) : (
-                            <Badge className="bg-green-600 text-white">正常</Badge>
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center py-2">
-                        <span className="text-gray-600">地址</span>
-                        <span className="font-semibold truncate max-w-[60%]" title={selectedUser.user?.address || ''}>
-                          {selectedUser.user?.address || '-'}
-                        </span>
-                      </div>
+              {/* 基本信息 - 蓝色边框渐变背景 */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-4 flex items-center text-blue-900">
+                  <Users className="h-6 w-6 mr-3 text-blue-600" />
+                  基本信息
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">姓名</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.name || '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">手机号</div>
+                    <div className="font-bold text-lg font-mono">{selectedUser.user?.phone || '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">年龄</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.age || '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">性别</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.gender || '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">身高</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.height ? `${selectedUser.user.height} cm` : '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">体重</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.weight ? `${selectedUser.user.weight} kg` : '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">BMI</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.bmi && !isNaN(Number(selectedUser.user.bmi)) ? Number(selectedUser.user.bmi).toFixed(1) : '未计算'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">注册时间</div>
+                    <div className="font-bold text-lg">{formatDate(selectedUser.user?.createdAt)}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">邮箱</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.email || '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">血压</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.bloodPressure ? `${selectedUser.user.bloodPressure} mmHg` : '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">职业</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.occupation || '未填写'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">地址</div>
+                    <div className="font-bold text-lg truncate" title={selectedUser.user?.address || ''}>
+                      {selectedUser.user?.address || '未填写'}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">更新时间</div>
+                    <div className="font-bold text-lg">{selectedUser.user?.updatedAt ? formatDate(selectedUser.user.updatedAt) : '未更新'}</div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-blue-100">
+                    <div className="text-sm text-blue-600 mb-1">账户状态</div>
+                    <div className="font-bold text-lg">
+                      {selectedUser.user?.deletedAt ? (
+                        <Badge className="bg-red-600 text-white">已删除</Badge>
+                      ) : (
+                        <Badge className="bg-green-600 text-white">正常</Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* 综合健康评分 - 紫色渐变背景 */}
               <div className="bg-gradient-to-br from-purple-50 to-violet-100 border-l-4 border-purple-500 p-6 rounded-lg shadow-sm">
