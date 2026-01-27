@@ -297,8 +297,8 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                 </Card>
               </div>
 
-              {/* 健康改善路径（全宽） */}
-              <Card className="p-6 bg-gradient-to-br from-orange-50 to-amber-100 shadow-xl border-2 border-orange-200">
+            {/* 健康改善路径（全宽） */}
+            <Card className="p-6 bg-gradient-to-br from-orange-50 to-amber-100 shadow-xl border-2 border-orange-200">
                 <CardHeader className="pb-4">
                     <CardTitle className="text-2xl font-bold flex items-center gap-3 text-orange-800">
                       <Target className="w-8 h-8" />
@@ -382,10 +382,7 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     )}
                   </CardContent>
                 </Card>
-
             </div>
-
-            {/* ==================== 健康七问V2 ==================== */}
             <Card className="p-6 bg-gradient-to-br from-teal-50 to-cyan-100 shadow-xl border-2 border-teal-200">
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl font-bold flex items-center gap-3 text-teal-800">
@@ -413,7 +410,6 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     </div>
                   </CardContent>
                 </Card>
-              </div>
 
             {/* 推荐调理产品（全宽） */}
             <Card className="p-6 bg-gradient-to-br from-indigo-50 to-blue-100 shadow-xl border-2 border-indigo-200">
@@ -456,7 +452,6 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     </div>
                   </CardContent>
                 </Card>
-              </div>
 
             {/* 推荐学习课程（全宽） */}
             <Card className="p-6 bg-gradient-to-br from-rose-50 to-pink-100 shadow-xl border-2 border-rose-200">
@@ -499,8 +494,6 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     </div>
                   </CardContent>
                 </Card>
-              </div>
-            </div>
 
             {/* ==================== 分阶段调理计划 ==================== */}
             <div className="space-y-6">
