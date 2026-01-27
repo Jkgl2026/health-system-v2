@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Separator } from '@/components/ui/separator';
 import { Pagination } from '@/components/admin/Pagination';
 import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw, Sparkles, Flame, Heart, Zap, Droplets, BookOpen, AlertTriangle } from 'lucide-react';
-import { BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
+import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface UserSummary {
@@ -1346,6 +1346,132 @@ export default function AdminDashboardPage() {
                   </div>
                 )}
               </div>
+
+              {/* 七问答案 - 始终显示所有问题，标记已回答/未回答 */}
+              <Separator />
+              <div className="bg-gradient-to-br from-indigo-50 to-blue-100 border-l-4 border-indigo-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-indigo-900">
+                  <HelpCircle className="h-6 w-6 mr-3 text-indigo-600" />
+                  持续跟进落实健康的七问（全部7个问题）
+                </h3>
+
+                <div className="space-y-4">
+                  {/* 调试面板 - 显示原始七问数据 */}
+                  {selectedUser.requirements?.sevenQuestionsAnswers && (
+                    <details className="bg-gray-50 border border-gray-200 rounded-lg">
+                      <summary className="px-4 py-3 cursor-pointer font-semibold text-sm text-gray-700 hover:bg-gray-100">
+                        📊 调试信息 - 七问原始数据（点击展开）
+                      </summary>
+                      <div className="px-4 py-3 border-t border-gray-200">
+                        <pre className="text-xs bg-white p-3 rounded border overflow-auto max-h-60">
+                          {JSON.stringify(selectedUser.requirements.sevenQuestionsAnswers, null, 2)}
+                        </pre>
+                      </div>
+                    </details>
+                  )}
+
+                  {SEVEN_QUESTIONS.map((q, index) => {
+                    const answers = selectedUser.requirements?.sevenQuestionsAnswers;
+
+                    // 尝试多种方式获取答案
+                    let answerData = null;
+                    let answer = null;
+                    let date = null;
+
+                    if (answers) {
+                      // 优先使用字符串ID作为key（因为PostgreSQL JSON类型返回的key通常是字符串）
+                      const stringKey = q.id.toString();
+                      const numericKey = q.id;
+
+                      // 尝试字符串key - 使用 'in' 操作符检查键是否存在
+                      if (stringKey in answers) {
+                        const value = answers[stringKey];
+                        if (typeof value === 'string') {
+                          answer = value;
+                        } else if (typeof value === 'object' && value !== null) {
+                          answerData = value;
+                          answer = answerData?.answer || answerData?.content || answerData?.text;
+                          date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
+                        }
+                      }
+                      // 尝试数字key（备用）
+                      else if (numericKey in answers) {
+                        const value = answers[numericKey];
+                        if (typeof value === 'string') {
+                          answer = value;
+                        } else if (typeof value === 'object' && value !== null) {
+                          answerData = value;
+                          answer = answerData?.answer || answerData?.content || answerData?.text;
+                          date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
+                        }
+                      }
+                      // 数组格式处理
+                      else if (Array.isArray(answers)) {
+                        // 方式1：按索引匹配
+                        if (answers[index]) {
+                          const value = answers[index];
+                          if (typeof value === 'string') {
+                            answer = value;
+                          } else if (typeof value === 'object' && value !== null) {
+                            answer = value?.answer || value?.content || value?.text;
+                            date = value?.date || value?.timestamp || value?.createdAt;
+                          }
+                        }
+                        // 方式2：按question字段匹配
+                        else {
+                          const matched = answers.find((item: any) => 
+                            item?.question === q.question || 
+                            item?.questionId === q.id || 
+                            item?.questionId === q.id.toString()
+                          );
+                          if (matched) {
+                            answer = matched?.answer || matched?.content || matched?.text;
+                            date = matched?.date || matched?.timestamp || matched?.createdAt;
+                          }
+                        }
+                      }
+                    }
+
+                    const hasAnswer = answer !== null && answer !== undefined && answer !== '';
+
+                    return (
+                      <div key={index} className={`bg-white p-5 rounded-lg shadow-sm border ${hasAnswer ? 'border-green-300' : 'border-gray-200'} hover:shadow-md transition-shadow`}>
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${hasAnswer ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-bold text-lg text-indigo-900 mb-2">
+                              {q.question}
+                            </div>
+                            <div className="text-xs text-gray-500 mb-2">
+                              {q.description}
+                            </div>
+                            <div className={`p-3 rounded-lg ${hasAnswer ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'}`}>
+                              {hasAnswer ? (
+                                <div>
+                                  <div className="text-gray-700 leading-relaxed">{answer}</div>
+                                  {date && (
+                                    <div className="text-xs text-green-600 mt-2">
+                                      填写时间：{formatDate(date)}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-gray-400 text-sm italic">
+                                  未填写
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Separator />
 
               {/* 不良生活习惯自检表 - 显示所有252项，标记选中/未选中 */}
               <div className="bg-gradient-to-br from-pink-50 to-rose-100 border-l-4 border-pink-500 p-6 rounded-lg shadow-sm">
