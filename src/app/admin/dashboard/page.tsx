@@ -1321,6 +1321,20 @@ export default function AdminDashboardPage() {
                 </h3>
 
                 <div className="space-y-4">
+                  {/* 调试面板 - 显示原始七问数据 */}
+                  {selectedUser.requirements?.sevenQuestionsAnswers && (
+                    <details className="bg-gray-50 border border-gray-200 rounded-lg">
+                      <summary className="px-4 py-3 cursor-pointer font-semibold text-sm text-gray-700 hover:bg-gray-100">
+                        📊 调试信息 - 七问原始数据（点击展开）
+                      </summary>
+                      <div className="px-4 py-3 border-t border-gray-200">
+                        <pre className="text-xs bg-white p-3 rounded border overflow-auto max-h-60">
+                          {JSON.stringify(selectedUser.requirements.sevenQuestionsAnswers, null, 2)}
+                        </pre>
+                      </div>
+                    </details>
+                  )}
+
                   {SEVEN_QUESTIONS.map((q, index) => {
                     const answers = selectedUser.requirements?.sevenQuestionsAnswers;
 
