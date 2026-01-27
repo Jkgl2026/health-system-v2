@@ -363,6 +363,15 @@ export default function AdminDashboardPage() {
                 <HelpCircle className="h-4 w-4 mr-2" />
                 七问管理
               </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/auto-fix-seven-questions')}
+                className="bg-gradient-to-r from-blue-50 to-green-50 border-blue-300"
+              >
+                <RefreshCw className="h-4 w-4 mr-2 text-green-600" />
+                自动修复
+              </Button>
               <Button variant="outline" size="sm" onClick={() => router.push('/admin/compare')}>
                 <Activity className="h-4 w-4 mr-2" />
                 数据对比
