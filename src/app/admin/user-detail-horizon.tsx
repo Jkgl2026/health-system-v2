@@ -214,6 +214,7 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                         <div className="text-2xl font-bold text-gray-900">{user.user?.phone || '-'}</div>
                       </div>
                     </div>
+                  </div>
                   </CardContent>
                 </Card>
 
