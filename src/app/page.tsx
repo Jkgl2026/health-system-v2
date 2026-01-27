@@ -8,6 +8,7 @@ import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { PWARedirect } from './page-pwa-redirect';
 import { BODY_SYMPTOMS } from '@/lib/health-data';
+import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
 
 export default function Home() {
   const router = useRouter();
@@ -77,16 +78,13 @@ export default function Home() {
         // 计算症状总数（包含三种表）
         const totalSymptoms = bodySymptoms.length + badHabits.length + symptoms300.length;
 
-        // 计算健康评分（更科学的算法）
-        // 基础分100分，根据不同类型症状权重扣分
-        // 身体语言简表（高权重）：每项扣0.3分
-        // 不良生活习惯（中权重）：每项扣0.2分
-        // 300症状表（低权重）：每项扣0.1分
-        const bodySymptomsScore = Math.max(0, bodySymptoms.length * 0.3);
-        const badHabitsScore = Math.max(0, badHabits.length * 0.2);
-        const symptoms300Score = Math.max(0, symptoms300.length * 0.1);
-        const totalDeduction = bodySymptomsScore + badHabitsScore + symptoms300Score;
-        const healthScore = Math.max(0, Math.round(100 - totalDeduction));
+        // 使用统一的健康评分计算器
+        const scoreResult = calculateComprehensiveHealthScore({
+          bodySymptomIds: bodySymptoms,
+          habitIds: badHabits,
+          symptom300Ids: symptoms300,
+        });
+        const healthScore = scoreResult.healthScore;
 
         // 计算各类型症状数量
         const bodySymptomsCount = bodySymptoms.length;

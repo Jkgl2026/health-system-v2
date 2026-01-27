@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, Sparkles, Flame, Target, Activity, Droplets, Heart, Zap, BookOpen, AlertCircle, User, Calendar } from 'lucide-react';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS, TWENTY_ONE_COURSES, SEVEN_QUESTIONS } from '@/lib/health-data';
+import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
 import Link from 'next/link';
 import { getOrGenerateUserId } from '@/lib/user-context';
 import { getUser } from '@/lib/api-client';
@@ -63,50 +64,20 @@ export default function MySolutionPage() {
     }
   };
 
-  // 计算综合健康评分（基于三种症状表）
+  // 计算综合健康评分（基于三种症状表）- 使用统一的健康评分计算器
   const calculateHealthScore = () => {
     const bodySymptoms = getSelectedSymptoms();
     const badHabits = JSON.parse(localStorage.getItem('selectedHabitsRequirements') || '[]');
     const symptoms300 = JSON.parse(localStorage.getItem('selectedSymptoms300') || '[]');
 
-    // 新的健康评分算法（更严格、更科学）
-    // 基础分100分，根据不同类型症状权重扣分
-    // 关键原则：症状越多，扣分呈指数增长
+    // 使用统一的健康评分计算器
+    const result = calculateComprehensiveHealthScore({
+      bodySymptomIds: bodySymptoms.map((s: { id: number }) => s.id),
+      habitIds: badHabits,
+      symptom300Ids: symptoms300,
+    });
 
-    // 1. 身体语言简表（最重要，高权重）
-    // 0-5项：每项扣0.5分
-    // 6-15项：每项扣1分
-    // 16-30项：每项扣1.5分
-    // 31+项：每项扣2分
-    let bodySymptomsDeduction = 0;
-    if (bodySymptoms.length <= 5) {
-      bodySymptomsDeduction = bodySymptoms.length * 0.5;
-    } else if (bodySymptoms.length <= 15) {
-      bodySymptomsDeduction = 5 * 0.5 + (bodySymptoms.length - 5) * 1;
-    } else if (bodySymptoms.length <= 30) {
-      bodySymptomsDeduction = 5 * 0.5 + 10 * 1 + (bodySymptoms.length - 15) * 1.5;
-    } else {
-      bodySymptomsDeduction = 5 * 0.5 + 10 * 1 + 15 * 1.5 + (bodySymptoms.length - 30) * 2;
-    }
-
-    // 2. 关键健康问题（严重症状，额外扣分）
-    // 检查是否有高血压、高血脂、高血糖、糖尿病等严重症状
-    const severeSymptoms = [71, 72, 73, 74, 75]; // 高血脂、高血压、高血糖、低血糖、低血压
-    const severeSymptomCount = bodySymptoms.filter((s: any) => severeSymptoms.includes(s.id)).length;
-    const severeSymptomsDeduction = severeSymptomCount * 10; // 每个严重症状额外扣10分
-
-    // 3. 不良生活习惯（中权重）
-    // 每项扣0.3分，最多扣20分
-    const badHabitsDeduction = Math.min(badHabits.length * 0.3, 20);
-
-    // 4. 300症状表（低权重）
-    // 每项扣0.15分，最多扣15分
-    const symptoms300Deduction = Math.min(symptoms300.length * 0.15, 15);
-
-    const totalDeduction = bodySymptomsDeduction + severeSymptomsDeduction + badHabitsDeduction + symptoms300Deduction;
-
-    // 最终得分（最低0分，最高100分）
-    return Math.max(0, Math.round(100 - totalDeduction));
+    return result.healthScore;
   };
 
   const getSelectedSymptoms = () => {
