@@ -39,9 +39,24 @@ interface FullUserData extends UserData {
 // 差异分析辅助函数
 const analyzeBMIChange = (bmi1: string | null, bmi2: string | null) => {
   if (!bmi1 || !bmi2) return null;
-  const diff = parseFloat(bmi2) - parseFloat(bmi1);
+
+  // 尝试解析BMI值，处理可能的非数字字符
+  const parseBMI = (value: string | null): number | null => {
+    if (!value) return null;
+    // 尝试提取数字部分
+    const match = value.match(/[\d.]+/);
+    if (!match) return null;
+    const parsed = parseFloat(match[0]);
+    return isNaN(parsed) ? null : parsed;
+  };
+
+  const bmi1Num = parseBMI(bmi1);
+  const bmi2Num = parseBMI(bmi2);
+
+  if (bmi1Num === null || bmi2Num === null) return null;
+
+  const diff = bmi2Num - bmi1Num;
   const direction = diff > 0 ? '增加' : diff < 0 ? '减少' : '保持';
-  const bmi2Num = parseFloat(bmi2);
   let status = '';
   let suggestion = '';
 
@@ -372,9 +387,20 @@ export default function AdminComparePage() {
 
   const calculateBMIChange = (value1: string | null, value2: string | null) => {
     if (!value1 || !value2) return null;
-    const bmi1 = parseFloat(value1);
-    const bmi2 = parseFloat(value2);
-    if (isNaN(bmi1) || isNaN(bmi2)) return null;
+
+    // 尝试解析BMI值，处理可能的非数字字符
+    const parseBMI = (value: string | null): number | null => {
+      if (!value) return null;
+      const match = value.match(/[\d.]+/);
+      if (!match) return null;
+      const parsed = parseFloat(match[0]);
+      return isNaN(parsed) ? null : parsed;
+    };
+
+    const bmi1 = parseBMI(value1);
+    const bmi2 = parseBMI(value2);
+
+    if (bmi1 === null || bmi2 === null) return null;
     const diff = bmi2 - bmi1;
     return {
       value: diff.toFixed(1),

@@ -143,7 +143,8 @@ export default function AnalysisPage() {
         // 保存七问答案到 requirements 表
         const sevenQuestionsData: Record<string, any> = {};
         answers.forEach(a => {
-          sevenQuestionsData[a.questionId] = {
+          // 使用字符串作为key，确保与读取时的一致性
+          sevenQuestionsData[a.questionId.toString()] = {
             answer: a.answer,
             date: new Date().toISOString(),
           };

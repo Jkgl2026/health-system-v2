@@ -69,16 +69,43 @@ export default function MySolutionPage() {
     const badHabits = JSON.parse(localStorage.getItem('selectedHabitsRequirements') || '[]');
     const symptoms300 = JSON.parse(localStorage.getItem('selectedSymptoms300') || '[]');
 
-    // 计算健康评分（更科学的算法）
+    // 新的健康评分算法（更严格、更科学）
     // 基础分100分，根据不同类型症状权重扣分
-    // 身体语言简表（高权重）：每项扣0.3分
-    // 不良生活习惯（中权重）：每项扣0.2分
-    // 300症状表（低权重）：每项扣0.1分
-    const bodySymptomsScore = Math.max(0, bodySymptoms.length * 0.3);
-    const badHabitsScore = Math.max(0, badHabits.length * 0.2);
-    const symptoms300Score = Math.max(0, symptoms300.length * 0.1);
-    const totalDeduction = bodySymptomsScore + badHabitsScore + symptoms300Score;
+    // 关键原则：症状越多，扣分呈指数增长
 
+    // 1. 身体语言简表（最重要，高权重）
+    // 0-5项：每项扣0.5分
+    // 6-15项：每项扣1分
+    // 16-30项：每项扣1.5分
+    // 31+项：每项扣2分
+    let bodySymptomsDeduction = 0;
+    if (bodySymptoms.length <= 5) {
+      bodySymptomsDeduction = bodySymptoms.length * 0.5;
+    } else if (bodySymptoms.length <= 15) {
+      bodySymptomsDeduction = 5 * 0.5 + (bodySymptoms.length - 5) * 1;
+    } else if (bodySymptoms.length <= 30) {
+      bodySymptomsDeduction = 5 * 0.5 + 10 * 1 + (bodySymptoms.length - 15) * 1.5;
+    } else {
+      bodySymptomsDeduction = 5 * 0.5 + 10 * 1 + 15 * 1.5 + (bodySymptoms.length - 30) * 2;
+    }
+
+    // 2. 关键健康问题（严重症状，额外扣分）
+    // 检查是否有高血压、高血脂、高血糖、糖尿病等严重症状
+    const severeSymptoms = [71, 72, 73, 74, 75]; // 高血脂、高血压、高血糖、低血糖、低血压
+    const severeSymptomCount = bodySymptoms.filter((s: any) => severeSymptoms.includes(s.id)).length;
+    const severeSymptomsDeduction = severeSymptomCount * 10; // 每个严重症状额外扣10分
+
+    // 3. 不良生活习惯（中权重）
+    // 每项扣0.3分，最多扣20分
+    const badHabitsDeduction = Math.min(badHabits.length * 0.3, 20);
+
+    // 4. 300症状表（低权重）
+    // 每项扣0.15分，最多扣15分
+    const symptoms300Deduction = Math.min(symptoms300.length * 0.15, 15);
+
+    const totalDeduction = bodySymptomsDeduction + severeSymptomsDeduction + badHabitsDeduction + symptoms300Deduction;
+
+    // 最终得分（最低0分，最高100分）
     return Math.max(0, Math.round(100 - totalDeduction));
   };
 
@@ -414,6 +441,35 @@ export default function MySolutionPage() {
               <CardTitle className="text-2xl">您的健康状况总结</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* BMI指标 */}
+              {userData?.bmi && (
+                <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+                  <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white flex items-center">
+                    <Activity className="w-5 h-5 mr-2 text-purple-600" />
+                    您的BMI指数
+                  </h3>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-4xl font-bold text-purple-700 dark:text-purple-400">
+                      {userData.bmi}
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        {(() => {
+                          const bmiValue = parseFloat(userData.bmi);
+                          if (bmiValue < 18.5) return '体重过轻';
+                          if (bmiValue < 24) return '体重正常';
+                          if (bmiValue < 28) return '超重';
+                          return '肥胖';
+                        })()}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500">
+                        基于身高：{userData.height}cm，体重：{userData.weight}kg
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* 重点症状 */}
               {targetSymptoms.length > 0 && (
                 <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
@@ -451,12 +507,27 @@ export default function MySolutionPage() {
                         );
                       })}
                       {/* 健康评分 - 使用综合评分 */}
-                      <div className="text-center p-3 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-sm">
+                      <div className={(() => {
+                        const score = calculateHealthScore();
+                        let bgClass = 'from-green-500 to-emerald-600';
+                        if (score < 60) bgClass = 'from-red-500 to-orange-600';
+                        else if (score < 70) bgClass = 'from-orange-500 to-yellow-600';
+                        else if (score < 80) bgClass = 'from-yellow-500 to-lime-600';
+                        else if (score < 90) bgClass = 'from-lime-500 to-green-600';
+                        return `text-center p-3 bg-gradient-to-br ${bgClass} rounded-lg shadow-sm`;
+                      })()}>
                         <div className="text-xs text-white/80 mb-1">健康评分</div>
                         <div className="text-2xl font-bold text-white mb-1">
                           {calculateHealthScore()}
                         </div>
-                        <div className="text-xs text-white/70">分（综合）</div>
+                        <div className="text-xs text-white/70">{(() => {
+                          const score = calculateHealthScore();
+                          if (score >= 90) return '分（优秀）';
+                          if (score >= 80) return '分（良好）';
+                          if (score >= 70) return '分（一般）';
+                          if (score >= 60) return '分（需关注）';
+                          return '分（需调理）';
+                        })()}</div>
                       </div>
                     </div>
                   ) : (
