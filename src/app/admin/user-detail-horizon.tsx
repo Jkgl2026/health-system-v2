@@ -201,8 +201,8 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
 
         {user && (
           <div className="space-y-10 mt-12">
-            {/* 第一行：4个4×4模块 */}
-            <div className="grid grid-cols-4 gap-10">
+            {/* 第一行：4个模块横向排列（6列布局） */}
+            <div className="grid grid-cols-6 gap-10">
               {/* 基本信息 */}
               <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
@@ -371,8 +371,8 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </Card>
             </div>
 
-            {/* 第二行：4个4×4模块 */}
-            <div className="grid grid-cols-4 gap-10">
+            {/* 第二行：4个模块横向排列（6列布局） */}
+            <div className="grid grid-cols-6 gap-10">
               {/* 中医深入分析 */}
               <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
@@ -514,111 +514,106 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </Card>
             </div>
 
-            {/* 第三行：分阶段调理计划 */}
-            <div className="grid grid-cols-4 gap-10">
-              <div className="col-span-4">
-                <Card className="p-10 shadow-xl border-3">
-                  <CardHeader>
-                    <CardTitle className="text-3xl flex items-center gap-4">
-                      <Target className="w-12 h-12 text-cyan-600" />
-                      分阶段调理计划
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-3 gap-8">
-                      <div className="p-8 bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl border-2 border-green-300 shadow-md">
-                        <div className="flex items-center gap-4 mb-6">
-                          <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
-                            <div className="text-3xl font-bold text-white">1</div>
-                          </div>
-                          <div className="text-3xl font-bold text-green-900">第一阶段</div>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="text-2xl text-gray-800 font-semibold mb-4">1-2个月</div>
-                          <div className="space-y-3">
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">紧急症状处理</div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">建立健康作息</div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">基础饮食调理</div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">开始运动计划</div>
-                            </div>
-                          </div>
-                        </div>
+            {/* 第三行：分阶段调理计划（3个阶段横向排列） */}
+            <div className="grid grid-cols-3 gap-10">
+              {/* 第一阶段 */}
+              <Card className="p-10 shadow-xl border-3">
+                <CardHeader>
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <Target className="w-12 h-12 text-green-600" />
+                    第一阶段
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-2xl text-gray-800 font-semibold mb-4">1-2个月</div>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">紧急症状处理</div>
                       </div>
-
-                      <div className="p-8 bg-gradient-to-br from-yellow-50 to-orange-100 rounded-2xl border-2 border-yellow-300 shadow-md">
-                        <div className="flex items-center gap-4 mb-6">
-                          <div className="w-16 h-16 bg-yellow-500 rounded-2xl flex items-center justify-center shadow-lg">
-                            <div className="text-3xl font-bold text-white">2</div>
-                          </div>
-                          <div className="text-3xl font-bold text-yellow-900">第二阶段</div>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="text-2xl text-gray-800 font-semibold mb-4">3-4个月</div>
-                          <div className="space-y-3">
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">深度调理气血</div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">改善生活习惯</div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">经络疏通调理</div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">情志心理疏导</div>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">建立健康作息</div>
                       </div>
-
-                      <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl border-2 border-blue-300 shadow-md">
-                        <div className="flex items-center gap-4 mb-6">
-                          <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
-                            <div className="text-3xl font-bold text-white">3</div>
-                          </div>
-                          <div className="text-3xl font-bold text-blue-900">第三阶段</div>
-                        </div>
-                        <div className="space-y-4">
-                          <div className="text-2xl text-gray-800 font-semibold mb-4">5-6个月</div>
-                          <div className="space-y-3">
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">巩固调理成果</div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">建立健康体系</div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">预防疾病复发</div>
-                            </div>
-                            <div className="flex items-start gap-3">
-                              <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                              <div className="text-xl text-gray-700">长期健康管理</div>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">基础饮食调理</div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">开始运动计划</div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 第二阶段 */}
+              <Card className="p-10 shadow-xl border-3">
+                <CardHeader>
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <Target className="w-12 h-12 text-yellow-600" />
+                    第二阶段
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-2xl text-gray-800 font-semibold mb-4">3-4个月</div>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">深度调理气血</div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">改善生活习惯</div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">经络疏通调理</div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">情志心理疏导</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 第三阶段 */}
+              <Card className="p-10 shadow-xl border-3">
+                <CardHeader>
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <Target className="w-12 h-12 text-blue-600" />
+                    第三阶段
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="text-2xl text-gray-800 font-semibold mb-4">5-6个月</div>
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">巩固调理成果</div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">建立健康体系</div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">预防疾病复发</div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        <div className="text-xl text-gray-700">长期健康管理</div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             {/* 第四行：2个8×8模块 */}
