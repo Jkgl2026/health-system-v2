@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import type { InsertSymptomCheck } from '@/storage/database';
+import { applyRateLimit } from '@/lib/rate-limit-middleware';
+import { RateLimiter } from '@/lib/rate-limit';
+import { createErrorResponse } from '@/lib/error-utils';
+
+// 创建速率限制器（中等模式：每分钟最多20次请求）
+const symptomCheckRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000, // 1分钟
+  maxRequests: 20,
+  message: '请求过于频繁，请稍后再试',
+});
 
 // POST /api/symptom-check - 保存症状自检结果
 export async function POST(request: NextRequest) {
   try {
+    // 应用速率限制
+    const rateLimitResult = applyRateLimit(request, symptomCheckRateLimiter);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response!;
+    }
+
     const data = await request.json();
     const checkData: InsertSymptomCheck = {
       userId: data.userId,
@@ -16,11 +32,7 @@ export async function POST(request: NextRequest) {
     const check = await healthDataManager.createSymptomCheck(checkData);
     return NextResponse.json({ success: true, check }, { status: 201 });
   } catch (error) {
-    console.error('Error creating symptom check:', error);
-    return NextResponse.json(
-      { error: '保存症状自检结果失败' },
-      { status: 500 }
-    );
+    return createErrorResponse(error);
   }
 }
 
@@ -40,10 +52,6 @@ export async function GET(request: NextRequest) {
     const checks = await healthDataManager.getSymptomChecksByUserId(userId);
     return NextResponse.json({ success: true, checks });
   } catch (error) {
-    console.error('Error fetching symptom checks:', error);
-    return NextResponse.json(
-      { error: '获取症状自检记录失败' },
-      { status: 500 }
-    );
+    return createErrorResponse(error);
   }
 }

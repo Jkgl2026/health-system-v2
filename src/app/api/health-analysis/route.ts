@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import type { InsertHealthAnalysis } from '@/storage/database';
+import { applyRateLimit } from '@/lib/rate-limit-middleware';
+import { RateLimiter } from '@/lib/rate-limit';
+import { createErrorResponse } from '@/lib/error-utils';
+
+// 创建速率限制器（中等模式：每分钟最多20次请求）
+const healthAnalysisRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000, // 1分钟
+  maxRequests: 20,
+  message: '请求过于频繁，请稍后再试',
+});
 
 // POST /api/health-analysis - 保存健康要素分析结果
 export async function POST(request: NextRequest) {
   try {
+    // 应用速率限制
+    const rateLimitResult = applyRateLimit(request, healthAnalysisRateLimiter);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response!;
+    }
+
     const data = await request.json();
     const analysisData: InsertHealthAnalysis = {
       userId: data.userId,
@@ -21,11 +37,7 @@ export async function POST(request: NextRequest) {
     const analysis = await healthDataManager.createHealthAnalysis(analysisData);
     return NextResponse.json({ success: true, analysis }, { status: 201 });
   } catch (error) {
-    console.error('Error creating health analysis:', error);
-    return NextResponse.json(
-      { error: '保存健康要素分析结果失败' },
-      { status: 500 }
-    );
+    return createErrorResponse(error);
   }
 }
 
@@ -45,10 +57,6 @@ export async function GET(request: NextRequest) {
     const analyses = await healthDataManager.getHealthAnalysisByUserId(userId);
     return NextResponse.json({ success: true, analyses });
   } catch (error) {
-    console.error('Error fetching health analyses:', error);
-    return NextResponse.json(
-      { error: '获取健康要素分析记录失败' },
-      { status: 500 }
-    );
+    return createErrorResponse(error);
   }
 }

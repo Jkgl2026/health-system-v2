@@ -1,10 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import type { InsertRequirement } from '@/storage/database';
+import { applyRateLimit } from '@/lib/rate-limit-middleware';
+import { RateLimiter } from '@/lib/rate-limit';
+import { createErrorResponse } from '@/lib/error-utils';
+
+// 创建速率限制器（中等模式：每分钟最多20次请求）
+const requirementsRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000, // 1分钟
+  maxRequests: 20,
+  message: '请求过于频繁，请稍后再试',
+});
 
 // POST /api/requirements - 创建或更新四个要求的完成情况
 export async function POST(request: NextRequest) {
   try {
+    // 应用速率限制
+    const rateLimitResult = applyRateLimit(request, requirementsRateLimiter);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response!;
+    }
+
     const data = await request.json();
     const requirementData: InsertRequirement = {
       userId: data.userId,
@@ -30,11 +46,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, requirement }, { status: 201 });
   } catch (error) {
-    console.error('Error saving requirements:', error);
-    return NextResponse.json(
-      { error: '保存要求完成情况失败' },
-      { status: 500 }
-    );
+    return createErrorResponse(error);
   }
 }
 
@@ -62,10 +74,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, requirement });
   } catch (error) {
-    console.error('Error fetching requirements:', error);
-    return NextResponse.json(
-      { error: '获取要求完成情况失败' },
-      { status: 500 }
-    );
+    return createErrorResponse(error);
   }
 }
