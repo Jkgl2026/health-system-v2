@@ -12,6 +12,7 @@ import { Pagination } from '@/components/admin/Pagination';
 import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw, Sparkles, Flame, Heart, Zap, Droplets, BookOpen, AlertTriangle, Calculator, Info, PieChart, Shield } from 'lucide-react';
 import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import UserDetailHorizon from '../user-detail-horizon';
 
 interface UserSummary {
   user: {
