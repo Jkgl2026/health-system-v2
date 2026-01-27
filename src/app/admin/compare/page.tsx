@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { LogOut, ArrowLeft, Activity, Users, CheckCircle, TrendingUp, TrendingDown, Minus, Eye, HelpCircle, AlertCircle, FileText, Sparkles, Flame, Heart, Zap, Droplets, Target, BookOpen, Stethoscope, RefreshCw, XCircle, CheckCircle2, AlertTriangle, Lightbulb, PlusCircle, MinusCircle, ArrowRight, ArrowDown, Clock } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
-import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
+import { BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
 import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
 import DiagnosticsPanel from './diagnostics';
 
@@ -36,48 +36,6 @@ interface FullUserData extends UserData {
   userChoices?: any[];
   requirements?: any;
 }
-
-// 辅助函数：从 sevenQuestionsAnswers 中提取答案
-const extractSevenQuestionAnswer = (answers: any, questionId: number, questionIndex: number): string | null => {
-  if (!answers) return null;
-
-  let answerData = null;
-  let answer = null;
-
-  // 方式1：使用数字ID作为key
-  if (answers[questionId]) {
-    answerData = answers[questionId];
-  }
-  // 方式2：使用字符串ID作为key
-  else if (answers[questionId.toString()]) {
-    answerData = answers[questionId.toString()];
-  }
-  // 方式3：如果数据是数组，按索引匹配
-  else if (Array.isArray(answers) && answers[questionIndex]) {
-    answerData = answers[questionIndex];
-  }
-  // 方式4：遍历查找匹配的问题
-  else if (typeof answers === 'object') {
-    for (const key in answers) {
-      const item = answers[key];
-      if (item && (item.questionId === questionId || item.questionId === questionId.toString())) {
-        answerData = item;
-        break;
-      }
-    }
-  }
-
-  // 提取答案
-  if (answerData) {
-    if (typeof answerData === 'object' && answerData !== null) {
-      answer = answerData.answer || answerData.content || answerData.text;
-    } else {
-      answer = answerData;
-    }
-  }
-
-  return answer || null;
-};
 
 // 差异分析辅助函数
 const analyzeBMIChange = (bmi1: string | null, bmi2: string | null) => {
@@ -201,44 +159,6 @@ const analyzeArrayDifference = (array1: Set<number>, array2: Set<number>, items:
   }
 
   return { added, removed, change, suggestion };
-};
-
-const analyzeSevenQuestionsChange = (answers1: Record<string, any>, answers2: Record<string, any>) => {
-  const questions = SEVEN_QUESTIONS;
-  const newAnswers: string[] = [];
-  const changedAnswers: string[] = [];
-  const improvedAnswers: string[] = [];
-
-  questions.forEach((q, index) => {
-    const answer1 = extractSevenQuestionAnswer(answers1, q.id, index);
-    const answer2 = extractSevenQuestionAnswer(answers2, q.id, index);
-
-    if (!answer1 && answer2) {
-      newAnswers.push(q.question);
-    } else if (answer1 && answer2 && answer1 !== answer2) {
-      changedAnswers.push(q.question);
-      // 简单判断是否有改善（回答变得更详细或更积极）
-      if (answer2.length > answer1.length) {
-        improvedAnswers.push(q.question);
-      }
-    }
-  });
-
-  let suggestion = '';
-  if (newAnswers.length > 0) {
-    suggestion = `新回答了${newAnswers.length}个问题，健康意识有所提升。`;
-  }
-  if (changedAnswers.length > 0) {
-    suggestion += ` 有${changedAnswers.length}个问题的回答发生变化。`;
-  }
-  if (newAnswers.length === 0 && changedAnswers.length === 0) {
-    suggestion = '七问答案保持一致，健康意识稳定。';
-  }
-  if (improvedAnswers.length > 0) {
-    suggestion += ' 回答内容更加详细，健康认知有所提升。';
-  }
-
-  return { newAnswers, changedAnswers, improvedAnswers, suggestion };
 };
 
 export default function AdminComparePage() {
@@ -1532,143 +1452,6 @@ export default function AdminComparePage() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* 七问答案差异分析和改进建议 */}
-              <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 border-2 border-yellow-200">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-xl font-bold text-yellow-900">
-                    <Lightbulb className="h-6 w-6 mr-2" />
-                    健康意识差异分析与改进建议
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {compareData.length >= 2 && (() => {
-                      const answers1 = compareData[0].requirements?.sevenQuestionsAnswers as Record<string, any> || {};
-                      const answers2 = compareData[1].requirements?.sevenQuestionsAnswers as Record<string, any> || {};
-                      const analysis = analyzeSevenQuestionsChange(answers1, answers2);
-
-                      return (
-                        <>
-                          {/* 统计概览 */}
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="p-4 bg-green-100 rounded-lg border-2 border-green-300">
-                              <div className="flex items-center gap-2 mb-2">
-                                <PlusCircle className="h-5 w-5 text-green-600" />
-                                <h5 className="font-bold text-green-900">新回答问题</h5>
-                              </div>
-                              <div className="text-2xl font-bold text-green-700">{analysis.newAnswers.length}个</div>
-                            </div>
-                            <div className="p-4 bg-blue-100 rounded-lg border-2 border-blue-300">
-                              <div className="flex items-center gap-2 mb-2">
-                                <RefreshCw className="h-5 w-5 text-blue-600" />
-                                <h5 className="font-bold text-blue-900">回答变化</h5>
-                              </div>
-                              <div className="text-2xl font-bold text-blue-700">{analysis.changedAnswers.length}个</div>
-                            </div>
-                            <div className="p-4 bg-purple-100 rounded-lg border-2 border-purple-300">
-                              <div className="flex items-center gap-2 mb-2">
-                                <TrendingUp className="h-5 w-5 text-purple-600" />
-                                <h5 className="font-bold text-purple-900">认知提升</h5>
-                              </div>
-                              <div className="text-2xl font-bold text-purple-700">{analysis.improvedAnswers.length}个</div>
-                            </div>
-                          </div>
-
-                          {/* 详细变化 */}
-                          {analysis.newAnswers.length > 0 && (
-                            <div className="p-4 bg-white rounded-lg border-2 border-green-200">
-                              <div className="flex items-center gap-2 mb-3">
-                                <PlusCircle className="h-5 w-5 text-green-600" />
-                                <h5 className="font-bold text-lg text-gray-900">新回答的问题（{analysis.newAnswers.length}个）</h5>
-                              </div>
-                              <div className="space-y-2">
-                                {analysis.newAnswers.map((question, idx) => (
-                                  <div key={idx} className="flex items-start gap-2 p-2 bg-green-50 rounded border border-green-200">
-                                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
-                                    <span className="text-sm text-gray-700">{question}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {analysis.changedAnswers.length > 0 && (
-                            <div className="p-4 bg-white rounded-lg border-2 border-blue-200">
-                              <div className="flex items-center gap-2 mb-3">
-                                <RefreshCw className="h-5 w-5 text-blue-600" />
-                                <h5 className="font-bold text-lg text-gray-900">回答变化的问题（{analysis.changedAnswers.length}个）</h5>
-                              </div>
-                              <div className="space-y-2">
-                                {analysis.changedAnswers.map((question, idx) => {
-                                  const qIndex = SEVEN_QUESTIONS.findIndex(q => q.question === question);
-                                  const qId = qIndex >= 0 ? SEVEN_QUESTIONS[qIndex].id : null;
-                                  const answer1 = qId !== null ? extractSevenQuestionAnswer(answers1, qId, qIndex) : null;
-                                  const answer2 = qId !== null ? extractSevenQuestionAnswer(answers2, qId, qIndex) : null;
-
-                                  return (
-                                    <div key={idx} className="p-3 bg-blue-50 rounded border border-blue-200">
-                                      <div className="font-semibold text-gray-900 mb-2">{question}</div>
-                                      <div className="space-y-2 text-sm">
-                                        <div className="flex items-start gap-2">
-                                          <span className="text-blue-600 font-medium flex-shrink-0">版本1:</span>
-                                          <span className="text-gray-600">{answer1 || '未回答'}</span>
-                                        </div>
-                                        <div className="flex items-start gap-2">
-                                          <span className="text-green-600 font-medium flex-shrink-0">版本2:</span>
-                                          <span className="text-gray-600">{answer2 || '未回答'}</span>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* 综合分析和建议 */}
-                          <div className="p-4 bg-gradient-to-r from-orange-50 to-amber-50 rounded-lg border-2 border-orange-200">
-                            <div className="flex items-center gap-2 mb-3">
-                              <Sparkles className="h-5 w-5 text-orange-600" />
-                              <h5 className="font-bold text-lg text-orange-900">健康意识分析与建议</h5>
-                            </div>
-                            <div className="space-y-3 text-sm">
-                              <div className="p-3 bg-white rounded-lg border">
-                                <h6 className="font-semibold text-gray-900 mb-2">变化总结</h6>
-                                <p className="text-gray-700">{analysis.suggestion}</p>
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div className="p-3 bg-white rounded-lg border">
-                                  <h6 className="font-semibold text-green-900 mb-1">健康意识提升建议</h6>
-                                  <ul className="space-y-1 text-gray-700">
-                                    {analysis.newAnswers.length > 0 && (
-                                      <li>• 继续深入思考健康问题，建议定期回顾七问答案</li>
-                                    )}
-                                    {analysis.improvedAnswers.length > 0 && (
-                                      <li>• 健康认知有明显提升，建议将认知转化为行动</li>
-                                    )}
-                                    <li>• 建议每月填写一次七问，跟踪健康意识变化</li>
-                                  </ul>
-                                </div>
-                                <div className="p-3 bg-white rounded-lg border">
-                                  <h6 className="font-semibold text-blue-900 mb-1">后续行动建议</h6>
-                                  <ul className="space-y-1 text-gray-700">
-                                    <li>• 根据七问答案，制定具体的健康管理计划</li>
-                                    <li>• 定期与健康管理师沟通，调整调理方案</li>
-                                    <li>• 参加健康管理课程，提升健康知识水平</li>
-                                  </ul>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </>
-                      );
-                    })()}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Separator />
 
               {/* 不良生活习惯自检表对比 - 左右并排 */}
               <Card>
