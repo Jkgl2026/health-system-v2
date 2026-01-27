@@ -1311,45 +1311,55 @@ export default function AdminDashboardPage() {
                     let date = null;
 
                     if (answers) {
-                      // 格式1：简单对象格式 {"1": "答案字符串", "2": "答案字符串"}
-                      if (answers[q.id] && typeof answers[q.id] === 'string') {
-                        answer = answers[q.id];
-                      }
-                      // 格式2：带metadata的对象格式 {"1": {"answer": "...", "date": "..."}}
-                      else if (answers[q.id] && typeof answers[q.id] === 'object') {
-                        answerData = answers[q.id];
-                        answer = answerData?.answer || answerData?.content || answerData?.text;
-                        date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
-                      }
-                      // 格式3：使用字符串ID作为key
-                      else if (answers[q.id.toString()] && typeof answers[q.id.toString()] === 'string') {
-                        answer = answers[q.id.toString()];
-                      }
-                      else if (answers[q.id.toString()] && typeof answers[q.id.toString()] === 'object') {
-                        answerData = answers[q.id.toString()];
-                        answer = answerData?.answer || answerData?.content || answerData?.text;
-                        date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
-                      }
-                      // 格式4：数组格式 [{"answer": "...", "question": "...", "date": "..."}, ...]
-                      else if (Array.isArray(answers) && answers[index]) {
-                        answerData = answers[index];
-                        if (typeof answerData === 'object' && answerData !== null) {
+                      // 优先使用字符串ID作为key（因为PostgreSQL JSON类型返回的key通常是字符串）
+                      const stringKey = q.id.toString();
+                      const numericKey = q.id;
+
+                      // 尝试字符串key
+                      if (answers[stringKey]) {
+                        const value = answers[stringKey];
+                        if (typeof value === 'string') {
+                          answer = value;
+                        } else if (typeof value === 'object' && value !== null) {
+                          answerData = value;
                           answer = answerData?.answer || answerData?.content || answerData?.text;
                           date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
-                        } else {
-                          answer = answerData;
                         }
                       }
-                      // 格式5：数组格式，按question字段匹配
+                      // 尝试数字key（备用）
+                      else if (answers[numericKey]) {
+                        const value = answers[numericKey];
+                        if (typeof value === 'string') {
+                          answer = value;
+                        } else if (typeof value === 'object' && value !== null) {
+                          answerData = value;
+                          answer = answerData?.answer || answerData?.content || answerData?.text;
+                          date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
+                        }
+                      }
+                      // 数组格式处理
                       else if (Array.isArray(answers)) {
-                        const matched = answers.find((item: any) => 
-                          item?.question === q.question || 
-                          item?.questionId === q.id || 
-                          item?.questionId === q.id.toString()
-                        );
-                        if (matched) {
-                          answer = matched?.answer || matched?.content || matched?.text;
-                          date = matched?.date || matched?.timestamp || matched?.createdAt;
+                        // 方式1：按索引匹配
+                        if (answers[index]) {
+                          const value = answers[index];
+                          if (typeof value === 'string') {
+                            answer = value;
+                          } else if (typeof value === 'object' && value !== null) {
+                            answer = value?.answer || value?.content || value?.text;
+                            date = value?.date || value?.timestamp || value?.createdAt;
+                          }
+                        }
+                        // 方式2：按question字段匹配
+                        else {
+                          const matched = answers.find((item: any) => 
+                            item?.question === q.question || 
+                            item?.questionId === q.id || 
+                            item?.questionId === q.id.toString()
+                          );
+                          if (matched) {
+                            answer = matched?.answer || matched?.content || matched?.text;
+                            date = matched?.date || matched?.timestamp || matched?.createdAt;
+                          }
                         }
                       }
                     }
