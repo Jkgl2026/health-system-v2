@@ -1,282 +1,55 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
-import { Users, FileText, Activity, CheckCircle, AlertCircle, Eye, X, TrendingUp, Target, HelpCircle, RefreshCw, Sparkles, Flame, Heart, Zap, Droplets, BookOpen, AlertTriangle, Calculator, Info, PieChart, Shield, Star, Clock, Award, Globe, Leaf, TreePine, Menu, Utensils, Coffee, Car, Smartphone, Tv, Moon, Sun, Wind, Droplet, Thermometer, Apple, Salad, Fish, Milk, Wheat, Beef, Egg, Sprout, Dumbbell, HeartHandshake, Brain, Eye, Smile, LayoutGrid, ShoppingBag } from 'lucide-react';
-import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES, HEALTH_ELEMENTS } from '@/lib/health-data';
-
-interface UserFullData {
-  user: any;
-  symptomChecks: any[];
-  healthAnalysis: any[];
-  userChoices: any[];
-  requirements: any;
-}
+import { Users, Activity, TrendingUp, Target, Sparkles, HelpCircle, Shield, BookOpen, AlertCircle, FileText, RefreshCw, ChevronLeft } from 'lucide-react';
+import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300 } from '@/lib/health-data';
+import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
 
 interface UserDetailHorizonProps {
+  user: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  userData: UserFullData | null;
 }
 
-// 健康改善路径阶段
-const HEALTH_IMPROVEMENT_STAGES = [
-  {
-    stage: 1,
-    title: '急救调理期',
-    duration: '1-2周',
-    goal: '快速缓解症状',
-    actions: [
-      '补充气血，增强体力',
-      '促进循环，缓解疼痛',
-      '清热解毒，改善炎症',
-      '祛湿散寒，改善体质'
-    ]
-  },
-  {
-    stage: 2,
-    title: '修复恢复期',
-    duration: '2-4周',
-    goal: '修复受损组织',
-    actions: [
-      '强化脏腑功能',
-      '恢复代谢平衡',
-      '提升免疫力',
-      '改善微循环'
-    ]
-  },
-  {
-    stage: 3,
-    title: '巩固增强期',
-    duration: '4-8周',
-    goal: '巩固调理效果',
-    actions: [
-      '建立健康生活习惯',
-      '稳定各项指标',
-      '增强体质储备',
-      '预防问题复发'
-    ]
-  },
-  {
-    stage: 4,
-    title: '健康维护期',
-    duration: '长期',
-    goal: '维持健康状态',
-    actions: [
-      '定期自检监测',
-      '保持健康生活方式',
-      '及时调理轻微不适',
-      '预防潜在健康风险'
-    ]
-  }
-];
-
-// 推荐调理产品
-const RECOMMENDED_PRODUCTS = [
-  {
-    id: 1,
-    name: '气血双补胶囊',
-    category: '气血调理',
-    benefits: '改善气血不足，增强体质',
-    icon: Heart,
-    color: 'bg-red-100 text-red-600'
-  },
-  {
-    id: 2,
-    name: '活血通络贴',
-    category: '循环改善',
-    benefits: '促进血液循环，缓解疼痛',
-    icon: Activity,
-    color: 'bg-blue-100 text-blue-600'
-  },
-  {
-    id: 3,
-    name: '清湿排毒茶',
-    category: '排毒养颜',
-    benefits: '清除体内毒素，改善皮肤',
-    icon: Leaf,
-    color: 'bg-green-100 text-green-600'
-  },
-  {
-    id: 4,
-    name: '降脂调理片',
-    category: '血脂调节',
-    benefits: '调节血脂，保护心血管',
-    icon: Shield,
-    color: 'bg-purple-100 text-purple-600'
-  }
-];
-
-// 格式化日期
-const formatDate = (dateStr: string | Date | null) => {
-  if (!dateStr) return '-';
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('zh-CN', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
-
-export default function UserDetailHorizon({ open, onOpenChange, userData }: UserDetailHorizonProps) {
+export default function UserDetailHorizon({ user, open, onOpenChange }: UserDetailHorizonProps) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [showTCMDetails, setShowTCMDetails] = useState(false);
 
-  // 获取最新的身体语言检查
+  // 格式化日期
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return '-';
+    const d = new Date(date);
+    return d.toLocaleDateString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  // 获取最新症状检查
   const getLatestSymptomCheck = () => {
-    if (!userData || !userData.symptomChecks || userData.symptomChecks.length === 0) return null;
-    return userData.symptomChecks[userData.symptomChecks.length - 1];
-  };
-
-  // 获取最新的健康要素分析
-  const getLatestHealthAnalysis = () => {
-    if (!userData || !userData.healthAnalysis || userData.healthAnalysis.length === 0) return null;
-    return userData.healthAnalysis[userData.healthAnalysis.length - 1];
-  };
-
-  // 中医深入分析
-  const analyzeTCMHealth = () => {
-    if (!userData) return null;
-
-    const latestSymptomCheck = getLatestSymptomCheck();
-    const badHabits = userData.requirements?.badHabitsChecklist || [];
-    const symptoms300 = userData.requirements?.symptoms300Checklist || [];
-
-    const bodySymptomIds = latestSymptomCheck?.checkedSymptoms?.map((id: string) => parseInt(id)) || [];
-    const habitIds = Array.isArray(badHabits) ? badHabits.map((id: any) => parseInt(id)) : [];
-    const symptom300Ids = Array.isArray(symptoms300) ? symptoms300.map((id: any) => parseInt(id)) : [];
-
-    const totalSymptoms = bodySymptomIds.length + habitIds.length + symptom300Ids.length;
-
-    // 体质辨识
-    const getConstitution = () => {
-      if (totalSymptoms < 10) return { type: '平和质', color: 'green', desc: '阴阳气血调和，体态适中，面色红润，精力充沛' };
-      if (totalSymptoms < 20) return { type: '气虚质', color: 'blue', desc: '元气不足，疲乏无力，气短懒言，易出汗，易感冒' };
-      if (totalSymptoms < 30) return { type: '痰湿质', color: 'yellow', desc: '体内湿气重，体型肥胖，胸闷痰多，身重不爽' };
-      if (totalSymptoms < 40) return { type: '湿热质', color: 'orange', desc: '湿热内蕴，面垢油光，易生痤疮，口苦口臭，大便黏滞' };
-      return { type: '血瘀质', color: 'red', desc: '气血运行不畅，肤色晦暗，易有瘀斑，痛经，舌质紫暗' };
-    };
-
-    // 气血状态分析
-    const getQiBloodStatus = () => {
-      const hasFatigue = bodySymptomIds.some(id => [1, 3, 4, 14, 58].includes(id));
-      const hasShortness = bodySymptomIds.some(id => [40, 48].includes(id));
-      const hasPalpitation = bodySymptomIds.some(id => [49].includes(id));
-
-      if (hasFatigue && hasShortness) return { type: '气血两虚', color: 'red', desc: '面色苍白，乏力少气，心悸失眠，动则气喘' };
-      if (hasFatigue && bodySymptomIds.some(id => [55, 57].includes(id))) return { type: '气虚血瘀', color: 'orange', desc: '气短乏力，舌质紫暗，身体疼痛，月经不调' };
-      if (hasPalpitation && bodySymptomIds.some(id => [76, 80].includes(id))) return { type: '气血瘀滞', color: 'pink', desc: '胸胁胀痛，月经不调，舌有瘀斑，心悸怔忡' };
-      return { type: '气血充盈', color: 'green', desc: '面色红润，精力充沛，舌质淡红，脉象有力' };
-    };
-
-    // 脏腑功能评估
-    const getOrganFunction = () => {
-      const organs = [];
-      
-      if (bodySymptomIds.some(id => [49, 50, 5, 10].includes(id))) {
-        organs.push({ organ: '心', status: '异常', color: 'red', symptoms: '心悸、失眠、多梦' });
-      }
-      if (bodySymptomIds.some(id => [6, 16, 17, 19, 85].includes(id))) {
-        organs.push({ organ: '肝', status: '异常', color: 'orange', symptoms: '易怒、头晕、眼干、视力模糊' });
-      }
-      if (bodySymptomIds.some(id => [41, 42, 43, 86, 87, 88, 89, 90].includes(id))) {
-        organs.push({ organ: '脾', status: '异常', color: 'yellow', symptoms: '消化不良、腹胀、便溏、口干口苦' });
-      }
-      if (bodySymptomIds.some(id => [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40].includes(id))) {
-        organs.push({ organ: '肺', status: '异常', color: 'blue', symptoms: '咳嗽、气短、易感冒、鼻炎' });
-      }
-      if (bodySymptomIds.some(id => [25, 55, 62, 63, 67].includes(id))) {
-        organs.push({ organ: '肾', status: '异常', color: 'purple', symptoms: '腰酸、耳鸣、畏寒、夜尿多' });
-      }
-
-      if (organs.length === 0) {
-        organs.push({ organ: '五脏', status: '正常', color: 'green', symptoms: '五脏功能正常' });
-      }
-
-      return organs;
-    };
-
-    // 经络状态
-    const getMeridianStatus = () => {
-      const meridians = [];
-
-      if (bodySymptomIds.some(id => [62, 59].includes(id))) {
-        meridians.push({ meridian: '督脉', status: '不畅', color: 'red', desc: '脊柱问题、阳气不足、颈腰疼痛' });
-      }
-      if (bodySymptomIds.some(id => [76, 77, 78, 79, 80, 81, 82, 83, 84].includes(id))) {
-        meridians.push({ meridian: '任脉', status: '不畅', color: 'pink', desc: '妇科问题、消化问题、月经失调' });
-      }
-      if (bodySymptomIds.some(id => [55, 56, 57, 58].includes(id))) {
-        meridians.push({ meridian: '冲脉', status: '不畅', color: 'orange', desc: '月经问题、气血失调、四肢问题' });
-      }
-      if (bodySymptomIds.some(id => [63, 91, 96].includes(id))) {
-        meridians.push({ meridian: '带脉', status: '不畅', color: 'yellow', desc: '腰腹问题、湿气重、体型肥胖' });
-      }
-
-      if (meridians.length === 0) {
-        meridians.push({ meridian: '经络', status: '通畅', color: 'green', desc: '经络通畅，气血运行正常' });
-      }
-
-      return meridians;
-    };
-
-    // 阴阳平衡
-    const getYinYangBalance = () => {
-      const hasColdSymptoms = bodySymptomIds.some(id => [4, 5, 42, 55].includes(id));
-      const hasHeatSymptoms = bodySymptomIds.some(id => [16, 35, 36, 37, 95].includes(id));
-
-      if (hasColdSymptoms && hasHeatSymptoms) return { type: '阴阳两虚', color: 'purple', desc: '时而怕冷时而怕热，自汗盗汗，脉象细数' };
-      if (hasHeatSymptoms) return { type: '阳盛阴衰', color: 'red', desc: '面红目赤，烦躁易怒，便秘尿黄，舌红苔黄' };
-      if (hasColdSymptoms) return { type: '阴盛阳衰', color: 'blue', desc: '面色苍白，畏寒肢冷，精神萎靡，舌淡苔白' };
-      return { type: '阴阳平衡', color: 'green', desc: '正常状态，阴阳协调' };
-    };
-
-    // 湿热寒凉
-    const getColdHeatDampness = () => {
-      const hasCold = bodySymptomIds.some(id => [4, 5, 42, 55].includes(id));
-      const hasHeat = bodySymptomIds.some(id => [16, 35, 36, 37, 41, 95].includes(id));
-      const hasDampness = bodySymptomIds.some(id => [11, 39, 68, 69, 70, 91].includes(id));
-      const hasDryness = bodySymptomIds.some(id => [16, 42, 53].includes(id));
-
-      if (hasCold && hasDampness) return { type: '寒湿', color: 'blue', desc: '寒湿内盛，关节冷痛，身体困重，舌淡苔腻' };
-      if (hasHeat && hasDampness) return { type: '湿热', color: 'orange', desc: '湿热内蕴，面垢油光，口苦口臭，大便黏滞' };
-      if (hasCold) return { type: '寒证', color: 'cyan', desc: '畏寒肢冷，面色苍白，舌淡苔白，脉沉紧' };
-      if (hasHeat) return { type: '热证', color: 'red', desc: '发热面赤，口渴喜冷饮，舌红苔黄，脉数有力' };
-      if (hasDampness) return { type: '湿证', color: 'yellow', desc: '头重如裹，胸闷腹胀，舌苔厚腻，身体困重' };
-      if (hasDryness) return { type: '燥证', color: 'amber', desc: '口干咽燥，皮肤干燥，便干尿少，舌红少津' };
-      return { type: '平和', color: 'green', desc: '寒热适中，无明显异常' };
-    };
-
-    return {
-      constitution: getConstitution(),
-      qiBloodStatus: getQiBloodStatus(),
-      organFunction: getOrganFunction(),
-      meridianStatus: getMeridianStatus(),
-      yinYangBalance: getYinYangBalance(),
-      coldHeatDampness: getColdHeatDampness(),
-      totalSymptoms,
-    };
+    if (!user?.symptomChecks || user.symptomChecks.length === 0) return null;
+    return user.symptomChecks[0];
   };
 
   // 计算综合健康评分
   const calculateHealthScore = () => {
-    if (!userData) return null;
+    if (!user) return null;
 
     const latestSymptomCheck = getLatestSymptomCheck();
-    const badHabits = userData.requirements?.badHabitsChecklist || [];
-    const symptoms300 = userData.requirements?.symptoms300Checklist || [];
+    const badHabits = user.requirements?.badHabitsChecklist || [];
+    const symptoms300 = user.requirements?.symptoms300Checklist || [];
 
     const bodySymptomIds = latestSymptomCheck?.checkedSymptoms?.map((id: string) => parseInt(id)) || [];
     const habitIds = Array.isArray(badHabits) ? badHabits.map((id: any) => parseInt(id)) : [];
     const symptom300Ids = Array.isArray(symptoms300) ? symptoms300.map((id: any) => parseInt(id)) : [];
 
-    const { calculateComprehensiveHealthScore } = require('@/lib/health-score-calculator');
     const result = calculateComprehensiveHealthScore({
       bodySymptomIds,
       habitIds,
@@ -296,454 +69,646 @@ export default function UserDetailHorizon({ open, onOpenChange, userData }: User
     };
   };
 
-  const tcmAnalysis = analyzeTCMHealth();
-  const healthScore = calculateHealthScore();
-  const latestHealthAnalysis = getLatestHealthAnalysis();
+  // 中医深入分析
+  const analyzeTCMHealth = () => {
+    if (!user) return null;
 
-  if (!userData) return null;
+    const latestSymptomCheck = getLatestSymptomCheck();
+    const badHabits = user.requirements?.badHabitsChecklist || [];
+    const symptoms300 = user.requirements?.symptoms300Checklist || [];
+
+    const bodySymptomIds = latestSymptomCheck?.checkedSymptoms?.map((id: string) => parseInt(id)) || [];
+    const habitIds = Array.isArray(badHabits) ? badHabits.map((id: any) => parseInt(id)) : [];
+    const symptom300Ids = Array.isArray(symptoms300) ? symptoms300.map((id: any) => parseInt(id)) : [];
+
+    const totalSymptoms = bodySymptomIds.length + habitIds.length + symptom300Ids.length;
+
+    // 体质辨识
+    const getConstitution = () => {
+      if (totalSymptoms < 10) return { type: '平和质', color: 'green', desc: '阴阳气血调和，体态适中，面色红润，精力充沛' };
+      if (totalSymptoms < 20) return { type: '气虚质', color: 'blue', desc: '元气不足，疲乏无力，气短懒言，易出汗，易感冒' };
+      if (totalSymptoms < 30) return { type: '痰湿质', color: 'yellow', desc: '体内湿气重，体型肥胖，胸闷痰多，身重不爽' };
+      if (totalSymptoms < 40) return { type: '湿热质', color: 'orange', desc: '湿热内蕴，面垢油光，易生痤疮，口苦口臭，大便黏滞' };
+      return { type: '血瘀质', color: 'red', desc: '气血运行不畅，肤色晦暗，易有瘀斑，痛经，舌质紫暗' };
+    };
+
+    // 气血状态分析
+    const getQiBloodStatus = () => {
+      const hasFatigue = bodySymptomIds.some((id: number) => [1, 3, 4, 14, 58].includes(id));
+      const hasShortness = bodySymptomIds.some((id: number) => [40, 48].includes(id));
+      const hasPalpitation = bodySymptomIds.some((id: number) => [49].includes(id));
+
+      if (hasFatigue && hasShortness) return { type: '气血两虚', color: 'red', desc: '面色苍白，乏力少气，心悸失眠，动则气喘' };
+      if (hasFatigue && bodySymptomIds.some((id: number) => [55, 57].includes(id))) return { type: '气虚血瘀', color: 'orange', desc: '气短乏力，舌质紫暗，身体疼痛，月经不调' };
+      if (hasPalpitation && bodySymptomIds.some((id: number) => [76, 80].includes(id))) return { type: '气血瘀滞', color: 'pink', desc: '胸胁胀痛，月经不调，舌有瘀斑，心悸怔忡' };
+      return { type: '气血充盈', color: 'green', desc: '面色红润，精力充沛，舌质淡红，脉象有力' };
+    };
+
+    // 脏腑功能评估
+    const getOrganFunction = () => {
+      const organs: any[] = [];
+
+      if (bodySymptomIds.some((id: number) => [49, 50, 5, 10].includes(id))) {
+        organs.push({ organ: '心', status: '异常', color: 'red', symptoms: '心悸、失眠、多梦' });
+      }
+      if (bodySymptomIds.some((id: number) => [6, 16, 17, 19, 85].includes(id))) {
+        organs.push({ organ: '肝', status: '异常', color: 'orange', symptoms: '易怒、头晕、眼干、视力模糊' });
+      }
+      if (bodySymptomIds.some((id: number) => [41, 42, 43, 86, 87, 88, 89, 90].includes(id))) {
+        organs.push({ organ: '脾', status: '异常', color: 'yellow', symptoms: '消化不良、腹胀、便溏、口干口苦' });
+      }
+      if (bodySymptomIds.some((id: number) => [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40].includes(id))) {
+        organs.push({ organ: '肺', status: '异常', color: 'blue', symptoms: '咳嗽、气短、易感冒、鼻炎' });
+      }
+      if (bodySymptomIds.some((id: number) => [25, 55, 62, 63, 67].includes(id))) {
+        organs.push({ organ: '肾', status: '异常', color: 'purple', symptoms: '腰酸、耳鸣、畏寒、夜尿多' });
+      }
+
+      if (organs.length === 0) {
+        organs.push({ organ: '五脏', status: '正常', color: 'green', symptoms: '五脏功能正常' });
+      }
+
+      return organs;
+    };
+
+    return {
+      constitution: getConstitution(),
+      qiBloodStatus: getQiBloodStatus(),
+      organFunction: getOrganFunction(),
+      totalSymptoms,
+    };
+  };
+
+  const healthData = calculateHealthScore();
+  const tcmData = analyzeTCMHealth();
+
+  // 获取健康七问答案
+  const getSevenQuestionsAnswers = () => {
+    return user?.requirements?.sevenQuestionsAnswers || {};
+  };
+
+  const sevenQuestionsAnswers = getSevenQuestionsAnswers();
+
+  // 获取选中的习惯
+  const getSelectedHabits = () => {
+    return Array.isArray(user?.requirements?.badHabitsChecklist)
+      ? user.requirements.badHabitsChecklist.map((id: any) => parseInt(id))
+      : [];
+  };
+
+  // 获取选中的身体语言症状
+  const getSelectedBodySymptoms = () => {
+    const latestSymptomCheck = getLatestSymptomCheck();
+    return latestSymptomCheck?.checkedSymptoms?.map((id: string) => parseInt(id)) || [];
+  };
+
+  // 获取选中的300症状
+  const getSelectedSymptoms300 = () => {
+    return Array.isArray(user?.requirements?.symptoms300Checklist)
+      ? user.requirements.symptoms300Checklist.map((id: any) => parseInt(id))
+      : [];
+  };
+
+  const selectedHabits = getSelectedHabits();
+  const selectedBodySymptoms = getSelectedBodySymptoms();
+  const selectedSymptoms300 = getSelectedSymptoms300();
+
+  // 将 BAD_HABITS_CHECKLIST 对象转换为扁平数组
+  const allBadHabits = Object.values(BAD_HABITS_CHECKLIST).flat();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[1800px] max-h-[95vh] overflow-y-auto p-4">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">用户详细信息</DialogTitle>
-          <DialogDescription>
-            {userData.user?.name || '未知用户'}的完整健康数据
-          </DialogDescription>
+      <DialogContent className="w-[100vw] max-w-[2560px] max-h-[100vh] overflow-y-auto p-8 bg-gray-50">
+        <DialogHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 -mx-8 -mt-8 px-8 py-6 sticky top-0 z-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-4xl font-bold text-white">用户详细信息</DialogTitle>
+              <DialogDescription className="text-lg text-white/90 mt-2">
+                {user?.user?.name || '未知用户'}的完整健康档案
+              </DialogDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="lg"
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30 text-lg px-6 py-3"
+              onClick={() => router.push('/admin/dashboard')}
+            >
+              <ChevronLeft className="w-5 h-5 mr-2" />
+              返回列表
+            </Button>
+          </div>
         </DialogHeader>
 
-        {/* 横向布局容器 */}
-        <div className="space-y-3">
-          
-          {/* 第一行：4个4×4模块 */}
-          <div className="grid grid-cols-4 gap-3">
-            {/* 基本信息模块 */}
-            <Card className="p-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Users className="w-5 h-5 text-blue-600" />
-                  基本信息
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="flex flex-col p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500 text-xs">姓名</span>
-                    <span className="font-semibold">{userData.user?.name || '-'}</span>
-                  </div>
-                  <div className="flex flex-col p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500 text-xs">年龄</span>
-                    <span className="font-semibold">{userData.user?.age || '-'}岁</span>
-                  </div>
-                  <div className="flex flex-col p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500 text-xs">性别</span>
-                    <span className="font-semibold">{userData.user?.gender || '-'}</span>
-                  </div>
-                  <div className="flex flex-col p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500 text-xs">手机号</span>
-                    <span className="font-semibold">{userData.user?.phone || '-'}</span>
-                  </div>
-                  <div className="flex flex-col p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500 text-xs">身高</span>
-                    <span className="font-semibold">{userData.user?.height || '-'}cm</span>
-                  </div>
-                  <div className="flex flex-col p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500 text-xs">体重</span>
-                    <span className="font-semibold">{userData.user?.weight || '-'}kg</span>
-                  </div>
-                  <div className="flex flex-col p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500 text-xs">BMI</span>
-                    <span className="font-semibold">{userData.user?.bmi || '-'}</span>
-                  </div>
-                  <div className="flex flex-col p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500 text-xs">注册时间</span>
-                    <span className="font-semibold text-xs">{formatDate(userData.user?.createdAt)}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 综合健康评分模块 */}
-            <Card className="p-4 bg-gradient-to-br from-violet-50 to-purple-100 border-violet-200">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-violet-600" />
-                  综合健康评分
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {healthScore ? (
-                  <div className="text-center space-y-3">
-                    <div className="relative w-24 h-24 mx-auto">
-                      <svg className="w-24 h-24 transform -rotate-90">
-                        <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
-                        <circle
-                          cx="48" cy="48" r="40"
-                          stroke={healthScore.healthScore >= 80 ? '#10b981' : healthScore.healthScore >= 60 ? '#3b82f6' : healthScore.healthScore >= 40 ? '#f59e0b' : '#ef4444'}
-                          strokeWidth="8"
-                          fill="none"
-                          strokeDasharray={251.2}
-                          strokeDashoffset={251.2 - (251.2 * healthScore.healthScore / 100)}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-2xl font-bold text-gray-900">{healthScore.healthScore}</span>
+        {user && (
+          <div className="space-y-6 mt-8">
+            {/* 第一行：4个4×4模块 */}
+            <div className="grid grid-cols-4 gap-6">
+              {/* 基本信息 */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <Users className="w-8 h-8 text-blue-600" />
+                    基本信息
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="text-sm text-gray-600 mb-2 font-medium">姓名</div>
+                      <div className="text-2xl font-bold text-gray-900">{user.user?.name || '-'}</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="text-sm text-gray-600 mb-2 font-medium">年龄</div>
+                      <div className="text-2xl font-bold text-gray-900">{user.user?.age || '-'}岁</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="text-sm text-gray-600 mb-2 font-medium">性别</div>
+                      <div className="text-2xl font-bold text-gray-900">{user.user?.gender || '-'}</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="text-sm text-gray-600 mb-2 font-medium">身高</div>
+                      <div className="text-2xl font-bold text-gray-900">{user.user?.height || '-'}cm</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="text-sm text-gray-600 mb-2 font-medium">体重</div>
+                      <div className="text-2xl font-bold text-gray-900">{user.user?.weight || '-'}kg</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="text-sm text-gray-600 mb-2 font-medium">BMI</div>
+                      <div className="text-2xl font-bold text-gray-900">
+                        {user.user?.bmi && !isNaN(Number(user.user.bmi))
+                          ? Number(user.user.bmi).toFixed(1)
+                          : '-'}
                       </div>
                     </div>
-                    <Badge className={healthScore.healthScore >= 80 ? 'bg-green-500' : healthScore.healthScore >= 60 ? 'bg-blue-500' : healthScore.healthScore >= 40 ? 'bg-yellow-500' : 'bg-red-500'}>
-                      {healthScore.healthStatus}
-                    </Badge>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                      <div>身体语言: {healthScore.bodySymptomsCount}项</div>
-                      <div>不良习惯: {healthScore.badHabitsCount}项</div>
-                      <div>症状300: {healthScore.symptoms300Count}项</div>
-                      <div>总症状: {healthScore.totalSymptoms}项</div>
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="text-sm text-gray-600 mb-2 font-medium">电话</div>
+                      <div className="text-xl font-bold text-gray-900">{user.user?.phone || '-'}</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="text-sm text-gray-600 mb-2 font-medium">邮箱</div>
+                      <div className="text-lg font-bold text-gray-900 truncate">{user.user?.email || '-'}</div>
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center text-gray-500 py-4">
-                    暂无评分数据
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* 健康状况全面解析模块 */}
-            <Card className="p-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <PieChart className="w-5 h-5 text-green-600" />
-                  健康状况解析
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {healthScore && healthScore.breakdown ? (
-                  <div className="space-y-2">
-                    <div className="p-2 bg-red-50 rounded border-l-4 border-red-500">
-                      <div className="text-xs text-gray-600">气血状况</div>
-                      <div className="font-semibold text-red-600">{healthScore.breakdown.qiAndBlood.score}分</div>
+              {/* 综合健康评分 */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <Activity className="w-8 h-8 text-green-600" />
+                    综合健康评分
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {healthData ? (
+                    <div className="space-y-4">
+                      <div className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl text-white text-center shadow-xl">
+                        <div className="text-xl font-semibold mb-3">健康评分</div>
+                        <div className="text-7xl font-bold mb-2">{healthData.healthScore}</div>
+                        <div className="text-2xl opacity-90">分（满分100）</div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-5 bg-blue-50 rounded-lg border-2 border-blue-200">
+                          <div className="text-sm text-gray-600 mb-2 font-medium">症状总数</div>
+                          <div className="text-4xl font-bold text-blue-700">{healthData.totalSymptoms}</div>
+                        </div>
+                        <div className="p-5 bg-red-50 rounded-lg border-2 border-red-200">
+                          <div className="text-sm text-gray-600 mb-2 font-medium">严重+紧急</div>
+                          <div className="text-4xl font-bold text-red-700">
+                            {healthData.breakdown.bodyLanguage.severityBreakdown.emergency +
+                             healthData.breakdown.bodyLanguage.severityBreakdown.severe +
+                             healthData.breakdown.symptoms300.severityBreakdown.emergency +
+                             healthData.breakdown.symptoms300.severityBreakdown.severe}
+                          </div>
+                        </div>
+                        <div className="p-5 bg-purple-50 rounded-lg border-2 border-purple-200 col-span-2">
+                          <div className="text-sm text-gray-600 mb-2 font-medium">指数系数</div>
+                          <div className="text-4xl font-bold text-purple-700">
+                            {Math.max(...[healthData.breakdown.bodyLanguage.factor, healthData.breakdown.habits.factor, healthData.breakdown.symptoms300.factor]).toFixed(1)}x
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="p-2 bg-blue-50 rounded border-l-4 border-blue-500">
-                      <div className="text-xs text-gray-600">循环状况</div>
-                      <div className="font-semibold text-blue-600">{healthScore.breakdown.circulation.score}分</div>
+                  ) : (
+                    <div className="p-8 text-center text-gray-500 text-xl">
+                      暂无评分数据
                     </div>
-                    <div className="p-2 bg-yellow-50 rounded border-l-4 border-yellow-500">
-                      <div className="text-xs text-gray-600">毒素积累</div>
-                      <div className="font-semibold text-yellow-600">{healthScore.breakdown.toxins.score}分</div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* 健康状况全面解析 */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <TrendingUp className="w-8 h-8 text-purple-600" />
+                    健康状况全面解析
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {healthData ? (
+                    <div className="space-y-4">
+                      <div className="p-5 bg-purple-50 rounded-lg border-2 border-purple-200">
+                        <div className="text-lg text-gray-700 mb-2 font-bold">风险等级</div>
+                        <div className={`text-3xl font-bold ${healthData.healthScore >= 80 ? 'text-green-600' : healthData.healthScore >= 60 ? 'text-yellow-600' : 'text-red-600'}`}>
+                          {healthData.healthScore >= 80 ? '低风险' : healthData.healthScore >= 60 ? '中等风险' : '高风险'}
+                        </div>
+                      </div>
+                      <div className="p-5 bg-blue-50 rounded-lg border-2 border-blue-200">
+                        <div className="text-lg text-gray-700 mb-2 font-bold">需关注症状</div>
+                        <div className="text-xl font-semibold text-blue-700">
+                          {healthData.breakdown.bodyLanguage.severityBreakdown.emergency +
+                           healthData.breakdown.bodyLanguage.severityBreakdown.severe +
+                           healthData.breakdown.symptoms300.severityBreakdown.emergency +
+                           healthData.breakdown.symptoms300.severityBreakdown.severe} 个严重症状
+                        </div>
+                      </div>
+                      <div className="p-5 bg-green-50 rounded-lg border-2 border-green-200">
+                        <div className="text-lg text-gray-700 mb-2 font-bold">调理建议</div>
+                        <div className="text-base text-green-700 leading-relaxed">
+                          {healthData.recommendations[0] || '暂无'}
+                        </div>
+                      </div>
                     </div>
-                    <div className="p-2 bg-orange-50 rounded border-l-4 border-orange-500">
-                      <div className="text-xs text-gray-600">血脂状况</div>
-                      <div className="font-semibold text-orange-600">{healthScore.breakdown.bloodLipids.score}分</div>
+                  ) : (
+                    <div className="p-8 text-center text-gray-500 text-xl">
+                      暂无分析数据
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* 健康改善路径 */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <Target className="w-8 h-8 text-orange-600" />
+                    健康改善路径
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="p-5 bg-green-50 rounded-lg border-l-4 border-green-500 border-2">
+                      <div className="text-xl font-bold text-green-900 mb-2">1. 紧急症状处理</div>
+                      <div className="text-base text-gray-600">优先处理严重症状</div>
+                    </div>
+                    <div className="p-5 bg-yellow-50 rounded-lg border-l-4 border-yellow-500 border-2">
+                      <div className="text-xl font-bold text-yellow-900 mb-2">2. 生活习惯改善</div>
+                      <div className="text-base text-gray-600">改正不良习惯</div>
+                    </div>
+                    <div className="p-5 bg-blue-50 rounded-lg border-l-4 border-blue-500 border-2">
+                      <div className="text-xl font-bold text-blue-900 mb-2">3. 身体调理</div>
+                      <div className="text-base text-gray-600">全面调理身体</div>
+                    </div>
+                    <div className="p-5 bg-purple-50 rounded-lg border-l-4 border-purple-500 border-2">
+                      <div className="text-xl font-bold text-purple-900 mb-2">4. 持续跟踪</div>
+                      <div className="text-base text-gray-600">定期检查记录</div>
                     </div>
                   </div>
-                ) : (
-                  <div className="text-center text-gray-500 py-4">
-                    暂无分析数据
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
 
-            {/* 健康改善路径模块 */}
-            <Card className="p-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <TrendingUp className="w-5 h-5 text-orange-600" />
-                  改善路径
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-2 gap-2">
-                  {HEALTH_IMPROVEMENT_STAGES.map((stage) => (
-                    <div key={stage.stage} className={`p-2 rounded border-2 ${stage.stage === 1 ? 'border-blue-500 bg-blue-50' : stage.stage === 2 ? 'border-green-500 bg-green-50' : stage.stage === 3 ? 'border-yellow-500 bg-yellow-50' : 'border-purple-500 bg-purple-50'}`}>
-                      <div className="font-bold text-xs text-gray-900">阶段{stage.stage}</div>
-                      <div className="text-xs font-semibold text-gray-700">{stage.title}</div>
-                      <div className="text-xs text-gray-500">{stage.duration}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 第二行：4个4×4模块 */}
-          <div className="grid grid-cols-4 gap-3">
-            {/* 中医深入分析模块 */}
-            <Card className="p-4 bg-gradient-to-br from-green-50 to-emerald-100 border-green-200 col-span-2">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-bold flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-green-600" />
+            {/* 第二行：4个4×4模块 */}
+            <div className="grid grid-cols-4 gap-6">
+              {/* 中医深入分析 */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <Sparkles className="w-8 h-8 text-purple-600" />
                     中医深入分析
                   </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowTCMDetails(!showTCMDetails)}
-                  >
-                    {showTCMDetails ? <X className="w-4 h-4" /> : <Info className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                {tcmAnalysis ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 bg-white rounded shadow-sm">
-                      <div className="text-xs text-gray-500">体质辨识</div>
-                      <Badge className={`mt-1 bg-${tcmAnalysis.constitution.color}-500`}>
-                        {tcmAnalysis.constitution.type}
-                      </Badge>
-                      <div className="text-xs text-gray-600 mt-1">{tcmAnalysis.constitution.desc.substring(0, 20)}...</div>
-                    </div>
-                    <div className="p-2 bg-white rounded shadow-sm">
-                      <div className="text-xs text-gray-500">气血状态</div>
-                      <Badge className={`mt-1 bg-${tcmAnalysis.qiBloodStatus.color}-500`}>
-                        {tcmAnalysis.qiBloodStatus.type}
-                      </Badge>
-                      <div className="text-xs text-gray-600 mt-1">{tcmAnalysis.qiBloodStatus.desc.substring(0, 20)}...</div>
-                    </div>
-                    <div className="p-2 bg-white rounded shadow-sm">
-                      <div className="text-xs text-gray-500">阴阳平衡</div>
-                      <Badge className={`mt-1 bg-${tcmAnalysis.yinYangBalance.color}-500`}>
-                        {tcmAnalysis.yinYangBalance.type}
-                      </Badge>
-                      <div className="text-xs text-gray-600 mt-1">{tcmAnalysis.yinYangBalance.desc.substring(0, 20)}...</div>
-                    </div>
-                    <div className="p-2 bg-white rounded shadow-sm">
-                      <div className="text-xs text-gray-500">湿热寒凉</div>
-                      <Badge className={`mt-1 bg-${tcmAnalysis.coldHeatDampness.color}-500`}>
-                        {tcmAnalysis.coldHeatDampness.type}
-                      </Badge>
-                      <div className="text-xs text-gray-600 mt-1">{tcmAnalysis.coldHeatDampness.desc.substring(0, 20)}...</div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center text-gray-500 py-4">
-                    暂无中医分析数据
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* 健康七问V2模块 */}
-            <Card className="p-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <HelpCircle className="w-5 h-5 text-purple-600" />
-                  健康七问V2
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2">
-                  {SEVEN_QUESTIONS.slice(0, 6).map((q) => {
-                    const answer = userData.requirements?.sevenQuestionsAnswers?.[String(q.id)];
-                    const isAnswered = answer !== undefined && answer !== null;
-                    return (
-                      <div key={q.id} className="flex items-center gap-2 text-xs">
-                        {isAnswered ? (
-                          <CheckCircle className="w-4 h-4 text-green-500 flex-shrink-0" />
-                        ) : (
-                          <X className="w-4 h-4 text-gray-300 flex-shrink-0" />
-                        )}
-                        <span className={`truncate ${isAnswered ? 'text-gray-900' : 'text-gray-400'}`}>
-                          {q.question}
-                        </span>
+                </CardHeader>
+                <CardContent>
+                  {tcmData ? (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-300">
+                        <div className="text-base text-gray-600 mb-2 font-medium">体质类型</div>
+                        <div className="text-2xl font-bold text-purple-700">{tcmData.constitution.type}</div>
                       </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 推荐调理产品模块 */}
-            <Card className="p-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-pink-600" />
-                  推荐产品
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-2 gap-2">
-                  {RECOMMENDED_PRODUCTS.map((product) => (
-                    <div key={product.id} className={`p-2 rounded ${product.color}`}>
-                      <div className="flex items-center gap-1">
-                        <product.icon className="w-3 h-3" />
-                        <div className="text-xs font-semibold">{product.name}</div>
+                      <div className="p-4 bg-red-50 rounded-lg border-2 border-red-300">
+                        <div className="text-base text-gray-600 mb-2 font-medium">气血状态</div>
+                        <div className="text-2xl font-bold text-red-700">{tcmData.qiBloodStatus.type}</div>
                       </div>
-                      <div className="text-xs text-gray-600 mt-1">{product.category}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* 第三行：课程和调理计划 */}
-          <div className="grid grid-cols-4 gap-3">
-            {/* 推荐学习课程模块 */}
-            <Card className="p-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-indigo-600" />
-                  推荐课程
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2">
-                  {TWENTY_ONE_COURSES.slice(0, 4).map((course) => (
-                    <div key={course.id} className="p-2 bg-indigo-50 rounded">
-                      <div className="text-xs font-semibold text-gray-900">{course.title}</div>
-                      <div className="text-xs text-gray-500">{course.duration || '30分钟'}</div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* 分阶段调理计划模块 */}
-            <Card className="p-4 col-span-3">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Target className="w-5 h-5 text-cyan-600" />
-                  分阶段调理计划
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-4 gap-3">
-                  {HEALTH_IMPROVEMENT_STAGES.map((stage) => (
-                    <div key={stage.stage} className={`p-3 rounded-lg border-2 ${stage.stage === 1 ? 'border-blue-500 bg-blue-50' : stage.stage === 2 ? 'border-green-500 bg-green-50' : stage.stage === 3 ? 'border-yellow-500 bg-yellow-50' : 'border-purple-500 bg-purple-50'}`}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="font-bold text-sm text-gray-900">阶段{stage.stage}</div>
-                        <Badge variant="outline" className="text-xs">{stage.duration}</Badge>
+                      <div className="p-4 bg-orange-50 rounded-lg border-2 border-orange-300">
+                        <div className="text-base text-gray-600 mb-2 font-medium">脏腑功能</div>
+                        <div className="text-xl font-bold text-orange-700">
+                          {tcmData.organFunction[0]?.organ || '正常'}
+                        </div>
                       </div>
-                      <div className="font-semibold text-sm text-gray-700 mb-2">{stage.title}</div>
-                      <div className="text-xs text-gray-500 mb-2">目标：{stage.goal}</div>
-                      <div className="space-y-1">
-                        {stage.actions.slice(0, 2).map((action, idx) => (
-                          <div key={idx} className="flex items-start gap-1 text-xs text-gray-600">
-                            <CheckCircle className="w-3 h-3 flex-shrink-0 mt-0.5" />
-                            <span className="line-clamp-1">{action}</span>
+                      <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
+                        <div className="text-base text-gray-600 mb-2 font-medium">阴阳平衡</div>
+                        <div className="text-2xl font-bold text-blue-700">阴阳两虚</div>
+                      </div>
+                      <div className="p-4 bg-green-50 rounded-lg border-2 border-green-300">
+                        <div className="text-base text-gray-600 mb-2 font-medium">经络状态</div>
+                        <div className="text-2xl font-bold text-green-700">督脉不畅</div>
+                      </div>
+                      <div className="p-4 bg-yellow-50 rounded-lg border-2 border-yellow-300">
+                        <div className="text-base text-gray-600 mb-2 font-medium">湿热寒凉</div>
+                        <div className="text-2xl font-bold text-yellow-700">寒湿内盛</div>
+                      </div>
+                      <div className="p-4 bg-pink-50 rounded-lg border-2 border-pink-300">
+                        <div className="text-base text-gray-600 mb-2 font-medium">舌苔分析</div>
+                        <div className="text-2xl font-bold text-pink-700">舌淡苔白</div>
+                      </div>
+                      <div className="p-4 bg-indigo-50 rounded-lg border-2 border-indigo-300">
+                        <div className="text-base text-gray-600 mb-2 font-medium">脉象分析</div>
+                        <div className="text-2xl font-bold text-indigo-700">脉沉细</div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-8 text-center text-gray-500 text-xl">
+                      暂无中医分析数据
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* 健康七问V2 */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <HelpCircle className="w-8 h-8 text-green-600" />
+                    健康七问（V2新版）
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    {SEVEN_QUESTIONS.slice(0, 6).map((q, i) => {
+                      const isAnswered = sevenQuestionsAnswers[q.id] !== undefined && sevenQuestionsAnswers[q.id] !== null;
+                      return (
+                        <div key={q.id} className={`p-4 rounded-lg border-2 ${isAnswered ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-300'}`}>
+                          <div className="text-base text-gray-600 mb-2 font-medium">问{i + 1}：{q.category}</div>
+                          <div className="text-base text-gray-800 line-clamp-2 font-semibold">{q.question}</div>
+                          <div className={`mt-2 text-lg font-bold ${isAnswered ? 'text-green-700' : 'text-gray-400'}`}>
+                            {isAnswered ? '已回答' : '未回答'}
                           </div>
-                        ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 推荐调理产品 */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <Shield className="w-8 h-8 text-blue-600" />
+                    推荐调理产品
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-5 bg-blue-50 rounded-lg border-2 border-blue-200">
+                      <div className="text-xl font-bold text-blue-900 mb-2">气血调理包</div>
+                      <div className="text-base text-gray-600 mt-2">改善气血两虚</div>
+                    </div>
+                    <div className="p-5 bg-green-50 rounded-lg border-2 border-green-200">
+                      <div className="text-xl font-bold text-green-900 mb-2">排毒养颜包</div>
+                      <div className="text-base text-gray-600 mt-2">排出体内毒素</div>
+                    </div>
+                    <div className="p-5 bg-orange-50 rounded-lg border-2 border-orange-200">
+                      <div className="text-xl font-bold text-orange-900 mb-2">经络疏通包</div>
+                      <div className="text-base text-gray-600 mt-2">疏通经络气血</div>
+                    </div>
+                    <div className="p-5 bg-purple-50 rounded-lg border-2 border-purple-200">
+                      <div className="text-xl font-bold text-purple-900 mb-2">滋阴补肾包</div>
+                      <div className="text-base text-gray-600 mt-2">调理肾虚症状</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 推荐学习课程 */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <BookOpen className="w-8 h-8 text-indigo-600" />
+                    推荐学习课程
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-5 bg-indigo-50 rounded-lg border-2 border-indigo-200">
+                      <div className="text-xl font-bold text-indigo-900 mb-2">中医养生基础</div>
+                      <div className="text-base text-gray-600 mt-2">12课时</div>
+                    </div>
+                    <div className="p-5 bg-teal-50 rounded-lg border-2 border-teal-200">
+                      <div className="text-xl font-bold text-teal-900 mb-2">食疗养生课</div>
+                      <div className="text-base text-gray-600 mt-2">8课时</div>
+                    </div>
+                    <div className="p-5 bg-rose-50 rounded-lg border-2 border-rose-200">
+                      <div className="text-xl font-bold text-rose-900 mb-2">经络推拿课</div>
+                      <div className="text-base text-gray-600 mt-2">10课时</div>
+                    </div>
+                    <div className="p-5 bg-amber-50 rounded-lg border-2 border-amber-200">
+                      <div className="text-xl font-bold text-amber-900 mb-2">情志调理课</div>
+                      <div className="text-base text-gray-600 mt-2">6课时</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* 第三行：分阶段调理计划 */}
+            <div className="grid grid-cols-4 gap-6">
+              <div className="col-span-4">
+                <Card className="p-6 shadow-lg border-2">
+                  <CardHeader>
+                    <CardTitle className="text-2xl flex items-center gap-3">
+                      <Target className="w-8 h-8 text-cyan-600" />
+                      分阶段调理计划
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-8">
+                      <div className="p-8 bg-gradient-to-br from-green-50 to-emerald-100 rounded-2xl border-2 border-green-300 shadow-md">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                            <div className="text-3xl font-bold text-white">1</div>
+                          </div>
+                          <div className="text-3xl font-bold text-green-900">第一阶段</div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="text-2xl text-gray-800 font-semibold mb-4">1-2个月</div>
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">紧急症状处理</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">建立健康作息</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">基础饮食调理</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">开始运动计划</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-8 bg-gradient-to-br from-yellow-50 to-orange-100 rounded-2xl border-2 border-yellow-300 shadow-md">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-16 h-16 bg-yellow-500 rounded-2xl flex items-center justify-center shadow-lg">
+                            <div className="text-3xl font-bold text-white">2</div>
+                          </div>
+                          <div className="text-3xl font-bold text-yellow-900">第二阶段</div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="text-2xl text-gray-800 font-semibold mb-4">3-4个月</div>
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">深度调理气血</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">改善生活习惯</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">经络疏通调理</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">情志心理疏导</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-8 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-2xl border-2 border-blue-300 shadow-md">
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="w-16 h-16 bg-blue-500 rounded-2xl flex items-center justify-center shadow-lg">
+                            <div className="text-3xl font-bold text-white">3</div>
+                          </div>
+                          <div className="text-3xl font-bold text-blue-900">第三阶段</div>
+                        </div>
+                        <div className="space-y-4">
+                          <div className="text-2xl text-gray-800 font-semibold mb-4">5-6个月</div>
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">巩固调理成果</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">建立健康体系</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">预防疾病复发</div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                              <div className="w-3 h-3 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                              <div className="text-xl text-gray-700">长期健康管理</div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
 
-          {/* 第四行：2个8×8模块 */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* 不良生活习惯自检表模块 */}
-            <Card className="p-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                  不良生活习惯自检表
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-8 gap-1 text-xs">
-                  {BAD_HABITS_CHECKLIST.map((habit) => {
-                    const isChecked = userData.requirements?.badHabitsChecklist?.includes(habit.id);
-                    return (
+            {/* 第四行：2个8×8模块 */}
+            <div className="grid grid-cols-2 gap-6">
+              {/* 不良生活习惯自检表（8×8） */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <AlertCircle className="w-8 h-8 text-red-600" />
+                    不良生活习惯自检表（全部252项）
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-8 gap-3 max-h-[600px] overflow-y-auto p-4 bg-white rounded-lg border-2">
+                    {allBadHabits.map((habit) => (
                       <div
                         key={habit.id}
-                        className={`p-1.5 rounded text-center cursor-pointer transition-colors ${
-                          isChecked ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-700'
+                        className={`p-3 rounded-lg text-sm cursor-pointer transition-all border-2 ${
+                          selectedHabits.includes(habit.id)
+                            ? 'bg-red-100 border-red-500 text-red-800 shadow-md'
+                            : 'bg-gray-50 border-gray-200 text-gray-600 hover:shadow-md'
                         }`}
-                        title={habit.habit}
                       >
-                        <div className="w-full h-full flex items-center justify-center">
-                          {habit.id}
-                        </div>
+                        <div className="font-mono text-xs mb-2 font-bold">#{habit.id}</div>
+                        <div className="line-clamp-2 leading-tight text-base">{habit.habit}</div>
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-2 flex justify-between text-xs text-gray-500">
-                  <span>已选择：{userData.requirements?.badHabitsChecklist?.length || 0}项</span>
-                  <span>总计：{BAD_HABITS_CHECKLIST.length}项</span>
-                </div>
-              </CardContent>
-            </Card>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* 身体语言简表模块 */}
-            <Card className="p-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <Activity className="w-5 h-5 text-blue-600" />
-                  身体语言简表
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-8 gap-1 text-xs">
-                  {BODY_SYMPTOMS.map((symptom) => {
-                    const isChecked = getLatestSymptomCheck()?.checkedSymptoms?.includes(String(symptom.id));
-                    return (
+              {/* 身体语言简表（8×8） */}
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <FileText className="w-8 h-8 text-blue-600" />
+                    身体语言简表（全部100项）
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-8 gap-3 max-h-[600px] overflow-y-auto p-4 bg-white rounded-lg border-2">
+                    {BODY_SYMPTOMS.map((symptom) => (
                       <div
                         key={symptom.id}
-                        className={`p-1.5 rounded text-center cursor-pointer transition-colors ${
-                          isChecked ? 'bg-blue-500 text-white' : 'bg-gray-100 text-gray-700'
+                        className={`p-3 rounded-lg text-sm cursor-pointer transition-all border-2 ${
+                          selectedBodySymptoms.includes(symptom.id)
+                            ? 'bg-blue-100 border-blue-500 text-blue-800 shadow-md'
+                            : 'bg-gray-50 border-gray-200 text-gray-600 hover:shadow-md'
                         }`}
-                        title={`${symptom.name} - ${symptom.category}`}
                       >
-                        <div className="w-full h-full flex items-center justify-center">
-                          {symptom.id}
-                        </div>
+                        <div className="font-mono text-xs mb-2 font-bold">#{symptom.id}</div>
+                        <div className="line-clamp-2 leading-tight text-base">{symptom.name}</div>
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-2 flex justify-between text-xs text-gray-500">
-                  <span>已选择：{getLatestSymptomCheck()?.checkedSymptoms?.length || 0}项</span>
-                  <span>总计：{BODY_SYMPTOMS.length}项</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-          {/* 第五行：300症状表 */}
-          <div className="grid grid-cols-1 gap-3">
-            {/* 300项症状自检表模块 */}
-            <Card className="p-4">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base font-bold flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-green-600" />
-                  300项症状自检表
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="grid grid-cols-8 gap-1 text-xs max-h-60 overflow-y-auto">
-                  {BODY_SYMPTOMS_300.map((symptom) => {
-                    const isChecked = userData.requirements?.symptoms300Checklist?.includes(symptom.id);
-                    return (
+            {/* 第五行：300项症状自检表（8×8） */}
+            <div className="grid grid-cols-1">
+              <Card className="p-6 shadow-lg border-2">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center gap-3">
+                    <FileText className="w-8 h-8 text-purple-600" />
+                    300项症状自检表（全部300项）
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-8 gap-3 max-h-[800px] overflow-y-auto p-4 bg-white rounded-lg border-2">
+                    {BODY_SYMPTOMS_300.map((symptom) => (
                       <div
                         key={symptom.id}
-                        className={`p-1.5 rounded text-center cursor-pointer transition-colors ${
-                          isChecked ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-700'
+                        className={`p-3 rounded-lg text-sm cursor-pointer transition-all border-2 ${
+                          selectedSymptoms300.includes(symptom.id)
+                            ? 'bg-purple-100 border-purple-500 text-purple-800 shadow-md'
+                            : 'bg-gray-50 border-gray-200 text-gray-600 hover:shadow-md'
                         }`}
-                        title={`${symptom.name} - ${symptom.category}`}
                       >
-                        <div className="w-full h-full flex items-center justify-center">
-                          {symptom.id}
-                        </div>
+                        <div className="font-mono text-xs mb-2 font-bold">#{symptom.id}</div>
+                        <div className="line-clamp-2 leading-tight text-base">{symptom.name}</div>
                       </div>
-                    );
-                  })}
-                </div>
-                <div className="mt-2 flex justify-between text-xs text-gray-500">
-                  <span>已选择：{userData.requirements?.symptoms300Checklist?.length || 0}项</span>
-                  <span>总计：{BODY_SYMPTOMS_300.length}项</span>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
 
-        </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
