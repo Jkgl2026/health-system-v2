@@ -1383,8 +1383,8 @@ export default function AdminDashboardPage() {
                       const stringKey = q.id.toString();
                       const numericKey = q.id;
 
-                      // 尝试字符串key
-                      if (answers[stringKey]) {
+                      // 尝试字符串key - 使用 'in' 操作符检查键是否存在
+                      if (stringKey in answers) {
                         const value = answers[stringKey];
                         if (typeof value === 'string') {
                           answer = value;
@@ -1395,7 +1395,7 @@ export default function AdminDashboardPage() {
                         }
                       }
                       // 尝试数字key（备用）
-                      else if (answers[numericKey]) {
+                      else if (numericKey in answers) {
                         const value = answers[numericKey];
                         if (typeof value === 'string') {
                           answer = value;
