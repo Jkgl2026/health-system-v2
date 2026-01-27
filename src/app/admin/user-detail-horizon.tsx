@@ -178,75 +178,75 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[100vw] max-w-[2560px] max-h-[100vh] overflow-y-auto p-8 bg-gray-50">
-        <DialogHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 -mx-8 -mt-8 px-8 py-6 sticky top-0 z-50">
+      <DialogContent className="w-[100vw] max-w-[3560px] max-h-[1000vh] overflow-y-auto p-12 bg-gray-50">
+        <DialogHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 -mx-12 -mt-12 px-12 py-10 sticky top-0 z-50">
           <div className="flex items-center justify-between">
             <div>
-              <DialogTitle className="text-4xl font-bold text-white">用户详细信息</DialogTitle>
-              <DialogDescription className="text-lg text-white/90 mt-2">
+              <DialogTitle className="text-6xl font-bold text-white">用户详细信息</DialogTitle>
+              <DialogDescription className="text-2xl text-white/90 mt-3">
                 {user?.user?.name || '未知用户'}的完整健康档案
               </DialogDescription>
             </div>
             <Button
               variant="outline"
               size="lg"
-              className="bg-white/20 text-white border-white/30 hover:bg-white/30 text-lg px-6 py-3"
+              className="bg-white/20 text-white border-white/30 hover:bg-white/30 text-2xl px-10 py-5"
               onClick={() => router.push('/admin/dashboard')}
             >
-              <ChevronLeft className="w-5 h-5 mr-2" />
+              <ChevronLeft className="w-7 h-7 mr-3" />
               返回列表
             </Button>
           </div>
         </DialogHeader>
 
         {user && (
-          <div className="space-y-6 mt-8">
+          <div className="space-y-10 mt-12">
             {/* 第一行：4个4×4模块 */}
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-4 gap-10">
               {/* 基本信息 */}
-              <Card className="p-6 shadow-lg border-2">
+              <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <Users className="w-8 h-8 text-blue-600" />
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <Users className="w-12 h-12 text-blue-600" />
                     基本信息
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-sm text-gray-600 mb-2 font-medium">姓名</div>
-                      <div className="text-2xl font-bold text-gray-900">{user.user?.name || '-'}</div>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div className="p-6 bg-blue-50 rounded-lg border-3 border-blue-200">
+                      <div className="text-sm text-gray-600 mb-3 font-medium">姓名</div>
+                      <div className="text-4xl font-bold text-gray-900">{user.user?.name || '-'}</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-sm text-gray-600 mb-2 font-medium">年龄</div>
-                      <div className="text-2xl font-bold text-gray-900">{user.user?.age || '-'}岁</div>
+                    <div className="p-6 bg-blue-50 rounded-lg border-3 border-blue-200">
+                      <div className="text-lg text-gray-600 mb-3 font-medium">年龄</div>
+                      <div className="text-4xl font-bold text-gray-900">{user.user?.age || '-'}岁</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-sm text-gray-600 mb-2 font-medium">性别</div>
-                      <div className="text-2xl font-bold text-gray-900">{user.user?.gender || '-'}</div>
+                    <div className="p-6 bg-blue-50 rounded-lg border-3 border-blue-200">
+                      <div className="text-lg text-gray-600 mb-3 font-medium">性别</div>
+                      <div className="text-4xl font-bold text-gray-900">{user.user?.gender || '-'}</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-sm text-gray-600 mb-2 font-medium">身高</div>
-                      <div className="text-2xl font-bold text-gray-900">{user.user?.height || '-'}cm</div>
+                    <div className="p-6 bg-blue-50 rounded-lg border-3 border-blue-200">
+                      <div className="text-lg text-gray-600 mb-3 font-medium">身高</div>
+                      <div className="text-4xl font-bold text-gray-900">{user.user?.height || '-'}cm</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-sm text-gray-600 mb-2 font-medium">体重</div>
-                      <div className="text-2xl font-bold text-gray-900">{user.user?.weight || '-'}kg</div>
+                    <div className="p-6 bg-blue-50 rounded-lg border-3 border-blue-200">
+                      <div className="text-lg text-gray-600 mb-3 font-medium">体重</div>
+                      <div className="text-4xl font-bold text-gray-900">{user.user?.weight || '-'}kg</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-sm text-gray-600 mb-2 font-medium">BMI</div>
-                      <div className="text-2xl font-bold text-gray-900">
+                    <div className="p-6 bg-blue-50 rounded-lg border-3 border-blue-200">
+                      <div className="text-lg text-gray-600 mb-3 font-medium">BMI</div>
+                      <div className="text-4xl font-bold text-gray-900">
                         {user.user?.bmi && !isNaN(Number(user.user.bmi))
                           ? Number(user.user.bmi).toFixed(1)
                           : '-'}
                       </div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-sm text-gray-600 mb-2 font-medium">电话</div>
-                      <div className="text-xl font-bold text-gray-900">{user.user?.phone || '-'}</div>
+                    <div className="p-6 bg-blue-50 rounded-lg border-3 border-blue-200">
+                      <div className="text-lg text-gray-600 mb-3 font-medium">电话</div>
+                      <div className="text-3xl font-bold text-gray-900">{user.user?.phone || '-'}</div>
                     </div>
-                    <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
-                      <div className="text-sm text-gray-600 mb-2 font-medium">邮箱</div>
+                    <div className="p-6 bg-blue-50 rounded-lg border-3 border-blue-200">
+                      <div className="text-lg text-gray-600 mb-3 font-medium">邮箱</div>
                       <div className="text-lg font-bold text-gray-900 truncate">{user.user?.email || '-'}</div>
                     </div>
                   </div>
@@ -254,10 +254,10 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </Card>
 
               {/* 综合健康评分 */}
-              <Card className="p-6 shadow-lg border-2">
+              <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <Activity className="w-8 h-8 text-green-600" />
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <Activity className="w-12 h-12 text-green-600" />
                     综合健康评分
                   </CardTitle>
                 </CardHeader>
@@ -266,16 +266,16 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     <div className="space-y-4">
                       <div className="p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl text-white text-center shadow-xl">
                         <div className="text-xl font-semibold mb-3">健康评分</div>
-                        <div className="text-7xl font-bold mb-2">{healthData.healthScore}</div>
+                        <div className="text-9xl font-bold mb-2">{healthData.healthScore}</div>
                         <div className="text-2xl opacity-90">分（满分100）</div>
                       </div>
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 gap-6">
                         <div className="p-5 bg-blue-50 rounded-lg border-2 border-blue-200">
-                          <div className="text-sm text-gray-600 mb-2 font-medium">症状总数</div>
+                          <div className="text-lg text-gray-600 mb-3 font-medium">症状总数</div>
                           <div className="text-4xl font-bold text-blue-700">{healthData.totalSymptoms}</div>
                         </div>
                         <div className="p-5 bg-red-50 rounded-lg border-2 border-red-200">
-                          <div className="text-sm text-gray-600 mb-2 font-medium">严重+紧急</div>
+                          <div className="text-lg text-gray-600 mb-3 font-medium">严重+紧急</div>
                           <div className="text-4xl font-bold text-red-700">
                             {healthData.breakdown.bodyLanguage.severityBreakdown.emergency +
                              healthData.breakdown.bodyLanguage.severityBreakdown.severe +
@@ -284,7 +284,7 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                           </div>
                         </div>
                         <div className="p-5 bg-purple-50 rounded-lg border-2 border-purple-200 col-span-2">
-                          <div className="text-sm text-gray-600 mb-2 font-medium">指数系数</div>
+                          <div className="text-lg text-gray-600 mb-3 font-medium">指数系数</div>
                           <div className="text-4xl font-bold text-purple-700">
                             {Math.max(...[healthData.breakdown.bodyLanguage.factor, healthData.breakdown.habits.factor, healthData.breakdown.symptoms300.factor]).toFixed(1)}x
                           </div>
@@ -300,10 +300,10 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </Card>
 
               {/* 健康状况全面解析 */}
-              <Card className="p-6 shadow-lg border-2">
+              <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <TrendingUp className="w-8 h-8 text-purple-600" />
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <TrendingUp className="w-12 h-12 text-purple-600" />
                     健康状况全面解析
                   </CardTitle>
                 </CardHeader>
@@ -341,10 +341,10 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </Card>
 
               {/* 健康改善路径 */}
-              <Card className="p-6 shadow-lg border-2">
+              <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <Target className="w-8 h-8 text-orange-600" />
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <Target className="w-12 h-12 text-orange-600" />
                     健康改善路径
                   </CardTitle>
                 </CardHeader>
@@ -372,18 +372,18 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
             </div>
 
             {/* 第二行：4个4×4模块 */}
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-4 gap-10">
               {/* 中医深入分析 */}
-              <Card className="p-6 shadow-lg border-2">
+              <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <Sparkles className="w-8 h-8 text-purple-600" />
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <Sparkles className="w-12 h-12 text-purple-600" />
                     中医深入分析
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {tcmData ? (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-6">
                       <div className="p-4 bg-purple-50 rounded-lg border-2 border-purple-300">
                         <div className="text-base text-gray-600 mb-2 font-medium">体质类型</div>
                         <div className="text-2xl font-bold text-purple-700">{tcmData.constitution.type}</div>
@@ -398,7 +398,7 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                           {tcmData.organFunction[0]?.organ || '正常'}
                         </div>
                       </div>
-                      <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-300">
+                      <div className="p-6 bg-blue-50 rounded-lg border-3 border-blue-300">
                         <div className="text-base text-gray-600 mb-2 font-medium">阴阳平衡</div>
                         <div className="text-2xl font-bold text-blue-700">阴阳两虚</div>
                       </div>
@@ -428,15 +428,15 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </Card>
 
               {/* 健康七问V2 */}
-              <Card className="p-6 shadow-lg border-2">
+              <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <HelpCircle className="w-8 h-8 text-green-600" />
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <HelpCircle className="w-12 h-12 text-green-600" />
                     健康七问（V2新版）
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-6">
                     {SEVEN_QUESTIONS.slice(0, 6).map((q, i) => {
                       const isAnswered = sevenQuestionsAnswers[q.id] !== undefined && sevenQuestionsAnswers[q.id] !== null;
                       return (
@@ -454,15 +454,15 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </Card>
 
               {/* 推荐调理产品 */}
-              <Card className="p-6 shadow-lg border-2">
+              <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <Shield className="w-8 h-8 text-blue-600" />
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <Shield className="w-12 h-12 text-blue-600" />
                     推荐调理产品
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="p-5 bg-blue-50 rounded-lg border-2 border-blue-200">
                       <div className="text-xl font-bold text-blue-900 mb-2">气血调理包</div>
                       <div className="text-base text-gray-600 mt-2">改善气血两虚</div>
@@ -484,15 +484,15 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               </Card>
 
               {/* 推荐学习课程 */}
-              <Card className="p-6 shadow-lg border-2">
+              <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <BookOpen className="w-8 h-8 text-indigo-600" />
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <BookOpen className="w-12 h-12 text-indigo-600" />
                     推荐学习课程
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-6">
                     <div className="p-5 bg-indigo-50 rounded-lg border-2 border-indigo-200">
                       <div className="text-xl font-bold text-indigo-900 mb-2">中医养生基础</div>
                       <div className="text-base text-gray-600 mt-2">12课时</div>
@@ -515,12 +515,12 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
             </div>
 
             {/* 第三行：分阶段调理计划 */}
-            <div className="grid grid-cols-4 gap-6">
+            <div className="grid grid-cols-4 gap-10">
               <div className="col-span-4">
-                <Card className="p-6 shadow-lg border-2">
+                <Card className="p-10 shadow-xl border-3">
                   <CardHeader>
-                    <CardTitle className="text-2xl flex items-center gap-3">
-                      <Target className="w-8 h-8 text-cyan-600" />
+                    <CardTitle className="text-3xl flex items-center gap-4">
+                      <Target className="w-12 h-12 text-cyan-600" />
                       分阶段调理计划
                     </CardTitle>
                   </CardHeader>
@@ -624,10 +624,10 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
             {/* 第四行：2个8×8模块 */}
             <div className="grid grid-cols-2 gap-6">
               {/* 不良生活习惯自检表（8×8） */}
-              <Card className="p-6 shadow-lg border-2">
+              <Card className="p-10 shadow-xl border-3">
                 <CardHeader>
-                  <CardTitle className="text-2xl flex items-center gap-3">
-                    <AlertCircle className="w-8 h-8 text-red-600" />
+                  <CardTitle className="text-3xl flex items-center gap-4">
+                    <AlertCircle className="w-12 h-12 text-red-600" />
                     不良生活习惯自检表（全部252项）
                   </CardTitle>
                 </CardHeader>
@@ -654,7 +654,7 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               <Card className="p-6 shadow-lg border-2">
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center gap-3">
-                    <FileText className="w-8 h-8 text-blue-600" />
+                    <FileText className="w-12 h-12 text-blue-600" />
                     身体语言简表（全部100项）
                   </CardTitle>
                 </CardHeader>
@@ -683,7 +683,7 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
               <Card className="p-6 shadow-lg border-2">
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center gap-3">
-                    <FileText className="w-8 h-8 text-purple-600" />
+                    <FileText className="w-12 h-12 text-purple-600" />
                     300项症状自检表（全部300项）
                   </CardTitle>
                 </CardHeader>
