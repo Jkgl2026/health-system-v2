@@ -288,6 +288,144 @@ export default function AdminDashboardPage() {
     return { label: '需改善', color: 'bg-red-500' };
   };
 
+  // 中医深入分析
+  const analyzeTCMHealth = () => {
+    if (!selectedUser) return null;
+
+    const latestSymptomCheck = getLatestSymptomCheck();
+    const badHabits = selectedUser.requirements?.badHabitsChecklist || [];
+    const symptoms300 = selectedUser.requirements?.symptoms300Checklist || [];
+    const sevenQuestionsAnswers = selectedUser.requirements?.sevenQuestionsAnswers || {};
+
+    // 转换为数字数组
+    const bodySymptomIds = latestSymptomCheck?.checkedSymptoms?.map((id: string) => parseInt(id)) || [];
+    const habitIds = Array.isArray(badHabits) ? badHabits.map((id: any) => parseInt(id)) : [];
+    const symptom300Ids = Array.isArray(symptoms300) ? symptoms300.map((id: any) => parseInt(id)) : [];
+
+    const totalSymptoms = bodySymptomIds.length + habitIds.length + symptom300Ids.length;
+
+    // 体质辨识
+    const getConstitution = () => {
+      if (totalSymptoms < 10) return { type: '平和质', color: 'green', desc: '阴阳气血调和，体态适中，面色红润，精力充沛' };
+      if (totalSymptoms < 20) return { type: '气虚质', color: 'blue', desc: '元气不足，疲乏无力，气短懒言，易出汗，易感冒' };
+      if (totalSymptoms < 30) return { type: '痰湿质', color: 'yellow', desc: '体内湿气重，体型肥胖，胸闷痰多，身重不爽' };
+      if (totalSymptoms < 40) return { type: '湿热质', color: 'orange', desc: '湿热内蕴，面垢油光，易生痤疮，口苦口臭，大便黏滞' };
+      return { type: '血瘀质', color: 'red', desc: '气血运行不畅，肤色晦暗，易有瘀斑，痛经，舌质紫暗' };
+    };
+
+    // 气血状态分析
+    const getQiBloodStatus = () => {
+      const hasFatigue = bodySymptomIds.some(id => [1, 3, 4, 14, 58].includes(id));
+      const hasShortness = bodySymptomIds.some(id => [40, 48].includes(id));
+      const hasPalpitation = bodySymptomIds.some(id => [49].includes(id));
+
+      if (hasFatigue && hasShortness) return { type: '气血两虚', color: 'red', desc: '面色苍白，乏力少气，心悸失眠，动则气喘' };
+      if (hasFatigue && bodySymptomIds.some(id => [55, 57].includes(id))) return { type: '气虚血瘀', color: 'orange', desc: '气短乏力，舌质紫暗，身体疼痛，月经不调' };
+      if (hasPalpitation && bodySymptomIds.some(id => [76, 80].includes(id))) return { type: '气血瘀滞', color: 'pink', desc: '胸胁胀痛，月经不调，舌有瘀斑，心悸怔忡' };
+      return { type: '气血充盈', color: 'green', desc: '面色红润，精力充沛，舌质淡红，脉象有力' };
+    };
+
+    // 脏腑功能评估
+    const getOrganFunction = () => {
+      const organs = [];
+      
+      // 心
+      if (bodySymptomIds.some(id => [49, 50, 5, 10].includes(id))) {
+        organs.push({ organ: '心', status: '异常', color: 'red', symptoms: '心悸、失眠、多梦' });
+      }
+      // 肝
+      if (bodySymptomIds.some(id => [6, 16, 17, 19, 85].includes(id))) {
+        organs.push({ organ: '肝', status: '异常', color: 'orange', symptoms: '易怒、头晕、眼干、视力模糊' });
+      }
+      // 脾
+      if (bodySymptomIds.some(id => [41, 42, 43, 86, 87, 88, 89, 90].includes(id))) {
+        organs.push({ organ: '脾', status: '异常', color: 'yellow', symptoms: '消化不良、腹胀、便溏、口干口苦' });
+      }
+      // 肺
+      if (bodySymptomIds.some(id => [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40].includes(id))) {
+        organs.push({ organ: '肺', status: '异常', color: 'blue', symptoms: '咳嗽、气短、易感冒、鼻炎' });
+      }
+      // 肾
+      if (bodySymptomIds.some(id => [25, 55, 62, 63, 67].includes(id))) {
+        organs.push({ organ: '肾', status: '异常', color: 'purple', symptoms: '腰酸、耳鸣、畏寒、夜尿多' });
+      }
+
+      if (organs.length === 0) {
+        organs.push({ organ: '五脏', status: '正常', color: 'green', symptoms: '五脏功能正常' });
+      }
+
+      return organs;
+    };
+
+    // 经络状态
+    const getMeridianStatus = () => {
+      const meridians = [];
+
+      // 督脉（脊柱问题）
+      if (bodySymptomIds.some(id => [62, 59].includes(id))) {
+        meridians.push({ meridian: '督脉', status: '不畅', color: 'red', desc: '脊柱问题、阳气不足、颈腰疼痛' });
+      }
+      // 任脉（妇科问题）
+      if (bodySymptomIds.some(id => [76, 77, 78, 79, 80, 81, 82, 83, 84].includes(id))) {
+        meridians.push({ meridian: '任脉', status: '不畅', color: 'pink', desc: '妇科问题、消化问题、月经失调' });
+      }
+      // 冲脉（气血失调）
+      if (bodySymptomIds.some(id => [55, 56, 57, 58].includes(id))) {
+        meridians.push({ meridian: '冲脉', status: '不畅', color: 'orange', desc: '月经问题、气血失调、四肢问题' });
+      }
+      // 带脉（腰腹问题）
+      if (bodySymptomIds.some(id => [63, 91, 96].includes(id))) {
+        meridians.push({ meridian: '带脉', status: '不畅', color: 'yellow', desc: '腰腹问题、湿气重、体型肥胖' });
+      }
+
+      if (meridians.length === 0) {
+        meridians.push({ meridian: '经络', status: '通畅', color: 'green', desc: '经络通畅，气血运行正常' });
+      }
+
+      return meridians;
+    };
+
+    // 阴阳平衡
+    const getYinYangBalance = () => {
+      const hasColdSymptoms = bodySymptomIds.some(id => [4, 5, 42, 55].includes(id)) ||
+                              habitIds.some(id => BAD_HABITS_CHECKLIST.some(h => h.id === id && h.habit.includes('生冷')));
+      const hasHeatSymptoms = bodySymptomIds.some(id => [16, 35, 36, 37, 95].includes(id)) ||
+                              habitIds.some(id => BAD_HABITS_CHECKLIST.some(h => h.id === id && h.habit.includes('辛辣')));
+
+      if (hasColdSymptoms && hasHeatSymptoms) return { type: '阴阳两虚', color: 'purple', desc: '时而怕冷时而怕热，自汗盗汗，脉象细数' };
+      if (hasHeatSymptoms) return { type: '阳盛阴衰', color: 'red', desc: '面红目赤，烦躁易怒，便秘尿黄，舌红苔黄' };
+      if (hasColdSymptoms) return { type: '阴盛阳衰', color: 'blue', desc: '面色苍白，畏寒肢冷，精神萎靡，舌淡苔白' };
+      return { type: '阴阳平衡', color: 'green', desc: '正常状态，阴阳协调' };
+    };
+
+    // 湿热寒凉
+    const getColdHeatDampness = () => {
+      const hasCold = bodySymptomIds.some(id => [4, 5, 42, 55].includes(id));
+      const hasHeat = bodySymptomIds.some(id => [16, 35, 36, 37, 41, 95].includes(id));
+      const hasDampness = bodySymptomIds.some(id => [11, 39, 68, 69, 70, 91].includes(id)) ||
+                           habitIds.some(id => BAD_HABITS_CHECKLIST.some(h => h.id === id && (h.habit.includes('甜') || h.habit.includes('油腻'))));
+      const hasDryness = bodySymptomIds.some(id => [16, 42, 53].includes(id));
+
+      if (hasCold && hasDampness) return { type: '寒湿', color: 'blue', desc: '寒湿内盛，关节冷痛，身体困重，舌淡苔腻' };
+      if (hasHeat && hasDampness) return { type: '湿热', color: 'orange', desc: '湿热内蕴，面垢油光，口苦口臭，大便黏滞' };
+      if (hasCold) return { type: '寒证', color: 'cyan', desc: '畏寒肢冷，面色苍白，舌淡苔白，脉沉紧' };
+      if (hasHeat) return { type: '热证', color: 'red', desc: '发热面赤，口渴喜冷饮，舌红苔黄，脉数有力' };
+      if (hasDampness) return { type: '湿证', color: 'yellow', desc: '头重如裹，胸闷腹胀，舌苔厚腻，身体困重' };
+      if (hasDryness) return { type: '燥证', color: 'amber', desc: '口干咽燥，皮肤干燥，便干尿少，舌红少津' };
+      return { type: '平和', color: 'green', desc: '寒热适中，无明显异常' };
+    };
+
+    return {
+      constitution: getConstitution(),
+      qiBloodStatus: getQiBloodStatus(),
+      organFunction: getOrganFunction(),
+      meridianStatus: getMeridianStatus(),
+      yinYangBalance: getYinYangBalance(),
+      coldHeatDampness: getColdHeatDampness(),
+      totalSymptoms,
+    };
+  };
+
   // 计算综合健康评分（使用新的科学评分算法）
   const calculateHealthScore = () => {
     if (!selectedUser) return null;
