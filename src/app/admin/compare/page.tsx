@@ -37,6 +37,48 @@ interface FullUserData extends UserData {
   requirements?: any;
 }
 
+// 辅助函数：从 sevenQuestionsAnswers 中提取答案
+const extractSevenQuestionAnswer = (answers: any, questionId: number, questionIndex: number): string | null => {
+  if (!answers) return null;
+
+  let answerData = null;
+  let answer = null;
+
+  // 方式1：使用数字ID作为key
+  if (answers[questionId]) {
+    answerData = answers[questionId];
+  }
+  // 方式2：使用字符串ID作为key
+  else if (answers[questionId.toString()]) {
+    answerData = answers[questionId.toString()];
+  }
+  // 方式3：如果数据是数组，按索引匹配
+  else if (Array.isArray(answers) && answers[questionIndex]) {
+    answerData = answers[questionIndex];
+  }
+  // 方式4：遍历查找匹配的问题
+  else if (typeof answers === 'object') {
+    for (const key in answers) {
+      const item = answers[key];
+      if (item && (item.questionId === questionId || item.questionId === questionId.toString())) {
+        answerData = item;
+        break;
+      }
+    }
+  }
+
+  // 提取答案
+  if (answerData) {
+    if (typeof answerData === 'object' && answerData !== null) {
+      answer = answerData.answer || answerData.content || answerData.text;
+    } else {
+      answer = answerData;
+    }
+  }
+
+  return answer || null;
+};
+
 // 差异分析辅助函数
 const analyzeBMIChange = (bmi1: string | null, bmi2: string | null) => {
   if (!bmi1 || !bmi2) return null;
@@ -167,9 +209,9 @@ const analyzeSevenQuestionsChange = (answers1: Record<string, any>, answers2: Re
   const changedAnswers: string[] = [];
   const improvedAnswers: string[] = [];
 
-  questions.forEach(q => {
-    const answer1 = typeof answers1?.[q.id.toString()] === 'object' ? answers1?.[q.id.toString()]?.answer : answers1?.[q.id.toString()];
-    const answer2 = typeof answers2?.[q.id.toString()] === 'object' ? answers2?.[q.id.toString()]?.answer : answers2?.[q.id.toString()];
+  questions.forEach((q, index) => {
+    const answer1 = extractSevenQuestionAnswer(answers1, q.id, index);
+    const answer2 = extractSevenQuestionAnswer(answers2, q.id, index);
 
     if (!answer1 && answer2) {
       newAnswers.push(q.question);
@@ -1414,7 +1456,6 @@ export default function AdminComparePage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {compareData.map((data, versionIndex) => {
                       const answers = data.requirements?.sevenQuestionsAnswers;
-                      const answerDict = answers as Record<string, any>;
 
                       return (
                         <div key={data.id} className="border-2 rounded-lg overflow-hidden shadow-sm">
@@ -1429,8 +1470,44 @@ export default function AdminComparePage() {
                           </div>
                           <div className="p-4 bg-white space-y-3">
                             {SEVEN_QUESTIONS.map((q, qIndex) => {
-                              const answerData = answerDict?.[q.id.toString()];
-                              const answer = typeof answerData === 'object' && answerData !== null ? answerData.answer : answerData;
+                              // 尝试多种方式获取答案
+                              let answerData = null;
+                              let answer = null;
+
+                              if (answers) {
+                                // 方式1：使用数字ID作为key
+                                if (answers[q.id]) {
+                                  answerData = answers[q.id];
+                                }
+                                // 方式2：使用字符串ID作为key
+                                else if (answers[q.id.toString()]) {
+                                  answerData = answers[q.id.toString()];
+                                }
+                                // 方式3：如果数据是数组，按索引匹配
+                                else if (Array.isArray(answers) && answers[qIndex]) {
+                                  answerData = answers[qIndex];
+                                }
+                                // 方式4：遍历查找匹配的问题
+                                else if (typeof answers === 'object') {
+                                  for (const key in answers) {
+                                    const item = answers[key];
+                                    if (item && (item.questionId === q.id || item.questionId === q.id.toString())) {
+                                      answerData = item;
+                                      break;
+                                    }
+                                  }
+                                }
+
+                                // 提取答案
+                                if (answerData) {
+                                  if (typeof answerData === 'object' && answerData !== null) {
+                                    answer = answerData.answer || answerData.content || answerData.text;
+                                  } else {
+                                    answer = answerData;
+                                  }
+                                }
+                              }
+
                               const isFilled = !!answer;
 
                               return (
@@ -1526,9 +1603,8 @@ export default function AdminComparePage() {
                                 {analysis.changedAnswers.map((question, idx) => {
                                   const qIndex = SEVEN_QUESTIONS.findIndex(q => q.question === question);
                                   const qId = qIndex >= 0 ? SEVEN_QUESTIONS[qIndex].id : null;
-                                  const qIdStr = qId !== null ? qId.toString() : '';
-                                  const answer1 = typeof answers1?.[qIdStr] === 'object' ? (answers1?.[qIdStr] as any)?.answer : answers1?.[qIdStr];
-                                  const answer2 = typeof answers2?.[qIdStr] === 'object' ? (answers2?.[qIdStr] as any)?.answer : answers2?.[qIdStr];
+                                  const answer1 = qId !== null ? extractSevenQuestionAnswer(answers1, qId, qIndex) : null;
+                                  const answer2 = qId !== null ? extractSevenQuestionAnswer(answers2, qId, qIndex) : null;
 
                                   return (
                                     <div key={idx} className="p-3 bg-blue-50 rounded border border-blue-200">

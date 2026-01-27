@@ -1304,10 +1304,60 @@ export default function AdminDashboardPage() {
                 <div className="space-y-4">
                   {SEVEN_QUESTIONS.map((q, index) => {
                     const answers = selectedUser.requirements?.sevenQuestionsAnswers;
-                    const answerDict = answers as Record<string, any>;
-                    const answerData = answerDict?.[q.id.toString()];
-                    const answer = typeof answerData === 'object' && answerData !== null ? answerData.answer : answerData;
-                    const date = typeof answerData === 'object' && answerData !== null ? answerData.date : null;
+
+                    // 调试日志：输出原始数据
+                    if (index === 0) {
+                      console.log('[七问] 原始 sevenQuestionsAnswers 数据:', answers);
+                      console.log('[七问] 问题 q.id:', q.id, '类型:', typeof q.id);
+                    }
+
+                    // 尝试多种方式获取答案
+                    let answerData = null;
+                    let answer = null;
+                    let date = null;
+
+                    if (answers) {
+                      // 方式1：使用数字ID作为key
+                      if (answers[q.id]) {
+                        answerData = answers[q.id];
+                      }
+                      // 方式2：使用字符串ID作为key
+                      else if (answers[q.id.toString()]) {
+                        answerData = answers[q.id.toString()];
+                      }
+                      // 方式3：如果数据是数组，按索引匹配
+                      else if (Array.isArray(answers) && answers[index]) {
+                        answerData = answers[index];
+                      }
+                      // 方式4：遍历查找匹配的问题
+                      else if (typeof answers === 'object') {
+                        for (const key in answers) {
+                          const item = answers[key];
+                          if (item && (item.questionId === q.id || item.questionId === q.id.toString())) {
+                            answerData = item;
+                            break;
+                          }
+                        }
+                      }
+
+                      // 提取答案和日期
+                      if (answerData) {
+                        if (typeof answerData === 'object' && answerData !== null) {
+                          answer = answerData.answer || answerData.content || answerData.text;
+                          date = answerData.date || answerData.timestamp || answerData.createdAt;
+                        } else {
+                          answer = answerData;
+                        }
+                      }
+
+                      // 调试日志：输出匹配结果
+                      if (index === 0) {
+                        console.log('[七问] 匹配到的 answerData:', answerData);
+                        console.log('[七问] 提取的 answer:', answer);
+                        console.log('[七问] 提取的 date:', date);
+                      }
+                    }
+
                     const hasAnswer = answer !== null && answer !== undefined && answer !== '';
 
                     return (
