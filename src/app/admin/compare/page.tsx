@@ -12,6 +12,7 @@ import { LogOut, ArrowLeft, Activity, Users, CheckCircle, TrendingUp, TrendingDo
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
+import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
 import DiagnosticsPanel from './diagnostics';
 
 interface UserData {
@@ -1236,6 +1237,168 @@ export default function AdminComparePage() {
                   </Card>
                 </>
               )}
+
+              {/* 健康评分对比 - 使用新的科学评分算法 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center text-xl font-bold">
+                    <Activity className="h-6 w-6 mr-2" />
+                    健康评分对比（新算法）
+                  </CardTitle>
+                  <CardDescription>基于症状严重程度分级和指数增长系数的科学评分</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {compareData.length >= 2 && (() => {
+                    // 计算各个版本的健康评分
+                    const healthScores = compareData.map(data => {
+                      const latestSymptomCheck = data.symptomChecks?.[0];
+                      const badHabits = data.requirements?.badHabitsChecklist || [];
+                      const symptoms300 = data.requirements?.symptoms300Checklist || [];
+
+                      const bodySymptomIds = latestSymptomCheck?.checkedSymptoms?.map((id: string) => parseInt(id)) || [];
+                      const habitIds = Array.isArray(badHabits) ? badHabits.map((id: any) => parseInt(id)) : [];
+                      const symptom300Ids = Array.isArray(symptoms300) ? symptoms300.map((id: any) => parseInt(id)) : [];
+
+                      return calculateComprehensiveHealthScore({
+                        bodySymptomIds,
+                        habitIds,
+                        symptom300Ids,
+                      });
+                    });
+
+                    return (
+                      <div className="space-y-6">
+                        {/* 健康评分概览 */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                          {healthScores.map((score, index) => (
+                            <div key={index} className={`bg-gradient-to-br p-6 rounded-lg text-white text-center shadow-lg ${
+                              index === 0 ? 'from-blue-500 to-blue-700' : 
+                              index === 1 ? 'from-green-500 to-green-700' : 
+                              'from-purple-500 to-purple-700'
+                            }`}>
+                              <div className="text-sm font-medium mb-2 opacity-90">版本 {index + 1}</div>
+                              <div className="text-6xl font-bold mb-1">{score.healthScore}</div>
+                              <div className="text-sm opacity-80">分（满分100）</div>
+                              <div className="mt-4 text-xs opacity-70">
+                                健康状态：{score.healthStatus}
+                              </div>
+                              <div className="mt-2 text-xs opacity-60">
+                                总扣分：{score.totalDeduction.toFixed(1)}分
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* 评分变化分析 */}
+                        {healthScores.length >= 2 && (
+                          <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                            <div className="flex items-center gap-2 mb-3">
+                              <TrendingUp className="h-5 w-5 text-blue-600" />
+                              <h4 className="font-bold text-lg text-blue-900">评分变化分析</h4>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="p-3 bg-white rounded-lg border">
+                                <div className="text-sm text-gray-500 mb-1">评分变化</div>
+                                <div className="font-bold text-2xl flex items-center gap-2">
+                                  {healthScores[1].healthScore - healthScores[0].healthScore > 0 ? (
+                                    <>
+                                      <TrendingUp className="h-5 w-5 text-green-600" />
+                                      <span className="text-green-600">
+                                        +{healthScores[1].healthScore - healthScores[0].healthScore}分
+                                      </span>
+                                    </>
+                                  ) : healthScores[1].healthScore - healthScores[0].healthScore < 0 ? (
+                                    <>
+                                      <TrendingDown className="h-5 w-5 text-red-600" />
+                                      <span className="text-red-600">
+                                        {healthScores[1].healthScore - healthScores[0].healthScore}分
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Minus className="h-5 w-5 text-blue-600" />
+                                      <span className="text-blue-600">无变化</span>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="p-3 bg-white rounded-lg border">
+                                <div className="text-sm text-gray-500 mb-1">状态变化</div>
+                                <div className="font-bold text-lg">
+                                  <span className="text-gray-600">{healthScores[0].healthStatus}</span>
+                                  <span className="mx-2">→</span>
+                                  <span className="text-blue-600">{healthScores[1].healthStatus}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* 三个症状表对比 */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          {healthScores.map((score, versionIndex) => (
+                            <div key={versionIndex} className="border-2 rounded-lg overflow-hidden shadow-sm">
+                              <div className={`bg-gradient-to-r px-4 py-3 ${
+                                versionIndex === 0 ? 'from-blue-500 to-blue-600' : 
+                                versionIndex === 1 ? 'from-green-500 to-green-600' : 
+                                'from-purple-500 to-purple-600'
+                              }`}>
+                                <h3 className="text-white font-bold text-lg">版本 {versionIndex + 1}</h3>
+                              </div>
+                              <div className="p-4 bg-white space-y-3">
+                                {/* 身体语言简表 */}
+                                <div>
+                                  <div className="text-sm font-medium text-purple-600 mb-2">身体语言简表</div>
+                                  <div className="text-2xl font-bold text-purple-700 mb-1">{score.breakdown.bodyLanguage.count}项</div>
+                                  <div className="text-xs text-gray-600 mb-1">扣{score.breakdown.bodyLanguage.deduction.toFixed(1)}分</div>
+                                  <div className="flex gap-2 text-xs">
+                                    <span className="text-red-600">紧急{score.breakdown.bodyLanguage.severityBreakdown.emergency}</span>
+                                    <span className="text-orange-600">严重{score.breakdown.bodyLanguage.severityBreakdown.severe}</span>
+                                  </div>
+                                </div>
+
+                                {/* 不良生活习惯 */}
+                                <div>
+                                  <div className="text-sm font-medium text-pink-600 mb-2">不良生活习惯</div>
+                                  <div className="text-2xl font-bold text-pink-700 mb-1">{score.breakdown.habits.count}项</div>
+                                  <div className="text-xs text-gray-600 mb-1">扣{score.breakdown.habits.deduction.toFixed(1)}分</div>
+                                </div>
+
+                                {/* 300症状表 */}
+                                <div>
+                                  <div className="text-sm font-medium text-amber-600 mb-2">300症状表</div>
+                                  <div className="text-2xl font-bold text-amber-700 mb-1">{score.breakdown.symptoms300.count}项</div>
+                                  <div className="text-xs text-gray-600 mb-1">扣{score.breakdown.symptoms300.deduction.toFixed(1)}分</div>
+                                  <div className="flex gap-2 text-xs">
+                                    <span className="text-red-600">紧急{score.breakdown.symptoms300.severityBreakdown.emergency}</span>
+                                    <span className="text-orange-600">严重{score.breakdown.symptoms300.severityBreakdown.severe}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* 调理建议对比 */}
+                        <div className="p-4 bg-gradient-to-r from-green-50 to-teal-50 rounded-lg border-2 border-green-200">
+                          <div className="flex items-center gap-2 mb-3">
+                            <Sparkles className="h-5 w-5 text-green-600" />
+                            <h4 className="font-bold text-lg text-green-900">调理建议</h4>
+                          </div>
+                          <div className="space-y-3">
+                            {healthScores[healthScores.length - 1].recommendations.map((rec, idx) => (
+                              <div key={idx} className="flex items-start gap-2 p-3 bg-white rounded-lg border">
+                                <ArrowRight className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-sm text-gray-700">{rec}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
 
               <Separator />
 

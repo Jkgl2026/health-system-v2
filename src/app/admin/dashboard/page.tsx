@@ -288,7 +288,7 @@ export default function AdminDashboardPage() {
     return { label: '需改善', color: 'bg-red-500' };
   };
 
-  // 计算综合健康评分（参考首页算法）
+  // 计算综合健康评分（使用新的科学评分算法）
   const calculateHealthScore = () => {
     if (!selectedUser) return null;
 
@@ -296,26 +296,29 @@ export default function AdminDashboardPage() {
     const badHabits = selectedUser.requirements?.badHabitsChecklist || [];
     const symptoms300 = selectedUser.requirements?.symptoms300Checklist || [];
 
-    const bodySymptomsCount = latestSymptomCheck?.checkedSymptoms?.length || 0;
-    const badHabitsCount = Array.isArray(badHabits) ? badHabits.length : 0;
-    const symptoms300Count = Array.isArray(symptoms300) ? symptoms300.length : 0;
+    // 转换为数字数组
+    const bodySymptomIds = latestSymptomCheck?.checkedSymptoms?.map((id: string) => parseInt(id)) || [];
+    const habitIds = Array.isArray(badHabits) ? badHabits.map((id: any) => parseInt(id)) : [];
+    const symptom300Ids = Array.isArray(symptoms300) ? symptoms300.map((id: any) => parseInt(id)) : [];
 
-    // 基础分100分，根据不同类型症状权重扣分
-    // 身体语言简表（高权重）：每项扣0.3分
-    // 不良生活习惯（中权重）：每项扣0.2分
-    // 300症状表（低权重）：每项扣0.1分
-    const bodySymptomsScore = Math.max(0, bodySymptomsCount * 0.3);
-    const badHabitsScore = Math.max(0, badHabitsCount * 0.2);
-    const symptoms300Score = Math.max(0, symptoms300Count * 0.1);
-    const totalDeduction = bodySymptomsScore + badHabitsScore + symptoms300Score;
-    const healthScore = Math.max(0, Math.round(100 - totalDeduction));
+    // 使用新的健康评分计算器
+    const { calculateComprehensiveHealthScore } = require('@/lib/health-score-calculator');
+    const result = calculateComprehensiveHealthScore({
+      bodySymptomIds,
+      habitIds,
+      symptom300Ids,
+    });
 
     return {
-      healthScore,
-      bodySymptomsCount,
-      badHabitsCount,
-      symptoms300Count,
-      totalSymptoms: bodySymptomsCount + badHabitsCount + symptoms300Count
+      healthScore: result.healthScore,
+      bodySymptomsCount: bodySymptomIds.length,
+      badHabitsCount: habitIds.length,
+      symptoms300Count: symptom300Ids.length,
+      totalSymptoms: bodySymptomIds.length + habitIds.length + symptom300Ids.length,
+      breakdown: result.breakdown,
+      recommendations: result.recommendations,
+      healthStatus: result.healthStatus,
+      totalDeduction: result.totalDeduction,
     };
   };
 
@@ -611,7 +614,7 @@ export default function AdminDashboardPage() {
 
       {/* 用户详情对话框 */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl">用户详细信息</DialogTitle>
             <DialogDescription>
@@ -714,23 +717,23 @@ export default function AdminDashboardPage() {
                     );
                   }
 
-                  const { healthScore, bodySymptomsCount, badHabitsCount, symptoms300Count, totalSymptoms } = healthData;
+                  const { healthScore, bodySymptomsCount, badHabitsCount, symptoms300Count, totalSymptoms, breakdown, recommendations, healthStatus, totalDeduction } = healthData;
 
                   return (
                     <div className="space-y-6">
                       {/* 综合健康评分大卡片 */}
                       <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-100">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                           {/* 健康评分主卡片 */}
                           <div className="md:col-span-1 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg p-6 text-white text-center">
                             <div className="text-sm font-medium mb-2 opacity-90">综合健康评分</div>
                             <div className="text-6xl font-bold mb-1">{healthScore}</div>
                             <div className="text-sm opacity-80">分（满分100）</div>
                             <div className="mt-4 text-xs opacity-70">
-                              {healthScore >= 80 ? '健康状况优秀' :
-                               healthScore >= 60 ? '健康状况良好' :
-                               healthScore >= 40 ? '健康状况一般' :
-                               healthScore >= 20 ? '健康状况需关注' : '健康状况需改善'}
+                              健康状态：{healthStatus}
+                            </div>
+                            <div className="mt-2 text-xs opacity-60">
+                              总扣分：{totalDeduction.toFixed(1)}分
                             </div>
                           </div>
 
@@ -743,24 +746,34 @@ export default function AdminDashboardPage() {
                             </div>
                           </div>
 
-                          {/* 健康状态 */}
-                          <div className="bg-white border-2 border-gray-100 rounded-lg p-5">
-                            <div className="text-sm text-gray-600 mb-2">健康状态</div>
-                            <div className="text-3xl font-bold mb-2">
-                              {healthScore >= 80 ? <span className="text-green-600">优秀</span> :
-                               healthScore >= 60 ? <span className="text-blue-600">良好</span> :
-                               healthScore >= 40 ? <span className="text-yellow-600">一般</span> :
-                               healthScore >= 20 ? <span className="text-orange-600">需关注</span> :
-                               <span className="text-red-600">需改善</span>}
+                          {/* 严重症状数 */}
+                          <div className="bg-white border-2 border-red-100 rounded-lg p-5">
+                            <div className="text-sm text-red-600 mb-2">严重+紧急症状</div>
+                            <div className="text-5xl font-bold text-red-700 mb-1">
+                              {breakdown.bodyLanguage.severityBreakdown.emergency + 
+                               breakdown.bodyLanguage.severityBreakdown.severe +
+                               breakdown.symptoms300.severityBreakdown.emergency +
+                               breakdown.symptoms300.severityBreakdown.severe}
                             </div>
                             <div className="text-xs text-gray-500">
-                              基于{totalSymptoms}项症状评估
+                              需重点关注
+                            </div>
+                          </div>
+
+                          {/* 指数系数 */}
+                          <div className="bg-white border-2 border-gray-100 rounded-lg p-5">
+                            <div className="text-sm text-gray-600 mb-2">指数系数</div>
+                            <div className="text-5xl font-bold text-gray-800 mb-1">
+                              {Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              基于症状数量调整
                             </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* 三个症状表详情 */}
+                      {/* 三个症状表详情 - 使用新的评分算法显示 */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {/* 身体语言简表 */}
                         <div className="bg-white p-5 rounded-lg shadow-sm border border-purple-100 hover:shadow-md transition-shadow">
@@ -769,15 +782,18 @@ export default function AdminDashboardPage() {
                             <Activity className="w-4 h-4 text-purple-400" />
                           </div>
                           <div className="text-4xl font-bold text-purple-700 mb-1">{bodySymptomsCount}</div>
-                          <div className="text-xs text-gray-500 mb-3">/ 100项</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="text-xs text-gray-500 mb-2">/ 100项</div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                             <div
                               className="bg-purple-500 h-2 rounded-full transition-all"
                               style={{ width: `${Math.min(100, bodySymptomsCount)}%` }}
                             />
                           </div>
                           <div className="mt-2 text-xs text-gray-600">
-                            权重30%，扣{Math.round(bodySymptomsCount * 0.3 * 10) / 10}分
+                            权重1.0，扣{breakdown.bodyLanguage.deduction.toFixed(1)}分（系数{breakdown.bodyLanguage.factor.toFixed(1)}x）
+                          </div>
+                          <div className="mt-2 text-xs text-purple-600">
+                            紧急{breakdown.bodyLanguage.severityBreakdown.emergency} 严重{breakdown.bodyLanguage.severityBreakdown.severe}
                           </div>
                         </div>
 
@@ -788,15 +804,18 @@ export default function AdminDashboardPage() {
                             <AlertCircle className="w-4 h-4 text-pink-400" />
                           </div>
                           <div className="text-4xl font-bold text-pink-700 mb-1">{badHabitsCount}</div>
-                          <div className="text-xs text-gray-500 mb-3">/ 252项</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="text-xs text-gray-500 mb-2">/ 252项</div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                             <div
                               className="bg-pink-500 h-2 rounded-full transition-all"
                               style={{ width: `${Math.min(100, (badHabitsCount / 252) * 100)}%` }}
                             />
                           </div>
                           <div className="mt-2 text-xs text-gray-600">
-                            权重20%，扣{Math.round(badHabitsCount * 0.2 * 10) / 10}分
+                            权重0.6，扣{breakdown.habits.deduction.toFixed(1)}分（系数{breakdown.habits.factor.toFixed(1)}x）
+                          </div>
+                          <div className="mt-2 text-xs text-pink-600">
+                            中等{breakdown.habits.severityBreakdown.moderate} 轻微{breakdown.habits.severityBreakdown.mild}
                           </div>
                         </div>
 
@@ -807,28 +826,46 @@ export default function AdminDashboardPage() {
                             <FileText className="w-4 h-4 text-amber-400" />
                           </div>
                           <div className="text-4xl font-bold text-amber-700 mb-1">{symptoms300Count}</div>
-                          <div className="text-xs text-gray-500 mb-3">/ 300项</div>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div className="text-xs text-gray-500 mb-2">/ 300项</div>
+                          <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                             <div
                               className="bg-amber-500 h-2 rounded-full transition-all"
                               style={{ width: `${Math.min(100, (symptoms300Count / 300) * 100)}%` }}
                             />
                           </div>
                           <div className="mt-2 text-xs text-gray-600">
-                            权重10%，扣{Math.round(symptoms300Count * 0.1 * 10) / 10}分
+                            权重0.8，扣{breakdown.symptoms300.deduction.toFixed(1)}分（系数{breakdown.symptoms300.factor.toFixed(1)}x）
+                          </div>
+                          <div className="mt-2 text-xs text-amber-600">
+                            紧急{breakdown.symptoms300.severityBreakdown.emergency} 严重{breakdown.symptoms300.severityBreakdown.severe}
                           </div>
                         </div>
                       </div>
 
-                      {/* 详细说明 */}
-                      <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-100">
-                        <div className="text-sm font-semibold text-purple-800 mb-2">评分说明</div>
-                        <div className="text-xs text-gray-600 space-y-1">
-                          <p>• 基础分100分，根据不同类型症状权重扣分</p>
-                          <p>• 身体语言简表：权重30%，每项扣0.3分</p>
-                          <p>• 不良生活习惯：权重20%，每项扣0.2分</p>
-                          <p>• 300症状表：权重10%，每项扣0.1分</p>
-                          <p>• 最终得分 = 100 - 总扣分（最低0分）</p>
+                      {/* 详细说明和调理建议 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 评分说明 */}
+                        <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-100">
+                          <div className="text-sm font-semibold text-purple-800 mb-2">评分说明（新算法）</div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            <p>• 基础分100分，根据症状严重程度分级扣分</p>
+                            <p>• 紧急症状：扣5分/项（需立即就医）</p>
+                            <p>• 严重症状：扣2分/项（需长期关注）</p>
+                            <p>• 中等症状：扣0.8分/项（需调理改善）</p>
+                            <p>• 轻微症状：扣0.3分/项（生活方式改善）</p>
+                            <p>• 指数系数：症状数量越多，扣分越重（1.0x-3.0x）</p>
+                            <p>• 症状表权重：身体语言1.0，300症状0.8，生活习惯0.6</p>
+                          </div>
+                        </div>
+
+                        {/* 调理建议 */}
+                        <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
+                          <div className="text-sm font-semibold text-green-800 mb-2">调理建议</div>
+                          <div className="text-xs text-gray-600 space-y-1">
+                            {recommendations.map((rec: string, idx: number) => (
+                              <p key={idx}>• {rec}</p>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </div>
