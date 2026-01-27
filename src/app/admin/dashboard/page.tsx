@@ -614,7 +614,7 @@ export default function AdminDashboardPage() {
 
       {/* 用户详情对话框 */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
-        <DialogContent className="max-w-7xl max-h-[95vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-[1600px] max-h-[97vh] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle className="text-2xl">用户详细信息</DialogTitle>
             <DialogDescription>
@@ -880,74 +880,99 @@ export default function AdminDashboardPage() {
                   健康要素分析
                 </h3>
                 
-                {getLatestHealthAnalysis() ? (
-                  <div className="space-y-6">
-                    {/* 整体健康总分 */}
-                    <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-100 text-center">
-                      <div className="text-sm text-blue-600 mb-2">整体健康总分</div>
-                      <div className="font-bold text-5xl text-blue-700 mb-2">
-                        {(() => {
-                          const analysis = getLatestHealthAnalysis();
-                          if (analysis?.overallHealth === null || analysis?.overallHealth === undefined) return '未计算';
-                          const val = Number(analysis.overallHealth);
-                          return !isNaN(val) ? val.toFixed(1) : '格式错误';
-                        })()}
+                {(() => {
+                  const latestHealthAnalysis = getLatestHealthAnalysis();
+                  const latestSymptomCheck = getLatestSymptomCheck();
+                  
+                  // 优先使用healthAnalysis数据，如果没有则使用symptomCheck中的elementScores
+                  const healthData = latestHealthAnalysis || 
+                    (latestSymptomCheck?.elementScores ? { 
+                      overallHealth: null,
+                      qiAndBlood: latestSymptomCheck.elementScores.qiAndBlood,
+                      circulation: latestSymptomCheck.elementScores.circulation,
+                      toxins: latestSymptomCheck.elementScores.toxins,
+                      bloodLipids: latestSymptomCheck.elementScores.bloodLipids,
+                      coldness: latestSymptomCheck.elementScores.coldness,
+                      immunity: latestSymptomCheck.elementScores.immunity,
+                      emotions: latestSymptomCheck.elementScores.emotions
+                    } : null);
+                  
+                  return healthData ? (
+                    <div className="space-y-6">
+                      {/* 整体健康总分 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-100 text-center">
+                        <div className="text-sm text-blue-600 mb-2">整体健康总分</div>
+                        <div className="font-bold text-5xl text-blue-700 mb-2">
+                          {(() => {
+                            if (healthData.overallHealth === null || healthData.overallHealth === undefined) {
+                              // 如果没有overallHealth，计算各要素的平均值
+                              const scores = HEALTH_ELEMENTS.map(el => healthData[el.key]).filter(v => v !== null && v !== undefined);
+                              if (scores.length === 0) return '未计算';
+                              const avg = scores.reduce((a: number, b: number) => a + b, 0) / scores.length;
+                              return !isNaN(avg) ? avg.toFixed(1) : '格式错误';
+                            }
+                            const val = Number(healthData.overallHealth);
+                            return !isNaN(val) ? val.toFixed(1) : '格式错误';
+                          })()}
+                        </div>
+                        <div className="text-sm text-blue-500">
+                          基于7个健康要素的综合评估
+                        </div>
                       </div>
-                      <div className="text-sm text-blue-500">
-                        基于7个健康要素的综合评估
-                      </div>
-                    </div>
 
-                    {/* 各要素得分卡片 */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {HEALTH_ELEMENTS.map((element) => {
-                        const rawValue = (getLatestHealthAnalysis() as any)[element.key];
-                        const value = rawValue !== null && rawValue !== undefined ? Number(rawValue) : null;
-                        const score = value !== null && !isNaN(value) ? Math.min(value, 100) : 0;
-                        
-                        return (
-                          <div key={element.key} className="bg-white p-5 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-3">
-                                <div className={`w-3 h-3 rounded-full ${element.color}`} />
-                                <div className="font-bold text-lg text-blue-900">{element.label}</div>
+                      {/* 各要素得分卡片 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {HEALTH_ELEMENTS.map((element) => {
+                          const rawValue = healthData[element.key];
+                          const value = rawValue !== null && rawValue !== undefined ? Number(rawValue) : null;
+                          const score = value !== null && !isNaN(value) ? Math.min(value, 100) : 0;
+                          
+                          return (
+                            <div key={element.key} className="bg-white p-5 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-3 h-3 rounded-full ${element.color}`} />
+                                  <div className="font-bold text-lg text-blue-900">{element.label}</div>
+                                </div>
+                                <div className={`font-bold text-2xl ${element.textColor}`}>
+                                  {value !== null ? `${value} 分` : '未检测'}
+                                </div>
                               </div>
-                              <div className={`font-bold text-2xl ${element.textColor}`}>
-                                {value !== null ? `${value} 分` : '未检测'}
+                              
+                              {/* 大型进度条 */}
+                              <div className="w-full bg-gray-200 rounded-full h-6 mb-2">
+                                <div
+                                  className={`${element.color} h-6 rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2`}
+                                  style={{ width: `${score}%` }}
+                                >
+                                  {score > 20 && (
+                                    <span className="text-xs font-bold text-white">
+                                      {Number(score).toFixed(0)}%
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* 状态描述 */}
+                              <div className="text-sm text-gray-600 mt-3">
+                                {score >= 80 ? '优秀' : 
+                                 score >= 60 ? '良好' : 
+                                 score >= 40 ? '一般' : 
+                                 score >= 20 ? '需关注' : '需改善'}
                               </div>
                             </div>
-                            
-                            {/* 大型进度条 */}
-                            <div className="w-full bg-gray-200 rounded-full h-6 mb-2">
-                              <div
-                                className={`${element.color} h-6 rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2`}
-                                style={{ width: `${score}%` }}
-                              >
-                                {score > 20 && (
-                                  <span className="text-xs font-bold text-white">
-                                    {Number(score).toFixed(0)}%
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* 状态描述 */}
-                            <div className="text-sm text-gray-600 mt-3">
-                              {score >= 80 ? '优秀' : 
-                               score >= 60 ? '良好' : 
-                               score >= 40 ? '一般' : 
-                               score >= 20 ? '需关注' : '需改善'}
-                            </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-100 text-center">
-                    <Activity className="h-12 w-12 mx-auto text-blue-300 mb-3" />
-                    <p className="text-blue-600 font-medium">暂无健康分析数据</p>
-                    <p className="text-sm text-blue-500 mt-1">用户尚未完成健康要素分析</p>
+                  ) : (
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-100 text-center">
+                      <Activity className="h-12 w-12 mx-auto text-blue-300 mb-3" />
+                      <p className="text-blue-600 font-medium">暂无健康分析数据</p>
+                      <p className="text-sm text-blue-500 mt-1">用户尚未完成健康要素分析</p>
+                    </div>
+                  );
+                })()}
                   </div>
                 )}
               </div>
