@@ -2683,7 +2683,7 @@ export default function AdminComparePage() {
 
       {/* 诊断对话框 */}
       <Dialog open={showDiagnosticsDialog} onOpenChange={setShowDiagnosticsDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-[1600px] max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold">系统诊断</DialogTitle>
             <DialogDescription>

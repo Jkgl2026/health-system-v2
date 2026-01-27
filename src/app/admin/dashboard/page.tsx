@@ -2170,7 +2170,7 @@ export default function AdminDashboardPage() {
 
       {/* 历史记录对比对话框 */}
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] max-w-[1600px] max-h-[95vh] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle className="text-2xl">历史记录对比</DialogTitle>
             <DialogDescription>
