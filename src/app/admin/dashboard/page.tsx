@@ -1220,6 +1220,179 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
+              {/* 健康要素分析结果 - 绿色渐变背景 */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 border-l-4 border-green-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-green-900">
+                  <Activity className="h-6 w-6 mr-3 text-green-600" />
+                  健康要素分析结果
+                </h3>
+
+                {selectedUser.healthAnalysis && selectedUser.healthAnalysis.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* 最新分析结果 */}
+                    {selectedUser.healthAnalysis.slice(0, 1).map((analysis) => (
+                      <div key={analysis.id} className="bg-white p-6 rounded-lg shadow-sm border border-green-100">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="font-semibold text-lg text-green-800">最新分析结果</div>
+                          <div className="text-sm text-gray-500">
+                            {formatDate(analysis.analyzedAt)}
+                          </div>
+                        </div>
+
+                        {/* 七个要素的得分 */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {/* 气血 */}
+                          <div className="bg-gradient-to-br from-red-50 to-pink-50 p-4 rounded-lg border border-red-100">
+                            <div className="text-sm text-red-600 mb-1">气血</div>
+                            <div className="text-2xl font-bold text-red-700 mb-1">
+                              {analysis.qiAndBlood || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-red-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.qiAndBlood || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">营养输送能力</div>
+                          </div>
+
+                          {/* 循环 */}
+                          <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg border border-orange-100">
+                            <div className="text-sm text-orange-600 mb-1">循环</div>
+                            <div className="text-2xl font-bold text-orange-700 mb-1">
+                              {analysis.circulation || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-orange-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.circulation || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">微循环通畅程度</div>
+                          </div>
+
+                          {/* 毒素 */}
+                          <div className="bg-gradient-to-br from-yellow-50 to-lime-50 p-4 rounded-lg border border-yellow-100">
+                            <div className="text-sm text-yellow-600 mb-1">毒素</div>
+                            <div className="text-2xl font-bold text-yellow-700 mb-1">
+                              {analysis.toxins || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-yellow-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.toxins || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">体内垃圾毒素积累</div>
+                          </div>
+
+                          {/* 血脂 */}
+                          <div className="bg-gradient-to-br from-green-50 to-teal-50 p-4 rounded-lg border border-green-100">
+                            <div className="text-sm text-green-600 mb-1">血脂</div>
+                            <div className="text-2xl font-bold text-green-700 mb-1">
+                              {analysis.bloodLipids || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-green-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.bloodLipids || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">血液中油脂含量</div>
+                          </div>
+
+                          {/* 寒凉 */}
+                          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-100">
+                            <div className="text-sm text-blue-600 mb-1">寒凉</div>
+                            <div className="text-2xl font-bold text-blue-700 mb-1">
+                              {analysis.coldness || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-blue-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.coldness || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">体内寒湿气程度</div>
+                          </div>
+
+                          {/* 免疫 */}
+                          <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-100">
+                            <div className="text-sm text-purple-600 mb-1">免疫</div>
+                            <div className="text-2xl font-bold text-purple-700 mb-1">
+                              {analysis.immunity || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-purple-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.immunity || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">身体自我防护能力</div>
+                          </div>
+
+                          {/* 情绪 */}
+                          <div className="bg-gradient-to-br from-pink-50 to-rose-50 p-4 rounded-lg border border-pink-100">
+                            <div className="text-sm text-pink-600 mb-1">情绪</div>
+                            <div className="text-2xl font-bold text-pink-700 mb-1">
+                              {analysis.emotions || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-pink-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.emotions || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">心理状态和情绪管理</div>
+                          </div>
+
+                          {/* 整体健康 */}
+                          <div className="bg-gradient-to-br from-gray-50 to-slate-50 p-4 rounded-lg border border-gray-100">
+                            <div className="text-sm text-gray-600 mb-1">整体健康</div>
+                            <div className="text-2xl font-bold text-gray-700 mb-1">
+                              {analysis.overallHealth || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-gray-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.overallHealth || 0) / 100 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">综合健康评分</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* 历史记录 */}
+                    {selectedUser.healthAnalysis.length > 1 && (
+                      <details className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
+                        <summary className="cursor-pointer font-semibold text-sm text-green-700 hover:text-green-900">
+                          📊 查看历史分析记录（共{selectedUser.healthAnalysis.length}次）
+                        </summary>
+                        <div className="mt-4 space-y-2">
+                          {selectedUser.healthAnalysis.slice(1).map((analysis) => (
+                            <div key={analysis.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div className="text-sm">
+                                <span className="font-medium text-gray-700">整体健康：</span>
+                                <span className="font-bold text-gray-900">{analysis.overallHealth}分</span>
+                              </div>
+                              <div className="text-xs text-gray-500">{formatDate(analysis.analyzedAt)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-white p-6 rounded-lg shadow-sm border border-green-100 text-center">
+                    <Activity className="h-12 w-12 mx-auto text-green-300 mb-3" />
+                    <p className="text-green-600 font-medium">暂无健康要素分析结果</p>
+                    <p className="text-sm text-green-500 mt-1">用户尚未完成健康要素分析</p>
+                  </div>
+                )}
+              </div>
+
               {/* 四个要求完成情况 - 橙色渐变背景 */}
               <div className="bg-gradient-to-br from-orange-50 to-amber-100 border-l-4 border-orange-500 p-6 rounded-lg shadow-sm">
                 <h3 className="font-bold text-xl mb-6 flex items-center text-orange-900">
