@@ -22,25 +22,42 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
-    const requirementData: InsertRequirement = {
-      userId: data.userId,
-      requirement1Completed: data.requirement1Completed || false,
-      requirement2Completed: data.requirement2Completed || false,
-      requirement3Completed: data.requirement3Completed || false,
-      requirement4Completed: data.requirement4Completed || false,
-      requirement2Answers: data.requirement2Answers || null,
-      sevenQuestionsAnswers: data.sevenQuestionsAnswers || null,
-      badHabitsChecklist: data.badHabitsChecklist || null,
-      symptoms300Checklist: data.symptoms300Checklist || null,
-    };
 
     // 检查是否已存在
     const existing = await healthDataManager.getRequirementByUserId(data.userId);
 
     let requirement;
     if (existing) {
-      requirement = await healthDataManager.updateRequirement(data.userId, requirementData);
+      // 只更新传递的字段，保留其他字段的值
+      const updateData: Partial<InsertRequirement> = {
+        userId: data.userId,
+        updatedAt: new Date(),
+      };
+
+      // 只添加传递的字段
+      if (data.requirement1Completed !== undefined) updateData.requirement1Completed = data.requirement1Completed;
+      if (data.requirement2Completed !== undefined) updateData.requirement2Completed = data.requirement2Completed;
+      if (data.requirement3Completed !== undefined) updateData.requirement3Completed = data.requirement3Completed;
+      if (data.requirement4Completed !== undefined) updateData.requirement4Completed = data.requirement4Completed;
+      if (data.requirement2Answers !== undefined) updateData.requirement2Answers = data.requirement2Answers;
+      if (data.sevenQuestionsAnswers !== undefined) updateData.sevenQuestionsAnswers = data.sevenQuestionsAnswers;
+      if (data.badHabitsChecklist !== undefined) updateData.badHabitsChecklist = data.badHabitsChecklist;
+      if (data.symptoms300Checklist !== undefined) updateData.symptoms300Checklist = data.symptoms300Checklist;
+
+      requirement = await healthDataManager.updateRequirement(data.userId, updateData);
     } else {
+      // 创建新记录，使用默认值
+      const requirementData: InsertRequirement = {
+        userId: data.userId,
+        requirement1Completed: data.requirement1Completed || false,
+        requirement2Completed: data.requirement2Completed || false,
+        requirement3Completed: data.requirement3Completed || false,
+        requirement4Completed: data.requirement4Completed || false,
+        requirement2Answers: data.requirement2Answers || null,
+        sevenQuestionsAnswers: data.sevenQuestionsAnswers || null,
+        badHabitsChecklist: data.badHabitsChecklist || null,
+        symptoms300Checklist: data.symptoms300Checklist || null,
+      };
       requirement = await healthDataManager.createRequirement(requirementData);
     }
 
