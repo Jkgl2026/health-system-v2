@@ -511,6 +511,28 @@ export default function Home() {
                     </div>
                   )}
 
+                  {/* 查看分析结果入口 */}
+                  <div className="p-5 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                          <Activity className="w-7 h-7 text-white" />
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg text-gray-900 dark:text-white">健康要素分析结果</h3>
+                          <p className="text-sm text-green-700 dark:text-green-400 mt-1">查看七个要素的详细分析</p>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={() => router.push('/health-analysis-result')}
+                        className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all group"
+                      >
+                        查看分析结果
+                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    </div>
+                  </div>
+
                   <div className="p-5 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
                     <div className="flex items-start gap-3">
                       <Award className="w-6 h-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-1" />

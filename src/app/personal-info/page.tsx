@@ -127,6 +127,18 @@ export default function PersonalInfoPage() {
         if (user.bmi) {
           setBmi(parseFloat(user.bmi));
         }
+
+        // 同步 userInfo 到 localStorage（包含 BMI）
+        const userInfo = {
+          name: user.name,
+          age: user.age,
+          gender: user.gender,
+          height: user.height ? parseFloat(user.height) : null,
+          weight: user.weight ? parseFloat(user.weight) : null,
+          bmi: user.bmi ? parseFloat(user.bmi) : null,
+        };
+        localStorage.setItem('userInfo', JSON.stringify(userInfo));
+        console.log('[PersonalInfo] userInfo 已从数据库同步到 localStorage');
       }
     } catch (error) {
       console.error('加载用户数据失败:', error);
@@ -257,6 +269,18 @@ export default function PersonalInfoPage() {
       if (response.user?.id) {
         localStorage.setItem('health_app_user_id', response.user.id);
       }
+
+      // 保存 userInfo 到 localStorage（包含 BMI）
+      const userInfo = {
+        name: formData.name,
+        age: parseInt(formData.age) || null,
+        gender: formData.gender,
+        height: parseFloat(formData.height) || null,
+        weight: parseFloat(formData.weight) || null,
+        bmi: bmi || null,
+      };
+      localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      console.log('[前端] userInfo 已保存到 localStorage，包含 BMI:', bmi);
 
       router.push('/check');
     } catch (error) {
