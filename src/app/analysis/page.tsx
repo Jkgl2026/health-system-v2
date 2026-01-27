@@ -357,9 +357,9 @@ export default function AnalysisPage() {
           <div className="max-w-3xl mx-auto">
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-2xl">持续跟进落实健康的七问</CardTitle>
+                <CardTitle className="text-2xl">健康七问（V2新版）</CardTitle>
                 <CardDescription>
-                  通过详细的问题了解症状的具体情况，帮助我们找到根本原因
+                  从生活习惯入手，找到健康问题的根源，制定可行的改善方案
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -408,10 +408,20 @@ export default function AnalysisPage() {
                   <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-lg">
                     {currentQuestionIndex + 1}
                   </div>
-                  <div>
-                    <CardTitle className="text-xl mb-2">
-                      {SEVEN_QUESTIONS[currentQuestionIndex].question}
-                    </CardTitle>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <CardTitle className="text-xl">
+                        {SEVEN_QUESTIONS[currentQuestionIndex].question}
+                      </CardTitle>
+                      <Badge variant={SEVEN_QUESTIONS[currentQuestionIndex].importance === '高' ? 'destructive' : 'secondary'}>
+                        {SEVEN_QUESTIONS[currentQuestionIndex].importance || '中'}重要
+                      </Badge>
+                    </div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Badge variant="outline" className="text-xs">
+                        {SEVEN_QUESTIONS[currentQuestionIndex].category || '生活习惯'}
+                      </Badge>
+                    </div>
                     <CardDescription className="text-base">
                       {SEVEN_QUESTIONS[currentQuestionIndex].description}
                     </CardDescription>
@@ -479,22 +489,36 @@ export default function AnalysisPage() {
                     }`}
                     onClick={() => setCurrentQuestionIndex(index)}
                   >
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-bold ${
-                        index === currentQuestionIndex
-                          ? 'bg-gradient-to-br from-blue-500 to-green-500'
-                          : index < currentQuestionIndex
-                          ? 'bg-green-500'
-                          : 'bg-gray-300 dark:bg-gray-600'
-                      }`}>
-                        {index < currentQuestionIndex ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-bold ${
+                          index === currentQuestionIndex
+                            ? 'bg-gradient-to-br from-blue-500 to-green-500'
+                            : index < currentQuestionIndex
+                            ? 'bg-green-500'
+                            : 'bg-gray-300 dark:bg-gray-600'
+                        }`}>
+                          {index < currentQuestionIndex ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium">
+                              {q.question}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {q.category || '生活习惯'}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                      <span className="text-sm">
-                        {q.question}
-                      </span>
-                      {answers.find(a => a.questionId === q.id) && (
-                        <Badge variant="secondary" className="ml-auto">已回答</Badge>
-                      )}
+                      <div className="flex items-center space-x-2">
+                        {q.importance === '高' && (
+                          <Badge variant="destructive" className="text-xs">重要</Badge>
+                        )}
+                        {answers.find(a => a.questionId === q.id) && (
+                          <Badge variant="secondary" className="text-xs">已回答</Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

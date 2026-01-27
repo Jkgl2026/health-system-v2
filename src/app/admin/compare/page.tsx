@@ -1449,7 +1449,7 @@ export default function AdminComparePage() {
                 <CardHeader>
                   <CardTitle className="flex items-center text-xl font-bold">
                     <HelpCircle className="h-6 w-6 mr-2" />
-                    持续跟进落实健康的七问（全部7个问题）
+                    健康七问（V2新版）对比 - 全部7个问题
                   </CardTitle>
                 </CardHeader>
                 <CardContent>

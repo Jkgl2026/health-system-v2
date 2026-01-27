@@ -1352,7 +1352,7 @@ export default function AdminDashboardPage() {
               <div className="bg-gradient-to-br from-indigo-50 to-blue-100 border-l-4 border-indigo-500 p-6 rounded-lg shadow-sm">
                 <h3 className="font-bold text-xl mb-6 flex items-center text-indigo-900">
                   <HelpCircle className="h-6 w-6 mr-3 text-indigo-600" />
-                  持续跟进落实健康的七问（全部7个问题）
+                  健康七问（V2新版）- 全部7个问题
                 </h3>
 
                 <div className="space-y-4">
