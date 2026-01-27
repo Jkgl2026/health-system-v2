@@ -499,6 +499,7 @@ export default function AdminDashboardPage() {
                 <TableHeader>
                   <TableRow className="bg-gray-50">
                     <TableHead className="font-semibold">姓名</TableHead>
+                    <TableHead className="font-semibold">用户ID</TableHead>
                     <TableHead className="font-semibold">手机号</TableHead>
                     <TableHead className="font-semibold">年龄</TableHead>
                     <TableHead className="font-semibold">性别</TableHead>
@@ -512,7 +513,7 @@ export default function AdminDashboardPage() {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8">
+                      <TableCell colSpan={10} className="text-center py-8">
                         <div className="flex items-center justify-center">
                           <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mr-2" />
                           加载中...
@@ -521,7 +522,7 @@ export default function AdminDashboardPage() {
                     </TableRow>
                   ) : users.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="text-center py-8 text-gray-500">
+                      <TableCell colSpan={10} className="text-center py-8 text-gray-500">
                         {searchQuery ? '未找到匹配的用户' : '暂无用户数据'}
                       </TableCell>
                     </TableRow>
@@ -536,6 +537,24 @@ export default function AdminDashboardPage() {
                         <TableRow key={userSummary.user.id} className="hover:bg-gray-50">
                           <TableCell className="font-medium">
                             {userSummary.user.name || '-'}
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">
+                            <div className="flex items-center gap-2">
+                              <span className="truncate max-w-[200px]" title={userSummary.user.id}>
+                                {userSummary.user.id}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(userSummary.user.id);
+                                  alert('用户ID已复制到剪贴板');
+                                }}
+                              >
+                                <span className="text-xs">📋</span>
+                              </Button>
+                            </div>
                           </TableCell>
                           <TableCell className="font-mono text-sm">
                             {userSummary.user.phone || '-'}
