@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import type { InsertUser } from '@/storage/database';
+import { applyRateLimit } from '@/lib/rate-limit-middleware';
+import { RateLimiter } from '@/lib/rate-limit';
+
+// 创建速率限制器（宽松模式：每分钟最多30次请求）
+const userRateLimiter = new RateLimiter({
+  windowMs: 60 * 1000, // 1分钟
+  maxRequests: 30,
+  message: '请求过于频繁，请稍后再试',
+});
 
 // POST /api/user - 创建新用户（每次都创建新记录，支持历史对比）
 export async function POST(request: NextRequest) {
   try {
+    // 应用速率限制
+    const rateLimitResult = applyRateLimit(request, userRateLimiter);
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response!;
+    }
+
     const data = await request.json();
     console.log('POST /api/user - 接收到数据:', data);
 
