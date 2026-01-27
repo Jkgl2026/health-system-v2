@@ -143,7 +143,7 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[100vw] max-w-[3560px] max-h-[1000vh] overflow-y-auto p-16 bg-gradient-to-br from-gray-50 to-blue-50">
+      <DialogContent className="w-[100vw] max-w-[2560px] max-h-[100vh] overflow-y-auto p-16 bg-gradient-to-br from-gray-50 to-blue-50">
         <DialogHeader className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 -mx-16 -mt-16 px-16 py-12 sticky top-0 z-50 shadow-2xl">
           <div className="flex items-center justify-between">
             <div>
