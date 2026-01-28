@@ -18,6 +18,7 @@ interface UserSummary {
     id: string;
     name: string | null;
     phone: string | null;
+    phoneGroupId: string | null;
     email: string | null;
     age: number | null;
     gender: string | null;
@@ -198,11 +199,21 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const handleViewHistory = async (phone: string) => {
+  const handleViewHistory = async (user: any) => {
     setLoadingHistory(true);
-    setHistoryPhone(phone);
+    setHistoryPhone(user.phone || user.name);
     try {
-      const response = await fetch(`/api/user/history?phone=${encodeURIComponent(phone)}`);
+      // 优先使用 phoneGroupId 查询，其次使用 phone，最后使用 name
+      let queryParam = '';
+      if (user.phoneGroupId) {
+        queryParam = `phoneGroupId=${encodeURIComponent(user.phoneGroupId)}`;
+      } else if (user.phone) {
+        queryParam = `phone=${encodeURIComponent(user.phone)}`;
+      } else {
+        queryParam = `name=${encodeURIComponent(user.name)}`;
+      }
+
+      const response = await fetch(`/api/user/history?${queryParam}`);
       const data = await response.json();
       if (data.success) {
         setHistoryUsers(data.users);
@@ -872,11 +883,11 @@ export default function AdminDashboardPage() {
                             </span>
                           </TableCell>
                           <TableCell>
-                            {userSummary.user.phone ? (
+                            {(userSummary.user.phone || userSummary.user.name) ? (
                               <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => handleViewHistory(userSummary.user.phone!)}
+                                onClick={() => handleViewHistory(userSummary.user)}
                               >
                                 <Activity className="h-4 w-4 mr-1" />
                                 历史记录
