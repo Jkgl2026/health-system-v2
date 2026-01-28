@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, AlertTriangle, Shield, Zap, Flame, Heart, Brain, Eye, TrendingUp, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react';
-import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
+import { calculateComprehensiveHealthScore, SEVERE_SYMPTOM_IDS, EMERGENCY_SYMPTOM_IDS } from '@/lib/health-score-calculator';
+import { BODY_SYMPTOMS } from '@/lib/health-data';
 
 export default function HealthDetail() {
   const router = useRouter();
@@ -39,6 +40,24 @@ export default function HealthDetail() {
       });
 
       const totalSymptoms = bodySymptoms.length + badHabits.length + symptoms300.length;
+
+      // 获取严重+紧急症状的具体名称
+      const severeEmergencySymptoms: string[] = [];
+      
+      // 检查身体语言简表
+      bodySymptoms.forEach((id: number) => {
+        if (SEVERE_SYMPTOM_IDS.bodyLanguage.has(id) || EMERGENCY_SYMPTOM_IDS.bodyLanguage.has(id)) {
+          const symptom = BODY_SYMPTOMS.find(s => s.id === id);
+          if (symptom) (severeEmergencySymptoms as string[]).push(symptom.name);
+        }
+      });
+
+      // 检查300症状表
+      symptoms300.forEach((id: number) => {
+        if ((SEVERE_SYMPTOM_IDS as any).symptoms300.has(id) || (EMERGENCY_SYMPTOM_IDS as any).symptoms300.has(id)) {
+          (severeEmergencySymptoms as string[]).push(`症状${id}`);
+        }
+      });
       
       // 计算严重+紧急症状数量
       const severeEmergencyCount = 
@@ -60,6 +79,7 @@ export default function HealthDetail() {
         totalDeduction: scoreResult.totalDeduction,
         totalSymptoms,
         severeEmergencyCount,
+        severeEmergencySymptoms,
         maxFactor,
         breakdown: scoreResult.breakdown,
       });
@@ -127,11 +147,11 @@ export default function HealthDetail() {
 
     // 脏腑功能
     const organFunction = {
-      heart: { score: 79, status: '轻度异常' },
-      liver: { score: 90, status: '正常' },
-      spleen: { score: 90, status: '正常' },
-      lung: { score: 90, status: '正常' },
-      kidney: { score: 90, status: '正常' }
+      '心': { score: 79, status: '轻度异常' },
+      '肝': { score: 90, status: '正常' },
+      '脾': { score: 90, status: '正常' },
+      '肺': { score: 90, status: '正常' },
+      '肾': { score: 90, status: '正常' }
     };
 
     // 经络状态
@@ -161,17 +181,17 @@ export default function HealthDetail() {
 
     // 湿热寒凉
     const wetHeatColdCool = {
-      coldWet: { status: '无', description: '无寒湿症状' },
-      wetHeat: { status: '无', description: '无湿热症状' },
-      cold: { status: '有', description: '畏寒肢冷，面色苍白，舌淡苔白' },
-      heat: { status: '无', description: '无热证表现' },
-      wet: { status: '无', description: '无湿证表现' },
-      dry: { status: '无', description: '无燥证表现' }
+      '寒湿': { status: '无', description: '无寒湿症状' },
+      '湿热': { status: '无', description: '无湿热症状' },
+      '寒': { status: '有', description: '畏寒肢冷，面色苍白，舌淡苔白' },
+      '热': { status: '无', description: '无热证表现' },
+      '湿': { status: '无', description: '无湿证表现' },
+      '燥': { status: '无', description: '无燥证表现' }
     };
 
     if (healthData.breakdown.habits.count > 5) {
-      wetHeatColdCool.wetHeat.status = '有';
-      wetHeatColdCool.wetHeat.description = '湿热内蕴，面垢油光，口苦口臭';
+      wetHeatColdCool['湿热'].status = '有';
+      wetHeatColdCool['湿热'].description = '湿热内蕴，面垢油光，口苦口臭';
     }
 
     return {
@@ -319,7 +339,17 @@ export default function HealthDetail() {
                   <AlertTriangle className="w-5 h-5 text-red-600" />
                   <span className="font-bold text-gray-900">严重+紧急症状</span>
                 </div>
-                <div className="text-2xl font-bold text-red-600">{healthData.severeEmergencyCount}项</div>
+                <div className="text-2xl font-bold text-red-600 mb-3">{healthData.severeEmergencyCount}项</div>
+                {healthData.severeEmergencySymptoms && healthData.severeEmergencySymptoms.length > 0 && (
+                  <div className="space-y-1">
+                    {healthData.severeEmergencySymptoms.map((symptom: string, index: number) => (
+                      <div key={index} className="flex items-center gap-2 text-sm">
+                        <div className="w-1.5 h-1.5 bg-red-600 rounded-full flex-shrink-0" />
+                        <span className="text-gray-700">{symptom}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -398,24 +428,14 @@ export default function HealthDetail() {
               <div>
                 <h4 className="font-bold text-lg mb-3">脏腑功能评估</h4>
                 <div className="grid grid-cols-5 gap-3">
-                  {Object.entries(tcmData.organFunction).map(([key, value]: [string, any]) => {
-                    const icons: any = {
-                      heart: Heart,
-                      liver: Brain,
-                      spleen: CheckCircle2,
-                      lung: Activity,
-                      kidney: Activity
-                    };
-                    const Icon = icons[key];
-                    return (
-                      <div key={key} className="text-center p-3 bg-gray-50 rounded-lg">
-                        <Icon className={`w-5 h-5 mx-auto mb-2 ${value.status === '正常' ? 'text-green-600' : 'text-orange-600'}`} />
-                        <div className="text-xs text-gray-600 mb-1">{key}</div>
-                        <div className="text-sm font-bold text-gray-900">{value.score}%</div>
-                        <div className="text-xs text-gray-500">{value.status}</div>
-                      </div>
-                    );
-                  })}
+                  {Object.entries(tcmData.organFunction).map(([key, value]: [string, any]) => (
+                    <div key={key} className="text-center p-3 bg-gray-50 rounded-lg">
+                      <Heart className={`w-5 h-5 mx-auto mb-2 ${value.status === '正常' ? 'text-green-600' : 'text-orange-600'}`} />
+                      <div className="text-xs text-gray-600 mb-1">{key}</div>
+                      <div className="text-sm font-bold text-gray-900">{value.score}%</div>
+                      <div className="text-xs text-gray-500">{value.status}</div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
