@@ -382,7 +382,6 @@ export default function UserDetailHorizon({ user, open, onOpenChange }: UserDeta
                     )}
                   </CardContent>
                 </Card>
-            </div>
             <Card className="p-6 bg-gradient-to-br from-teal-50 to-cyan-100 shadow-xl border-2 border-teal-200">
               <CardHeader className="pb-4">
                 <CardTitle className="text-2xl font-bold flex items-center gap-3 text-teal-800">
