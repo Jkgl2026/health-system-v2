@@ -1145,56 +1145,56 @@ export default function AdminDashboardPage() {
                           {/* 右侧：关键指标卡片 - 占据1/3宽度 */}
                           <div className="space-y-4">
                             {/* 症状总数卡片 */}
-                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-100 hover:shadow-md transition-shadow">
+                            <div className="bg-white rounded-xl p-5 border-2 border-blue-200 shadow-sm hover:shadow-md transition-shadow">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                                    <Activity className="w-5 h-5 text-white" />
+                                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <Activity className="w-5 h-5 text-blue-600" />
                                   </div>
-                                  <span className="text-sm font-medium text-blue-800">症状总数</span>
+                                  <span className="text-sm font-semibold text-gray-900">症状总数</span>
                                 </div>
                               </div>
-                              <div className="text-5xl font-bold text-blue-700 mb-2">{totalSymptoms}</div>
-                              <div className="text-xs text-blue-600">
+                              <div className="text-5xl font-bold text-gray-900 mb-2">{totalSymptoms}</div>
+                              <div className="text-sm text-gray-600">
                                 基于三个症状表统计
                               </div>
                             </div>
 
                             {/* 严重症状卡片 */}
-                            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-5 border-2 border-red-100 hover:shadow-md transition-shadow">
+                            <div className="bg-white rounded-xl p-5 border-2 border-red-200 shadow-sm hover:shadow-md transition-shadow">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
-                                    <AlertTriangle className="w-5 h-5 text-white" />
+                                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
+                                    <AlertTriangle className="w-5 h-5 text-red-600" />
                                   </div>
-                                  <span className="text-sm font-medium text-red-800">严重+紧急症状</span>
+                                  <span className="text-sm font-semibold text-gray-900">严重+紧急症状</span>
                                 </div>
                               </div>
-                              <div className="text-5xl font-bold text-red-700 mb-2">
+                              <div className="text-5xl font-bold text-gray-900 mb-2">
                                 {breakdown.bodyLanguage.severityBreakdown.emergency + 
                                  breakdown.bodyLanguage.severityBreakdown.severe +
                                  breakdown.symptoms300.severityBreakdown.emergency +
                                  breakdown.symptoms300.severityBreakdown.severe}
                               </div>
-                              <div className="text-xs text-red-600 font-medium">
+                              <div className="text-sm text-red-600 font-semibold">
                                 ⚠️ 需重点关注
                               </div>
                             </div>
 
                             {/* 指数系数卡片 */}
-                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border-2 border-purple-100 hover:shadow-md transition-shadow">
+                            <div className="bg-white rounded-xl p-5 border-2 border-purple-200 shadow-sm hover:shadow-md transition-shadow">
                               <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
-                                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
-                                    <Zap className="w-5 h-5 text-white" />
+                                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <Zap className="w-5 h-5 text-purple-600" />
                                   </div>
-                                  <span className="text-sm font-medium text-purple-800">指数系数</span>
+                                  <span className="text-sm font-semibold text-gray-900">指数系数</span>
                                 </div>
                               </div>
-                              <div className="text-5xl font-bold text-purple-700 mb-2">
+                              <div className="text-5xl font-bold text-gray-900 mb-2">
                                 {Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x
                               </div>
-                              <div className="text-xs text-purple-600">
+                              <div className="text-sm text-gray-600">
                                 基于症状数量调整
                               </div>
                             </div>
@@ -1205,30 +1205,30 @@ export default function AdminDashboardPage() {
                       {/* 三个症状表详情 - 美化版 */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         {/* 身体语言简表 */}
-                        <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-6 border-2 border-purple-100 hover:shadow-lg transition-all duration-300">
+                        <div className="bg-white rounded-xl p-6 border-2 border-purple-200 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
-                                <Activity className="w-6 h-6 text-white" />
+                              <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                <Activity className="w-6 h-6 text-purple-600" />
                               </div>
                               <div>
-                                <div className="text-sm font-semibold text-purple-900">身体语言简表</div>
-                                <div className="text-xs text-purple-600">100项症状</div>
+                                <div className="text-base font-bold text-gray-900">身体语言简表</div>
+                                <div className="text-sm text-gray-600">100项症状</div>
                               </div>
                             </div>
                           </div>
 
                           <div className="text-center mb-4">
-                            <div className="text-5xl font-bold text-purple-700 mb-2">{bodySymptomsCount}</div>
-                            <div className="text-sm text-purple-600">已勾选症状</div>
+                            <div className="text-5xl font-bold text-gray-900 mb-2">{bodySymptomsCount}</div>
+                            <div className="text-sm text-gray-600">已勾选症状</div>
                           </div>
 
                           <div className="mb-4">
-                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                            <div className="flex justify-between text-sm text-gray-700 mb-2">
                               <span>完成度</span>
-                              <span className="font-medium">{bodySymptomsCount}%</span>
+                              <span className="font-semibold text-gray-900">{bodySymptomsCount}%</span>
                             </div>
-                            <div className="w-full bg-white rounded-full h-3 overflow-hidden shadow-inner">
+                            <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
                               <div
                                 className="bg-gradient-to-r from-purple-500 to-violet-600 h-3 rounded-full transition-all duration-500"
                                 style={{ width: `${Math.min(100, bodySymptomsCount)}%` }}
@@ -1236,62 +1236,62 @@ export default function AdminDashboardPage() {
                             </div>
                           </div>
 
-                          <div className="bg-white rounded-lg p-3 space-y-2">
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">权重</span>
-                              <span className="font-bold text-purple-700">1.0</span>
+                          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700">权重</span>
+                              <span className="font-bold text-gray-900">1.0</span>
                             </div>
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">扣分</span>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700">扣分</span>
                               <span className="font-bold text-red-600">{breakdown.bodyLanguage.deduction.toFixed(1)}分</span>
                             </div>
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">系数</span>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700">系数</span>
                               <span className="font-bold text-purple-700">{breakdown.bodyLanguage.factor.toFixed(1)}x</span>
                             </div>
                           </div>
 
                           <div className="mt-3 flex gap-2">
                             {breakdown.bodyLanguage.severityBreakdown.emergency > 0 && (
-                              <div className="flex-1 bg-red-100 rounded-lg p-2 text-center">
-                                <div className="text-xs text-red-600 mb-1">紧急</div>
-                                <div className="text-lg font-bold text-red-700">{breakdown.bodyLanguage.severityBreakdown.emergency}</div>
+                              <div className="flex-1 bg-red-50 rounded-lg p-2 text-center border border-red-200">
+                                <div className="text-xs text-red-700 mb-1 font-medium">紧急</div>
+                                <div className="text-lg font-bold text-red-800">{breakdown.bodyLanguage.severityBreakdown.emergency}</div>
                               </div>
                             )}
                             {breakdown.bodyLanguage.severityBreakdown.severe > 0 && (
-                              <div className="flex-1 bg-orange-100 rounded-lg p-2 text-center">
-                                <div className="text-xs text-orange-600 mb-1">严重</div>
-                                <div className="text-lg font-bold text-orange-700">{breakdown.bodyLanguage.severityBreakdown.severe}</div>
+                              <div className="flex-1 bg-orange-50 rounded-lg p-2 text-center border border-orange-200">
+                                <div className="text-xs text-orange-700 mb-1 font-medium">严重</div>
+                                <div className="text-lg font-bold text-orange-800">{breakdown.bodyLanguage.severityBreakdown.severe}</div>
                               </div>
                             )}
                           </div>
                         </div>
 
                         {/* 不良生活习惯 */}
-                        <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-6 border-2 border-pink-100 hover:shadow-lg transition-all duration-300">
+                        <div className="bg-white rounded-xl p-6 border-2 border-pink-200 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
-                                <AlertCircle className="w-6 h-6 text-white" />
+                              <div className="w-12 h-12 bg-pink-100 rounded-xl flex items-center justify-center">
+                                <AlertCircle className="w-6 h-6 text-pink-600" />
                               </div>
                               <div>
-                                <div className="text-sm font-semibold text-pink-900">不良生活习惯</div>
-                                <div className="text-xs text-pink-600">252项习惯</div>
+                                <div className="text-base font-bold text-gray-900">不良生活习惯</div>
+                                <div className="text-sm text-gray-600">252项习惯</div>
                               </div>
                             </div>
                           </div>
 
                           <div className="text-center mb-4">
-                            <div className="text-5xl font-bold text-pink-700 mb-2">{badHabitsCount}</div>
-                            <div className="text-sm text-pink-600">已勾选习惯</div>
+                            <div className="text-5xl font-bold text-gray-900 mb-2">{badHabitsCount}</div>
+                            <div className="text-sm text-gray-600">已勾选习惯</div>
                           </div>
 
                           <div className="mb-4">
-                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                            <div className="flex justify-between text-sm text-gray-700 mb-2">
                               <span>完成度</span>
-                              <span className="font-medium">{Math.round(badHabitsCount * 100 / 252)}%</span>
+                              <span className="font-semibold text-gray-900">{Math.round(badHabitsCount * 100 / 252)}%</span>
                             </div>
-                            <div className="w-full bg-white rounded-full h-3 overflow-hidden shadow-inner">
+                            <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
                               <div
                                 className="bg-gradient-to-r from-pink-500 to-rose-600 h-3 rounded-full transition-all duration-500"
                                 style={{ width: `${Math.min(100, (badHabitsCount / 252) * 100)}%` }}
@@ -1299,62 +1299,62 @@ export default function AdminDashboardPage() {
                             </div>
                           </div>
 
-                          <div className="bg-white rounded-lg p-3 space-y-2">
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">权重</span>
-                              <span className="font-bold text-pink-700">0.6</span>
+                          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700">权重</span>
+                              <span className="font-bold text-gray-900">0.6</span>
                             </div>
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">扣分</span>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700">扣分</span>
                               <span className="font-bold text-red-600">{breakdown.habits.deduction.toFixed(1)}分</span>
                             </div>
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">系数</span>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700">系数</span>
                               <span className="font-bold text-pink-700">{breakdown.habits.factor.toFixed(1)}x</span>
                             </div>
                           </div>
 
                           <div className="mt-3 flex gap-2">
                             {breakdown.habits.severityBreakdown.moderate > 0 && (
-                              <div className="flex-1 bg-yellow-100 rounded-lg p-2 text-center">
-                                <div className="text-xs text-yellow-600 mb-1">中等</div>
-                                <div className="text-lg font-bold text-yellow-700">{breakdown.habits.severityBreakdown.moderate}</div>
+                              <div className="flex-1 bg-yellow-50 rounded-lg p-2 text-center border border-yellow-200">
+                                <div className="text-xs text-yellow-700 mb-1 font-medium">中等</div>
+                                <div className="text-lg font-bold text-yellow-800">{breakdown.habits.severityBreakdown.moderate}</div>
                               </div>
                             )}
                             {breakdown.habits.severityBreakdown.mild > 0 && (
-                              <div className="flex-1 bg-green-100 rounded-lg p-2 text-center">
-                                <div className="text-xs text-green-600 mb-1">轻微</div>
-                                <div className="text-lg font-bold text-green-700">{breakdown.habits.severityBreakdown.mild}</div>
+                              <div className="flex-1 bg-green-50 rounded-lg p-2 text-center border border-green-200">
+                                <div className="text-xs text-green-700 mb-1 font-medium">轻微</div>
+                                <div className="text-lg font-bold text-green-800">{breakdown.habits.severityBreakdown.mild}</div>
                               </div>
                             )}
                           </div>
                         </div>
 
                         {/* 300症状表 */}
-                        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border-2 border-amber-100 hover:shadow-lg transition-all duration-300">
+                        <div className="bg-white rounded-xl p-6 border-2 border-amber-200 shadow-sm hover:shadow-md transition-shadow">
                           <div className="flex items-center justify-between mb-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl flex items-center justify-center">
-                                <FileText className="w-6 h-6 text-white" />
+                              <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center">
+                                <FileText className="w-6 h-6 text-amber-600" />
                               </div>
                               <div>
-                                <div className="text-sm font-semibold text-amber-900">300症状表</div>
-                                <div className="text-xs text-amber-600">300项症状</div>
+                                <div className="text-base font-bold text-gray-900">300症状表</div>
+                                <div className="text-sm text-gray-600">300项症状</div>
                               </div>
                             </div>
                           </div>
 
                           <div className="text-center mb-4">
-                            <div className="text-5xl font-bold text-amber-700 mb-2">{symptoms300Count}</div>
-                            <div className="text-sm text-amber-600">已勾选症状</div>
+                            <div className="text-5xl font-bold text-gray-900 mb-2">{symptoms300Count}</div>
+                            <div className="text-sm text-gray-600">已勾选症状</div>
                           </div>
 
                           <div className="mb-4">
-                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                            <div className="flex justify-between text-sm text-gray-700 mb-2">
                               <span>完成度</span>
-                              <span className="font-medium">{Math.round(symptoms300Count * 100 / 300)}%</span>
+                              <span className="font-semibold text-gray-900">{Math.round(symptoms300Count * 100 / 300)}%</span>
                             </div>
-                            <div className="w-full bg-white rounded-full h-3 overflow-hidden shadow-inner">
+                            <div className="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
                               <div
                                 className="bg-gradient-to-r from-amber-500 to-yellow-600 h-3 rounded-full transition-all duration-500"
                                 style={{ width: `${Math.min(100, (symptoms300Count / 300) * 100)}%` }}
@@ -1362,32 +1362,32 @@ export default function AdminDashboardPage() {
                             </div>
                           </div>
 
-                          <div className="bg-white rounded-lg p-3 space-y-2">
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">权重</span>
-                              <span className="font-bold text-amber-700">0.8</span>
+                          <div className="bg-gray-50 rounded-lg p-3 space-y-2">
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700">权重</span>
+                              <span className="font-bold text-gray-900">0.8</span>
                             </div>
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">扣分</span>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700">扣分</span>
                               <span className="font-bold text-red-600">{breakdown.symptoms300.deduction.toFixed(1)}分</span>
                             </div>
-                            <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-600">系数</span>
+                            <div className="flex justify-between items-center text-sm">
+                              <span className="text-gray-700">系数</span>
                               <span className="font-bold text-amber-700">{breakdown.symptoms300.factor.toFixed(1)}x</span>
                             </div>
                           </div>
 
                           <div className="mt-3 flex gap-2">
                             {breakdown.symptoms300.severityBreakdown.emergency > 0 && (
-                              <div className="flex-1 bg-red-100 rounded-lg p-2 text-center">
-                                <div className="text-xs text-red-600 mb-1">紧急</div>
-                                <div className="text-lg font-bold text-red-700">{breakdown.symptoms300.severityBreakdown.emergency}</div>
+                              <div className="flex-1 bg-red-50 rounded-lg p-2 text-center border border-red-200">
+                                <div className="text-xs text-red-700 mb-1 font-medium">紧急</div>
+                                <div className="text-lg font-bold text-red-800">{breakdown.symptoms300.severityBreakdown.emergency}</div>
                               </div>
                             )}
                             {breakdown.symptoms300.severityBreakdown.severe > 0 && (
-                              <div className="flex-1 bg-orange-100 rounded-lg p-2 text-center">
-                                <div className="text-xs text-orange-600 mb-1">严重</div>
-                                <div className="text-lg font-bold text-orange-700">{breakdown.symptoms300.severityBreakdown.severe}</div>
+                              <div className="flex-1 bg-orange-50 rounded-lg p-2 text-center border border-orange-200">
+                                <div className="text-xs text-orange-700 mb-1 font-medium">严重</div>
+                                <div className="text-lg font-bold text-orange-800">{breakdown.symptoms300.severityBreakdown.severe}</div>
                               </div>
                             )}
                           </div>
@@ -1395,9 +1395,9 @@ export default function AdminDashboardPage() {
                       </div>
 
                       {/* 深入分析 - 健康状况全面解析 */}
-                      <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 shadow-lg border border-slate-200">
+                      <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                         <div className="flex items-center gap-3 mb-6">
-                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl flex items-center justify-center shadow-lg">
+                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl flex items-center justify-center">
                             <Sparkles className="w-7 h-7 text-white" />
                           </div>
                           <div>
@@ -1410,7 +1410,7 @@ export default function AdminDashboardPage() {
                           {/* 左侧：评分计算详情 */}
                           <div className="space-y-4">
                             {/* 评分计算过程 */}
-                            <div className="bg-white rounded-xl p-5 shadow-sm border border-indigo-100">
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
                               <div className="flex items-center gap-2 mb-4">
                                 <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
                                   <Calculator className="w-5 h-5 text-indigo-600" />
@@ -1419,16 +1419,16 @@ export default function AdminDashboardPage() {
                               </div>
 
                               <div className="space-y-3">
-                                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
+                                <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-indigo-100">
                                   <div>
-                                    <div className="text-sm font-medium text-gray-700">基础分</div>
-                                    <div className="text-xs text-gray-500">满分100分，健康起点</div>
+                                    <div className="text-sm font-semibold text-gray-900">基础分</div>
+                                    <div className="text-xs text-gray-600">满分100分，健康起点</div>
                                   </div>
-                                  <div className="text-2xl font-bold text-indigo-700">100</div>
+                                  <div className="text-2xl font-bold text-gray-900">100</div>
                                 </div>
 
                                 <div className="space-y-2">
-                                  <div className="text-sm font-semibold text-gray-700 mb-2">扣分明细（按严重程度）</div>
+                                  <div className="text-sm font-bold text-gray-900 mb-2">扣分明细（按严重程度）</div>
 
                                   {/* 紧急症状扣分 */}
                                   {(() => {
@@ -1442,9 +1442,9 @@ export default function AdminDashboardPage() {
                                           <div>
                                             <div className="flex items-center gap-2">
                                               <AlertTriangle className="w-4 h-4 text-red-600" />
-                                              <span className="text-sm font-medium text-red-900">紧急症状</span>
+                                              <span className="text-sm font-semibold text-gray-900">紧急症状</span>
                                             </div>
-                                            <div className="text-xs text-red-600 mt-1">{emergencyCount}项 × 5分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
+                                            <div className="text-xs text-gray-600 mt-1">{emergencyCount}项 × 5分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
                                           </div>
                                           <div className="text-xl font-bold text-red-700">-{emergencyDeduction.toFixed(1)}</div>
                                         </div>
@@ -1464,9 +1464,9 @@ export default function AdminDashboardPage() {
                                           <div>
                                             <div className="flex items-center gap-2">
                                               <AlertCircle className="w-4 h-4 text-orange-600" />
-                                              <span className="text-sm font-medium text-orange-900">严重症状</span>
+                                              <span className="text-sm font-semibold text-gray-900">严重症状</span>
                                             </div>
-                                            <div className="text-xs text-orange-600 mt-1">{severeCount}项 × 2分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
+                                            <div className="text-xs text-gray-600 mt-1">{severeCount}项 × 2分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
                                           </div>
                                           <div className="text-xl font-bold text-orange-700">-{severeDeduction.toFixed(1)}</div>
                                         </div>
@@ -1485,9 +1485,9 @@ export default function AdminDashboardPage() {
                                           <div>
                                             <div className="flex items-center gap-2">
                                               <HelpCircle className="w-4 h-4 text-yellow-600" />
-                                              <span className="text-sm font-medium text-yellow-900">中等症状</span>
+                                              <span className="text-sm font-semibold text-gray-900">中等症状</span>
                                             </div>
-                                            <div className="text-xs text-yellow-600 mt-1">{moderateCount}项 × 0.8分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
+                                            <div className="text-xs text-gray-600 mt-1">{moderateCount}项 × 0.8分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
                                           </div>
                                           <div className="text-xl font-bold text-yellow-700">-{moderateDeduction.toFixed(1)}</div>
                                         </div>
@@ -1506,9 +1506,9 @@ export default function AdminDashboardPage() {
                                           <div>
                                             <div className="flex items-center gap-2">
                                               <Info className="w-4 h-4 text-green-600" />
-                                              <span className="text-sm font-medium text-green-900">轻微症状</span>
+                                              <span className="text-sm font-semibold text-gray-900">轻微症状</span>
                                             </div>
-                                            <div className="text-xs text-green-600 mt-1">{mildCount}项 × 0.3分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
+                                            <div className="text-xs text-gray-600 mt-1">{mildCount}项 × 0.3分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
                                           </div>
                                           <div className="text-xl font-bold text-green-700">-{mildDeduction.toFixed(1)}</div>
                                         </div>
@@ -1518,10 +1518,10 @@ export default function AdminDashboardPage() {
                                 </div>
 
                                 {/* 总计 */}
-                                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-900 to-gray-800 rounded-lg text-white">
+                                <div className="flex items-center justify-between p-4 bg-gray-900 rounded-lg text-white">
                                   <div className="flex items-center gap-2">
                                     <TrendingUp className="w-5 h-5" />
-                                    <span className="text-sm font-medium">实际扣分</span>
+                                    <span className="text-sm font-semibold">实际扣分</span>
                                   </div>
                                   <div className="text-3xl font-bold">{totalDeduction.toFixed(1)}分</div>
                                 </div>
@@ -1529,7 +1529,7 @@ export default function AdminDashboardPage() {
                             </div>
 
                             {/* 指数系数说明 */}
-                            <div className="bg-white rounded-xl p-5 shadow-sm border border-purple-100">
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
                               <div className="flex items-center gap-2 mb-4">
                                 <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
                                   <Zap className="w-5 h-5 text-purple-600" />
@@ -1538,9 +1538,9 @@ export default function AdminDashboardPage() {
                               </div>
 
                               <div className="space-y-3">
-                                <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
+                                <div className="p-3 bg-white rounded-lg border border-purple-100">
                                   <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-purple-900">身体语言简表</span>
+                                    <span className="text-sm font-semibold text-gray-900">身体语言简表</span>
                                     <span className="text-lg font-bold text-purple-700">{breakdown.bodyLanguage.factor.toFixed(1)}x</span>
                                   </div>
                                   <div className="text-xs text-gray-600">
@@ -1554,9 +1554,9 @@ export default function AdminDashboardPage() {
                                   </div>
                                 </div>
 
-                                <div className="p-3 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg">
+                                <div className="p-3 bg-white rounded-lg border border-pink-100">
                                   <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-pink-900">不良生活习惯</span>
+                                    <span className="text-sm font-semibold text-gray-900">不良生活习惯</span>
                                     <span className="text-lg font-bold text-pink-700">{breakdown.habits.factor.toFixed(1)}x</span>
                                   </div>
                                   <div className="text-xs text-gray-600">
@@ -1570,9 +1570,9 @@ export default function AdminDashboardPage() {
                                   </div>
                                 </div>
 
-                                <div className="p-3 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg">
+                                <div className="p-3 bg-white rounded-lg border border-amber-100">
                                   <div className="flex items-center justify-between mb-2">
-                                    <span className="text-sm font-medium text-amber-900">300症状表</span>
+                                    <span className="text-sm font-semibold text-gray-900">300症状表</span>
                                     <span className="text-lg font-bold text-amber-700">{breakdown.symptoms300.factor.toFixed(1)}x</span>
                                   </div>
                                   <div className="text-xs text-gray-600">
@@ -1586,9 +1586,9 @@ export default function AdminDashboardPage() {
                                   </div>
                                 </div>
 
-                                <div className="p-3 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-lg border-2 border-violet-200">
+                                <div className="p-3 bg-violet-50 rounded-lg border-2 border-violet-200">
                                   <div className="flex items-center justify-between">
-                                    <span className="text-sm font-semibold text-violet-900">最高系数（影响整体扣分）</span>
+                                    <span className="text-sm font-bold text-gray-900">最高系数（影响整体扣分）</span>
                                     <span className="text-2xl font-bold text-violet-700">{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</span>
                                   </div>
                                 </div>
@@ -1599,7 +1599,7 @@ export default function AdminDashboardPage() {
                           {/* 右侧：健康风险评估和调理建议 */}
                           <div className="space-y-4">
                             {/* 健康风险评估 */}
-                            <div className="bg-white rounded-xl p-5 shadow-sm border border-emerald-100">
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
                               <div className="flex items-center gap-2 mb-4">
                                 <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
                                   <Shield className="w-5 h-5 text-emerald-600" />
@@ -1616,7 +1616,7 @@ export default function AdminDashboardPage() {
                                     'bg-red-50 border-red-200'
                                   }`}>
                                     <div>
-                                      <div className="text-sm text-gray-600 mb-1">风险等级</div>
+                                      <div className="text-sm font-semibold text-gray-900 mb-1">风险等级</div>
                                       <div className={`text-2xl font-bold ${
                                         healthScore >= 80 ? 'text-green-700' :
                                         healthScore >= 60 ? 'text-yellow-700' :
@@ -1649,9 +1649,9 @@ export default function AdminDashboardPage() {
                                   <div className="p-4 bg-red-50 rounded-xl border-2 border-red-200">
                                     <div className="flex items-center gap-2 mb-3">
                                       <AlertTriangle className="w-5 h-5 text-red-600" />
-                                      <span className="font-bold text-red-900">需要立即关注的症状</span>
+                                      <span className="font-bold text-gray-900">需要立即关注的症状</span>
                                     </div>
-                                    <div className="text-sm text-red-700 space-y-1">
+                                    <div className="text-sm text-gray-700 space-y-1">
                                       <p>• 共有 {breakdown.bodyLanguage.severityBreakdown.emergency + breakdown.bodyLanguage.severityBreakdown.severe + breakdown.symptoms300.severityBreakdown.emergency + breakdown.symptoms300.severityBreakdown.severe} 个严重/紧急症状</p>
                                       <p>• 建议优先处理这些症状，避免进一步恶化</p>
                                       <p>• 紧急症状建议就医检查，严重症状需要长期调理</p>
@@ -1663,12 +1663,12 @@ export default function AdminDashboardPage() {
                                 <div className="p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
                                   <div className="flex items-center gap-2 mb-3">
                                     <PieChart className="w-5 h-5 text-blue-600" />
-                                    <span className="font-bold text-blue-900">症状分布分析</span>
+                                    <span className="font-bold text-gray-900">症状分布分析</span>
                                   </div>
                                   <div className="space-y-2">
                                     <div className="flex items-center justify-between text-sm">
                                       <span className="text-gray-700">身体语言简表</span>
-                                      <span className="font-semibold text-purple-700">{bodySymptomsCount}项 ({((bodySymptomsCount / totalSymptoms) * 100).toFixed(1)}%)</span>
+                                      <span className="font-bold text-gray-900">{bodySymptomsCount}项 ({((bodySymptomsCount / totalSymptoms) * 100).toFixed(1)}%)</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-2">
                                       <div
@@ -1679,7 +1679,7 @@ export default function AdminDashboardPage() {
 
                                     <div className="flex items-center justify-between text-sm mt-3">
                                       <span className="text-gray-700">不良生活习惯</span>
-                                      <span className="font-semibold text-pink-700">{badHabitsCount}项 ({((badHabitsCount / totalSymptoms) * 100).toFixed(1)}%)</span>
+                                      <span className="font-bold text-gray-900">{badHabitsCount}项 ({((badHabitsCount / totalSymptoms) * 100).toFixed(1)}%)</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-2">
                                       <div
@@ -1690,7 +1690,7 @@ export default function AdminDashboardPage() {
 
                                     <div className="flex items-center justify-between text-sm mt-3">
                                       <span className="text-gray-700">300症状表</span>
-                                      <span className="font-semibold text-amber-700">{symptoms300Count}项 ({((symptoms300Count / totalSymptoms) * 100).toFixed(1)}%)</span>
+                                      <span className="font-bold text-gray-900">{symptoms300Count}项 ({((symptoms300Count / totalSymptoms) * 100).toFixed(1)}%)</span>
                                     </div>
                                     <div className="w-full bg-gray-200 rounded-full h-2">
                                       <div
@@ -1704,7 +1704,7 @@ export default function AdminDashboardPage() {
                             </div>
 
                             {/* 个性化调理建议 */}
-                            <div className="bg-white rounded-xl p-5 shadow-sm border border-teal-100">
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
                               <div className="flex items-center gap-2 mb-4">
                                 <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
                                   <Target className="w-5 h-5 text-teal-600" />
@@ -1714,7 +1714,7 @@ export default function AdminDashboardPage() {
 
                               <div className="space-y-3">
                                 {recommendations.map((rec: string, idx: number) => (
-                                  <div key={idx} className="p-3 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-l-4 border-teal-500">
+                                  <div key={idx} className="p-3 bg-white rounded-lg border-l-4 border-teal-500">
                                     <div className="flex items-start gap-2">
                                       <div className="w-6 h-6 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                                         <span className="text-xs font-bold text-teal-700">{idx + 1}</span>
@@ -1725,60 +1725,60 @@ export default function AdminDashboardPage() {
                                 ))}
 
                                 {recommendations.length === 0 && (
-                                  <div className="p-4 bg-gray-50 rounded-lg text-center">
-                                    <p className="text-sm text-gray-500">暂无调理建议</p>
+                                  <div className="p-4 bg-white rounded-lg text-center border border-gray-200">
+                                    <p className="text-sm text-gray-600">暂无调理建议</p>
                                   </div>
                                 )}
                               </div>
                             </div>
 
                             {/* 改善路径 */}
-                            <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl p-5 shadow-lg text-white">
+                            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
                               <div className="flex items-center gap-2 mb-4">
-                                <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-                                  <TrendingUp className="w-5 h-5 text-white" />
+                                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                  <TrendingUp className="w-5 h-5 text-indigo-600" />
                                 </div>
-                                <h4 className="font-bold text-lg">健康改善路径</h4>
+                                <h4 className="font-bold text-lg text-gray-900">健康改善路径</h4>
                               </div>
 
                               <div className="space-y-3">
                                 <div className="flex items-start gap-3">
-                                  <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">1</div>
+                                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm text-green-700 border-2 border-green-300">1</div>
                                   <div>
-                                    <div className="font-semibold mb-1">紧急症状处理</div>
-                                    <div className="text-xs opacity-90">优先处理严重和紧急症状，建议就医或专业调理</div>
+                                    <div className="font-bold text-gray-900 mb-1">紧急症状处理</div>
+                                    <div className="text-sm text-gray-600">优先处理严重和紧急症状，建议就医或专业调理</div>
                                   </div>
                                 </div>
 
                                 <div className="flex items-start gap-3">
-                                  <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">2</div>
+                                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm text-yellow-700 border-2 border-yellow-300">2</div>
                                   <div>
-                                    <div className="font-semibold mb-1">生活习惯改善</div>
-                                    <div className="text-xs opacity-90">逐步改正不良生活习惯，从最简单的开始</div>
+                                    <div className="font-bold text-gray-900 mb-1">生活习惯改善</div>
+                                    <div className="text-sm text-gray-600">逐步改正不良生活习惯，从最简单的开始</div>
                                   </div>
                                 </div>
 
                                 <div className="flex items-start gap-3">
-                                  <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">3</div>
+                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm text-blue-700 border-2 border-blue-300">3</div>
                                   <div>
-                                    <div className="font-semibold mb-1">身体调理</div>
-                                    <div className="text-xs opacity-90">通过饮食、运动、作息等全面调理身体</div>
+                                    <div className="font-bold text-gray-900 mb-1">身体调理</div>
+                                    <div className="text-sm text-gray-600">通过饮食、运动、作息等全面调理身体</div>
                                   </div>
                                 </div>
 
                                 <div className="flex items-start gap-3">
-                                  <div className="w-8 h-8 bg-purple-400 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">4</div>
+                                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm text-purple-700 border-2 border-purple-300">4</div>
                                   <div>
-                                    <div className="font-semibold mb-1">持续跟踪</div>
-                                    <div className="text-xs opacity-90">定期自检，记录变化，调整调理方案</div>
+                                    <div className="font-bold text-gray-900 mb-1">持续跟踪</div>
+                                    <div className="text-sm text-gray-600">定期自检，记录变化，调整调理方案</div>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="mt-4 p-3 bg-white/10 backdrop-blur-sm rounded-lg">
+                              <div className="mt-4 p-3 bg-white rounded-lg border border-gray-200">
                                 <div className="flex items-center justify-between">
-                                  <span className="text-sm">预计改善周期</span>
-                                  <span className="text-lg font-bold">3-6个月</span>
+                                  <span className="text-sm font-semibold text-gray-900">预计改善周期</span>
+                                  <span className="text-lg font-bold text-gray-900">3-6个月</span>
                                 </div>
                               </div>
                             </div>
@@ -1790,9 +1790,9 @@ export default function AdminDashboardPage() {
                 })()}
               </div>
 
-              {/* 健康要素分析 - 蓝色渐变背景 */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-sm">
-                <h3 className="font-bold text-xl mb-6 flex items-center text-blue-900">
+              {/* 健康要素分析 */}
+              <div className="bg-white border-l-4 border-blue-500 p-6 rounded-lg shadow-sm border border-gray-200">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-gray-900">
                   <Activity className="h-6 w-6 mr-3 text-blue-600" />
                   健康要素分析
                 </h3>
