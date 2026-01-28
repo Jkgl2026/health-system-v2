@@ -12,7 +12,6 @@ import { Pagination } from '@/components/admin/Pagination';
 import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw, Sparkles, Flame, Heart, Zap, Droplets, BookOpen, AlertTriangle, Calculator, Info, PieChart, Shield } from 'lucide-react';
 import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import UserDetailHorizon from '@/app/admin/user-detail-horizon';
 
 interface UserSummary {
   user: {
@@ -287,147 +286,6 @@ export default function AdminDashboardPage() {
     if (score >= 40) return { label: '一般', color: 'bg-yellow-500' };
     if (score >= 20) return { label: '需关注', color: 'bg-orange-500' };
     return { label: '需改善', color: 'bg-red-500' };
-  };
-
-  // 中医深入分析
-  const analyzeTCMHealth = () => {
-    if (!selectedUser) return null;
-
-    const latestSymptomCheck = getLatestSymptomCheck();
-    const badHabits = selectedUser.requirements?.badHabitsChecklist || [];
-    const symptoms300 = selectedUser.requirements?.symptoms300Checklist || [];
-    const sevenQuestionsAnswers = selectedUser.requirements?.sevenQuestionsAnswers || {};
-
-    // 转换为数字数组
-    const bodySymptomIds = latestSymptomCheck?.checkedSymptoms?.map((id: string) => parseInt(id)) || [];
-    const habitIds = Array.isArray(badHabits) ? badHabits.map((id: any) => parseInt(id)) : [];
-    const symptom300Ids = Array.isArray(symptoms300) ? symptoms300.map((id: any) => parseInt(id)) : [];
-
-    const totalSymptoms = bodySymptomIds.length + habitIds.length + symptom300Ids.length;
-
-    // 将 BAD_HABITS_CHECKLIST 对象转换为扁平数组
-    const allBadHabits = Object.values(BAD_HABITS_CHECKLIST).flat();
-
-    // 体质辨识
-    const getConstitution = () => {
-      if (totalSymptoms < 10) return { type: '平和质', color: 'green', desc: '阴阳气血调和，体态适中，面色红润，精力充沛' };
-      if (totalSymptoms < 20) return { type: '气虚质', color: 'blue', desc: '元气不足，疲乏无力，气短懒言，易出汗，易感冒' };
-      if (totalSymptoms < 30) return { type: '痰湿质', color: 'yellow', desc: '体内湿气重，体型肥胖，胸闷痰多，身重不爽' };
-      if (totalSymptoms < 40) return { type: '湿热质', color: 'orange', desc: '湿热内蕴，面垢油光，易生痤疮，口苦口臭，大便黏滞' };
-      return { type: '血瘀质', color: 'red', desc: '气血运行不畅，肤色晦暗，易有瘀斑，痛经，舌质紫暗' };
-    };
-
-    // 气血状态分析
-    const getQiBloodStatus = () => {
-      const hasFatigue = bodySymptomIds.some(id => [1, 3, 4, 14, 58].includes(id));
-      const hasShortness = bodySymptomIds.some(id => [40, 48].includes(id));
-      const hasPalpitation = bodySymptomIds.some(id => [49].includes(id));
-
-      if (hasFatigue && hasShortness) return { type: '气血两虚', color: 'red', desc: '面色苍白，乏力少气，心悸失眠，动则气喘' };
-      if (hasFatigue && bodySymptomIds.some(id => [55, 57].includes(id))) return { type: '气虚血瘀', color: 'orange', desc: '气短乏力，舌质紫暗，身体疼痛，月经不调' };
-      if (hasPalpitation && bodySymptomIds.some(id => [76, 80].includes(id))) return { type: '气血瘀滞', color: 'pink', desc: '胸胁胀痛，月经不调，舌有瘀斑，心悸怔忡' };
-      return { type: '气血充盈', color: 'green', desc: '面色红润，精力充沛，舌质淡红，脉象有力' };
-    };
-
-    // 脏腑功能评估
-    const getOrganFunction = () => {
-      const organs = [];
-      
-      // 心
-      if (bodySymptomIds.some(id => [49, 50, 5, 10].includes(id))) {
-        organs.push({ organ: '心', status: '异常', color: 'red', symptoms: '心悸、失眠、多梦' });
-      }
-      // 肝
-      if (bodySymptomIds.some(id => [6, 16, 17, 19, 85].includes(id))) {
-        organs.push({ organ: '肝', status: '异常', color: 'orange', symptoms: '易怒、头晕、眼干、视力模糊' });
-      }
-      // 脾
-      if (bodySymptomIds.some(id => [41, 42, 43, 86, 87, 88, 89, 90].includes(id))) {
-        organs.push({ organ: '脾', status: '异常', color: 'yellow', symptoms: '消化不良、腹胀、便溏、口干口苦' });
-      }
-      // 肺
-      if (bodySymptomIds.some(id => [29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40].includes(id))) {
-        organs.push({ organ: '肺', status: '异常', color: 'blue', symptoms: '咳嗽、气短、易感冒、鼻炎' });
-      }
-      // 肾
-      if (bodySymptomIds.some(id => [25, 55, 62, 63, 67].includes(id))) {
-        organs.push({ organ: '肾', status: '异常', color: 'purple', symptoms: '腰酸、耳鸣、畏寒、夜尿多' });
-      }
-
-      if (organs.length === 0) {
-        organs.push({ organ: '五脏', status: '正常', color: 'green', symptoms: '五脏功能正常' });
-      }
-
-      return organs;
-    };
-
-    // 经络状态
-    const getMeridianStatus = () => {
-      const meridians = [];
-
-      // 督脉（脊柱问题）
-      if (bodySymptomIds.some(id => [62, 59].includes(id))) {
-        meridians.push({ meridian: '督脉', status: '不畅', color: 'red', desc: '脊柱问题、阳气不足、颈腰疼痛' });
-      }
-      // 任脉（妇科问题）
-      if (bodySymptomIds.some(id => [76, 77, 78, 79, 80, 81, 82, 83, 84].includes(id))) {
-        meridians.push({ meridian: '任脉', status: '不畅', color: 'pink', desc: '妇科问题、消化问题、月经失调' });
-      }
-      // 冲脉（气血失调）
-      if (bodySymptomIds.some(id => [55, 56, 57, 58].includes(id))) {
-        meridians.push({ meridian: '冲脉', status: '不畅', color: 'orange', desc: '月经问题、气血失调、四肢问题' });
-      }
-      // 带脉（腰腹问题）
-      if (bodySymptomIds.some(id => [63, 91, 96].includes(id))) {
-        meridians.push({ meridian: '带脉', status: '不畅', color: 'yellow', desc: '腰腹问题、湿气重、体型肥胖' });
-      }
-
-      if (meridians.length === 0) {
-        meridians.push({ meridian: '经络', status: '通畅', color: 'green', desc: '经络通畅，气血运行正常' });
-      }
-
-      return meridians;
-    };
-
-    // 阴阳平衡
-    const getYinYangBalance = () => {
-      const hasColdSymptoms = bodySymptomIds.some(id => [4, 5, 42, 55].includes(id)) ||
-                              habitIds.some(id => allBadHabits.some(h => h.id === id && h.habit.includes('生冷')));
-      const hasHeatSymptoms = bodySymptomIds.some(id => [16, 35, 36, 37, 95].includes(id)) ||
-                              habitIds.some(id => allBadHabits.some(h => h.id === id && h.habit.includes('辛辣')));
-
-      if (hasColdSymptoms && hasHeatSymptoms) return { type: '阴阳两虚', color: 'purple', desc: '时而怕冷时而怕热，自汗盗汗，脉象细数' };
-      if (hasHeatSymptoms) return { type: '阳盛阴衰', color: 'red', desc: '面红目赤，烦躁易怒，便秘尿黄，舌红苔黄' };
-      if (hasColdSymptoms) return { type: '阴盛阳衰', color: 'blue', desc: '面色苍白，畏寒肢冷，精神萎靡，舌淡苔白' };
-      return { type: '阴阳平衡', color: 'green', desc: '正常状态，阴阳协调' };
-    };
-
-    // 湿热寒凉
-    const getColdHeatDampness = () => {
-      const hasCold = bodySymptomIds.some(id => [4, 5, 42, 55].includes(id));
-      const hasHeat = bodySymptomIds.some(id => [16, 35, 36, 37, 41, 95].includes(id));
-      const hasDampness = bodySymptomIds.some(id => [11, 39, 68, 69, 70, 91].includes(id)) ||
-                           habitIds.some(id => allBadHabits.some(h => h.id === id && (h.habit.includes('甜') || h.habit.includes('油腻'))));
-      const hasDryness = bodySymptomIds.some(id => [16, 42, 53].includes(id));
-
-      if (hasCold && hasDampness) return { type: '寒湿', color: 'blue', desc: '寒湿内盛，关节冷痛，身体困重，舌淡苔腻' };
-      if (hasHeat && hasDampness) return { type: '湿热', color: 'orange', desc: '湿热内蕴，面垢油光，口苦口臭，大便黏滞' };
-      if (hasCold) return { type: '寒证', color: 'cyan', desc: '畏寒肢冷，面色苍白，舌淡苔白，脉沉紧' };
-      if (hasHeat) return { type: '热证', color: 'red', desc: '发热面赤，口渴喜冷饮，舌红苔黄，脉数有力' };
-      if (hasDampness) return { type: '湿证', color: 'yellow', desc: '头重如裹，胸闷腹胀，舌苔厚腻，身体困重' };
-      if (hasDryness) return { type: '燥证', color: 'amber', desc: '口干咽燥，皮肤干燥，便干尿少，舌红少津' };
-      return { type: '平和', color: 'green', desc: '寒热适中，无明显异常' };
-    };
-
-    return {
-      constitution: getConstitution(),
-      qiBloodStatus: getQiBloodStatus(),
-      organFunction: getOrganFunction(),
-      meridianStatus: getMeridianStatus(),
-      yinYangBalance: getYinYangBalance(),
-      coldHeatDampness: getColdHeatDampness(),
-      totalSymptoms,
-    };
   };
 
   // 计算综合健康评分（使用新的科学评分算法）
@@ -786,12 +644,2310 @@ export default function AdminDashboardPage() {
         </Card>
       </div>
 
-      {/* 用户详情对话框 - 横向布局 */}
-      <UserDetailHorizon
-        user={selectedUser}
-        open={showDetailDialog}
-        onOpenChange={setShowDetailDialog}
-      />
+      {/* 用户详情对话框 */}
+      <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
+        <DialogContent className="w-[95vw] max-w-[1800px] max-h-[97vh] overflow-y-auto p-6">
+          <DialogHeader>
+            <DialogTitle className="text-3xl font-bold">用户详细信息</DialogTitle>
+            <DialogDescription className="text-base">
+              {selectedUser?.user?.name || '未知用户'}的完整健康数据
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedUser && (
+            <div className="space-y-6">
+              {/* 基本信息 */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center text-xl font-bold">
+                    <Users className="h-6 w-6 mr-2" />
+                    基本信息
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="border-2 rounded-lg overflow-hidden shadow-sm">
+                    <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-4 py-3">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-white font-bold text-lg">当前信息</h3>
+                        <span className="text-white/80 text-sm">
+                          {selectedUser.user?.createdAt ? formatDate(selectedUser.user.createdAt) : '-'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-white space-y-3">
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">姓名</span>
+                        <span className="font-semibold">{selectedUser.user?.name || '-'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">手机号</span>
+                        <span className="font-semibold font-mono">{selectedUser.user?.phone || '-'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">年龄</span>
+                        <span className="font-semibold">{selectedUser.user?.age || '-'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">性别</span>
+                        <span className="font-semibold">{selectedUser.user?.gender || '-'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">身高</span>
+                        <span className="font-semibold">{selectedUser.user?.height ? `${selectedUser.user.height} cm` : '-'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">体重</span>
+                        <span className="font-semibold">{selectedUser.user?.weight ? `${selectedUser.user.weight} kg` : '-'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">BMI</span>
+                        <span className="font-semibold">
+                          {selectedUser.user?.bmi && !isNaN(Number(selectedUser.user.bmi))
+                            ? Number(selectedUser.user.bmi).toFixed(1)
+                            : '-'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">血压</span>
+                        <span className="font-semibold">
+                          {selectedUser.user?.bloodPressure
+                            ? `${selectedUser.user.bloodPressure} mmHg`
+                            : '-'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">职业</span>
+                        <span className="font-semibold">{selectedUser.user?.occupation || '-'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">邮箱</span>
+                        <span className="font-semibold">{selectedUser.user?.email || '-'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">注册时间</span>
+                        <span className="font-semibold">{formatDate(selectedUser.user?.createdAt)}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">更新时间</span>
+                        <span className="font-semibold">{selectedUser.user?.updatedAt ? formatDate(selectedUser.user.updatedAt) : '-'}</span>
+                      </div>
+                      <div className="flex justify-between items-center py-2 border-b">
+                        <span className="text-gray-600">账户状态</span>
+                        <span className="font-semibold">
+                          {selectedUser.user?.deletedAt ? (
+                            <Badge className="bg-red-600 text-white">已删除</Badge>
+                          ) : (
+                            <Badge className="bg-green-600 text-white">正常</Badge>
+                          )}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-gray-600">地址</span>
+                        <span className="font-semibold truncate max-w-[60%]" title={selectedUser.user?.address || ''}>
+                          {selectedUser.user?.address || '-'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 综合健康评分 - 紫色渐变背景 */}
+              <div className="bg-gradient-to-br from-purple-50 to-violet-100 border-l-4 border-purple-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-purple-900">
+                  <TrendingUp className="h-6 w-6 mr-3 text-purple-600" />
+                  综合健康评分
+                </h3>
+
+                {(() => {
+                  const healthData = calculateHealthScore();
+                  if (!healthData) {
+                    return (
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-100 text-center">
+                        <Activity className="h-12 w-12 mx-auto text-purple-300 mb-3" />
+                        <p className="text-purple-600 font-medium">暂无健康评分数据</p>
+                        <p className="text-sm text-purple-500 mt-1">用户尚未完成症状自检</p>
+                      </div>
+                    );
+                  }
+
+                  const { healthScore, bodySymptomsCount, badHabitsCount, symptoms300Count, totalSymptoms, breakdown, recommendations, healthStatus, totalDeduction } = healthData;
+
+                  return (
+                    <div className="space-y-6">
+                      {/* 综合健康评分主展示区 */}
+                      <div className="bg-white p-8 rounded-xl shadow-lg border-2 border-purple-100">
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                          {/* 左侧：主评分卡片 - 占据2/3宽度 */}
+                          <div className="lg:col-span-2 bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 rounded-2xl p-8 text-white shadow-2xl">
+                            <div className="flex flex-col lg:flex-row items-center gap-8">
+                              {/* 评分数字和圆形进度 */}
+                              <div className="flex-shrink-0 text-center">
+                                <div className="relative inline-block">
+                                  <div className="w-40 h-40 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                                    <div className="text-center">
+                                      <div className="text-7xl font-bold mb-1 drop-shadow-lg">{healthScore}</div>
+                                      <div className="text-sm opacity-80">分</div>
+                                    </div>
+                                  </div>
+                                  {/* 环形进度条（CSS模拟） */}
+                                  <svg className="absolute top-0 left-0 w-40 h-40 -rotate-90" viewBox="0 0 160 160">
+                                    <circle
+                                      cx="80"
+                                      cy="80"
+                                      r="70"
+                                      fill="none"
+                                      stroke="rgba(255,255,255,0.2)"
+                                      strokeWidth="8"
+                                    />
+                                    <circle
+                                      cx="80"
+                                      cy="80"
+                                      r="70"
+                                      fill="none"
+                                      stroke="white"
+                                      strokeWidth="8"
+                                      strokeLinecap="round"
+                                      strokeDasharray={`${2 * Math.PI * 70}`}
+                                      strokeDashoffset={`${2 * Math.PI * 70 * (1 - healthScore / 100)}`}
+                                    />
+                                  </svg>
+                                </div>
+                              </div>
+
+                              {/* 评分详情和状态 */}
+                              <div className="flex-1 space-y-4">
+                                <div>
+                                  <div className="text-sm font-medium opacity-80 mb-1">综合健康评分</div>
+                                  <div className="text-2xl font-bold">满分 100 分</div>
+                                </div>
+
+                                {/* 健康状态标签 */}
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg">
+                                  <div className={`w-3 h-3 rounded-full ${
+                                    healthScore >= 80 ? 'bg-green-400' :
+                                    healthScore >= 60 ? 'bg-yellow-400' :
+                                    'bg-red-400'
+                                  }`} />
+                                  <span className="font-medium">健康状态：{healthStatus}</span>
+                                </div>
+
+                                {/* 扣分信息 */}
+                                <div className="flex items-center gap-6">
+                                  <div className="text-sm">
+                                    <span className="opacity-70">总扣分：</span>
+                                    <span className="font-bold text-lg ml-1">{totalDeduction.toFixed(1)}分</span>
+                                  </div>
+                                  <div className="text-sm">
+                                    <span className="opacity-70">剩余：</span>
+                                    <span className="font-bold text-lg ml-1">{(100 - healthScore).toFixed(1)}分</span>
+                                  </div>
+                                </div>
+
+                                {/* 评分进度条 */}
+                                <div className="space-y-2">
+                                  <div className="flex justify-between text-xs opacity-80">
+                                    <span>健康评分进度</span>
+                                    <span>{healthScore}%</span>
+                                  </div>
+                                  <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+                                    <div
+                                      className={`h-3 rounded-full transition-all duration-1000 ${
+                                        healthScore >= 80 ? 'bg-green-400' :
+                                        healthScore >= 60 ? 'bg-yellow-400' :
+                                        'bg-red-400'
+                                      }`}
+                                      style={{ width: `${healthScore}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 右侧：关键指标卡片 - 占据1/3宽度 */}
+                          <div className="space-y-4">
+                            {/* 症状总数卡片 */}
+                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-100 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                    <Activity className="w-5 h-5 text-white" />
+                                  </div>
+                                  <span className="text-sm font-medium text-blue-800">症状总数</span>
+                                </div>
+                              </div>
+                              <div className="text-5xl font-bold text-blue-700 mb-2">{totalSymptoms}</div>
+                              <div className="text-xs text-blue-600">
+                                基于三个症状表统计
+                              </div>
+                            </div>
+
+                            {/* 严重症状卡片 */}
+                            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-5 border-2 border-red-100 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
+                                    <AlertTriangle className="w-5 h-5 text-white" />
+                                  </div>
+                                  <span className="text-sm font-medium text-red-800">严重+紧急症状</span>
+                                </div>
+                              </div>
+                              <div className="text-5xl font-bold text-red-700 mb-2">
+                                {breakdown.bodyLanguage.severityBreakdown.emergency + 
+                                 breakdown.bodyLanguage.severityBreakdown.severe +
+                                 breakdown.symptoms300.severityBreakdown.emergency +
+                                 breakdown.symptoms300.severityBreakdown.severe}
+                              </div>
+                              <div className="text-xs text-red-600 font-medium">
+                                ⚠️ 需重点关注
+                              </div>
+                            </div>
+
+                            {/* 指数系数卡片 */}
+                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border-2 border-purple-100 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                                    <Zap className="w-5 h-5 text-white" />
+                                  </div>
+                                  <span className="text-sm font-medium text-purple-800">指数系数</span>
+                                </div>
+                              </div>
+                              <div className="text-5xl font-bold text-purple-700 mb-2">
+                                {Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x
+                              </div>
+                              <div className="text-xs text-purple-600">
+                                基于症状数量调整
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 三个症状表详情 - 美化版 */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* 身体语言简表 */}
+                        <div className="bg-gradient-to-br from-purple-50 to-violet-50 rounded-xl p-6 border-2 border-purple-100 hover:shadow-lg transition-all duration-300">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
+                                <Activity className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-purple-900">身体语言简表</div>
+                                <div className="text-xs text-purple-600">100项症状</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="text-center mb-4">
+                            <div className="text-5xl font-bold text-purple-700 mb-2">{bodySymptomsCount}</div>
+                            <div className="text-sm text-purple-600">已勾选症状</div>
+                          </div>
+
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                              <span>完成度</span>
+                              <span className="font-medium">{bodySymptomsCount}%</span>
+                            </div>
+                            <div className="w-full bg-white rounded-full h-3 overflow-hidden shadow-inner">
+                              <div
+                                className="bg-gradient-to-r from-purple-500 to-violet-600 h-3 rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(100, bodySymptomsCount)}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="bg-white rounded-lg p-3 space-y-2">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">权重</span>
+                              <span className="font-bold text-purple-700">1.0</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">扣分</span>
+                              <span className="font-bold text-red-600">{breakdown.bodyLanguage.deduction.toFixed(1)}分</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">系数</span>
+                              <span className="font-bold text-purple-700">{breakdown.bodyLanguage.factor.toFixed(1)}x</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex gap-2">
+                            {breakdown.bodyLanguage.severityBreakdown.emergency > 0 && (
+                              <div className="flex-1 bg-red-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-red-600 mb-1">紧急</div>
+                                <div className="text-lg font-bold text-red-700">{breakdown.bodyLanguage.severityBreakdown.emergency}</div>
+                              </div>
+                            )}
+                            {breakdown.bodyLanguage.severityBreakdown.severe > 0 && (
+                              <div className="flex-1 bg-orange-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-orange-600 mb-1">严重</div>
+                                <div className="text-lg font-bold text-orange-700">{breakdown.bodyLanguage.severityBreakdown.severe}</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 不良生活习惯 */}
+                        <div className="bg-gradient-to-br from-pink-50 to-rose-50 rounded-xl p-6 border-2 border-pink-100 hover:shadow-lg transition-all duration-300">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-600 rounded-xl flex items-center justify-center">
+                                <AlertCircle className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-pink-900">不良生活习惯</div>
+                                <div className="text-xs text-pink-600">252项习惯</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="text-center mb-4">
+                            <div className="text-5xl font-bold text-pink-700 mb-2">{badHabitsCount}</div>
+                            <div className="text-sm text-pink-600">已勾选习惯</div>
+                          </div>
+
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                              <span>完成度</span>
+                              <span className="font-medium">{Math.round(badHabitsCount * 100 / 252)}%</span>
+                            </div>
+                            <div className="w-full bg-white rounded-full h-3 overflow-hidden shadow-inner">
+                              <div
+                                className="bg-gradient-to-r from-pink-500 to-rose-600 h-3 rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(100, (badHabitsCount / 252) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="bg-white rounded-lg p-3 space-y-2">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">权重</span>
+                              <span className="font-bold text-pink-700">0.6</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">扣分</span>
+                              <span className="font-bold text-red-600">{breakdown.habits.deduction.toFixed(1)}分</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">系数</span>
+                              <span className="font-bold text-pink-700">{breakdown.habits.factor.toFixed(1)}x</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex gap-2">
+                            {breakdown.habits.severityBreakdown.moderate > 0 && (
+                              <div className="flex-1 bg-yellow-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-yellow-600 mb-1">中等</div>
+                                <div className="text-lg font-bold text-yellow-700">{breakdown.habits.severityBreakdown.moderate}</div>
+                              </div>
+                            )}
+                            {breakdown.habits.severityBreakdown.mild > 0 && (
+                              <div className="flex-1 bg-green-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-green-600 mb-1">轻微</div>
+                                <div className="text-lg font-bold text-green-700">{breakdown.habits.severityBreakdown.mild}</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 300症状表 */}
+                        <div className="bg-gradient-to-br from-amber-50 to-yellow-50 rounded-xl p-6 border-2 border-amber-100 hover:shadow-lg transition-all duration-300">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-yellow-600 rounded-xl flex items-center justify-center">
+                                <FileText className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <div className="text-sm font-semibold text-amber-900">300症状表</div>
+                                <div className="text-xs text-amber-600">300项症状</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="text-center mb-4">
+                            <div className="text-5xl font-bold text-amber-700 mb-2">{symptoms300Count}</div>
+                            <div className="text-sm text-amber-600">已勾选症状</div>
+                          </div>
+
+                          <div className="mb-4">
+                            <div className="flex justify-between text-xs text-gray-600 mb-2">
+                              <span>完成度</span>
+                              <span className="font-medium">{Math.round(symptoms300Count * 100 / 300)}%</span>
+                            </div>
+                            <div className="w-full bg-white rounded-full h-3 overflow-hidden shadow-inner">
+                              <div
+                                className="bg-gradient-to-r from-amber-500 to-yellow-600 h-3 rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(100, (symptoms300Count / 300) * 100)}%` }}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="bg-white rounded-lg p-3 space-y-2">
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">权重</span>
+                              <span className="font-bold text-amber-700">0.8</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">扣分</span>
+                              <span className="font-bold text-red-600">{breakdown.symptoms300.deduction.toFixed(1)}分</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-600">系数</span>
+                              <span className="font-bold text-amber-700">{breakdown.symptoms300.factor.toFixed(1)}x</span>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex gap-2">
+                            {breakdown.symptoms300.severityBreakdown.emergency > 0 && (
+                              <div className="flex-1 bg-red-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-red-600 mb-1">紧急</div>
+                                <div className="text-lg font-bold text-red-700">{breakdown.symptoms300.severityBreakdown.emergency}</div>
+                              </div>
+                            )}
+                            {breakdown.symptoms300.severityBreakdown.severe > 0 && (
+                              <div className="flex-1 bg-orange-100 rounded-lg p-2 text-center">
+                                <div className="text-xs text-orange-600 mb-1">严重</div>
+                                <div className="text-lg font-bold text-orange-700">{breakdown.symptoms300.severityBreakdown.severe}</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 深入分析 - 健康状况全面解析 */}
+                      <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <div className="flex items-center gap-3 mb-6">
+                          <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl flex items-center justify-center shadow-lg">
+                            <Sparkles className="w-7 h-7 text-white" />
+                          </div>
+                          <div>
+                            <h3 className="text-2xl font-bold text-gray-900">健康状况全面解析</h3>
+                            <p className="text-sm text-gray-600 mt-1">基于科学评估体系的深度分析报告</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                          {/* 左侧：评分计算详情 */}
+                          <div className="space-y-4">
+                            {/* 评分计算过程 */}
+                            <div className="bg-white rounded-xl p-5 shadow-sm border border-indigo-100">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                                  <Calculator className="w-5 h-5 text-indigo-600" />
+                                </div>
+                                <h4 className="font-bold text-lg text-gray-900">评分计算详解</h4>
+                              </div>
+
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between p-3 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg">
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-700">基础分</div>
+                                    <div className="text-xs text-gray-500">满分100分，健康起点</div>
+                                  </div>
+                                  <div className="text-2xl font-bold text-indigo-700">100</div>
+                                </div>
+
+                                <div className="space-y-2">
+                                  <div className="text-sm font-semibold text-gray-700 mb-2">扣分明细（按严重程度）</div>
+
+                                  {/* 紧急症状扣分 */}
+                                  {(() => {
+                                    const emergencyCount = breakdown.bodyLanguage.severityBreakdown.emergency +
+                                                      breakdown.symptoms300.severityBreakdown.emergency;
+                                    const emergencyDeduction = emergencyCount * 5 *
+                                                              Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]);
+                                    return emergencyCount > 0 ? (
+                                      <div className="p-3 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                                        <div className="flex items-center justify-between">
+                                          <div>
+                                            <div className="flex items-center gap-2">
+                                              <AlertTriangle className="w-4 h-4 text-red-600" />
+                                              <span className="text-sm font-medium text-red-900">紧急症状</span>
+                                            </div>
+                                            <div className="text-xs text-red-600 mt-1">{emergencyCount}项 × 5分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
+                                          </div>
+                                          <div className="text-xl font-bold text-red-700">-{emergencyDeduction.toFixed(1)}</div>
+                                        </div>
+                                      </div>
+                                    ) : null;
+                                  })()}
+
+                                  {/* 严重症状扣分 */}
+                                  {(() => {
+                                    const severeCount = breakdown.bodyLanguage.severityBreakdown.severe +
+                                                     breakdown.symptoms300.severityBreakdown.severe;
+                                    const severeDeduction = severeCount * 2 *
+                                                       Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]);
+                                    return severeCount > 0 ? (
+                                      <div className="p-3 bg-orange-50 border-l-4 border-orange-500 rounded-lg">
+                                        <div className="flex items-center justify-between">
+                                          <div>
+                                            <div className="flex items-center gap-2">
+                                              <AlertCircle className="w-4 h-4 text-orange-600" />
+                                              <span className="text-sm font-medium text-orange-900">严重症状</span>
+                                            </div>
+                                            <div className="text-xs text-orange-600 mt-1">{severeCount}项 × 2分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
+                                          </div>
+                                          <div className="text-xl font-bold text-orange-700">-{severeDeduction.toFixed(1)}</div>
+                                        </div>
+                                      </div>
+                                    ) : null;
+                                  })()}
+
+                                  {/* 中等症状扣分 */}
+                                  {(() => {
+                                    const moderateCount = breakdown.habits.severityBreakdown.moderate;
+                                    const moderateDeduction = moderateCount * 0.8 *
+                                                          Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]);
+                                    return moderateCount > 0 ? (
+                                      <div className="p-3 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+                                        <div className="flex items-center justify-between">
+                                          <div>
+                                            <div className="flex items-center gap-2">
+                                              <HelpCircle className="w-4 h-4 text-yellow-600" />
+                                              <span className="text-sm font-medium text-yellow-900">中等症状</span>
+                                            </div>
+                                            <div className="text-xs text-yellow-600 mt-1">{moderateCount}项 × 0.8分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
+                                          </div>
+                                          <div className="text-xl font-bold text-yellow-700">-{moderateDeduction.toFixed(1)}</div>
+                                        </div>
+                                      </div>
+                                    ) : null;
+                                  })()}
+
+                                  {/* 轻微症状扣分 */}
+                                  {(() => {
+                                    const mildCount = breakdown.habits.severityBreakdown.mild;
+                                    const mildDeduction = mildCount * 0.3 *
+                                                     Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]);
+                                    return mildCount > 0 ? (
+                                      <div className="p-3 bg-green-50 border-l-4 border-green-500 rounded-lg">
+                                        <div className="flex items-center justify-between">
+                                          <div>
+                                            <div className="flex items-center gap-2">
+                                              <Info className="w-4 h-4 text-green-600" />
+                                              <span className="text-sm font-medium text-green-900">轻微症状</span>
+                                            </div>
+                                            <div className="text-xs text-green-600 mt-1">{mildCount}项 × 0.3分/项 × 系数{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</div>
+                                          </div>
+                                          <div className="text-xl font-bold text-green-700">-{mildDeduction.toFixed(1)}</div>
+                                        </div>
+                                      </div>
+                                    ) : null;
+                                  })()}
+                                </div>
+
+                                {/* 总计 */}
+                                <div className="flex items-center justify-between p-4 bg-gradient-to-r from-gray-900 to-gray-800 rounded-lg text-white">
+                                  <div className="flex items-center gap-2">
+                                    <TrendingUp className="w-5 h-5" />
+                                    <span className="text-sm font-medium">实际扣分</span>
+                                  </div>
+                                  <div className="text-3xl font-bold">{totalDeduction.toFixed(1)}分</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 指数系数说明 */}
+                            <div className="bg-white rounded-xl p-5 shadow-sm border border-purple-100">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                                  <Zap className="w-5 h-5 text-purple-600" />
+                                </div>
+                                <h4 className="font-bold text-lg text-gray-900">指数系数解析</h4>
+                              </div>
+
+                              <div className="space-y-3">
+                                <div className="p-3 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium text-purple-900">身体语言简表</span>
+                                    <span className="text-lg font-bold text-purple-700">{breakdown.bodyLanguage.factor.toFixed(1)}x</span>
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    症状数量：{bodySymptomsCount}项 → 系数：{breakdown.bodyLanguage.factor.toFixed(1)}x
+                                  </div>
+                                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className="bg-purple-500 h-2 rounded-full transition-all"
+                                      style={{ width: `${(breakdown.bodyLanguage.factor - 1) / 2 * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="p-3 bg-gradient-to-r from-pink-50 to-rose-50 rounded-lg">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium text-pink-900">不良生活习惯</span>
+                                    <span className="text-lg font-bold text-pink-700">{breakdown.habits.factor.toFixed(1)}x</span>
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    症状数量：{badHabitsCount}项 → 系数：{breakdown.habits.factor.toFixed(1)}x
+                                  </div>
+                                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className="bg-pink-500 h-2 rounded-full transition-all"
+                                      style={{ width: `${(breakdown.habits.factor - 1) / 2 * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="p-3 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-lg">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm font-medium text-amber-900">300症状表</span>
+                                    <span className="text-lg font-bold text-amber-700">{breakdown.symptoms300.factor.toFixed(1)}x</span>
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    症状数量：{symptoms300Count}项 → 系数：{breakdown.symptoms300.factor.toFixed(1)}x
+                                  </div>
+                                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                      className="bg-amber-500 h-2 rounded-full transition-all"
+                                      style={{ width: `${(breakdown.symptoms300.factor - 1) / 2 * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="p-3 bg-gradient-to-r from-violet-50 to-indigo-50 rounded-lg border-2 border-violet-200">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-sm font-semibold text-violet-900">最高系数（影响整体扣分）</span>
+                                    <span className="text-2xl font-bold text-violet-700">{Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 右侧：健康风险评估和调理建议 */}
+                          <div className="space-y-4">
+                            {/* 健康风险评估 */}
+                            <div className="bg-white rounded-xl p-5 shadow-sm border border-emerald-100">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                  <Shield className="w-5 h-5 text-emerald-600" />
+                                </div>
+                                <h4 className="font-bold text-lg text-gray-900">健康风险评估</h4>
+                              </div>
+
+                              <div className="space-y-4">
+                                {/* 风险等级 */}
+                                <div className="p-4 rounded-xl border-2">
+                                  <div className={`flex items-center justify-between ${
+                                    healthScore >= 80 ? 'bg-green-50 border-green-200' :
+                                    healthScore >= 60 ? 'bg-yellow-50 border-yellow-200' :
+                                    'bg-red-50 border-red-200'
+                                  }`}>
+                                    <div>
+                                      <div className="text-sm text-gray-600 mb-1">风险等级</div>
+                                      <div className={`text-2xl font-bold ${
+                                        healthScore >= 80 ? 'text-green-700' :
+                                        healthScore >= 60 ? 'text-yellow-700' :
+                                        'text-red-700'
+                                      }`}>
+                                        {healthScore >= 80 ? '低风险' :
+                                         healthScore >= 60 ? '中等风险' :
+                                         '高风险'}
+                                      </div>
+                                    </div>
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center ${
+                                      healthScore >= 80 ? 'bg-green-100' :
+                                      healthScore >= 60 ? 'bg-yellow-100' :
+                                      'bg-red-100'
+                                    }`}>
+                                      <Shield className={`w-8 h-8 ${
+                                        healthScore >= 80 ? 'text-green-600' :
+                                        healthScore >= 60 ? 'text-yellow-600' :
+                                        'text-red-600'
+                                      }`} />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* 需要关注的症状 */}
+                                {(breakdown.bodyLanguage.severityBreakdown.emergency +
+                                 breakdown.bodyLanguage.severityBreakdown.severe +
+                                 breakdown.symptoms300.severityBreakdown.emergency +
+                                 breakdown.symptoms300.severityBreakdown.severe) > 0 && (
+                                  <div className="p-4 bg-red-50 rounded-xl border-2 border-red-200">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                                      <span className="font-bold text-red-900">需要立即关注的症状</span>
+                                    </div>
+                                    <div className="text-sm text-red-700 space-y-1">
+                                      <p>• 共有 {breakdown.bodyLanguage.severityBreakdown.emergency + breakdown.bodyLanguage.severityBreakdown.severe + breakdown.symptoms300.severityBreakdown.emergency + breakdown.symptoms300.severityBreakdown.severe} 个严重/紧急症状</p>
+                                      <p>• 建议优先处理这些症状，避免进一步恶化</p>
+                                      <p>• 紧急症状建议就医检查，严重症状需要长期调理</p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* 症状分布分析 */}
+                                <div className="p-4 bg-blue-50 rounded-xl border-2 border-blue-200">
+                                  <div className="flex items-center gap-2 mb-3">
+                                    <PieChart className="w-5 h-5 text-blue-600" />
+                                    <span className="font-bold text-blue-900">症状分布分析</span>
+                                  </div>
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between text-sm">
+                                      <span className="text-gray-700">身体语言简表</span>
+                                      <span className="font-semibold text-purple-700">{bodySymptomsCount}项 ({((bodySymptomsCount / totalSymptoms) * 100).toFixed(1)}%)</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                      <div
+                                        className="bg-purple-500 h-2 rounded-full transition-all"
+                                        style={{ width: `${(bodySymptomsCount / totalSymptoms) * 100}%` }}
+                                      />
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-sm mt-3">
+                                      <span className="text-gray-700">不良生活习惯</span>
+                                      <span className="font-semibold text-pink-700">{badHabitsCount}项 ({((badHabitsCount / totalSymptoms) * 100).toFixed(1)}%)</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                      <div
+                                        className="bg-pink-500 h-2 rounded-full transition-all"
+                                        style={{ width: `${(badHabitsCount / totalSymptoms) * 100}%` }}
+                                      />
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-sm mt-3">
+                                      <span className="text-gray-700">300症状表</span>
+                                      <span className="font-semibold text-amber-700">{symptoms300Count}项 ({((symptoms300Count / totalSymptoms) * 100).toFixed(1)}%)</span>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-2">
+                                      <div
+                                        className="bg-amber-500 h-2 rounded-full transition-all"
+                                        style={{ width: `${(symptoms300Count / totalSymptoms) * 100}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* 个性化调理建议 */}
+                            <div className="bg-white rounded-xl p-5 shadow-sm border border-teal-100">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                                  <Target className="w-5 h-5 text-teal-600" />
+                                </div>
+                                <h4 className="font-bold text-lg text-gray-900">个性化调理方案</h4>
+                              </div>
+
+                              <div className="space-y-3">
+                                {recommendations.map((rec: string, idx: number) => (
+                                  <div key={idx} className="p-3 bg-gradient-to-r from-teal-50 to-cyan-50 rounded-lg border-l-4 border-teal-500">
+                                    <div className="flex items-start gap-2">
+                                      <div className="w-6 h-6 bg-teal-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <span className="text-xs font-bold text-teal-700">{idx + 1}</span>
+                                      </div>
+                                      <p className="text-sm text-gray-700 leading-relaxed">{rec}</p>
+                                    </div>
+                                  </div>
+                                ))}
+
+                                {recommendations.length === 0 && (
+                                  <div className="p-4 bg-gray-50 rounded-lg text-center">
+                                    <p className="text-sm text-gray-500">暂无调理建议</p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* 改善路径 */}
+                            <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl p-5 shadow-lg text-white">
+                              <div className="flex items-center gap-2 mb-4">
+                                <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                                  <TrendingUp className="w-5 h-5 text-white" />
+                                </div>
+                                <h4 className="font-bold text-lg">健康改善路径</h4>
+                              </div>
+
+                              <div className="space-y-3">
+                                <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 bg-green-400 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">1</div>
+                                  <div>
+                                    <div className="font-semibold mb-1">紧急症状处理</div>
+                                    <div className="text-xs opacity-90">优先处理严重和紧急症状，建议就医或专业调理</div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">2</div>
+                                  <div>
+                                    <div className="font-semibold mb-1">生活习惯改善</div>
+                                    <div className="text-xs opacity-90">逐步改正不良生活习惯，从最简单的开始</div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">3</div>
+                                  <div>
+                                    <div className="font-semibold mb-1">身体调理</div>
+                                    <div className="text-xs opacity-90">通过饮食、运动、作息等全面调理身体</div>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 bg-purple-400 rounded-full flex items-center justify-center flex-shrink-0 font-bold text-sm">4</div>
+                                  <div>
+                                    <div className="font-semibold mb-1">持续跟踪</div>
+                                    <div className="text-xs opacity-90">定期自检，记录变化，调整调理方案</div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 p-3 bg-white/10 backdrop-blur-sm rounded-lg">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-sm">预计改善周期</span>
+                                  <span className="text-lg font-bold">3-6个月</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* 健康要素分析 - 蓝色渐变背景 */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-100 border-l-4 border-blue-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-blue-900">
+                  <Activity className="h-6 w-6 mr-3 text-blue-600" />
+                  健康要素分析
+                </h3>
+                
+                {(() => {
+                  const latestHealthAnalysis = getLatestHealthAnalysis();
+                  const latestSymptomCheck = getLatestSymptomCheck();
+                  
+                  // 优先使用healthAnalysis数据，如果没有则使用symptomCheck中的elementScores
+                  const healthData = latestHealthAnalysis || 
+                    (latestSymptomCheck?.elementScores ? { 
+                      overallHealth: null,
+                      qiAndBlood: latestSymptomCheck.elementScores.qiAndBlood,
+                      circulation: latestSymptomCheck.elementScores.circulation,
+                      toxins: latestSymptomCheck.elementScores.toxins,
+                      bloodLipids: latestSymptomCheck.elementScores.bloodLipids,
+                      coldness: latestSymptomCheck.elementScores.coldness,
+                      immunity: latestSymptomCheck.elementScores.immunity,
+                      emotions: latestSymptomCheck.elementScores.emotions
+                    } : null);
+                  
+                  return healthData ? (
+                    <div className="space-y-6">
+                      {/* 整体健康总分 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-100 text-center">
+                        <div className="text-sm text-blue-600 mb-2">整体健康总分</div>
+                        <div className="font-bold text-5xl text-blue-700 mb-2">
+                          {(() => {
+                            if (healthData.overallHealth === null || healthData.overallHealth === undefined) {
+                              // 如果没有overallHealth，计算各要素的平均值
+                              const scores = HEALTH_ELEMENTS.map(el => healthData[el.key]).filter(v => v !== null && v !== undefined);
+                              if (scores.length === 0) return '未计算';
+                              const avg = scores.reduce((a: number, b: number) => a + b, 0) / scores.length;
+                              return !isNaN(avg) ? avg.toFixed(1) : '格式错误';
+                            }
+                            const val = Number(healthData.overallHealth);
+                            return !isNaN(val) ? val.toFixed(1) : '格式错误';
+                          })()}
+                        </div>
+                        <div className="text-sm text-blue-500">
+                          基于7个健康要素的综合评估
+                        </div>
+                      </div>
+
+                      {/* 各要素得分卡片 */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {HEALTH_ELEMENTS.map((element) => {
+                          const rawValue = healthData[element.key];
+                          const value = rawValue !== null && rawValue !== undefined ? Number(rawValue) : null;
+                          const score = value !== null && !isNaN(value) ? Math.min(value, 100) : 0;
+                          
+                          return (
+                            <div key={element.key} className="bg-white p-5 rounded-lg shadow-sm border border-blue-100 hover:shadow-md transition-shadow">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className={`w-3 h-3 rounded-full ${element.color}`} />
+                                  <div className="font-bold text-lg text-blue-900">{element.label}</div>
+                                </div>
+                                <div className={`font-bold text-2xl ${element.textColor}`}>
+                                  {value !== null ? `${value} 分` : '未检测'}
+                                </div>
+                              </div>
+                              
+                              {/* 大型进度条 */}
+                              <div className="w-full bg-gray-200 rounded-full h-6 mb-2">
+                                <div
+                                  className={`${element.color} h-6 rounded-full transition-all duration-500 ease-out flex items-center justify-end pr-2`}
+                                  style={{ width: `${score}%` }}
+                                >
+                                  {score > 20 && (
+                                    <span className="text-xs font-bold text-white">
+                                      {Number(score).toFixed(0)}%
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* 状态描述 */}
+                              <div className="text-sm text-gray-600 mt-3">
+                                {score >= 80 ? '优秀' : 
+                                 score >= 60 ? '良好' : 
+                                 score >= 40 ? '一般' : 
+                                 score >= 20 ? '需关注' : '需改善'}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-blue-100 text-center">
+                      <Activity className="h-12 w-12 mx-auto text-blue-300 mb-3" />
+                      <p className="text-blue-600 font-medium">暂无健康分析数据</p>
+                      <p className="text-sm text-blue-500 mt-1">用户尚未完成健康要素分析</p>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              <Separator />
+
+              {/* 症状自检记录 - 绿色渐变背景 */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 border-l-4 border-green-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-green-900">
+                  <FileText className="h-6 w-6 mr-3 text-green-600" />
+                  症状自检记录
+                </h3>
+                
+                {getLatestSymptomCheck() ? (
+                  <div className="space-y-6">
+                    {/* 症状统计卡片 */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
+                        <div className="text-sm text-green-600 mb-1">选中症状数量</div>
+                        <div className="font-bold text-3xl text-green-700">
+                          {getLatestSymptomCheck()!.checkedSymptoms.length} 项
+                        </div>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
+                        <div className="text-sm text-green-600 mb-1">目标症状</div>
+                        <div className="font-bold text-3xl text-green-700">
+                          {getLatestSymptomCheck()?.checkedSymptoms && getLatestSymptomCheck()!.checkedSymptoms.length > 0 
+                            ? `症状ID: ${getLatestSymptomCheck()!.checkedSymptoms[0]}`
+                            : '未设置'}
+                        </div>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
+                        <div className="text-sm text-green-600 mb-1">自检总分</div>
+                        <div className="font-bold text-3xl text-green-700">
+                          {getLatestSymptomCheck()!.totalScore !== null ? getLatestSymptomCheck()!.totalScore : '未计算'}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* 具体症状列表 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-green-100">
+                      <div className="font-semibold text-lg text-green-800 mb-4">选中的症状详情</div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                        {(() => {
+                          const symptomIds = getLatestSymptomCheck()!.checkedSymptoms;
+                          if (!Array.isArray(symptomIds) || symptomIds.length === 0) {
+                            return <div className="col-span-full text-center py-4 text-green-600">暂无选中的症状</div>;
+                          }
+
+                          return symptomIds.map((id: string) => {
+                            const symptomId = parseInt(id);
+                            const symptom = BODY_SYMPTOMS.find((s: any) => s.id === symptomId);
+                            return symptom ? (
+                              <Badge key={symptomId} variant="secondary" className="justify-center py-2 px-3">
+                                #{symptomId} {symptom.name}
+                              </Badge>
+                            ) : null;
+                          });
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* 各要素得分可视化 */}
+                    <div>
+                      <h4 className="font-semibold mb-4 text-green-800">各健康要素得分</h4>
+                      <div className="space-y-4">
+                        {(() => {
+                          const latestSymptomCheck = getLatestSymptomCheck();
+                          if (!latestSymptomCheck?.elementScores) {
+                            return (
+                              <div className="text-center py-4 text-green-600">
+                                <AlertCircle className="h-8 w-8 mx-auto mb-2 text-green-300" />
+                                <p>暂无要素得分数据</p>
+                              </div>
+                            );
+                          }
+
+                          const elementScores = latestSymptomCheck.elementScores;
+                          if (typeof elementScores !== 'object' || elementScores === null) {
+                            return (
+                              <div className="text-center py-4 text-green-600">
+                                <AlertCircle className="h-8 w-8 mx-auto mb-2 text-green-300" />
+                                <p>要素得分数据格式错误</p>
+                              </div>
+                            );
+                          }
+
+                          // 定义健康要素映射（中文到数据库字段）
+                          const healthElementsMap = [
+                            { key: 'qiAndBlood', label: '气血', color: 'bg-red-500', textColor: 'text-red-700' },
+                            { key: 'circulation', label: '循环', color: 'bg-blue-500', textColor: 'text-blue-700' },
+                            { key: 'toxins', label: '毒素', color: 'bg-yellow-500', textColor: 'text-yellow-700' },
+                            { key: 'bloodLipids', label: '血脂', color: 'bg-orange-500', textColor: 'text-orange-700' },
+                            { key: 'coldness', label: '寒凉', color: 'bg-cyan-500', textColor: 'text-cyan-700' },
+                            { key: 'immunity', label: '免疫', color: 'bg-green-500', textColor: 'text-green-700' },
+                            { key: 'emotions', label: '情绪', color: 'bg-purple-500', textColor: 'text-purple-700' },
+                          ];
+
+                          return healthElementsMap.map((element) => {
+                            const score = elementScores[element.key] || 0;
+                            const normalizedScore = Math.min(Math.max(Number(score) || 0, 0), 100);
+                            
+                            return (
+                              <div key={element.key} className="flex items-center gap-4">
+                                <div className={`w-24 text-sm font-medium ${element.textColor}`}>
+                                  {element.label}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="w-full bg-gray-200 rounded-full h-4">
+                                    <div 
+                                      className={`${element.color} h-4 rounded-full transition-all`}
+                                      style={{ width: `${normalizedScore}%` }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className={`w-12 text-right font-bold ${element.textColor}`}>
+                                  {normalizedScore}分
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* 自检时间 */}
+                    <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
+                      <div className="text-sm text-green-600 mb-1">自检时间</div>
+                      <div className="font-bold text-lg">{formatDate(getLatestSymptomCheck()!.checkedAt)}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white p-6 rounded-lg shadow-sm border border-green-100 text-center">
+                    <FileText className="h-12 w-12 mx-auto text-green-300 mb-3" />
+                    <p className="text-green-600 font-medium">暂无症状自检数据</p>
+                    <p className="text-sm text-green-500 mt-1">用户尚未完成症状自检</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 用户选择 - 紫色渐变背景 */}
+              <div className="bg-gradient-to-br from-purple-50 to-violet-100 border-l-4 border-purple-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-purple-900">
+                  <Target className="h-6 w-6 mr-3 text-purple-600" />
+                  方案选择
+                </h3>
+                
+                {getLatestChoice() ? (
+                  <div className="space-y-6">
+                    {/* 方案类型醒目展示 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-100 text-center">
+                      <div className="text-sm text-purple-600 mb-3">已选择方案</div>
+                      <div className="font-bold text-4xl text-purple-700 mb-2">
+                        {getLatestChoice()!.planType}
+                      </div>
+                      <div className="text-sm text-purple-500">
+                        选择时间：{formatDate(getLatestChoice()!.selectedAt)}
+                      </div>
+                    </div>
+
+                    {/* 方案描述清晰展示 */}
+                    {getLatestChoice()!.planDescription && (
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-100">
+                        <div className="font-semibold text-lg text-purple-800 mb-3">方案描述</div>
+                        <div className="text-gray-700 leading-relaxed">
+                          {getLatestChoice()!.planDescription}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 方案特性说明 */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-100 text-center">
+                        <div className="text-sm text-purple-600 mb-1">适用人群</div>
+                        <div className="font-medium text-purple-800">中老年人群</div>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-100 text-center">
+                        <div className="text-sm text-purple-600 mb-1">主要目标</div>
+                        <div className="font-medium text-purple-800">改善循环系统</div>
+                      </div>
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-purple-100 text-center">
+                        <div className="text-sm text-purple-600 mb-1">预计周期</div>
+                        <div className="font-medium text-purple-800">3-6个月</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white p-6 rounded-lg shadow-sm border border-purple-100 text-center">
+                    <Target className="h-12 w-12 mx-auto text-purple-300 mb-3" />
+                    <p className="text-purple-600 font-medium">暂未选择方案</p>
+                    <p className="text-sm text-purple-500 mt-1">用户尚未完成方案选择</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 健康要素分析结果 - 绿色渐变背景 */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 border-l-4 border-green-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-green-900">
+                  <Activity className="h-6 w-6 mr-3 text-green-600" />
+                  健康要素分析结果
+                </h3>
+
+                {selectedUser.healthAnalysis && selectedUser.healthAnalysis.length > 0 ? (
+                  <div className="space-y-4">
+                    {/* 最新分析结果 */}
+                    {selectedUser.healthAnalysis.slice(0, 1).map((analysis) => (
+                      <div key={analysis.id} className="bg-white p-6 rounded-lg shadow-sm border border-green-100">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="font-semibold text-lg text-green-800">最新分析结果</div>
+                          <div className="text-sm text-gray-500">
+                            {formatDate(analysis.analyzedAt)}
+                          </div>
+                        </div>
+
+                        {/* 七个要素的得分 */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          {/* 气血 */}
+                          <div className="bg-gradient-to-br from-red-50 to-pink-50 p-4 rounded-lg border border-red-100">
+                            <div className="text-sm text-red-600 mb-1">气血</div>
+                            <div className="text-2xl font-bold text-red-700 mb-1">
+                              {analysis.qiAndBlood || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-red-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.qiAndBlood || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">营养输送能力</div>
+                          </div>
+
+                          {/* 循环 */}
+                          <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-4 rounded-lg border border-orange-100">
+                            <div className="text-sm text-orange-600 mb-1">循环</div>
+                            <div className="text-2xl font-bold text-orange-700 mb-1">
+                              {analysis.circulation || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-orange-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.circulation || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">微循环通畅程度</div>
+                          </div>
+
+                          {/* 毒素 */}
+                          <div className="bg-gradient-to-br from-yellow-50 to-lime-50 p-4 rounded-lg border border-yellow-100">
+                            <div className="text-sm text-yellow-600 mb-1">毒素</div>
+                            <div className="text-2xl font-bold text-yellow-700 mb-1">
+                              {analysis.toxins || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-yellow-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.toxins || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">体内垃圾毒素积累</div>
+                          </div>
+
+                          {/* 血脂 */}
+                          <div className="bg-gradient-to-br from-green-50 to-teal-50 p-4 rounded-lg border border-green-100">
+                            <div className="text-sm text-green-600 mb-1">血脂</div>
+                            <div className="text-2xl font-bold text-green-700 mb-1">
+                              {analysis.bloodLipids || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-green-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.bloodLipids || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">血液中油脂含量</div>
+                          </div>
+
+                          {/* 寒凉 */}
+                          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 p-4 rounded-lg border border-blue-100">
+                            <div className="text-sm text-blue-600 mb-1">寒凉</div>
+                            <div className="text-2xl font-bold text-blue-700 mb-1">
+                              {analysis.coldness || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-blue-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.coldness || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">体内寒湿气程度</div>
+                          </div>
+
+                          {/* 免疫 */}
+                          <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-lg border border-purple-100">
+                            <div className="text-sm text-purple-600 mb-1">免疫</div>
+                            <div className="text-2xl font-bold text-purple-700 mb-1">
+                              {analysis.immunity || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-purple-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.immunity || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">身体自我防护能力</div>
+                          </div>
+
+                          {/* 情绪 */}
+                          <div className="bg-gradient-to-br from-pink-50 to-rose-50 p-4 rounded-lg border border-pink-100">
+                            <div className="text-sm text-pink-600 mb-1">情绪</div>
+                            <div className="text-2xl font-bold text-pink-700 mb-1">
+                              {analysis.emotions || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-pink-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.emotions || 0) / 20 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">心理状态和情绪管理</div>
+                          </div>
+
+                          {/* 整体健康 */}
+                          <div className="bg-gradient-to-br from-gray-50 to-slate-50 p-4 rounded-lg border border-gray-100">
+                            <div className="text-sm text-gray-600 mb-1">整体健康</div>
+                            <div className="text-2xl font-bold text-gray-700 mb-1">
+                              {analysis.overallHealth || 0}
+                            </div>
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                              <div
+                                className="bg-gray-500 h-2 rounded-full transition-all"
+                                style={{ width: `${Math.min(100, (analysis.overallHealth || 0) / 100 * 100)}%` }}
+                              />
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">综合健康评分</div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* 历史记录 */}
+                    {selectedUser.healthAnalysis.length > 1 && (
+                      <details className="bg-white p-4 rounded-lg shadow-sm border border-green-100">
+                        <summary className="cursor-pointer font-semibold text-sm text-green-700 hover:text-green-900">
+                          📊 查看历史分析记录（共{selectedUser.healthAnalysis.length}次）
+                        </summary>
+                        <div className="mt-4 space-y-2">
+                          {selectedUser.healthAnalysis.slice(1).map((analysis) => (
+                            <div key={analysis.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                              <div className="text-sm">
+                                <span className="font-medium text-gray-700">整体健康：</span>
+                                <span className="font-bold text-gray-900">{analysis.overallHealth}分</span>
+                              </div>
+                              <div className="text-xs text-gray-500">{formatDate(analysis.analyzedAt)}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-white p-6 rounded-lg shadow-sm border border-green-100 text-center">
+                    <Activity className="h-12 w-12 mx-auto text-green-300 mb-3" />
+                    <p className="text-green-600 font-medium">暂无健康要素分析结果</p>
+                    <p className="text-sm text-green-500 mt-1">用户尚未完成健康要素分析</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 四个要求完成情况 - 橙色渐变背景 */}
+              <div className="bg-gradient-to-br from-orange-50 to-amber-100 border-l-4 border-orange-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-orange-900">
+                  <CheckCircle className="h-6 w-6 mr-3 text-orange-600" />
+                  四个要求完成情况
+                </h3>
+                
+                {selectedUser.requirements ? (
+                  <div className="space-y-6">
+                    {/* 总体完成进度条 */}
+                    <div className="bg-white p-6 rounded-lg shadow-sm border border-orange-100">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="font-semibold text-lg text-orange-800">总体完成度</div>
+                        <div className="font-bold text-2xl text-orange-700">
+                          {calculateRequirementsProgress(selectedUser.requirements).toFixed(0)}%
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-4">
+                        <div
+                          className="bg-orange-500 h-4 rounded-full transition-all duration-500 ease-out"
+                          style={{ width: `${calculateRequirementsProgress(selectedUser.requirements)}%` }}
+                        />
+                      </div>
+                      <div className="text-sm text-orange-600 mt-2">
+                        {(() => {
+                          const completed = [
+                            selectedUser.requirements.requirement1Completed,
+                            selectedUser.requirements.requirement2Completed,
+                            selectedUser.requirements.requirement3Completed,
+                            selectedUser.requirements.requirement4Completed,
+                          ].filter(Boolean).length;
+                          return `已完成 ${completed} 个要求，剩余 ${4 - completed} 个`;
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* 四个要求独立卡片 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        { key: 'requirement1Completed', label: '要求一', description: '完成个人信息填写与症状自检' },
+                        { key: 'requirement2Completed', label: '要求二', description: '完成健康要素分析与评估' },
+                        { key: 'requirement3Completed', label: '要求三', description: '选择适合的健康管理方案' },
+                        { key: 'requirement4Completed', label: '要求四', description: '完成所有健康管理要求' },
+                      ].map((req, index) => {
+                        const isCompleted = selectedUser.requirements![req.key as keyof typeof selectedUser.requirements];
+                        
+                        return (
+                          <div key={req.key} className={`bg-white p-5 rounded-lg shadow-sm border ${isCompleted ? 'border-green-200' : 'border-gray-200'} hover:shadow-md transition-shadow`}>
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className={`w-6 h-6 rounded-full flex items-center justify-center ${isCompleted ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                                  {isCompleted ? (
+                                    <CheckCircle className="h-4 w-4" />
+                                  ) : (
+                                    <AlertCircle className="h-4 w-4" />
+                                  )}
+                                </div>
+                                <div className="font-bold text-lg">{req.label}</div>
+                              </div>
+                              <Badge className={`${isCompleted ? 'bg-green-600 text-white' : 'bg-gray-300 text-gray-700'}`}>
+                                {isCompleted ? '✓ 完成' : '○ 未完成'}
+                              </Badge>
+                            </div>
+                            
+                            <div className="text-sm text-gray-600 mb-3">{req.description}</div>
+                            
+                            <div className="text-xs text-gray-500">
+                              {isCompleted ? (
+                                <span className="text-green-600">已完成 - 用户已满足此要求</span>
+                              ) : (
+                                <span className="text-orange-600">待完成 - 用户尚未满足此要求</span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* 完成时间信息 */}
+                    {selectedUser.requirements.completedAt && (
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-100 text-center">
+                        <div className="text-sm text-orange-600 mb-1">全部要求完成时间</div>
+                        <div className="font-bold text-lg">{formatDate(selectedUser.requirements.completedAt)}</div>
+                      </div>
+                    )}
+
+                    {/* 最后更新时间 */}
+                    {selectedUser.requirements.updatedAt && (
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-orange-100 text-center">
+                        <div className="text-sm text-orange-600 mb-1">最后更新时间</div>
+                        <div className="font-bold text-lg">{formatDate(selectedUser.requirements.updatedAt)}</div>
+                      </div>
+                    )}
+
+                    {/* 要求2详细回答 */}
+                    {selectedUser.requirements.requirement2Answers && (
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-orange-100">
+                        <div className="font-semibold text-lg text-orange-800 mb-3">要求二详细回答</div>
+                        <div className="text-gray-700 leading-relaxed">
+                          {(() => {
+                            const answers = selectedUser.requirements.requirement2Answers;
+                            if (typeof answers === 'string') {
+                              return answers;
+                            } else if (typeof answers === 'object' && answers !== null) {
+                              // 如果是对象，格式化为列表
+                              return Object.entries(answers).map(([key, value]) => (
+                                <div key={key} className="mb-3">
+                                  <div className="font-medium text-orange-700 mb-1">{key}:</div>
+                                  <div className="text-gray-600">{String(value)}</div>
+                                </div>
+                              ));
+                            }
+                            return '无详细回答内容';
+                          })()}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-white p-6 rounded-lg shadow-sm border border-orange-100 text-center">
+                    <CheckCircle className="h-12 w-12 mx-auto text-orange-300 mb-3" />
+                    <p className="text-orange-600 font-medium">暂无要求完成数据</p>
+                    <p className="text-sm text-orange-500 mt-1">用户尚未开始完成健康管理要求</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 七问答案 - 始终显示所有问题，标记已回答/未回答 */}
+              <Separator />
+              <div className="bg-gradient-to-br from-indigo-50 to-blue-100 border-l-4 border-indigo-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-indigo-900">
+                  <HelpCircle className="h-6 w-6 mr-3 text-indigo-600" />
+                  健康七问（V2新版）- 全部7个问题
+                </h3>
+
+                <div className="space-y-4">
+                  {/* 调试面板 - 显示原始七问数据 */}
+                  {selectedUser.requirements?.sevenQuestionsAnswers && (
+                    <details className="bg-gray-50 border border-gray-200 rounded-lg">
+                      <summary className="px-4 py-3 cursor-pointer font-semibold text-sm text-gray-700 hover:bg-gray-100">
+                        📊 调试信息 - 七问原始数据（点击展开）
+                      </summary>
+                      <div className="px-4 py-3 border-t border-gray-200">
+                        <pre className="text-xs bg-white p-3 rounded border overflow-auto max-h-60">
+                          {JSON.stringify(selectedUser.requirements.sevenQuestionsAnswers, null, 2)}
+                        </pre>
+                      </div>
+                    </details>
+                  )}
+
+                  {SEVEN_QUESTIONS.map((q, index) => {
+                    const answers = selectedUser.requirements?.sevenQuestionsAnswers;
+
+                    // 尝试多种方式获取答案
+                    let answerData = null;
+                    let answer = null;
+                    let date = null;
+
+                    if (answers) {
+                      // 优先使用字符串ID作为key（因为PostgreSQL JSON类型返回的key通常是字符串）
+                      const stringKey = q.id.toString();
+                      const numericKey = q.id;
+
+                      // 尝试字符串key - 使用 'in' 操作符检查键是否存在
+                      if (stringKey in answers) {
+                        const value = answers[stringKey];
+                        if (typeof value === 'string') {
+                          answer = value;
+                        } else if (typeof value === 'object' && value !== null) {
+                          answerData = value;
+                          answer = answerData?.answer || answerData?.content || answerData?.text;
+                          date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
+                        }
+                      }
+                      // 尝试数字key（备用）
+                      else if (numericKey in answers) {
+                        const value = answers[numericKey];
+                        if (typeof value === 'string') {
+                          answer = value;
+                        } else if (typeof value === 'object' && value !== null) {
+                          answerData = value;
+                          answer = answerData?.answer || answerData?.content || answerData?.text;
+                          date = answerData?.date || answerData?.timestamp || answerData?.createdAt;
+                        }
+                      }
+                      // 数组格式处理
+                      else if (Array.isArray(answers)) {
+                        // 方式1：按索引匹配
+                        if (answers[index]) {
+                          const value = answers[index];
+                          if (typeof value === 'string') {
+                            answer = value;
+                          } else if (typeof value === 'object' && value !== null) {
+                            answer = value?.answer || value?.content || value?.text;
+                            date = value?.date || value?.timestamp || value?.createdAt;
+                          }
+                        }
+                        // 方式2：按question字段匹配
+                        else {
+                          const matched = answers.find((item: any) => 
+                            item?.question === q.question || 
+                            item?.questionId === q.id || 
+                            item?.questionId === q.id.toString()
+                          );
+                          if (matched) {
+                            answer = matched?.answer || matched?.content || matched?.text;
+                            date = matched?.date || matched?.timestamp || matched?.createdAt;
+                          }
+                        }
+                      }
+                    }
+
+                    const hasAnswer = answer !== null && answer !== undefined && answer !== '';
+
+                    return (
+                      <div key={index} className={`bg-white p-5 rounded-lg shadow-sm border ${hasAnswer ? 'border-green-300' : 'border-gray-200'} hover:shadow-md transition-shadow`}>
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${hasAnswer ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}`}>
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-bold text-lg text-indigo-900 mb-2">
+                              {q.question}
+                            </div>
+                            <div className="text-xs text-gray-500 mb-2">
+                              {q.description}
+                            </div>
+                            <div className={`p-3 rounded-lg ${hasAnswer ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'}`}>
+                              {hasAnswer ? (
+                                <div>
+                                  <div className="text-gray-700 leading-relaxed">{answer}</div>
+                                  {date && (
+                                    <div className="text-xs text-green-600 mt-2">
+                                      填写时间：{formatDate(date)}
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-gray-400 text-sm italic">
+                                  未填写
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* 不良生活习惯自检表 - 显示所有252项，标记选中/未选中 */}
+              <div className="bg-gradient-to-br from-pink-50 to-rose-100 border-l-4 border-pink-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-pink-900">
+                  <AlertCircle className="h-6 w-6 mr-3 text-pink-600" />
+                  不良生活习惯自检表（全部252项）
+                </h3>
+
+                <div className="space-y-6">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-pink-100 text-center">
+                    <div className="text-sm text-pink-600 mb-1">已选中 / 总计</div>
+                    <div className="font-bold text-3xl text-pink-700">
+                      {(() => {
+                        const habitIds = selectedUser.requirements?.badHabitsChecklist || [];
+                        const totalHabits = Object.values(BAD_HABITS_CHECKLIST).flat().length;
+                        return `${Array.isArray(habitIds) ? habitIds.length : 0} / ${totalHabits}`;
+                      })()}
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const habitIds = selectedUser.requirements?.badHabitsChecklist || [];
+                    const habitSet = new Set(Array.isArray(habitIds) ? habitIds : []);
+
+                    return Object.entries(BAD_HABITS_CHECKLIST).map(([category, habits]) => (
+                      <div key={category} className="bg-white p-6 rounded-lg shadow-sm border border-pink-100">
+                        <h4 className="font-semibold text-pink-700 mb-4">{category} ({habits.length}项)</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {habits.map((habit: any) => {
+                            const isSelected = habitSet.has(habit.id);
+                            return (
+                              <div key={habit.id} className={`p-3 rounded-lg border-2 ${isSelected ? 'bg-pink-50 border-pink-400' : 'bg-gray-50 border-gray-200'}`}>
+                                <div className="flex items-start gap-2">
+                                  <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${isSelected ? 'bg-pink-500' : 'bg-gray-300'}`}>
+                                    {isSelected ? (
+                                      <CheckCircle className="w-3 h-3 text-white" />
+                                    ) : null}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className={`font-medium text-sm ${isSelected ? 'text-pink-900' : 'text-gray-600'}`}>
+                                      #{habit.id} {habit.habit}
+                                    </div>
+                                    {habit.impact && (
+                                      <div className="text-xs text-red-600 mt-1">{habit.impact}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* 身体语言简表（100项）- 显示所有症状，标记选中/未选中 */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-100 border-l-4 border-green-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-green-900">
+                  <FileText className="h-6 w-6 mr-3 text-green-600" />
+                  身体语言简表（全部100项）
+                </h3>
+
+                <div className="space-y-6">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-green-100 text-center">
+                    <div className="text-sm text-green-600 mb-1">已选中 / 总计</div>
+                    <div className="font-bold text-3xl text-green-700">
+                      {(() => {
+                        const latestSymptomCheck = getLatestSymptomCheck();
+                        const symptomIds = latestSymptomCheck?.checkedSymptoms || [];
+                        return `${symptomIds.length} / ${BODY_SYMPTOMS.length}`;
+                      })()}
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const latestSymptomCheck = getLatestSymptomCheck();
+                    const symptomIds = latestSymptomCheck?.checkedSymptoms || [];
+                    const symptomSet = new Set(symptomIds.map((id: string) => parseInt(id)));
+
+                    // 按类别分组
+                    const symptomsByCategory = BODY_SYMPTOMS.reduce((acc, symptom) => {
+                      if (!acc[symptom.category]) acc[symptom.category] = [];
+                      acc[symptom.category].push(symptom);
+                      return acc;
+                    }, {} as Record<string, any[]>);
+
+                    return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
+                      <div key={category} className="bg-white p-6 rounded-lg shadow-sm border border-green-100">
+                        <h4 className="font-semibold text-green-700 mb-4">{category} ({symptoms.length}项)</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {symptoms.map((symptom: any) => {
+                            const isSelected = symptomSet.has(symptom.id);
+                            return (
+                              <div key={symptom.id} className={`p-3 rounded-lg border-2 ${isSelected ? 'bg-green-50 border-green-400' : 'bg-gray-50 border-gray-200'}`}>
+                                <div className="flex items-start gap-2">
+                                  <div className={`w-5 h-5 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${isSelected ? 'bg-green-500' : 'bg-gray-300'}`}>
+                                    {isSelected ? (
+                                      <CheckCircle className="w-3 h-3 text-white" />
+                                    ) : null}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className={`font-medium text-sm ${isSelected ? 'text-green-900' : 'text-gray-600'}`}>
+                                      #{symptom.id} {symptom.name}
+                                    </div>
+                                    {symptom.description && (
+                                      <div className="text-xs text-green-600 mt-1">{symptom.description}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* 300项症状自检表 - 显示所有症状，标记选中/未选中 */}
+              <div className="bg-gradient-to-br from-amber-50 to-yellow-100 border-l-4 border-amber-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-amber-900">
+                  <FileText className="h-6 w-6 mr-3 text-amber-600" />
+                  300项症状自检表（全部300项）
+                </h3>
+
+                <div className="space-y-6">
+                  <div className="bg-white p-4 rounded-lg shadow-sm border border-amber-100 text-center">
+                    <div className="text-sm text-amber-600 mb-1">已选中 / 总计</div>
+                    <div className="font-bold text-3xl text-amber-700">
+                      {(() => {
+                        const symptomIds = selectedUser.requirements?.symptoms300Checklist || [];
+                        return `${Array.isArray(symptomIds) ? symptomIds.length : 0} / ${BODY_SYMPTOMS_300.length}`;
+                      })()}
+                    </div>
+                  </div>
+
+                  {(() => {
+                    const symptomIds = selectedUser.requirements?.symptoms300Checklist || [];
+                    const symptomSet = new Set(Array.isArray(symptomIds) ? symptomIds : []);
+
+                    // 按类别分组
+                    const symptomsByCategory = BODY_SYMPTOMS_300.reduce((acc, symptom) => {
+                      if (!acc[symptom.category]) acc[symptom.category] = [];
+                      acc[symptom.category].push(symptom);
+                      return acc;
+                    }, {} as Record<string, any[]>);
+
+                    return Object.entries(symptomsByCategory).map(([category, symptoms]) => (
+                      <div key={category} className="bg-white p-6 rounded-lg shadow-sm border border-amber-100">
+                        <h4 className="font-semibold text-amber-700 mb-4">{category} ({symptoms.length}项)</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
+                          {symptoms.map((symptom: any) => {
+                            const isSelected = symptomSet.has(symptom.id);
+                            return (
+                              <div key={symptom.id} className={`p-2 rounded-lg border-2 ${isSelected ? 'bg-amber-50 border-amber-400' : 'bg-gray-50 border-gray-200'}`}>
+                                <div className="flex items-start gap-2">
+                                  <div className={`w-4 h-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 ${isSelected ? 'bg-amber-500' : 'bg-gray-300'}`}>
+                                    {isSelected ? (
+                                      <CheckCircle className="w-2.5 h-2.5 text-white" />
+                                    ) : null}
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className={`font-medium text-xs ${isSelected ? 'text-amber-900' : 'text-gray-600'}`}>
+                                      #{symptom.id} {symptom.name}
+                                    </div>
+                                    {symptom.description && (
+                                      <div className="text-xs text-purple-600 mt-0.5 leading-tight">{symptom.description}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* 个性化健康管理方案 - 红色渐变背景 */}
+              <div className="bg-gradient-to-br from-red-50 to-rose-100 border-l-4 border-red-500 p-6 rounded-lg shadow-sm">
+                <h3 className="font-bold text-xl mb-6 flex items-center text-red-900">
+                  <Sparkles className="h-6 w-6 mr-3 text-red-600" />
+                  个性化健康管理方案
+                </h3>
+
+                {(() => {
+                  const latestSymptomCheck = getLatestSymptomCheck();
+                  const latestAnalysis = getLatestHealthAnalysis();
+                  const latestChoice = getLatestChoice();
+
+                  if (!latestSymptomCheck && !latestAnalysis && !latestChoice) {
+                    return (
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100 text-center">
+                        <Sparkles className="h-12 w-12 mx-auto text-red-300 mb-3" />
+                        <p className="text-red-600 font-medium">暂无个性化方案数据</p>
+                        <p className="text-sm text-red-500 mt-1">用户尚未完成健康自检，无法生成个性化方案</p>
+                      </div>
+                    );
+                  }
+
+                  // 计算主要健康要素
+                  const symptomIds = latestSymptomCheck?.checkedSymptoms || [];
+                  const selectedSymptoms = symptomIds.map((id: string) => parseInt(id));
+                  
+                  const getPrimaryElements = () => {
+                    if (!latestSymptomCheck?.elementScores) return [];
+                    const elementScores = latestSymptomCheck.elementScores as Record<string, number>;
+                    return Object.entries(elementScores)
+                      .filter(([_, count]) => count > 0)
+                      .sort((a, b) => (b[1] as number) - (a[1] as number))
+                      .slice(0, 3)
+                      .map(([name, count]) => ({ name, count: Number(count) }));
+                  };
+
+                  const primaryElements = getPrimaryElements();
+
+                  // 计算重点改善症状
+                  const getTargetSymptoms = () => {
+                    if (!selectedSymptoms || selectedSymptoms.length === 0) return [];
+                    // 取选中症状的前5个作为重点症状
+                    return selectedSymptoms.slice(0, 5).map((id: number) => BODY_SYMPTOMS.find(s => s.id === id)).filter(Boolean);
+                  };
+
+                  const targetSymptoms = getTargetSymptoms();
+
+                  // 计算推荐的调理产品
+                  const getRecommendedProducts = () => {
+                    const products: any[] = [];
+                    const elementNames = primaryElements.map(el => el.name);
+
+                    // 艾灸 - 适合气血、寒凉、循环问题
+                    if (elementNames.includes('气血') || elementNames.includes('寒凉') || elementNames.includes('循环')) {
+                      products.push({
+                        name: '艾灸调理',
+                        description: '通过艾灸穴位，温通经络，调和气血，驱寒除湿，改善寒凉和气血不足问题',
+                        icon: Activity,
+                        color: 'from-orange-500 to-red-500',
+                        matchScore: 5,
+                        reasons: [
+                          '温通经络，促进气血运行',
+                          '驱寒除湿，改善寒凉体质',
+                          '增强免疫力，提升身体自愈能力',
+                          '调理慢性炎症，缓解疼痛'
+                        ]
+                      });
+                    }
+
+                    // 火灸 - 适合气血、毒素、循环问题
+                    if (elementNames.includes('气血') || elementNames.includes('毒素') || elementNames.includes('循环')) {
+                      products.push({
+                        name: '火灸调理',
+                        description: '以火之力，温阳散寒，活血化瘀，祛除体内毒素和淤堵',
+                        icon: Flame,
+                        color: 'from-red-500 to-orange-600',
+                        matchScore: 5,
+                        reasons: [
+                          '强力活血化瘀，疏通经络',
+                          '温阳补气，提升身体能量',
+                          '祛除毒素，净化体内环境',
+                          '改善循环，促进新陈代谢'
+                        ]
+                      });
+                    }
+
+                    // 正骨 - 适合骨骼、肌肉、循环问题
+                    if (elementNames.includes('循环') || elementNames.includes('气血') || 
+                        selectedSymptoms.some((s: number) => [30, 31, 32, 33, 34, 35, 60, 61, 62, 63].includes(s))) {
+                      products.push({
+                        name: '正骨调理',
+                        description: '通过手法矫正骨骼位置，恢复脊柱生理曲度，改善神经受压和循环障碍',
+                        icon: Target,
+                        color: 'from-blue-500 to-purple-500',
+                        matchScore: 4,
+                        reasons: [
+                          '矫正骨骼位置，恢复脊柱健康',
+                          '解除神经压迫，缓解疼痛',
+                          '改善循环，促进气血运行',
+                          '矫正体态，提升整体健康'
+                        ]
+                      });
+                    }
+
+                    // 空腹禅 - 身心调理，适合情绪、毒素、气血问题
+                    if (elementNames.includes('情绪') || elementNames.includes('毒素') || elementNames.includes('气血') || elementNames.includes('血脂')) {
+                      products.push({
+                        name: '空腹禅调理',
+                        description: '通过空腹禅修，净化身心，清理毒素，调和气血，平衡情绪',
+                        icon: Heart,
+                        color: 'from-green-500 to-teal-500',
+                        matchScore: 4,
+                        reasons: [
+                          '净化身心，清理体内毒素',
+                          '调和气血，提升生命能量',
+                          '平衡情绪，释放心理压力',
+                          '改善睡眠，提升整体健康'
+                        ]
+                      });
+                    }
+
+                    // 经络调理 - 适合循环、气血、毒素问题
+                    if (elementNames.includes('循环') || elementNames.includes('气血') || elementNames.includes('毒素')) {
+                      products.push({
+                        name: '经络调理',
+                        description: '通过疏通经络，促进气血运行，清除淤堵，恢复身体平衡',
+                        icon: Zap,
+                        color: 'from-yellow-500 to-orange-500',
+                        matchScore: 4,
+                        reasons: [
+                          '疏通经络，恢复气血运行',
+                          '清除淤堵，改善循环',
+                          '调和脏腑功能，增强免疫力',
+                          '缓解疼痛，提升生活质量'
+                        ]
+                      });
+                    }
+
+                    // 药王产品 - 综合调理
+                    products.push({
+                      name: '药王产品',
+                      description: '传统药王配方产品，针对性调理您的健康问题，标本兼治',
+                      icon: Droplets,
+                      color: 'from-green-600 to-emerald-500',
+                      matchScore: 3,
+                      reasons: [
+                        '天然药材，安全有效',
+                        '传统配方，传承千年',
+                        '标本兼治，综合调理',
+                        '个性化定制，精准调理'
+                      ]
+                    });
+
+                    return products.sort((a, b) => b.matchScore - a.matchScore);
+                  };
+
+                  const recommendedProducts = getRecommendedProducts();
+
+                  // 推荐的学习课程
+                  const getRecommendedCourses = () => {
+                    return TWENTY_ONE_COURSES.map((course: any) => {
+                      let relevance: 'high' | 'medium' | 'low' = 'low';
+                      const primaryElementNames = primaryElements.map(el => el.name);
+
+                      if (primaryElementNames.length > 0) {
+                        if (primaryElementNames.includes('气血') && course.title.includes('气血')) relevance = 'high';
+                        else if (primaryElementNames.includes('循环') && course.title.includes('循环')) relevance = 'high';
+                        else if (primaryElementNames.includes('毒素') && course.title.includes('毒素')) relevance = 'high';
+                        else if (primaryElementNames.includes('寒凉') && course.title.includes('寒')) relevance = 'high';
+                        else if (primaryElementNames.includes('免疫') && course.title.includes('免疫')) relevance = 'high';
+                        else if (primaryElementNames.includes('情绪') && course.title.includes('情绪')) relevance = 'high';
+                        else if (primaryElementNames.includes('血脂') && course.title.includes('血脂')) relevance = 'high';
+                        else relevance = 'medium';
+                      }
+
+                      return { ...course, relevance };
+                    }).sort((a: any, b: any) => {
+                      const relevanceOrder: Record<string, number> = { high: 3, medium: 2, low: 1 };
+                      return relevanceOrder[b.relevance] - relevanceOrder[a.relevance];
+                    });
+                  };
+
+                  const recommendedCourses = getRecommendedCourses();
+
+                  // 分阶段调理计划
+                  const getPhasedPlan = () => {
+                    const plan = {
+                      foundation: {
+                        name: '基础期（第1-2个月）',
+                        goals: ['调理体质', '建立健康习惯', '改善症状'],
+                        actions: [] as string[]
+                      },
+                      enhancement: {
+                        name: '强化期（第3-4个月）',
+                        goals: ['强化疗效', '深度调理', '巩固成果'],
+                        actions: [] as string[]
+                      },
+                      consolidation: {
+                        name: '巩固期（第5-6个月）',
+                        goals: ['巩固疗效', '维持健康', '预防复发'],
+                        actions: [] as string[]
+                      }
+                    };
+
+                    // 根据健康要素添加具体建议
+                    const elementNames = primaryElements.map(el => el.name);
+                    
+                    if (elementNames.includes('气血')) {
+                      plan.foundation.actions.push('食用补气血食物（红枣、桂圆、山药等）');
+                      plan.foundation.actions.push('保证充足睡眠，每晚23:00前入睡');
+                      plan.enhancement.actions.push('适当运动，促进气血生成');
+                      plan.consolidation.actions.push('定期食用药膳，维持气血充盈');
+                    }
+
+                    if (elementNames.includes('循环')) {
+                      plan.foundation.actions.push('温水泡脚，改善末梢循环');
+                      plan.foundation.actions.push('每天运动30分钟，促进血液循环');
+                      plan.enhancement.actions.push('定期按摩推拿，疏通经络');
+                      plan.consolidation.actions.push('坚持运动习惯，保持循环通畅');
+                    }
+
+                    if (elementNames.includes('毒素')) {
+                      plan.foundation.actions.push('每天喝足够的水（2000ml以上）');
+                      plan.foundation.actions.push('多吃纤维食物，促进肠道排毒');
+                      plan.enhancement.actions.push('定期运动出汗，促进皮肤排毒');
+                      plan.consolidation.actions.push('养成健康饮食习惯，避免毒素积累');
+                    }
+
+                    if (elementNames.includes('寒凉')) {
+                      plan.foundation.actions.push('温热饮食，少食生冷');
+                      plan.foundation.actions.push('注意保暖，避免寒气入侵');
+                      plan.enhancement.actions.push('艾灸调理，温阳散寒');
+                      plan.consolidation.actions.push('继续温热饮食，保持身体温暖');
+                    }
+
+                    if (elementNames.includes('免疫')) {
+                      plan.foundation.actions.push('保证充足睡眠，修复免疫系统');
+                      plan.foundation.actions.push('均衡营养，补充维生素矿物质');
+                      plan.enhancement.actions.push('适量运动，激活免疫细胞');
+                      plan.consolidation.actions.push('保持健康生活方式，维持免疫力');
+                    }
+
+                    if (elementNames.includes('情绪')) {
+                      plan.foundation.actions.push('学习情绪管理技巧');
+                      plan.foundation.actions.push('适度运动，释放压力');
+                      plan.enhancement.actions.push('练习冥想，平衡心态');
+                      plan.consolidation.actions.push('保持积极心态，学会自我调节');
+                    }
+
+                    if (elementNames.includes('血脂')) {
+                      plan.foundation.actions.push('低脂饮食，减少饱和脂肪摄入');
+                      plan.foundation.actions.push('增加运动，促进脂肪消耗');
+                      plan.enhancement.actions.push('控制体重，减少内脏脂肪');
+                      plan.consolidation.actions.push('定期体检，监测血脂水平');
+                    }
+
+                    return plan;
+                  };
+
+                  const phasedPlan = getPhasedPlan();
+
+                  return (
+                    <div className="space-y-8">
+                      {/* 健康状况总结 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100">
+                        <h4 className="font-bold text-lg text-red-800 mb-4">健康状况总结</h4>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {/* 重点改善症状 */}
+                          {targetSymptoms.length > 0 && (
+                            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                              <h5 className="text-base font-semibold mb-3 text-gray-900 dark:text-white flex items-center">
+                                <Target className="w-5 h-5 mr-2 text-blue-600" />
+                                重点改善症状
+                              </h5>
+                              <div className="space-y-2">
+                                {targetSymptoms.map((symptom: any, index: number) => (
+                                  <div key={index} className="flex items-center gap-2">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span className="text-sm font-medium text-gray-700">#{symptom.id} {symptom.name}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* 主要健康要素 */}
+                          {primaryElements.length > 0 && (
+                            <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+                              <h5 className="text-base font-semibold mb-3 text-gray-900 dark:text-white flex items-center">
+                                <Activity className="w-5 h-5 mr-2 text-purple-600" />
+                                主要健康要素
+                              </h5>
+                              <div className="space-y-2">
+                                {primaryElements.map((el: any, index: number) => (
+                                  <div key={index} className="flex items-center justify-between">
+                                    <span className="text-sm font-medium text-gray-700">{el.name}</span>
+                                    <Badge variant="secondary" className="text-xs">{el.count} 项症状</Badge>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* 方案类型 */}
+                        {latestChoice && (
+                          <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg border-2 border-orange-200 dark:border-orange-800">
+                            <h5 className="text-base font-semibold mb-2 text-gray-700 dark:text-gray-300">选择方案</h5>
+                            <p className="text-lg font-bold text-orange-700 dark:text-orange-400">
+                              {latestChoice.planType}
+                            </p>
+                            {latestChoice.planDescription && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">{latestChoice.planDescription}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* 推荐调理产品 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100">
+                        <h4 className="font-bold text-lg text-red-800 mb-4 flex items-center">
+                          <Target className="w-5 h-5 mr-2 text-red-600" />
+                          推荐调理产品
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {recommendedProducts.map((product, index) => {
+                            const Icon = product.icon;
+                            return (
+                              <div key={index} className="border-2 border-gray-100 dark:border-gray-800 hover:shadow-lg transition-shadow rounded-lg p-4">
+                                <div className="flex items-center space-x-3 mb-3">
+                                  <div className={`w-10 h-10 bg-gradient-to-br ${product.color} rounded-lg flex items-center justify-center`}>
+                                    <Icon className="w-5 h-5 text-white" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="font-semibold text-base">{product.name}</div>
+                                    <Badge variant="secondary" className="text-xs mt-1">
+                                      匹配度: {Math.min(95, 70 + product.matchScore * 5)}%
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <p className="text-xs text-gray-700 dark:text-gray-300 mb-2">
+                                  {product.description}
+                                </p>
+                                <div className="space-y-1">
+                                  <p className="text-xs font-semibold text-gray-900 dark:text-white">调理作用：</p>
+                                  {product.reasons.map((reason: string, idx: number) => (
+                                    <p key={idx} className="text-xs text-gray-600 dark:text-gray-400 flex items-start">
+                                      <span className="text-green-500 mr-1">•</span>
+                                      {reason}
+                                    </p>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 推荐学习课程 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100">
+                        <h4 className="font-bold text-lg text-red-800 mb-4 flex items-center">
+                          <BookOpen className="w-5 h-5 mr-2 text-red-600" />
+                          推荐学习课程
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                          {recommendedCourses.slice(0, 9).map((course: any) => (
+                            <div key={course.id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                              <div className="flex items-center justify-between mb-2">
+                                <Badge variant="secondary" className="text-xs">
+                                  第{course.id}课
+                                </Badge>
+                                {course.relevance === 'high' && (
+                                  <Badge className="text-xs bg-red-500">重点</Badge>
+                                )}
+                              </div>
+                              <div className="font-semibold text-sm mb-1">{course.title}</div>
+                              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                {course.content}
+                              </p>
+                              <div className="text-xs text-gray-500 dark:text-gray-400">
+                                📚 {course.duration}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 分阶段调理计划 */}
+                      <div className="bg-white p-6 rounded-lg shadow-sm border border-red-100">
+                        <h4 className="font-bold text-lg text-red-800 mb-4 flex items-center">
+                          <CheckCircle className="w-5 h-5 mr-2 text-red-600" />
+                          分阶段调理计划
+                        </h4>
+                        <div className="space-y-6">
+                          {/* 基础期 */}
+                          <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border-2 border-green-200 dark:border-green-800">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="font-bold text-base text-green-800">{phasedPlan.foundation.name}</h5>
+                              <Badge className="bg-green-600 text-white text-xs">第一阶段</Badge>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-green-700 mb-2">主要目标：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.foundation.goals.map((goal: string, idx: number) => (
+                                    <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                      <span className="text-green-500 mr-1">✓</span>
+                                      {goal}
+                                    </p>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-green-700 mb-2">具体措施：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.foundation.actions.length > 0 ? (
+                                    phasedPlan.foundation.actions.map((action: string, idx: number) => (
+                                      <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                        <span className="text-green-500 mr-1">•</span>
+                                        {action}
+                                      </p>
+                                    ))
+                                  ) : (
+                                    <p className="text-xs text-gray-500 italic">暂无具体措施</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 强化期 */}
+                          <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border-2 border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="font-bold text-base text-blue-800">{phasedPlan.enhancement.name}</h5>
+                              <Badge className="bg-blue-600 text-white text-xs">第二阶段</Badge>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-blue-700 mb-2">主要目标：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.enhancement.goals.map((goal: string, idx: number) => (
+                                    <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                      <span className="text-blue-500 mr-1">✓</span>
+                                      {goal}
+                                    </p>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-blue-700 mb-2">具体措施：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.enhancement.actions.length > 0 ? (
+                                    phasedPlan.enhancement.actions.map((action: string, idx: number) => (
+                                      <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                        <span className="text-blue-500 mr-1">•</span>
+                                        {action}
+                                      </p>
+                                    ))
+                                  ) : (
+                                    <p className="text-xs text-gray-500 italic">暂无具体措施</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* 巩固期 */}
+                          <div className="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg border-2 border-purple-200 dark:border-purple-800">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="font-bold text-base text-purple-800">{phasedPlan.consolidation.name}</h5>
+                              <Badge className="bg-purple-600 text-white text-xs">第三阶段</Badge>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <p className="text-xs font-semibold text-purple-700 mb-2">主要目标：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.consolidation.goals.map((goal: string, idx: number) => (
+                                    <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                      <span className="text-purple-500 mr-1">✓</span>
+                                      {goal}
+                                    </p>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-xs font-semibold text-purple-700 mb-2">具体措施：</p>
+                                <div className="space-y-1">
+                                  {phasedPlan.consolidation.actions.length > 0 ? (
+                                    phasedPlan.consolidation.actions.map((action: string, idx: number) => (
+                                      <p key={idx} className="text-xs text-gray-700 flex items-center">
+                                        <span className="text-purple-500 mr-1">•</span>
+                                        {action}
+                                      </p>
+                                    ))
+                                  ) : (
+                                    <p className="text-xs text-gray-500 italic">暂无具体措施</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 重要提示 */}
+                      <Alert className="border-2 border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
+                        <AlertTriangle className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                        <AlertDescription className="mt-2">
+                          <p className="font-semibold text-gray-900 dark:text-white mb-2">
+                            重要提示
+                          </p>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            以上调理方案仅供参考，具体调理方法和产品选择请咨询专业调理导师。
+                            调理过程中如出现不适，请及时暂停并寻求专业指导。
+                            方案生成时间：{new Date().toLocaleString('zh-CN')}
+                          </p>
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  );
+                })()}
+              </div>
+
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* 历史记录对比对话框 */}
       <Dialog open={showHistoryDialog} onOpenChange={setShowHistoryDialog}>
