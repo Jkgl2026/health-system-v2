@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Activity, AlertTriangle, Shield, Zap, Flame, Heart, Brain, Kidneys, Eye, TrendingUp, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { Activity, AlertTriangle, Shield, Zap, Flame, Heart, Brain, Eye, TrendingUp, ArrowLeft, CheckCircle2, Sparkles } from 'lucide-react';
 import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
 
 export default function HealthDetail() {
@@ -404,7 +404,7 @@ export default function HealthDetail() {
                       liver: Brain,
                       spleen: CheckCircle2,
                       lung: Activity,
-                      kidney: Kidneys
+                      kidney: Activity
                     };
                     const Icon = icons[key];
                     return (
