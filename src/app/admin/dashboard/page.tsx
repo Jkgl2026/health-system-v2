@@ -1643,7 +1643,8 @@ export default function AdminDashboardPage() {
                 )}
               </div>
 
-              {/* 健康要素分析结果 - 绿色渐变背景 */}
+              {/* 健康要素分析结果 - 已隐藏 */}
+              {/* 
               <div className="bg-gradient-to-br from-green-50 to-emerald-100 border-l-4 border-green-500 p-6 rounded-lg shadow-sm">
                 <h3 className="font-bold text-xl mb-6 flex items-center text-green-900">
                   <Activity className="h-6 w-6 mr-3 text-green-600" />
@@ -1815,6 +1816,7 @@ export default function AdminDashboardPage() {
                   </div>
                 )}
               </div>
+              */}
 
               {/* 中医深入分析 - 紫色渐变背景 */}
               <div className="bg-gradient-to-br from-purple-50 to-indigo-100 border-l-4 border-purple-500 p-6 rounded-lg shadow-sm">
