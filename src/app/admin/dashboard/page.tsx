@@ -1053,18 +1053,18 @@ export default function AdminDashboardPage() {
                   return (
                     <div className="space-y-6">
                       {/* 综合健康评分主展示区 */}
-                      <div className="bg-white p-8 rounded-xl shadow-lg border-2 border-purple-100">
+                      <div className="bg-white p-8 rounded-xl shadow-sm border-2 border-purple-100">
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                           {/* 左侧：主评分卡片 - 占据2/3宽度 */}
-                          <div className="lg:col-span-2 bg-gradient-to-br from-indigo-600 via-purple-600 to-violet-700 rounded-2xl p-8 text-white shadow-2xl">
+                          <div className="lg:col-span-2 bg-gradient-to-br from-purple-50 to-violet-50 rounded-2xl p-8 shadow-sm border-2 border-purple-200">
                             <div className="flex flex-col lg:flex-row items-center gap-8">
                               {/* 评分数字和圆形进度 */}
                               <div className="flex-shrink-0 text-center">
                                 <div className="relative inline-block">
-                                  <div className="w-40 h-40 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                                  <div className="w-40 h-40 rounded-full bg-white flex items-center justify-center border-4 border-purple-200">
                                     <div className="text-center">
-                                      <div className="text-7xl font-bold mb-1 drop-shadow-lg">{healthScore}</div>
-                                      <div className="text-sm opacity-80">分</div>
+                                      <div className="text-7xl font-bold mb-1 text-gray-900">{healthScore}</div>
+                                      <div className="text-sm text-gray-600">分</div>
                                     </div>
                                   </div>
                                   {/* 环形进度条（CSS模拟） */}
@@ -1074,7 +1074,7 @@ export default function AdminDashboardPage() {
                                       cy="80"
                                       r="70"
                                       fill="none"
-                                      stroke="rgba(255,255,255,0.2)"
+                                      stroke="rgba(200, 150, 255, 0.2)"
                                       strokeWidth="8"
                                     />
                                     <circle
@@ -1082,12 +1082,18 @@ export default function AdminDashboardPage() {
                                       cy="80"
                                       r="70"
                                       fill="none"
-                                      stroke="white"
+                                      stroke="url(#gradient1)"
                                       strokeWidth="8"
                                       strokeLinecap="round"
                                       strokeDasharray={`${2 * Math.PI * 70}`}
                                       strokeDashoffset={`${2 * Math.PI * 70 * (1 - healthScore / 100)}`}
                                     />
+                                    <defs>
+                                      <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#8B5CF6" />
+                                        <stop offset="100%" stopColor="#7C3AED" />
+                                      </linearGradient>
+                                    </defs>
                                   </svg>
                                 </div>
                               </div>
@@ -1095,44 +1101,44 @@ export default function AdminDashboardPage() {
                               {/* 评分详情和状态 */}
                               <div className="flex-1 space-y-4">
                                 <div>
-                                  <div className="text-sm font-medium opacity-80 mb-1">综合健康评分</div>
-                                  <div className="text-2xl font-bold">满分 100 分</div>
+                                  <div className="text-sm font-semibold text-gray-600 mb-1">综合健康评分</div>
+                                  <div className="text-2xl font-bold text-gray-900">满分 100 分</div>
                                 </div>
 
                                 {/* 健康状态标签 */}
-                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg">
+                                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white rounded-lg border-2 border-purple-200">
                                   <div className={`w-3 h-3 rounded-full ${
-                                    healthScore >= 80 ? 'bg-green-400' :
-                                    healthScore >= 60 ? 'bg-yellow-400' :
-                                    'bg-red-400'
+                                    healthScore >= 80 ? 'bg-green-500' :
+                                    healthScore >= 60 ? 'bg-yellow-500' :
+                                    'bg-red-500'
                                   }`} />
-                                  <span className="font-medium">健康状态：{healthStatus}</span>
+                                  <span className="font-semibold text-gray-900">健康状态：{healthStatus}</span>
                                 </div>
 
                                 {/* 扣分信息 */}
                                 <div className="flex items-center gap-6">
                                   <div className="text-sm">
-                                    <span className="opacity-70">总扣分：</span>
-                                    <span className="font-bold text-lg ml-1">{totalDeduction.toFixed(1)}分</span>
+                                    <span className="text-gray-600">总扣分：</span>
+                                    <span className="font-bold text-lg ml-1 text-gray-900">{totalDeduction.toFixed(1)}分</span>
                                   </div>
                                   <div className="text-sm">
-                                    <span className="opacity-70">剩余：</span>
-                                    <span className="font-bold text-lg ml-1">{(100 - healthScore).toFixed(1)}分</span>
+                                    <span className="text-gray-600">剩余：</span>
+                                    <span className="font-bold text-lg ml-1 text-gray-900">{(100 - healthScore).toFixed(1)}分</span>
                                   </div>
                                 </div>
 
                                 {/* 评分进度条 */}
                                 <div className="space-y-2">
-                                  <div className="flex justify-between text-xs opacity-80">
-                                    <span>健康评分进度</span>
-                                    <span>{healthScore}%</span>
+                                  <div className="flex justify-between text-sm text-gray-700">
+                                    <span className="font-semibold">健康评分进度</span>
+                                    <span className="font-bold text-gray-900">{healthScore}%</span>
                                   </div>
-                                  <div className="w-full bg-white/20 rounded-full h-3 overflow-hidden">
+                                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                                     <div
                                       className={`h-3 rounded-full transition-all duration-1000 ${
-                                        healthScore >= 80 ? 'bg-green-400' :
-                                        healthScore >= 60 ? 'bg-yellow-400' :
-                                        'bg-red-400'
+                                        healthScore >= 80 ? 'bg-green-500' :
+                                        healthScore >= 60 ? 'bg-yellow-500' :
+                                        'bg-red-500'
                                       }`}
                                       style={{ width: `${healthScore}%` }}
                                     />
