@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
       // 只更新传递的字段，保留其他字段的值
       const updateData: Partial<InsertRequirement> = {
         userId: data.userId,
-        updatedAt: new Date(),
       };
 
       // 只添加传递的字段

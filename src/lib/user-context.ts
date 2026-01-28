@@ -6,6 +6,12 @@ const USER_ID_KEY = 'health_app_user_id';
  * 生成用户ID（如果没有则创建）
  */
 export function getOrGenerateUserId(): string {
+  // 检查是否在浏览器环境中
+  if (typeof window === 'undefined') {
+    // 服务器端返回空字符串，避免 localStorage 错误
+    return '';
+  }
+
   let userId = localStorage.getItem(USER_ID_KEY);
   if (!userId) {
     userId = generateUUID();
@@ -29,12 +35,17 @@ function generateUUID(): string {
  * 清除用户ID
  */
 export function clearUserId(): void {
-  localStorage.removeItem(USER_ID_KEY);
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(USER_ID_KEY);
+  }
 }
 
 /**
  * 获取当前用户ID（不自动生成）
  */
 export function getCurrentUserId(): string | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
   return localStorage.getItem(USER_ID_KEY);
 }

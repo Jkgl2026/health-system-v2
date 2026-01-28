@@ -42,7 +42,8 @@ export async function POST(request: NextRequest) {
 
         if (hasSevenQuestions) {
           // 检查是否是默认答案
-          const answers = requirement.sevenQuestionsAnswers;
+          const answersRaw = requirement.sevenQuestionsAnswers;
+          const answers: Record<string, unknown> = (answersRaw && typeof answersRaw === 'object' ? answersRaw : {}) as Record<string, unknown>;
           let allDefault = true;
 
           for (const key in answers) {
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
               allDefault = false;
               break;
             }
-            if (typeof val === 'object' && val.answer !== '用户未填写此问题') {
+            if (typeof val === 'object' && val !== null && 'answer' in val && (val as { answer: string }).answer !== '用户未填写此问题') {
               allDefault = false;
               break;
             }
