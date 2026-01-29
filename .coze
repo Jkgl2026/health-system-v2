@@ -10,3 +10,6 @@ deps = ["git"] # -> apt install git
 build = ["bash","./scripts/build.sh"]
 run = ["bash","./scripts/start.sh"]
 deps = ["git"] # -> apt install git
+
+# 自动启动配置
+init = ["bash", "./scripts/autostart.sh"]
