@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>测试登录流程</title>
+</head>
+<body>
+    <h1>测试管理后台登录</h1>
+    <div id="result"></div>
+
+    <script>
+        async function testLogin() {
+            const result = document.getElementById('result');
+            result.innerHTML = '正在测试登录...<br>';
+
+            try {
+                // 步骤1: 测试登录API
+                result.innerHTML += '步骤1: 调用登录API...<br>';
+                const loginResponse = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+
+                const loginData = await loginResponse.json();
+                result.innerHTML += `登录API响应状态: ${loginResponse.status}<br>`;
+                result.innerHTML += `登录API响应数据: ${JSON.stringify(loginData, null, 2)}<br><br>`;
+
+                if (loginResponse.ok && loginData.success) {
+                    // 步骤2: 测试获取用户列表API
+                    result.innerHTML += '步骤2: 测试获取用户列表API（带token）...<br>';
+
+                    const usersResponse = await fetch('/api/admin/users?page=1&limit=10', {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        }
+                    });
+
+                    const usersData = await usersResponse.json();
+                    result.innerHTML += `用户列表API响应状态: ${usersResponse.status}<br>`;
+                    result.innerHTML += `用户列表API响应数据: ${JSON.stringify(usersData, null, 2)}<br>`;
+
+                    if (!usersResponse.ok) {
+                        result.innerHTML += `<br><strong>警告:</strong> 用户列表API需要认证，这可能是正常的<br>`;
+                    }
+                }
+            } catch (error) {
+                result.innerHTML += `<br><strong>错误:</strong> ${error.message}<br>`;
+            }
+        }
+
+        testLogin();
+    </script>
+</body>
+</html>

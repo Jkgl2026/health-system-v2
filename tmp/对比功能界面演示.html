@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据对比功能界面演示</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .mock-screen {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .step-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- 标题 -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">数据对比功能界面演示</h1>
+            <p class="text-lg text-gray-600">通过模拟界面展示功能使用流程</p>
+        </div>
+
+        <!-- 步骤1 -->
+        <div class="mb-12">
+            <div class="flex items-center mb-6">
+                <div class="step-badge bg-blue-600 mr-4">1</div>
+                <h2 class="text-2xl font-bold text-gray-900">进入数据对比页面</h2>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- 导航栏模拟 -->
+                <div class="mock-screen">
+                    <div class="bg-white border-b px-4 py-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="bg-blue-600 p-2 rounded-lg mr-3">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="font-bold text-gray-900">健康自检管理后台</div>
+                                    <div class="text-sm text-gray-500">用户数据管理系统</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button class="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">刷新</button>
+                                <button class="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">搜索</button>
+                                <button class="px-3 py-1.5 text-sm border rounded hover:bg-gray-50">导出CSV</button>
+                                <button class="px-3 py-1.5 text-sm border rounded hover:bg-gray-50 bg-blue-50 text-blue-600 font-medium">数据对比</button>
+                                <button class="px-3 py-1.5 text-sm bg-red-600 text-white rounded">退出</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 p-4 text-center">
+                        <div class="inline-flex items-center px-4 py-2 bg-blue-100 text-blue-700 rounded-full">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            点击「数据对比」按钮进入对比页面
+                        </div>
+                    </div>
+                </div>
+
+                <!-- URL访问 -->
+                <div class="mock-screen">
+                    <div class="bg-gray-800 text-white px-4 py-2 flex items-center gap-2">
+                        <div class="flex items-center gap-1">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        </div>
+                        <div class="flex-1 bg-gray-700 rounded px-3 py-1 text-sm">
+                            http://localhost:5000/admin/compare
+                        </div>
+                    </div>
+                    <div class="bg-white p-6">
+                        <h3 class="font-bold text-lg mb-3">直接访问对比页面</h3>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="text-sm text-gray-600 mb-2">在浏览器地址栏输入：</div>
+                            <code class="text-sm bg-gray-800 text-green-400 px-3 py-1 rounded block">
+                                http://localhost:5000/admin/compare
+                            </code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤2 -->
+        <div class="mb-12">
+            <div class="flex items-center mb-6">
+                <div class="step-badge bg-blue-600 mr-4">2</div>
+                <h2 class="text-2xl font-bold text-gray-900">查询历史记录</h2>
+            </div>
+
+            <div class="mock-screen">
+                <div class="bg-white p-6">
+                    <div class="mb-4">
+                        <h3 class="font-bold text-lg mb-2">选择对比对象</h3>
+                        <p class="text-sm text-gray-600 mb-4">输入手机号查看该用户的所有填写记录</p>
+                    </div>
+
+                    <div class="flex gap-2 mb-6">
+                        <input type="text" placeholder="请输入手机号" class="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500" value="13800138000">
+                        <button class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            查询历史
+                        </button>
+                    </div>
+
+                    <!-- 提示信息 -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span class="text-sm font-medium text-blue-900">找到 3 条历史记录，请选择 0/3 个版本进行对比</span>
+                            </div>
+                            <button class="px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700">开始对比</button>
+                        </div>
+                    </div>
+
+                    <!-- 历史记录表格 -->
+                    <table class="w-full text-sm">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-4 py-3 text-left font-semibold">选择</th>
+                                <th class="px-4 py-3 text-left font-semibold">填写次数</th>
+                                <th class="px-4 py-3 text-left font-semibold">填写时间</th>
+                                <th class="px-4 py-3 text-left font-semibold">姓名</th>
+                                <th class="px-4 py-3 text-left font-semibold">年龄</th>
+                                <th class="px-4 py-3 text-left font-semibold">性别</th>
+                                <th class="px-4 py-3 text-left font-semibold">BMI</th>
+                                <th class="px-4 py-3 text-left font-semibold">状态</th>
+                                <th class="px-4 py-3 text-left font-semibold">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b">
+                                <td class="px-4 py-3"><input type="checkbox" class="w-4 h-4"></td>
+                                <td class="px-4 py-3 font-medium">第 1 次</td>
+                                <td class="px-4 py-3">2024-01-01 10:30</td>
+                                <td class="px-4 py-3">张三</td>
+                                <td class="px-4 py-3">35</td>
+                                <td class="px-4 py-3">男</td>
+                                <td class="px-4 py-3">27.7</td>
+                                <td class="px-4 py-3"><span class="px-2 py-0.5 bg-gray-200 text-gray-700 rounded text-xs">历史</span></td>
+                                <td class="px-4 py-3">
+                                    <button class="text-blue-600 hover:underline text-xs">
+                                        <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                        详情
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="border-b">
+                                <td class="px-4 py-3"><input type="checkbox" class="w-4 h-4"></td>
+                                <td class="px-4 py-3 font-medium">第 2 次</td>
+                                <td class="px-4 py-3">2024-02-15 14:20</td>
+                                <td class="px-4 py-3">张三</td>
+                                <td class="px-4 py-3">35</td>
+                                <td class="px-4 py-3">男</td>
+                                <td class="px-4 py-3">27.0</td>
+                                <td class="px-4 py-3"><span class="px-2 py-0.5 bg-gray-200 text-gray-700 rounded text-xs">历史</span></td>
+                                <td class="px-4 py-3">
+                                    <button class="text-blue-600 hover:underline text-xs">详情</button>
+                                </td>
+                            </tr>
+                            <tr class="bg-green-50">
+                                <td class="px-4 py-3"><input type="checkbox" class="w-4 h-4" checked></td>
+                                <td class="px-4 py-3 font-medium">第 3 次</td>
+                                <td class="px-4 py-3">2024-04-01 09:15</td>
+                                <td class="px-4 py-3">张三</td>
+                                <td class="px-4 py-3">36</td>
+                                <td class="px-4 py-3">男</td>
+                                <td class="px-4 py-3">25.9</td>
+                                <td class="px-4 py-3"><span class="px-2 py-0.5 bg-green-500 text-white rounded text-xs">最新</span></td>
+                                <td class="px-4 py-3">
+                                    <button class="text-blue-600 hover:underline text-xs">详情</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步骤3 -->
+        <div class="mb-12">
+            <div class="flex items-center mb-6">
+                <div class="step-badge bg-blue-600 mr-4">3</div>
+                <h2 class="text-2xl font-bold text-gray-900">查看对比结果</h2>
+            </div>
+
+            <div class="mock-screen bg-white">
+                <div class="border-b px-6 py-4">
+                    <h3 class="text-xl font-bold">数据对比结果</h3>
+                    <p class="text-sm text-gray-500">对比 2 个版本的详细数据</p>
+                </div>
+
+                <div class="p-6 space-y-6">
+                    <!-- 基本信息 -->
+                    <div class="border rounded-lg">
+                        <div class="px-6 py-3 bg-gray-50 border-b flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                            <span class="font-bold">基本信息</span>
+                        </div>
+                        <div class="p-6">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-4 py-2 text-left">字段</th>
+                                        <th class="px-4 py-2 text-left">版本 1 <span class="ml-2 px-1.5 py-0.5 bg-gray-200 text-xs rounded">历史</span></th>
+                                        <th class="px-4 py-2 text-left">版本 2 <span class="ml-2 px-1.5 py-0.5 bg-green-500 text-white text-xs rounded">最新</span></th>
+                                        <th class="px-4 py-2 text-left">变化</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">填写时间</td>
+                                        <td class="px-4 py-2">2024-01-01 10:30</td>
+                                        <td class="px-4 py-2">2024-04-01 09:15</td>
+                                        <td class="px-4 py-2">-</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">姓名</td>
+                                        <td class="px-4 py-2">张三</td>
+                                        <td class="px-4 py-2">张三</td>
+                                        <td class="px-4 py-2">-</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">年龄</td>
+                                        <td class="px-4 py-2">35</td>
+                                        <td class="px-4 py-2">36</td>
+                                        <td class="px-4 py-2">+1</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">身高</td>
+                                        <td class="px-4 py-2">170 cm</td>
+                                        <td class="px-4 py-2">170 cm</td>
+                                        <td class="px-4 py-2">0</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">体重</td>
+                                        <td class="px-4 py-2">80 kg</td>
+                                        <td class="px-4 py-2">75 kg</td>
+                                        <td class="px-4 py-2">-5</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 font-medium">BMI</td>
+                                        <td class="px-4 py-2">27.7</td>
+                                        <td class="px-4 py-2">25.9</td>
+                                        <td class="px-4 py-2 flex items-center">
+                                            <svg class="w-4 h-4 mr-1 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                                            </svg>
+                                            -1.8
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 趋势分析 -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex items-start">
+                            <svg class="w-5 h-5 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div>
+                                <div class="font-bold text-green-900 mb-2">趋势分析</div>
+                                <div class="text-sm text-green-800 flex items-center">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                                    </svg>
+                                    BMI 下降 1.8，继续保持健康生活方式
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 健康指标 -->
+                    <div class="border rounded-lg">
+                        <div class="px-6 py-3 bg-gray-50 border-b flex items-center">
+                            <svg class="w-5 h-5 mr-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                            <span class="font-bold">健康分析对比</span>
+                        </div>
+                        <div class="p-6">
+                            <table class="w-full text-sm">
+                                <thead>
+                                    <tr class="bg-gray-50">
+                                        <th class="px-4 py-2 text-left">指标</th>
+                                        <th class="px-4 py-2 text-left">版本 1</th>
+                                        <th class="px-4 py-2 text-left">版本 2</th>
+                                        <th class="px-4 py-2 text-left">变化</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">气血</td>
+                                        <td class="px-4 py-2">60</td>
+                                        <td class="px-4 py-2">75</td>
+                                        <td class="px-4 py-2 text-green-600">+15</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">循环</td>
+                                        <td class="px-4 py-2">65</td>
+                                        <td class="px-4 py-2">72</td>
+                                        <td class="px-4 py-2 text-green-600">+7</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">毒素</td>
+                                        <td class="px-4 py-2">45</td>
+                                        <td class="px-4 py-2">40</td>
+                                        <td class="px-4 py-2 text-green-600">-5</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">血脂</td>
+                                        <td class="px-4 py-2">50</td>
+                                        <td class="px-4 py-2">48</td>
+                                        <td class="px-4 py-2 text-green-600">-2</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">寒凉</td>
+                                        <td class="px-4 py-2">55</td>
+                                        <td class="px-4 py-2">50</td>
+                                        <td class="px-4 py-2 text-green-600">-5</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">免疫</td>
+                                        <td class="px-4 py-2">55</td>
+                                        <td class="px-4 py-2">68</td>
+                                        <td class="px-4 py-2 text-green-600">+13</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="px-4 py-2 font-medium">情绪</td>
+                                        <td class="px-4 py-2">60</td>
+                                        <td class="px-4 py-2">70</td>
+                                        <td class="px-4 py-2 text-green-600">+10</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 font-bold">整体健康</td>
+                                        <td class="px-4 py-2">55</td>
+                                        <td class="px-4 py-2">65</td>
+                                        <td class="px-4 py-2 text-green-600 font-bold">+10</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 总结 -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h3 class="text-xl font-bold text-blue-900 mb-4">🎉 功能亮点</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white p-4 rounded-lg">
+                    <div class="text-2xl mb-2">📊</div>
+                    <div class="font-bold text-gray-900">可视化对比</div>
+                    <div class="text-sm text-gray-600">清晰展示数据变化</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg">
+                    <div class="text-2xl mb-2">📈</div>
+                    <div class="font-bold text-gray-900">趋势分析</div>
+                    <div class="text-sm text-gray-600">自动判断改善或恶化</div>
+                </div>
+                <div class="bg-white p-4 rounded-lg">
+                    <div class="text-2xl mb-2">💾</div>
+                    <div class="font-bold text-gray-900">历史保存</div>
+                    <div class="text-sm text-gray-600">每次填写独立记录</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 访问链接 -->
+        <div class="mt-8 text-center">
+            <div class="inline-flex items-center gap-2 bg-gray-800 text-white px-6 py-3 rounded-lg">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+                </svg>
+                <span class="font-medium">访问数据对比页面：</span>
+                <a href="http://localhost:5000/admin/compare" class="text-blue-400 hover:text-blue-300 font-mono">http://localhost:5000/admin/compare</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

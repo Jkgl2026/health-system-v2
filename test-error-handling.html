@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>错误处理测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .test-result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 4px;
+            background: #f8f9fa;
+            border-left: 4px solid #3b82f6;
+        }
+        .error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+        .success {
+            border-left-color: #22c55e;
+            background: #f0fdf4;
+        }
+        pre {
+            background: #1f2937;
+            color: #f3f4f6;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        h2 {
+            margin-top: 30px;
+            color: #1f2937;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>错误处理测试工具</h1>
+        <p>此工具用于测试前端对不同类型 API 响应的处理能力</p>
+
+        <h2>测试场景</h2>
+        <button onclick="testNormalAPI()">测试正常 API</button>
+        <button onclick="test500HTML()">测试 500 错误（HTML 响应）</button>
+        <button onclick="test500JSON()">测试 500 错误（JSON 响应）</button>
+        <button onclick="testNetworkError()">测试网络错误</button>
+
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function addResult(title, data, isError = false) {
+            const resultsDiv = document.getElementById('results');
+            const resultClass = isError ? 'error' : 'success';
+            resultsDiv.innerHTML += `
+                <div class="test-result ${resultClass}">
+                    <h3>${title}</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                </div>
+            `;
+        }
+
+        // 模拟前端的安全响应解析函数
+        async function safeParseResponse(res) {
+            console.log('[测试] 响应状态:', res.status, res.statusText);
+            console.log('[测试] 响应头 Content-Type:', res.headers.get('content-type'));
+
+            // 先检查状态码
+            if (!res.ok) {
+                let errorText = '';
+                let errorData = null;
+
+                try {
+                    if (res.headers.get('content-type')?.includes('application/json')) {
+                        errorData = await res.json();
+                        errorText = errorData.error || errorData.message || JSON.stringify(errorData);
+                    } else {
+                        errorText = await res.text();
+                        errorText = errorText.length > 500 ? errorText.substring(0, 500) + '...' : errorText;
+                    }
+                } catch (e) {
+                    errorText = '无法读取服务器响应';
+                }
+
+                throw {
+                    status: res.status,
+                    statusText: res.statusText,
+                    message: errorText || `HTTP ${res.status}: ${res.statusText}`,
+                    data: errorData,
+                    url: res.url,
+                };
+            }
+
+            // 如果响应成功，尝试解析为 JSON
+            try {
+                const contentType = res.headers.get('content-type');
+                if (contentType?.includes('application/json')) {
+                    return await res.json();
+                } else {
+                    const text = await res.text();
+                    return { success: true, data: text };
+                }
+            } catch (e) {
+                throw {
+                    status: 0,
+                    statusText: 'Parse Error',
+                    message: '响应解析失败',
+                    data: { originalError: e instanceof Error ? e.message : String(e) },
+                };
+            }
+        }
+
+        async function testNormalAPI() {
+            try {
+                const res = await fetch('/api/health');
+                const data = await safeParseResponse(res);
+                addResult('✅ 测试通过：正常 API 响应', data, false);
+            } catch (error) {
+                addResult('❌ 测试失败：正常 API 响应', error, true);
+            }
+        }
+
+        async function test500HTML() {
+            try {
+                // 模拟一个返回 HTML 的 500 错误
+                const res = await fetch('/api/test-500-html');
+                const data = await safeParseResponse(res);
+                addResult('✅ 测试通过：500 HTML 错误（不应该到这里）', data, false);
+            } catch (error) {
+                addResult('✅ 测试通过：500 HTML 错误正确捕获', error, false);
+            }
+        }
+
+        async function test500JSON() {
+            try {
+                // 模拟一个返回 JSON 的 500 错误
+                const res = await fetch('/api/test-500-json');
+                const data = await safeParseResponse(res);
+                addResult('✅ 测试通过：500 JSON 错误（不应该到这里）', data, false);
+            } catch (error) {
+                addResult('✅ 测试通过：500 JSON 错误正确捕获', error, false);
+            }
+        }
+
+        async function testNetworkError() {
+            try {
+                // 模拟网络错误
+                const res = await fetch('http://nonexistent.localdomain:9999');
+                const data = await safeParseResponse(res);
+                addResult('✅ 测试通过：网络错误（不应该到这里）', data, false);
+            } catch (error) {
+                addResult('✅ 测试通过：网络错误正确捕获', {
+                    status: 0,
+                    statusText: 'Network Error',
+                    message: '网络请求失败',
+                    data: { originalError: error.message }
+                }, false);
+            }
+        }
+
+        // 页面加载时显示说明
+        document.getElementById('results').innerHTML = `
+            <div class="test-result">
+                <h3>📝 测试说明</h3>
+                <p>点击上方按钮测试不同的错误场景。新的错误处理逻辑应该能够：</p>
+                <ul>
+                    <li>✅ 正确处理 JSON 响应</li>
+                    <li>✅ 正确处理 HTML 响应（不会抛出 JSON 解析错误）</li>
+                    <li>✅ 正确处理网络错误</li>
+                    <li>✅ 提供详细的错误信息（状态码、状态文本、消息、数据）</li>
+                </ul>
+            </div>
+        `;
+    </script>
+</body>
+</html>

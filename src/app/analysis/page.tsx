@@ -1,0 +1,532 @@
+'use client';
+
+import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
+import { ErrorAlert } from '@/components/ui/error-alert';
+import { BODY_SYMPTOMS, HEALTH_ELEMENTS, SEVEN_QUESTIONS } from '@/lib/health-data';
+import { getOrGenerateUserId } from '@/lib/user-context';
+import { saveHealthAnalysis, saveRequirements, createUser, getUser } from '@/lib/api-client';
+import Link from 'next/link';
+
+interface QuestionAnswer {
+  questionId: number;
+  answer: string;
+}
+
+export default function AnalysisPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [selectedSymptoms, setSelectedSymptoms] = useState<number[]>([]);
+  const [targetSymptom, setTargetSymptom] = useState<number | null>(null);
+  const [currentStep, setCurrentStep] = useState<'elements' | 'questions'>('elements');
+  const [answers, setAnswers] = useState<QuestionAnswer[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<any>(null);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    // 优先设置loading为false，立即显示UI骨架
+    setLoading(false);
+
+    // 异步加载数据，避免阻塞UI渲染
+    const timer = setTimeout(() => {
+      try {
+        const savedSymptoms = localStorage.getItem('selectedSymptoms');
+        const savedTarget = localStorage.getItem('targetSymptoms');
+        if (savedSymptoms) {
+          setSelectedSymptoms(JSON.parse(savedSymptoms));
+        }
+        if (savedTarget) {
+          const targetSymptomArray = JSON.parse(savedTarget);
+          // 如果是数组，取第一个作为主要目标症状（向后兼容）
+          setTargetSymptom(Array.isArray(targetSymptomArray) ? targetSymptomArray[0] || null : parseInt(savedTarget));
+        }
+      } catch (error) {
+        console.error('Failed to load analysis data:', error);
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // 计算每个健康要素的症状数量
+  const getElementSymptomCount = useMemo(() => {
+    return (elementKey: keyof typeof HEALTH_ELEMENTS) => {
+      const element = HEALTH_ELEMENTS[elementKey];
+      return element.symptoms.filter(id => selectedSymptoms.includes(id)).length;
+    };
+  }, [selectedSymptoms]);
+
+  // 按症状数量排序健康要素
+  const sortedElements = useMemo(() => {
+    return (Object.keys(HEALTH_ELEMENTS) as Array<keyof typeof HEALTH_ELEMENTS>)
+      .sort((a, b) => getElementSymptomCount(b) - getElementSymptomCount(a));
+  }, [getElementSymptomCount]);
+
+  // 获取目标症状
+  const getTargetSymptom = useMemo(() => {
+    return () => BODY_SYMPTOMS.find(s => s.id === targetSymptom);
+  }, [targetSymptom]);
+
+  // 获取所有目标症状（用于显示）
+  const getTargetSymptoms = useMemo(() => {
+    return () => {
+      const savedTarget = localStorage.getItem('targetSymptoms');
+      if (!savedTarget) return [];
+      const targetSymptomArray = JSON.parse(savedTarget);
+      if (!Array.isArray(targetSymptomArray)) return [];
+      return targetSymptomArray
+        .map(id => BODY_SYMPTOMS.find(s => s.id === id))
+        .filter(Boolean);
+    };
+  }, []);
+
+  // 处理回答保存
+  const handleAnswerChange = (questionId: number, answer: string) => {
+    setAnswers(prev => {
+      const existing = prev.findIndex(a => a.questionId === questionId);
+      if (existing >= 0) {
+        const newAnswers = [...prev];
+        newAnswers[existing] = { questionId, answer };
+        return newAnswers;
+      }
+      return [...prev, { questionId, answer }];
+    });
+  };
+
+  // 下一题
+  const handleNext = async () => {
+    if (currentQuestionIndex < SEVEN_QUESTIONS.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+    } else {
+      // 保存答案到本地存储作为备份
+      const backupData = {
+        answers,
+        timestamp: new Date().toISOString(),
+        userId: getOrGenerateUserId(),
+      };
+      localStorage.setItem('sevenQuestionsBackup', JSON.stringify(backupData));
+      console.log('[七问保存] 本地备份已创建:', backupData);
+
+      // 保存健康要素分析到数据库
+      setIsSaving(true);
+      setSaveError(null); // 清除之前的错误
+
+      try {
+        const userId = getOrGenerateUserId();
+        console.log('[七问保存] 开始保存，userId:', userId);
+        
+        // 确保用户存在
+        const userResponse = await getUser(userId);
+        if (!userResponse.success || !userResponse.user) {
+          console.log('[七问保存] 用户不存在，创建新用户');
+          const createResponse = await createUser({
+            name: null,
+            phone: null,
+            email: null,
+            age: null,
+            gender: null,
+          });
+
+          // 检查用户创建是否成功
+          if (!createResponse.success || !createResponse.user) {
+            throw new Error('用户创建失败，无法保存数据');
+          }
+          console.log('[七问保存] 用户创建成功，ID:', createResponse.user.id);
+        }
+
+        // 计算各要素得分
+        const analysisData = {
+          userId,
+          qiAndBlood: getElementSymptomCount('气血'),
+          circulation: getElementSymptomCount('循环'),
+          toxins: getElementSymptomCount('毒素'),
+          bloodLipids: getElementSymptomCount('血脂'),
+          coldness: getElementSymptomCount('寒凉'),
+          immunity: getElementSymptomCount('免疫'),
+          emotions: getElementSymptomCount('情绪'),
+          overallHealth: selectedSymptoms.length,
+        };
+
+        console.log('[七问保存] 保存健康要素分析:', analysisData);
+        await saveHealthAnalysis(analysisData);
+        console.log('[七问保存] 健康要素分析保存成功');
+
+        // 保存七问答案到 requirements 表
+        const sevenQuestionsData: Record<string, any> = {};
+        answers.forEach(a => {
+          // 使用字符串作为key，确保与读取时的一致性
+          sevenQuestionsData[a.questionId.toString()] = {
+            answer: a.answer,
+            date: new Date().toISOString(),
+          };
+        });
+
+        console.log('[七问保存] 保存七问答案，数据量:', Object.keys(sevenQuestionsData).length);
+        const requirementsData = {
+          userId,
+          sevenQuestionsAnswers: sevenQuestionsData,
+        };
+
+        await saveRequirements(requirementsData);
+        console.log('[七问保存] 七问答案保存成功');
+
+        // 保存成功后清除错误状态，显示成功提示
+        setSaveError(null);
+        setSaveSuccess(true);
+        setIsSaving(false);
+
+        // 清除本地备份
+        localStorage.removeItem('sevenQuestionsBackup');
+        console.log('[七问保存] 本地备份已清除');
+
+        // 延迟1秒后跳转，让用户看到成功提示
+        setTimeout(() => {
+          router.push('/story');
+        }, 1000);
+      } catch (error) {
+        console.error('[七问保存] 保存失败:', error);
+        
+        // 记录详细错误信息
+        const errorDetails = {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          timestamp: new Date().toISOString(),
+          userId: getOrGenerateUserId(),
+          answersCount: answers.length,
+        };
+        console.error('[七问保存] 错误详情:', errorDetails);
+
+        // 保存错误信息到本地存储，便于调试
+        localStorage.setItem('sevenQuestionsSaveError', JSON.stringify(errorDetails));
+
+        setSaveError({
+          message: error instanceof Error ? error.message : String(error),
+          timestamp: new Date().toISOString(),
+        });
+        setIsSaving(false);
+        
+        // 保存失败时，本地备份仍然保留
+        console.log('[七问保存] 本地备份已保留，可以稍后重试');
+        
+        // ⚠️ 保存失败时不跳转，让用户看到错误并决定下一步
+      }
+    }
+  };
+
+  // 上一题
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+    }
+  };
+
+  // 获取当前答案
+  const getCurrentAnswer = () => {
+    const currentQuestion = SEVEN_QUESTIONS[currentQuestionIndex];
+    return answers.find(a => a.questionId === currentQuestion.id)?.answer || '';
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      {/* 头部 */}
+      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/check" className="flex items-center space-x-2">
+              <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+              <span className="text-gray-600 dark:text-gray-400">返回上一步</span>
+            </Link>
+            <div className="flex items-center space-x-2">
+              <Badge variant="outline" className="text-sm">
+                {currentStep === 'elements' ? '健康要素分析' : '持续跟进七问'}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8">
+        {/* 健康要素归类 */}
+        {currentStep === 'elements' && (
+          <div className="max-w-5xl mx-auto">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-2xl">症状与健康要素归类</CardTitle>
+                <CardDescription>
+                  您的症状已经归类到以下健康要素中，让我们了解影响健康的根本原因
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Alert className="mb-4">
+                  <AlertCircle className="w-4 h-4" />
+                  <AlertDescription>
+                    我们不是医生，不去治病。但是如果能够把跟健康相关的这些要素找到的话，
+                    就方便我们把得病的原因和生活当中的不良习惯都能找到，这样更有利于恢复健康。
+                  </AlertDescription>
+                </Alert>
+
+                {targetSymptom && getTargetSymptom() && (
+                  <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-white">
+                      您重点关注改善的症状（{getTargetSymptoms().length}个）：
+                    </h3>
+                    <div className="space-y-1">
+                      {getTargetSymptoms().map((symptom, index) => (
+                        <p key={symptom?.id} className="text-xl font-medium text-blue-700 dark:text-blue-400">
+                          {index + 1}. {symptom?.name}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {sortedElements.map((elementKey) => {
+                const element = HEALTH_ELEMENTS[elementKey];
+                const symptomCount = getElementSymptomCount(elementKey);
+                if (symptomCount === 0) return null;
+
+                return (
+                  <Card key={elementKey} className="hover:shadow-lg transition-shadow">
+                    <CardHeader>
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-xl">{element.name}</CardTitle>
+                        <Badge variant="default" className="text-lg px-3 py-1">
+                          {symptomCount} 项
+                        </Badge>
+                      </div>
+                      <CardDescription>{element.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                            相关症状：
+                          </h4>
+                          <div className="flex flex-wrap gap-2">
+                            {element.symptoms
+                              .filter(id => selectedSymptoms.includes(id))
+                              .map(id => {
+                                const symptom = BODY_SYMPTOMS.find(s => s.id === id);
+                                return symptom ? (
+                                  <Badge key={id} variant="secondary">
+                                    {symptom.name}
+                                  </Badge>
+                                ) : null;
+                              })}
+                          </div>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            <strong>原理：</strong>
+                            {element.principle}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+
+            <div className="text-center">
+              <Button
+                onClick={() => setCurrentStep('questions')}
+                size="lg"
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                开始详细分析
+                <ChevronRight className="w-5 h-5 ml-2" />
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* 持续跟进落实健康的七问 */}
+        {currentStep === 'questions' && (
+          <div className="max-w-3xl mx-auto">
+            <Card className="mb-6">
+              <CardHeader>
+                <CardTitle className="text-2xl">健康七问（V2新版）</CardTitle>
+                <CardDescription>
+                  从生活习惯入手，找到健康问题的根源，制定可行的改善方案
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    问题 {currentQuestionIndex + 1} / {SEVEN_QUESTIONS.length}
+                  </span>
+                  <Badge variant="outline">
+                    针对症状：{getTargetSymptom()?.name}
+                  </Badge>
+                </div>
+                <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all"
+                    style={{
+                      width: `${((currentQuestionIndex + 1) / SEVEN_QUESTIONS.length) * 100}%`,
+                    }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {saveSuccess && (
+              <Alert className="bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800">
+                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertDescription className="text-green-800 dark:text-green-200">
+                  <strong>保存成功！</strong> 您的七问答案已成功保存到数据库。
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {saveError && (
+              <ErrorAlert
+                title="保存健康要素分析失败"
+                error={saveError}
+                onRetry={() => {
+                  setSaveError(null);
+                  handleNext();
+                }}
+              />
+            )}
+
+            <Card className="border-2 border-blue-100 dark:border-blue-900">
+              <CardHeader>
+                <div className="flex items-start space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-green-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-bold text-lg">
+                    {currentQuestionIndex + 1}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <CardTitle className="text-xl">
+                        {SEVEN_QUESTIONS[currentQuestionIndex].question}
+                      </CardTitle>
+                      <Badge variant={SEVEN_QUESTIONS[currentQuestionIndex].importance === '高' ? 'destructive' : 'secondary'}>
+                        {SEVEN_QUESTIONS[currentQuestionIndex].importance || '中'}重要
+                      </Badge>
+                    </div>
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Badge variant="outline" className="text-xs">
+                        {SEVEN_QUESTIONS[currentQuestionIndex].category || '生活习惯'}
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-base">
+                      {SEVEN_QUESTIONS[currentQuestionIndex].description}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  placeholder="请详细回答这个问题，越详细越好..."
+                  value={getCurrentAnswer()}
+                  onChange={(e) => handleAnswerChange(SEVEN_QUESTIONS[currentQuestionIndex].id, e.target.value)}
+                  className="min-h-[150px] mb-6"
+                />
+
+                <div className="flex justify-between">
+                  <Button
+                    variant="outline"
+                    onClick={handlePrevious}
+                    disabled={currentQuestionIndex === 0 || isSaving}
+                  >
+                    <ChevronLeft className="w-5 h-5 mr-2" />
+                    上一题
+                  </Button>
+                  <Button
+                    onClick={handleNext}
+                    className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+                    disabled={isSaving}
+                  >
+                    {isSaving ? (
+                      <>
+                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                        保存中...
+                      </>
+                    ) : currentQuestionIndex === SEVEN_QUESTIONS.length - 1 ? (
+                      <>
+                        完成分析
+                        <CheckCircle2 className="w-5 h-5 ml-2" />
+                      </>
+                    ) : (
+                      <>
+                        下一题
+                        <ChevronRight className="w-5 h-5 ml-2" />
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* 问题列表 */}
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+                问题列表
+              </h3>
+              <div className="space-y-2">
+                {SEVEN_QUESTIONS.map((q, index) => (
+                  <div
+                    key={q.id}
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      index === currentQuestionIndex
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30'
+                        : index < currentQuestionIndex
+                        ? 'border-green-500 bg-green-50 dark:bg-green-900/30'
+                        : 'border-gray-200 dark:border-gray-700'
+                    }`}
+                    onClick={() => setCurrentQuestionIndex(index)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-white text-sm font-bold ${
+                          index === currentQuestionIndex
+                            ? 'bg-gradient-to-br from-blue-500 to-green-500'
+                            : index < currentQuestionIndex
+                            ? 'bg-green-500'
+                            : 'bg-gray-300 dark:bg-gray-600'
+                        }`}>
+                          {index < currentQuestionIndex ? <CheckCircle2 className="w-4 h-4" /> : index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm font-medium">
+                              {q.question}
+                            </span>
+                            <Badge variant="outline" className="text-xs">
+                              {q.category || '生活习惯'}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {q.importance === '高' && (
+                          <Badge variant="destructive" className="text-xs">重要</Badge>
+                        )}
+                        {answers.find(a => a.questionId === q.id) && (
+                          <Badge variant="secondary" className="text-xs">已回答</Badge>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}

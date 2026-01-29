@@ -1,0 +1,32 @@
+{
+  "timestamp": "2026-01-23T13:36:55.595Z",
+  "total": 3,
+  "data": [
+    {
+      "key": "selectedSymptoms",
+      "source": "localStorage",
+      "value": [
+        2,
+        1,
+        3,
+        11,
+        16,
+        31,
+        33,
+        69,
+        60,
+        85
+      ]
+    },
+    {
+      "key": "health_app_user_id",
+      "source": "localStorage",
+      "value": "733b9393-efe2-47be-a8c1-fa1a1bec6477"
+    },
+    {
+      "key": "targetSymptom",
+      "source": "localStorage",
+      "value": 85
+    }
+  ]
+}
