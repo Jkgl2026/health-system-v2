@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -9,7 +9,7 @@ import { ArrowRight, RefreshCw, CheckCircle2, Info, AlertCircle } from 'lucide-r
 export default function SevenQuestionsGuidePage() {
   const [hasBackup, setHasBackup] = useState(false);
 
-  useState(() => {
+  useEffect(() => {
     // 检查是否有备份
     try {
       const backupStr = localStorage.getItem('sevenQuestionsBackup');
@@ -17,7 +17,7 @@ export default function SevenQuestionsGuidePage() {
     } catch (err) {
       console.error('[七问引导] 检查备份失败:', err);
     }
-  });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
