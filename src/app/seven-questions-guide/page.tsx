@@ -16,8 +16,8 @@ export default function SevenQuestionsGuidePage() {
       setHasBackup(!!backupStr);
     } catch (err) {
       console.error('[七问引导] 检查备份失败:', err);
-    }
- }， 【】);
+     }, 
+}, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
