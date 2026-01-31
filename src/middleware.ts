@@ -30,7 +30,8 @@ export const config = {
      * - favicon.ico（网站图标）
      * - public 文件夹下的静态资源（icons, images 等）
      * - API 健康检查路径
+     * - 静态文件扩展名
      */
-    '/((?!_next/static|_next/image|favicon.ico|icons|images|api/health|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|json)$).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|icons|images|api/health|api/init-db|api/init-admin|.*\\.(svg|png|jpg|jpeg|gif|webp|ico|json|woff|woff2|ttf|css|js)$).*)',
   ],
 };
