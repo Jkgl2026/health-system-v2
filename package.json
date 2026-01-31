@@ -1,13 +1,12 @@
 {
-  "name": "projects",
+  "name": "health-system",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "bash ./scripts/build.sh",
-    "dev": "bash ./scripts/dev.sh",
-    "preinstall": "npx only-allow pnpm",
+    "build": "next build",
+    "dev": "next dev",
     "lint": "eslint",
-    "start": "bash ./scripts/start.sh",
+    "start": "next start",
     "ts-check": "tsc -p tsconfig.json"
   },
   "dependencies": {
@@ -53,13 +52,13 @@
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.468.0",
-    "next": "16.1.1",
+    "next": "14.2.18",
     "next-themes": "^0.4.6",
     "node-cron": "^4.2.1",
     "pg": "^8.16.3",
-    "react": "19.2.3",
+    "react": "18.3.1",
     "react-day-picker": "^9.13.0",
-    "react-dom": "19.2.3",
+    "react-dom": "18.3.1",
     "react-hook-form": "^7.70.0",
     "react-resizable-panels": "^4.2.0",
     "recharts": "2.15.4",
@@ -71,33 +70,20 @@
     "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@react-dev-inspector/babel-plugin": "^2.0.1",
-    "@react-dev-inspector/middleware": "^2.0.1",
     "@tailwindcss/postcss": "^4",
     "@types/bcrypt": "^6.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/pg": "^8.16.0",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
     "@types/uuid": "^11.0.0",
     "eslint": "^9",
-    "eslint-config-next": "16.1.1",
+    "eslint-config-next": "14.2.18",
     "next-pwa": "^5.6.0",
-    "only-allow": "^1.2.2",
-    "react-dev-inspector": "^2.0.1",
     "shadcn": "latest",
     "sharp": "^0.34.5",
-    "tailwindcss": "^4",
+    "tailwindcss": "^3.4.1",
     "typescript": "^5"
-  },
-  "packageManager": "pnpm@9.0.0",
-  "engines": {
-    "pnpm": ">=9.0.0"
-  },
-  "pnpm": {
-    "overrides": {
-      "esbuild": "^0.25.12"
-    }
   }
 }
