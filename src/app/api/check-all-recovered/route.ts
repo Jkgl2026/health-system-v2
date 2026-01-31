@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getDb } from 'coze-coding-dev-sdk';
 
 export async function GET(request: NextRequest) {

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { getDb } from 'coze-coding-dev-sdk';
 import { users, symptomChecks, healthAnalysis, userChoices, requirements } from '@/storage/database/shared/schema';
 import { eq } from 'drizzle-orm';

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { healthDataManager } from '@/storage/database';
 import type { InsertRequirement } from '@/storage/database';
 import { applyRateLimit } from '@/lib/rate-limit-middleware';

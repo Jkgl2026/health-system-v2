@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { healthDataManager } from '@/storage/database';
 import { QueryOptimizer } from '@/lib/query-optimizer';
 import { globalCache } from '@/lib/cache';

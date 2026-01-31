@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { healthDataManager } from '@/storage/database';
 
 // GET /api/get-audit-logs - 获取审计日志

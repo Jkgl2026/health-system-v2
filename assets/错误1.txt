@@ -1,0 +1,154 @@
+[verifyApiAuth] 验证失败: B [Error]: Dynamic server usage: Route /api/admin/alerts couldn't be rendered statically because it used `request.cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+Error exporting data: B [Error]: Dynamic server usage: Route /api/admin/export couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at l (/vercel/path0/.next/server/app/api/admin/export/route.js:1:3225)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/admin/export couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ?? encrypt with Dotenvx: https://dotenvx.com
+[FindUsersMissingSevenQuestions] 查找失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+[verifyApiAuth] 验证失败: B [Error]: Dynamic server usage: Route /api/admin/pool-stats couldn't be rendered statically because it used `request.cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+Error generating download URL: B [Error]: Dynamic server usage: Route /api/backup/download couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at u (/vercel/path0/.next/server/app/api/backup/download/route.js:1:2188)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/backup/download couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[BackupManager] 列出备份失败: Error: Storage endpoint not configured: Set COZE_BUCKET_ENDPOINT_URL
+Error verifying backup: B [Error]: Dynamic server usage: Route /api/backup/verify couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at a (/vercel/path0/.next/server/app/api/backup/verify/route.js:1:2178)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/backup/verify couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error checking data integrity: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Error checking user seven questions: B [Error]: Dynamic server usage: Route /api/check-seven-questions-by-name couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at c (/vercel/path0/.next/server/app/api/check-seven-questions-by-name/route.js:1:2290)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/check-seven-questions-by-name couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error checking user seven questions: B [Error]: Dynamic server usage: Route /api/check-user-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at u (/vercel/path0/.next/server/app/api/check-user-seven-questions/route.js:1:2282)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+at u (/vercel/path0/.next/server/app/api/check-user-seven-questions/route.js:1:2282)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/check-user-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+获取推荐课程失败: B [Error]: Dynamic server usage: Route /api/courses/recommend couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Schema check failed: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Error fetching audit logs: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+检查用户数据失败: B [Error]: Dynamic server usage: Route /api/debug/check-user-data couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+调试查询失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Error diagnosing seven questions: B [Error]: Dynamic server usage: Route /api/diagnose-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at d (/vercel/path0/.next/server/app/api/diagnose-seven-questions/route.js:1:2269)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/diagnose-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error getting audit logs: B [Error]: Dynamic server usage: Route /api/get-audit-logs couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at a (/vercel/path0/.next/server/app/api/get-audit-logs/route.js:1:2221)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+description: "Route /api/get-audit-logs couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Health check failed: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Error getting migration history: B [Error]: Dynamic server usage: Route /api/migrate-db/history couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at n (/vercel/path0/.next/server/app/api/migrate-db/history/route.js:1:2203)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/migrate-db/history couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[查询七问数据] 错误: B [Error]: Dynamic server usage: Route /api/query-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+获取存储统计信息失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+[测试API] 错误: B [Error]: Dynamic server usage: Route /api/test-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Error fetching user history: B [Error]: Dynamic server usage: Route /api/user/history couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at n (/vercel/path0/.next/server/app/api/user/history/route.js:1:2218)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/user/history couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[测试流程] 失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Error occurred prerendering page "/diagnose-seven-questions". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function

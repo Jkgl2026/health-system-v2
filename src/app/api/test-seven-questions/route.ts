@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { healthDataManager } from '@/storage/database';
 
 // 测试保存七问数据

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { healthDataManager } from '@/storage/database';
 
 // GET /api/user/history?phone=xxx&name=xxx - 获取同一手机号或姓名的所有历史记录

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { healthDataManager } from '@/storage/database';
 
 // GET /api/check-user-seven-questions?userId=xxx - 检查特定用户的七问数据

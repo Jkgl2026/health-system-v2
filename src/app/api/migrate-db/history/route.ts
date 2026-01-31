@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { migrationManager } from '@/storage/database/migrationManager';
 
 // GET /api/migrate-db/history - 获取迁移历史

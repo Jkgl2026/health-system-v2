@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+
+export const dynamic = 'force-dynamic';
 import { backupManager } from '@/storage/database/backupManager';
 
 // DELETE /api/backup/delete?backupId=xxx - 删除备份
