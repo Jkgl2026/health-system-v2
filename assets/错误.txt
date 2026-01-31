@@ -1,0 +1,769 @@
+[verifyApiAuth] 验证失败: B [Error]: Dynamic server usage: Route /api/admin/alerts couldn't be rendered statically because it used `request.cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:29137)
+    at i (/vercel/path0/.next/server/app/api/admin/alerts/route.js:1:6303)
+    at o (/vercel/path0/.next/server/app/api/admin/alerts/route.js:1:6701)
+    at u (/vercel/path0/.next/server/app/api/admin/alerts/route.js:1:998)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093) {
+  description: "Route /api/admin/alerts couldn't be rendered statically because it used `request.cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error exporting data: B [Error]: Dynamic server usage: Route /api/admin/export couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at l (/vercel/path0/.next/server/app/api/admin/export/route.js:1:3225)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+ description: "Route /api/admin/export couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ??  load multiple .env files with { path: ['.env.local', '.env'] }
+[FindUsersMissingSevenQuestions] 查找失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+[verifyApiAuth] 验证失败: B [Error]: Dynamic server usage: Route /api/admin/pool-stats couldn't be rendered statically because it used `request.cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+[verifyApiAuth] 验证失败: B [Error]: Dynamic server usage: Route /api/admin/users couldn't be rendered statically because it used `request.cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+
+[verifyApiAuth] 验证失败: B [Error]: Dynamic server usage: Route /api/admin/verify couldn't be rendered statically because it used `request.cookies`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+
+Error generating download URL: B [Error]: Dynamic server usage: Route /api/backup/download couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+20:39:41.117 
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+20:39:41.117 
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+20:39:41.117 
+    at u (/vercel/path0/.next/server/app/api/backup/download/route.js:1:2188)
+20:39:41.117 
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+20:39:41.117 
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+20:39:41.117 
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+20:39:41.117 
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+20:39:41.117 
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+20:39:41.117 
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+20:39:41.117 
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+20:39:41.117 
+  description: "Route /api/backup/download couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+20:39:41.117 
+  digest: 'DYNAMIC_SERVER_USAGE'
+20:39:41.117 
+}
+20:39:41.159 
+[BackupManager] 列出备份失败: Error: Storage endpoint not configured: Set COZE_BUCKET_ENDPOINT_URL
+Error verifying backup: B [Error]: Dynamic server usage: Route /api/backup/verify couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at a (/vercel/path0/.next/server/app/api/backup/verify/route.js:1:2178)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/backup/verify couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+   Generating static pages (29/118) 
+Error checking data integrity: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+
+Error checking user seven questions: B [Error]: Dynamic server usage: Route /api/check-seven-questions-by-name couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+20:39:41.591 
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+20:39:41.591 
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+20:39:41.591 
+    at c (/vercel/path0/.next/server/app/api/check-seven-questions-by-name/route.js:1:2290)
+20:39:41.591 
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+20:39:41.592 
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+20:39:41.592 
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+20:39:41.592 
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+20:39:41.592 
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+20:39:41.592 
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+20:39:41.592 
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+20:39:41.592 
+  description: "Route /api/check-seven-questions-by-name couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+20:39:41.592 
+  digest: 'DYNAMIC_SERVER_USAGE'
+20:39:41.592 
+}
+20:39:41.671 
+Error checking user seven questions: B [Error]: Dynamic server usage: Route /api/check-user-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+20:39:41.671 
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+20:39:41.671 
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+20:39:41.671 
+    at u (/vercel/path0/.next/server/app/api/check-user-seven-questions/route.js:1:2282)
+20:39:41.671 
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+20:39:41.671 
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+20:39:41.671 
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+20:39:41.672 
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+20:39:41.672 
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+20:39:41.672 
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+
+  at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/check-user-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+获取推荐课程失败: B [Error]: Dynamic server usage: Route /api/courses/recommend couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+Schema check failed: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Error fetching audit logs: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+检查用户数据失败: B [Error]: Dynamic server usage: Route /api/debug/check-user-data couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+调试查询失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Error checking user count: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Error diagnosing database: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Error diagnosing seven questions: B [Error]: Dynamic server usage: Route /api/diagnose-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at d (/vercel/path0/.next/server/app/api/diagnose-seven-questions/route.js:1:2269)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/diagnose-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Error getting audit logs: B [Error]: Dynamic server usage: Route /api/get-audit-logs couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+    at a (/vercel/path0/.next/server/app/api/get-audit-logs/route.js:1:2221)
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+   at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+  description: "Route /api/get-audit-logs couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+  digest: 'DYNAMIC_SERVER_USAGE'
+}
+Health check failed: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+
+Error getting migration history: B [Error]: Dynamic server usage: Route /api/migrate-db/history couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+20:39:42.335 
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+20:39:42.336 
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+20:39:42.336 
+    at n (/vercel/path0/.next/server/app/api/migrate-db/history/route.js:1:2203)
+20:39:42.336 
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+20:39:42.336 
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+20:39:42.336 
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+20:39:42.336 
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+20:39:42.336 
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+20:39:42.336 
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+20:39:42.336 
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+20:39:42.336 
+  description: "Route /api/migrate-db/history couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+20:39:42.336 
+  digest: 'DYNAMIC_SERVER_USAGE'
+20:39:42.336 
+}
+20:39:42.436 
+[查询七问数据] 错误: B [Error]: Dynamic server usage: Route /api/query-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+获取存储统计信息失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+测试课程匹配失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+Database connection error: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+[测试API] 错误: B [Error]: Dynamic server usage: Route /api/test-seven-questions couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+[测试流程] 失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+
+Error fetching user history: B [Error]: Dynamic server usage: Route /api/user/history couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error
+20:39:43.307 
+    at V (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:21777)
+20:39:43.307 
+    at Object.get (/vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:28809)
+20:39:43.307 
+    at n (/vercel/path0/.next/server/app/api/user/history/route.js:1:2218)
+20:39:43.307 
+    at /vercel/path0/node_modules/next/dist/compiled/next-server/app-route.runtime.prod.js:6:37016
+20:39:43.307 
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:140:36
+20:39:43.307 
+    at NoopContextManager.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:7062)
+20:39:43.308 
+    at ContextAPI.with (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:518)
+20:39:43.308 
+    at NoopTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18093)
+20:39:43.308 
+    at ProxyTracer.startActiveSpan (/vercel/path0/node_modules/next/dist/compiled/@opentelemetry/api/index.js:1:18854)
+20:39:43.308 
+    at /vercel/path0/node_modules/next/dist/server/lib/trace/tracer.js:122:103 {
+20:39:43.308 
+  description: "Route /api/user/history couldn't be rendered statically because it used `nextUrl.searchParams`. See more info here: https://nextjs.org/docs/messages/dynamic-server-error",
+20:39:43.308 
+  digest: 'DYNAMIC_SERVER_USAGE'
+20:39:43.308 
+}
+20:39:43.368 
+[测试流程] 失败: Error: Database URL not configured. Set PGDATABASE_URL environment variable.
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/_not-found". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/admin/compare". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/admin/dashboard". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/admin/login". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/admin/maintenance". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+
+Error occurred prerendering page "/admin/seven-questions-manager". Read more: https://nextjs.org/docs/messages/prerender-error
+20:39:44.328 
+20:39:44.328 
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/analysis". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/auto-fix-seven-questions". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/check-wang-seven-questions". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+   Generating static pages (88/118) 
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/choices". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+
+TypeError: (0 , l.jsxDEV) is not a function
+20:39:44.576 
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+20:39:44.576 
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+20:39:44.576 
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+20:39:44.576 
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+20:39:44.576 
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+20:39:44.576 
+    at stringify (<anonymous>)
+20:39:44.577 
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+20:39:44.577 
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+20:39:44.577 
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+20:39:44.579 
+    at listOnTimeout (node:internal/timers:605:17) {
+20:39:44.579 
+  digest: '224569865'
+20:39:44.579 
+}
+20:39:44.579 
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/client-restore-seven-questions". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a functionError occurred prerendering page "/courses". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/data-reset". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/db-schema-check". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a functio
+Error occurred prerendering page "/debug-seven-questions-by-name". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/debug-seven-questions". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/diagnose-seven-questions". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/diagnose". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/diagnosis-tools". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/error-page". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/habits". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/health-analysis-result". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/health-detail". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+Error occurred prerendering page "/inspiration". Read more: https://nextjs.org/docs/messages/prerender-error
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at AsyncLocalStorage.run (node:internal/async_local_storage/async_context_frame:63:14)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:150268)
+TypeError: (0 , l.jsxDEV) is not a function
+TypeError: (0 , l.jsxDEV) is not a function
+    at c (/vercel/path0/.next/server/chunks/9557.js:1:9239)
+    at eh (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:134657)
+    at e (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:137542)
+    at ek (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:138016)
+    at Array.toJSON (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135626)
+    at stringify (<anonymous>)
+    at eP (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142090)
+    at eE (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:142569)
+    at Timeout._onTimeout (/vercel/path0/node_modules/next/dist/compiled/next-server/app-page.runtime.prod.js:12:135346)
+    at listOnTimeout (node:internal/timers:605:17) {
+  digest: '224569865'
+}
+TypeError: (0 , l.jsxDEV) is not a function
+

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import { getDb } from 'coze-coding-dev-sdk';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/pool-stats - 获取数据库连接池统计信息
 export async function GET(request: NextRequest) {
   try {

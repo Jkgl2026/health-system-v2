@@ -3,6 +3,8 @@ import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import { healthDataManager } from '@/storage/database';
 import { SessionManager } from '@/lib/session-manager';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/verify - 验证管理员会话
 export async function GET(request: NextRequest) {
   try {

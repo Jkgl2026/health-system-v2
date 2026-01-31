@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/users - 管理员获取所有用户数据（含概要信息）
 export async function GET(request: NextRequest) {
   try {

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import { arrayToCSV } from '@/lib/export';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/export - 导出用户数据为 CSV
 export async function GET(request: NextRequest) {
   try {

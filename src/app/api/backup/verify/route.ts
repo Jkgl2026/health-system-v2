@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { backupManager } from '@/storage/database/backupManager';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/backup/verify?backupId=xxx - 验证备份完整性
 export async function GET(request: NextRequest) {
   try {

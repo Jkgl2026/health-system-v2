@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import { alertManager, AlertLevel, AlertType } from '@/lib/alertManager';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/alerts - 获取告警历史
 export async function GET(request: NextRequest) {
   try {

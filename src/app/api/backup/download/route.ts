@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { backupManager } from '@/storage/database/backupManager';
 
+export const dynamic = 'force-dynamic';
+
 // GET /api/backup/download?backupId=xxx - 生成备份下载URL
 export async function GET(request: NextRequest) {
   try {
