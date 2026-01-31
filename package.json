@@ -1,12 +1,12 @@
 {
-  "name": "projects",
+  "name": "health-system",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "bash ./scripts/build.sh",
-    "dev": "bash ./scripts/dev.sh",
-    "start": "bash ./scripts/start.sh",
-    "ts-check": "tsc -p tsconfig.json"
+    "build": "npx next build",
+    "start": "npx next start",
+    "dev": "npx next dev",
+    "lint": "eslint ."
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",
@@ -80,7 +80,6 @@
     "eslint": "^9",
     "eslint-config-next": "^14.2.18",
     "next-pwa": "^5.6.0",
-    "only-allow": "^1.2.2",
     "shadcn": "latest",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.4.1",
