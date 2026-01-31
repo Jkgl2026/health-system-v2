@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inspector } from 'react-dev-inspector';
+
 import { PWAUrlChecker } from '@/components/PWAUrlChecker';
 import { UrlWarningBanner } from '@/components/UrlWarningBanner';
 import './globals.css';
@@ -70,7 +70,7 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className={`antialiased`}>
-        {isDev && <Inspector />}
+        
         <UrlWarningBanner />
         <PWAUrlChecker />
         {children}
