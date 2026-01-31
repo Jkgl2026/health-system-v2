@@ -198,3 +198,206 @@ async function performAnalyze(): Promise<{
     throw error;
   }
 }
+
+/**
+ * 执行REINDEX操作
+ * 重建索引，提高查询性能
+ */
+async function performReindex(): Promise<{
+  success: boolean;
+  message: string;
+  duration: number;
+}> {
+  const startTime = Date.now();
+  console.log('[Maintenance] 开始执行REINDEX...');
+
+  try {
+    const db = await getDb();
+    // 重建所有索引
+    await db.execute(sql`REINDEX DATABASE health_system`);
+
+    const duration = Date.now() - startTime;
+    console.log(`[Maintenance] REINDEX完成，耗时 ${duration}ms`);
+
+    return {
+      success: true,
+      message: 'REINDEX操作完成',
+      duration,
+    };
+  } catch (error) {
+    console.error('[Maintenance] REINDEX失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 执行备份操作
+ */
+async function performBackup(): Promise<{
+  success: boolean;
+  message: string;
+  duration: number;
+}> {
+  const startTime = Date.now();
+  console.log('[Maintenance] 开始执行备份...');
+
+  try {
+    // 使用增强备份管理器
+    const result = await enhancedBackupManager.createSmartBackup();
+    const duration = Date.now() - startTime;
+    console.log(`[Maintenance] 备份完成，耗时 ${duration}ms`);
+
+    return {
+      success: true,
+      message: result.message,
+      duration,
+    };
+  } catch (error) {
+    console.error('[Maintenance] 备份失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 执行归档操作
+ */
+async function performArchive(): Promise<{
+  success: boolean;
+  message: string;
+  duration: number;
+}> {
+  const startTime = Date.now();
+  console.log('[Maintenance] 开始执行归档...');
+
+  try {
+    // 使用归档管理器
+    const result = await archiveManager.archiveOldAuditLogs();
+    const duration = Date.now() - startTime;
+    console.log(`[Maintenance] 归档完成，耗时 ${duration}ms`);
+
+    return {
+      success: true,
+      message: result.message,
+      duration,
+    };
+  } catch (error) {
+    console.error('[Maintenance] 归档失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 执行清理操作
+ */
+async function performCleanup(): Promise<{
+  success: boolean;
+  message: string;
+  duration: number;
+}> {
+  const startTime = Date.now();
+  console.log('[Maintenance] 开始执行清理...');
+
+  try {
+    // 使用增强备份管理器清理旧备份
+    const result = await enhancedBackupManager.cleanupOldBackups();
+    const duration = Date.now() - startTime;
+    console.log(`[Maintenance] 清理完成，耗时 ${duration}ms`);
+
+    return {
+      success: true,
+      message: result.message,
+      duration,
+    };
+  } catch (error) {
+    console.error('[Maintenance] 清理失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 启动自动维护
+ */
+async function startAutoMaintenance(task: string): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  console.log('[Maintenance] 启动自动维护任务:', task);
+  
+  try {
+    const result = await autoMaintenanceScheduler.startTask(task);
+    return {
+      success: true,
+      message: result.message,
+    };
+  } catch (error) {
+    console.error('[Maintenance] 启动自动维护失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 停止自动维护
+ */
+async function stopAutoMaintenance(task: string): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  console.log('[Maintenance] 停止自动维护任务:', task);
+  
+  try {
+    const result = await autoMaintenanceScheduler.stopTask(task);
+    return {
+      success: true,
+      message: result.message,
+    };
+  } catch (error) {
+    console.error('[Maintenance] 停止自动维护失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 更新自动维护
+ */
+async function updateAutoMaintenance(
+  task: string,
+  schedule: string,
+  enabled: boolean
+): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  console.log('[Maintenance] 更新自动维护任务:', task, schedule, enabled);
+  
+  try {
+    const result = await autoMaintenanceScheduler.updateTask(task, schedule, enabled);
+    return {
+      success: true,
+      message: result.message,
+    };
+  } catch (error) {
+    console.error('[Maintenance] 更新自动维护失败:', error);
+    throw error;
+  }
+}
+
+/**
+ * 立即运行自动维护
+ */
+async function runAutoMaintenanceNow(task: string): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  console.log('[Maintenance] 立即运行自动维护任务:', task);
+  
+  try {
+    const result = await autoMaintenanceScheduler.runTaskNow(task);
+    return {
+      success: true,
+      message: result.message,
+    };
+  } catch (error) {
+    console.error('[Maintenance] 运行自动维护失败:', error);
+    throw error;
+  }
+}
