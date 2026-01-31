@@ -203,49 +203,26 @@ async function performAnalyze(): Promise<{
  * 执行REINDEX操作
  * 重建索引，提高查询性能
  */
-export async function performReindex(): Promise<{
+async function performReindex(): Promise<{
   success: boolean;
   message: string;
   duration: number;
-  reindexedTables: string[];
 }> {
   const startTime = Date.now();
   console.log('[Maintenance] 开始执行REINDEX...');
 
   try {
     const db = await getDb();
-    const tables = [
-      'users',
-      'symptom_checks',
-      'health_analysis',
-      'user_choices',
-      'requirements',
-      'admins',
-      'audit_logs',
-      'audit_logs_archive',
-      'backup_records',
-    ];
-
-    const reindexedTables: string[] = [];
-
-    for (const table of tables) {
-      try {
-        await db.execute(sql`REINDEX TABLE ${sql.raw(table)}`);
-        reindexedTables.push(table);
-        console.log(`[Maintenance] 已重建 ${table} 表的索引`);
-      } catch (error) {
-        console.error(`[Maintenance] 重建 ${table} 表索引失败:`, error);
-      }
-    }
+    // 重建所有索引
+    await db.execute(sql`REINDEX DATABASE health_system`);
 
     const duration = Date.now() - startTime;
     console.log(`[Maintenance] REINDEX完成，耗时 ${duration}ms`);
 
     return {
       success: true,
-      message: `已重建 ${reindexedTables.length} 个表的索引`,
+      message: 'REINDEX操作完成',
       duration,
-      reindexedTables,
     };
   } catch (error) {
     console.error('[Maintenance] REINDEX失败:', error);
@@ -259,19 +236,21 @@ export async function performReindex(): Promise<{
 async function performBackup(): Promise<{
   success: boolean;
   message: string;
-  backupId: string;
-  backupType: string;
+  duration: number;
 }> {
+  const startTime = Date.now();
   console.log('[Maintenance] 开始执行备份...');
 
   try {
-    const result = await enhancedBackupManager.performFullBackupProcess();
+    // 使用增强备份管理器
+    const result = await enhancedBackupManager.createSmartBackup();
+    const duration = Date.now() - startTime;
+    console.log(`[Maintenance] 备份完成，耗时 ${duration}ms`);
 
     return {
       success: true,
-      message: '备份操作完成',
-      backupId: result.backup.backupId,
-      backupType: result.backup.backupType,
+      message: result.message,
+      duration,
     };
   } catch (error) {
     console.error('[Maintenance] 备份失败:', error);
@@ -285,19 +264,21 @@ async function performBackup(): Promise<{
 async function performArchive(): Promise<{
   success: boolean;
   message: string;
-  archivedCount: number;
-  cleanedCount: number;
+  duration: number;
 }> {
+  const startTime = Date.now();
   console.log('[Maintenance] 开始执行归档...');
 
   try {
-    const result = await archiveManager.performFullArchive();
+    // 使用归档管理器
+    const result = await archiveManager.archiveOldAuditLogs();
+    const duration = Date.now() - startTime;
+    console.log(`[Maintenance] 归档完成，耗时 ${duration}ms`);
 
     return {
       success: true,
-      message: '归档操作完成',
-      archivedCount: result.archivedCount,
-      cleanedCount: result.cleanedCount,
+      message: result.message,
+      duration,
     };
   } catch (error) {
     console.error('[Maintenance] 归档失败:', error);
@@ -311,17 +292,21 @@ async function performArchive(): Promise<{
 async function performCleanup(): Promise<{
   success: boolean;
   message: string;
-  cleanedCount: number;
+  duration: number;
 }> {
+  const startTime = Date.now();
   console.log('[Maintenance] 开始执行清理...');
 
   try {
-    const cleanedCount = await enhancedBackupManager.cleanupOldBackups(30);
+    // 使用增强备份管理器清理旧备份
+    const result = await enhancedBackupManager.cleanupOldBackups();
+    const duration = Date.now() - startTime;
+    console.log(`[Maintenance] 清理完成，耗时 ${duration}ms`);
 
     return {
       success: true,
-      message: '清理操作完成',
-      cleanedCount,
+      message: result.message,
+      duration,
     };
   } catch (error) {
     console.error('[Maintenance] 清理失败:', error);
@@ -330,82 +315,22 @@ async function performCleanup(): Promise<{
 }
 
 /**
- * GET /api/admin/maintenance
- * 获取维护状态和统计信息
- */
-export async function GET() {
-  try {
-    const db = await getDb();
-
-    // 获取数据库大小信息
-    const dbSizeResult = await db.execute(sql`
-      SELECT
-        pg_size_pretty(pg_database_size(current_database())) AS total_size,
-        pg_database_size(current_database()) AS total_size_bytes
-    `);
-    const dbSize = dbSizeResult.rows[0];
-
-    // 获取表大小信息
-    const tableSizesResult = await db.execute(sql`
-      SELECT
-        tablename,
-        pg_size_pretty(pg_total_relation_size('public.' || tablename)) AS total_size,
-        pg_total_relation_size('public.' || tablename) AS total_size_bytes
-      FROM pg_tables
-      WHERE schemaname = 'public'
-      ORDER BY pg_total_relation_size('public.' || tablename) DESC
-    `);
-    const tableSizes = tableSizesResult.rows;
-
-    // 获取备份统计
-    const backupStats = await enhancedBackupManager.getBackupStats();
-
-    // 获取归档统计
-    const archiveStats = await archiveManager.getArchiveStats();
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        databaseSize: {
-          total: (dbSize as any)?.total_size_bytes || 0,
-          totalPretty: (dbSize as any)?.total_size || 'Unknown',
-        },
-        tableSizes: (tableSizes as any[]).map((row: any) => ({
-          tableName: row.tablename,
-          totalSize: row.total_size_bytes,
-          totalSizePretty: row.total_size,
-        })),
-        backupStats,
-        archiveStats,
-      },
-    });
-  } catch (error) {
-    console.error('获取维护状态失败:', error);
-    return NextResponse.json(
-      {
-        success: false,
-        error: '获取维护状态失败',
-        message: error instanceof Error ? error.message : '未知错误',
-      },
-      { status: 500 }
-    );
-  }
-}
-
-/**
  * 启动自动维护
  */
-async function startAutoMaintenance(task?: string) {
+async function startAutoMaintenance(task: string): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  console.log('[Maintenance] 启动自动维护任务:', task);
+  
   try {
-    autoMaintenanceScheduler.start(task as any);
-
+    const result = await autoMaintenanceScheduler.startTask(task);
     return {
       success: true,
-      message: task ? `任务 ${task} 已启动` : '所有任务已启动',
-      schedules: autoMaintenanceScheduler.getSchedules(),
+      message: result.message,
     };
   } catch (error) {
-    console.error('启动自动维护失败:', error);
+    console.error('[Maintenance] 启动自动维护失败:', error);
     throw error;
   }
 }
@@ -413,53 +338,66 @@ async function startAutoMaintenance(task?: string) {
 /**
  * 停止自动维护
  */
-async function stopAutoMaintenance(task?: string) {
+async function stopAutoMaintenance(task: string): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  console.log('[Maintenance] 停止自动维护任务:', task);
+  
   try {
-    autoMaintenanceScheduler.stop(task as any);
-
+    const result = await autoMaintenanceScheduler.stopTask(task);
     return {
       success: true,
-      message: task ? `任务 ${task} 已停止` : '所有任务已停止',
-      schedules: autoMaintenanceScheduler.getSchedules(),
+      message: result.message,
     };
   } catch (error) {
-    console.error('停止自动维护失败:', error);
+    console.error('[Maintenance] 停止自动维护失败:', error);
     throw error;
   }
 }
 
 /**
- * 更新自动维护调度
+ * 更新自动维护
  */
-async function updateAutoMaintenance(task: string, schedule: string, enabled: boolean) {
+async function updateAutoMaintenance(
+  task: string,
+  schedule: string,
+  enabled: boolean
+): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  console.log('[Maintenance] 更新自动维护任务:', task, schedule, enabled);
+  
   try {
-    autoMaintenanceScheduler.updateSchedule(task as any, schedule, enabled);
-
+    const result = await autoMaintenanceScheduler.updateTask(task, schedule, enabled);
     return {
       success: true,
-      message: `任务 ${task} 已更新`,
-      schedules: autoMaintenanceScheduler.getSchedules(),
+      message: result.message,
     };
   } catch (error) {
-    console.error('更新自动维护失败:', error);
+    console.error('[Maintenance] 更新自动维护失败:', error);
     throw error;
   }
 }
 
 /**
- * 立即运行自动维护任务
+ * 立即运行自动维护
  */
-async function runAutoMaintenanceNow(task: string) {
+async function runAutoMaintenanceNow(task: string): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  console.log('[Maintenance] 立即运行自动维护任务:', task);
+  
   try {
-    const result = await autoMaintenanceScheduler.runNow(task as any);
-
+    const result = await autoMaintenanceScheduler.runTaskNow(task);
     return {
       success: true,
-      message: `任务 ${task} 已执行`,
-      result,
+      message: result.message,
     };
   } catch (error) {
-    console.error('执行自动维护任务失败:', error);
+    console.error('[Maintenance] 运行自动维护失败:', error);
     throw error;
   }
 }
