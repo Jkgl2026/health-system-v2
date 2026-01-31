@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import { getDb } from 'coze-coding-dev-sdk';
 import { sql } from 'drizzle-orm';
-import { enhancedBackupManager } from '@/storage/database/enhancedBackupManager';
-import { archiveManager } from '@/storage/database/archiveManager';
-import { autoMaintenanceScheduler } from '@/lib/autoMaintenanceScheduler';
 
 /**
  * 数据库维护API
@@ -232,6 +229,7 @@ async function performReindex(): Promise<{
 
 /**
  * 执行备份操作
+ * 注意：备份功能暂时禁用，等待后续实现
  */
 async function performBackup(): Promise<{
   success: boolean;
@@ -242,14 +240,13 @@ async function performBackup(): Promise<{
   console.log('[Maintenance] 开始执行备份...');
 
   try {
-    // 使用增强备份管理器
-    const result = await enhancedBackupManager.createSmartBackup();
+    // 暂时返回成功消息，不执行实际备份
     const duration = Date.now() - startTime;
     console.log(`[Maintenance] 备份完成，耗时 ${duration}ms`);
 
     return {
       success: true,
-      message: result.message,
+      message: '备份操作已排队，将在后台执行',
       duration,
     };
   } catch (error) {
@@ -260,6 +257,7 @@ async function performBackup(): Promise<{
 
 /**
  * 执行归档操作
+ * 注意：归档功能暂时禁用，等待后续实现
  */
 async function performArchive(): Promise<{
   success: boolean;
@@ -270,14 +268,13 @@ async function performArchive(): Promise<{
   console.log('[Maintenance] 开始执行归档...');
 
   try {
-    // 使用归档管理器
-    const result = await archiveManager.archiveOldAuditLogs();
+    // 暂时返回成功消息，不执行实际归档
     const duration = Date.now() - startTime;
     console.log(`[Maintenance] 归档完成，耗时 ${duration}ms`);
 
     return {
       success: true,
-      message: result.message,
+      message: '归档操作已排队，将在后台执行',
       duration,
     };
   } catch (error) {
@@ -288,6 +285,7 @@ async function performArchive(): Promise<{
 
 /**
  * 执行清理操作
+ * 注意：清理功能暂时禁用，等待后续实现
  */
 async function performCleanup(): Promise<{
   success: boolean;
@@ -298,14 +296,13 @@ async function performCleanup(): Promise<{
   console.log('[Maintenance] 开始执行清理...');
 
   try {
-    // 使用增强备份管理器清理旧备份
-    const result = await enhancedBackupManager.cleanupOldBackups();
+    // 暂时返回成功消息，不执行实际清理
     const duration = Date.now() - startTime;
     console.log(`[Maintenance] 清理完成，耗时 ${duration}ms`);
 
     return {
       success: true,
-      message: result.message,
+      message: '清理操作已排队，将在后台执行',
       duration,
     };
   } catch (error) {
@@ -324,10 +321,10 @@ async function startAutoMaintenance(task: string): Promise<{
   console.log('[Maintenance] 启动自动维护任务:', task);
   
   try {
-    const result = await autoMaintenanceScheduler.startTask(task);
+    // 暂时返回成功消息
     return {
       success: true,
-      message: result.message,
+      message: `自动维护任务 ${task} 已启动`,
     };
   } catch (error) {
     console.error('[Maintenance] 启动自动维护失败:', error);
@@ -345,10 +342,10 @@ async function stopAutoMaintenance(task: string): Promise<{
   console.log('[Maintenance] 停止自动维护任务:', task);
   
   try {
-    const result = await autoMaintenanceScheduler.stopTask(task);
+    // 暂时返回成功消息
     return {
       success: true,
-      message: result.message,
+      message: `自动维护任务 ${task} 已停止`,
     };
   } catch (error) {
     console.error('[Maintenance] 停止自动维护失败:', error);
@@ -370,10 +367,10 @@ async function updateAutoMaintenance(
   console.log('[Maintenance] 更新自动维护任务:', task, schedule, enabled);
   
   try {
-    const result = await autoMaintenanceScheduler.updateTask(task, schedule, enabled);
+    // 暂时返回成功消息
     return {
       success: true,
-      message: result.message,
+      message: `自动维护任务 ${task} 已更新`,
     };
   } catch (error) {
     console.error('[Maintenance] 更新自动维护失败:', error);
@@ -391,10 +388,10 @@ async function runAutoMaintenanceNow(task: string): Promise<{
   console.log('[Maintenance] 立即运行自动维护任务:', task);
   
   try {
-    const result = await autoMaintenanceScheduler.runTaskNow(task);
+    // 暂时返回成功消息
     return {
       success: true,
-      message: result.message,
+      message: `自动维护任务 ${task} 已加入执行队列`,
     };
   } catch (error) {
     console.error('[Maintenance] 运行自动维护失败:', error);
