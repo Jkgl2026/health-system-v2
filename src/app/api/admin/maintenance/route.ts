@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
  * 执行VACUUM操作
  * 清理死元组，回收空间
  */
-export async function performVacuum(): Promise<{
+async function performVacuum(): Promise<{
   success: boolean;
   message: string;
   duration: number;
@@ -173,7 +173,7 @@ export async function performVacuum(): Promise<{
  * 执行ANALYZE操作
  * 更新统计信息，优化查询计划
  */
-export async function performAnalyze(): Promise<{
+async function performAnalyze(): Promise<{
   success: boolean;
   message: string;
   duration: number;
