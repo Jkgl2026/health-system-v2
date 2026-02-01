@@ -1,9 +1,8 @@
-import type { NextConfig } from 'next';
 import path from 'path';
 import withPWA from 'next-pwa';
 
-const nextConfig: NextConfig = {
-  // outputFileTracingRoot: path.resolve(__dirname, '../../'),
+const nextConfig = {
+  // outputFileTracingRoot: path.resolve(process.cwd(), '../../'),
   /* config options here */
   // 允许所有域名访问（开发环境）
   // allowedDevOrigins: ['*.dev.coze.site'],
