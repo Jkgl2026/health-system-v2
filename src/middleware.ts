@@ -21,17 +21,11 @@ export async function middleware(request: NextRequest) {
  * 中间件配置
  */
 export const config = {
-  // 匹配所有路径（除了静态资源和 API 健康检查）
+  // 只匹配需要身份验证的页面路径
   matcher: [
-    /*
-     * 匹配所有路径，除了：
-     * - _next/static（静态文件）
-     * - _next/image（图片优化）
-     * - favicon.ico（网站图标）
-     * - public 文件夹下的静态资源（icons, images 等）
-     * - API 健康检查路径
-     * - 静态文件扩展名
-     */
-    '/((?!_next/static|_next/image|favicon\\.ico|icons|images|api/health|api/init-db|api/init-admin|.*\\.(svg|png|jpg|jpeg|gif|webp|ico|json|woff|woff2|ttf|css|js)$)(?:.*))',
+    '/',
+    '/admin/:path*',
+    '/user/:path*',
+    '/health/:path*',
   ],
 };
