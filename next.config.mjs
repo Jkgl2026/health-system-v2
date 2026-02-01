@@ -15,8 +15,6 @@ const nextConfig = {
       },
     ],
   },
-  // 添加空的 turbopack 配置以解决 Turbopack 和 Webpack 冲突问题
-  turbopack: {},
 };
 
 const pwaConfig = withPWA({

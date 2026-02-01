@@ -32,6 +32,6 @@ export const config = {
      * - API 健康检查路径
      * - 静态文件扩展名
      */
-    '/((?!_next/static|_next/image|favicon\\.ico|icons|images|api/health|api/init-db|api/init-admin|.*\\.(svg|png|jpg|jpeg|gif|webp|ico|json|woff|woff2|ttf|css|js)$).*)',
+    '/((?!_next/static|_next/image|favicon\\.ico|icons|images|api/health|api/init-db|api/init-admin|.*\\.(svg|png|jpg|jpeg|gif|webp|ico|json|woff|woff2|ttf|css|js)$)(?:.*))',
   ],
 };
