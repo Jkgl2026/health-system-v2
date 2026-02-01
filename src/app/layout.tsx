@@ -3,6 +3,10 @@ import { PWAUrlChecker } from '@/components/PWAUrlChecker';
 import { UrlWarningBanner } from '@/components/UrlWarningBanner';
 import './globals.css';
 
+// 暂时禁用可能导致启动失败的组件
+// const PWAUrlCheckerDynamic = dynamic(() => import('@/components/PWAUrlChecker'), { ssr: false });
+// const UrlWarningBannerDynamic = dynamic(() => import('@/components/UrlWarningBanner'), { ssr: false });
+
 export const metadata: Metadata = {
   title: {
     default: '健康自我管理',
@@ -67,8 +71,9 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className={`antialiased`}>
-        <UrlWarningBanner />
-        <PWAUrlChecker />
+        {/* 暂时禁用可能导致启动失败的组件 */}
+        {/* <UrlWarningBanner /> */}
+        {/* <PWAUrlChecker /> */}
         {children}
       </body>
     </html>
