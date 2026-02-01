@@ -2,7 +2,8 @@ import path from 'path';
 import withPWA from 'next-pwa';
 
 const nextConfig = {
-  // outputFileTracingRoot: path.resolve(process.cwd(), '../../'),
+  // 禁用静态生成，避免 DYNAMIC_SERVER_USAGE 错误
+  output: 'standalone',
   /* config options here */
   // 允许所有域名访问（开发环境）
   // allowedDevOrigins: ['*.dev.coze.site'],
