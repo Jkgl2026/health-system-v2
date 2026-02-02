@@ -8,7 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock, AlertCircle, Shield } from 'lucide-react';
-import { adminLogin } from '@/lib/api-config';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -23,37 +22,27 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      // 临时：使用本地验证
+      // 本地验证
       if (username === 'admin' && password === 'admin123') {
         // 保存登录信息到 localStorage
-        localStorage.setItem('admin', JSON.stringify({
-          id: '1',
-          username: 'admin',
-          role: 'admin'
-        }));
-        localStorage.setItem('adminLoggedIn', 'true');
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('admin', JSON.stringify({
+            id: '1',
+            username: 'admin',
+            role: 'admin'
+          }));
+          localStorage.setItem('adminLoggedIn', 'true');
+        }
 
         // 跳转到管理后台主页
         router.push('/admin/dashboard');
         return;
       }
 
-      // 如果不是 admin/admin123，尝试 API 调用
-      const data = await adminLogin(username, password);
-
-      if (!data.success) {
-        setError(data.error || '登录失败');
-        return;
-      }
-
-      // 保存登录信息到 localStorage
-      localStorage.setItem('admin', JSON.stringify(data.admin));
-      localStorage.setItem('adminLoggedIn', 'true');
-
-      // 跳转到管理后台主页
-      router.push('/admin/dashboard');
+      // 用户名或密码错误
+      setError('用户名或密码错误');
     } catch (err) {
-      setError('网络错误，请重试');
+      setError('登录失败，请重试');
     } finally {
       setLoading(false);
     }
