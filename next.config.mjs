@@ -5,11 +5,10 @@ const nextConfig = {
   /* config options here */
   // 允许所有域名访问（开发环境）
   // allowedDevOrigins: ['*.dev.coze.site'],
-  // 静态导出配置（前端保持静态，后端 API 单独部署）
-  output: 'export',
-  // 图片优化配置（静态导出必须禁用优化）
+  // 移除静态导出配置，启用 API 路由支持
+  // output: 'export',  // 注释掉，使用 SSR 模式
+  // 图片优化配置（现在可以使用优化了）
   images: {
-    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
