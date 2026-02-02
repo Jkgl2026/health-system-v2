@@ -234,7 +234,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: '数据库初始化成功！',
-      adminCreated: parseInt(adminCount) === 0
+      adminCreated: adminCount === 0
     });
 
   } catch (error) {
