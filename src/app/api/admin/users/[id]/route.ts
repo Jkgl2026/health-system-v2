@@ -13,7 +13,7 @@ export async function GET(
 
     // 查询用户信息
     const userResult = await db.execute(
-      sql`SELECT * FROM users WHERE id = ${id} LIMIT 1`
+      sql.raw(`SELECT * FROM users WHERE id = '${id}' LIMIT 1`)
     );
 
     const user = userResult.rows[0];
@@ -27,38 +27,38 @@ export async function GET(
 
     // 查询所有症状自检记录
     const symptomChecksResult = await db.execute(
-      sql`
+      sql.raw(`
         SELECT * FROM symptom_checks
-        WHERE user_id = ${id}
+        WHERE user_id = '${id}'
         ORDER BY checked_at DESC
-      `
+      `)
     );
 
     // 查询所有健康分析记录
     const healthAnalysisResult = await db.execute(
-      sql`
+      sql.raw(`
         SELECT * FROM health_analysis
-        WHERE user_id = ${id}
+        WHERE user_id = '${id}'
         ORDER BY analyzed_at DESC
-      `
+      `)
     );
 
     // 查询所有用户选择
     const userChoicesResult = await db.execute(
-      sql`
+      sql.raw(`
         SELECT * FROM user_choices
-        WHERE user_id = ${id}
+        WHERE user_id = '${id}'
         ORDER BY selected_at DESC
-      `
+      `)
     );
 
     // 查询要求完成情况
     const requirementsResult = await db.execute(
-      sql`
+      sql.raw(`
         SELECT * FROM requirements
-        WHERE user_id = ${id}
+        WHERE user_id = '${id}'
         LIMIT 1
-      `
+      `)
     );
 
     return NextResponse.json({

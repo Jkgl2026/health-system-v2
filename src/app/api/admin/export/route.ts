@@ -11,12 +11,12 @@ export async function GET(request: NextRequest) {
 
     // 查询所有用户数据
     const usersResult = await db.execute(
-      sql`
+      sql.raw(`
         SELECT id, name, phone, email, age, gender, created_at
         FROM users
         WHERE deleted_at IS NULL
         ORDER BY created_at DESC
-      `
+      `)
     );
 
     const users = usersResult.rows;

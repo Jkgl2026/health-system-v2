@@ -16,8 +16,10 @@ export async function POST(request: NextRequest) {
     }
 
     const db = await getDb();
+    const escapedUsername = username.replace(/'/g, "''");
+
     const result = await db.execute(
-      sql.raw(`SELECT * FROM admins WHERE username = '${username}' LIMIT 1`)
+      sql.raw(`SELECT * FROM admins WHERE username = '${escapedUsername}' LIMIT 1`)
     );
 
     const admin = result.rows[0];
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isValidPassword = await bcrypt.compare(password, String(admin.password));
+    const isValidPassword = await bcrypt.compare(password, String(admin.password || ''));
     if (!isValidPassword) {
       return NextResponse.json(
         { error: '用户名或密码错误' },

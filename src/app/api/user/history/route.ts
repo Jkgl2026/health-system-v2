@@ -20,27 +20,26 @@ export async function GET(request: NextRequest) {
 
     // 构建查询条件
     let whereClause = '';
-    const params: any[] = [];
 
     if (phoneGroupId) {
-      whereClause = `WHERE phone_group_id = $1`;
-      params.push(phoneGroupId);
+      const escapedId = phoneGroupId.replace(/'/g, "''");
+      whereClause = `WHERE phone_group_id = '${escapedId}'`;
     } else if (phone) {
-      whereClause = `WHERE phone = $1`;
-      params.push(phone);
+      const escapedPhone = phone.replace(/'/g, "''");
+      whereClause = `WHERE phone = '${escapedPhone}'`;
     } else if (name) {
-      whereClause = `WHERE name = $1`;
-      params.push(name);
+      const escapedName = name.replace(/'/g, "''");
+      whereClause = `WHERE name = '${escapedName}'`;
     }
 
     // 查询用户历史记录
     const usersResult = await db.execute(
-      sql`
+      sql.raw(`
         SELECT id, name, phone, email, age, gender, created_at, updated_at
         FROM users
-        ${sql.raw(whereClause)}
+        ${whereClause}
         ORDER BY created_at DESC
-      `
+      `)
     );
 
     const users = usersResult.rows.map((user: any) => ({

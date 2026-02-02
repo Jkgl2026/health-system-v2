@@ -16,16 +16,18 @@ export async function GET(request: NextRequest) {
     }
 
     const db = await getDb();
+    const escapedId1 = userId1.replace(/'/g, "''");
+    const escapedId2 = userId2.replace(/'/g, "''");
 
     // 查询用户1的信息
     const user1Result = await db.execute(
-      sql.raw(`SELECT * FROM users WHERE id = '${userId1}' LIMIT 1`)
+      sql.raw(`SELECT * FROM users WHERE id = '${escapedId1}' LIMIT 1`)
     );
     const user1 = user1Result.rows[0];
 
     // 查询用户2的信息
     const user2Result = await db.execute(
-      sql.raw(`SELECT * FROM users WHERE id = '${userId2}' LIMIT 1`)
+      sql.raw(`SELECT * FROM users WHERE id = '${escapedId2}' LIMIT 1`)
     );
     const user2 = user2Result.rows[0];
 
@@ -38,18 +40,18 @@ export async function GET(request: NextRequest) {
 
     // 查询用户1的最新数据
     const user1SymptomResult = await db.execute(
-      sql.raw(`SELECT * FROM symptom_checks WHERE user_id = '${userId1}' ORDER BY checked_at DESC LIMIT 1`)
+      sql.raw(`SELECT * FROM symptom_checks WHERE user_id = '${escapedId1}' ORDER BY checked_at DESC LIMIT 1`)
     );
     const user1AnalysisResult = await db.execute(
-      sql.raw(`SELECT * FROM health_analysis WHERE user_id = '${userId1}' ORDER BY analyzed_at DESC LIMIT 1`)
+      sql.raw(`SELECT * FROM health_analysis WHERE user_id = '${escapedId1}' ORDER BY analyzed_at DESC LIMIT 1`)
     );
 
     // 查询用户2的最新数据
     const user2SymptomResult = await db.execute(
-      sql.raw(`SELECT * FROM symptom_checks WHERE user_id = '${userId2}' ORDER BY checked_at DESC LIMIT 1`)
+      sql.raw(`SELECT * FROM symptom_checks WHERE user_id = '${escapedId2}' ORDER BY checked_at DESC LIMIT 1`)
     );
     const user2AnalysisResult = await db.execute(
-      sql.raw(`SELECT * FROM health_analysis WHERE user_id = '${userId2}' ORDER BY analyzed_at DESC LIMIT 1`)
+      sql.raw(`SELECT * FROM health_analysis WHERE user_id = '${escapedId2}' ORDER BY analyzed_at DESC LIMIT 1`)
     );
 
     return NextResponse.json({
