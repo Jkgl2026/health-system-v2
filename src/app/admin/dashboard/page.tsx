@@ -205,7 +205,7 @@ export default function AdminDashboardPage() {
 
   // 转换数据格式：snake_case -> camelCase
   const transformUserData = (data: any) => {
-    const transformObject = (obj: any) => {
+    const transformObject = (obj: any): any => {
       if (!obj || typeof obj !== 'object') return obj;
       if (Array.isArray(obj)) return obj.map(transformObject);
 
