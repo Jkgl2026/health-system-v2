@@ -23,6 +23,22 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
+      // 临时：使用本地验证
+      if (username === 'admin' && password === 'admin123') {
+        // 保存登录信息到 localStorage
+        localStorage.setItem('admin', JSON.stringify({
+          id: '1',
+          username: 'admin',
+          role: 'admin'
+        }));
+        localStorage.setItem('adminLoggedIn', 'true');
+
+        // 跳转到管理后台主页
+        router.push('/admin/dashboard');
+        return;
+      }
+
+      // 如果不是 admin/admin123，尝试 API 调用
       const data = await adminLogin(username, password);
 
       if (!data.success) {
