@@ -1,0 +1,65 @@
+{
+  "name": "health-miniprogram",
+  "version": "1.0.0",
+  "private": true,
+  "description": "健康自检小程序",
+  "templateInfo": {
+    "name": "react-ts",
+    "typescript": true,
+    "css": "sass"
+  },
+  "scripts": {
+    "build:weapp": "taro build --type weapp",
+    "build:swan": "taro build --type swan",
+    "build:alipay": "taro build --type alipay",
+    "build:tt": "taro build --type tt",
+    "build:h5": "taro build --type h5",
+    "build:rn": "taro build --type rn",
+    "build:qq": "taro build --type qq",
+    "build:jd": "taro build --type jd",
+    "dev:weapp": "npm run build:weapp -- --watch",
+    "dev:swan": "npm run build:swan -- --watch",
+    "dev:alipay": "npm run build:alipay -- --watch",
+    "dev:tt": "npm run build:tt -- --watch",
+    "dev:h5": "npm run build:h5 -- --watch",
+    "dev:rn": "npm run build:rn -- --watch",
+    "dev:qq": "npm run build:qq -- --watch",
+    "dev:jd": "npm run build:jd -- --watch"
+  },
+  "browserslist": [
+    "last 3 versions",
+    "Android >= 4.1",
+    "ios >= 8"
+  ],
+  "dependencies": {
+    "@tarojs/components": "^3.6.24",
+    "@tarojs/helper": "^3.6.24",
+    "@tarojs/plugin-framework-react": "^3.6.24",
+    "@tarojs/plugin-platform-weapp": "^3.6.24",
+    "@tarojs/react": "^3.6.24",
+    "@tarojs/runtime": "^3.6.24",
+    "@tarojs/taro": "^3.6.24",
+    "@tarojs/taro-h5": "^3.6.24",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.3",
+    "@babel/runtime": "^7.23.3",
+    "@tarojs/cli": "^3.6.24",
+    "@tarojs/webpack5-runner": "^3.6.24",
+    "@types/react": "^18.2.37",
+    "@types/webpack-env": "^1.18.4",
+    "@typescript-eslint/eslint-plugin": "^6.11.0",
+    "@typescript-eslint/parser": "^6.11.0",
+    "babel-preset-taro": "^3.6.24",
+    "eslint": "^8.54.0",
+    "eslint-config-taro": "^3.6.24",
+    "eslint-plugin-react": "^7.33.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "postcss": "^8.4.31",
+    "stylelint": "^15.11.0",
+    "typescript": "^5.2.2",
+    "webpack": "^5.89.0"
+  }
+}
