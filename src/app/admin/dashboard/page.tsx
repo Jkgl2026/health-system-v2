@@ -12,6 +12,7 @@ import { Pagination } from '@/components/admin/Pagination';
 import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw, Sparkles, Flame, Heart, Zap, Droplets, BookOpen, AlertTriangle, Calculator, Info, PieChart, Shield } from 'lucide-react';
 import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { getUserList, getUserHistory } from '@/lib/api-config';
 
 interface UserSummary {
   user: {
@@ -124,22 +125,24 @@ export default function AdminDashboardPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        limit: itemsPerPage.toString(),
+      const data = await getUserList({
+        page: currentPage,
+        pageSize: itemsPerPage,
+        search: searchQuery,
       });
 
-      if (searchQuery) {
-        params.append('search', searchQuery);
-      }
-
-      const response = await fetch(`/api/admin/users?${params.toString()}`);
-      const data = await response.json();
       if (data.success) {
         // 转换数据格式：snake_case -> camelCase
         const transformedUsers = data.data.map((user: any) => transformUserData(user));
         setUsers(transformedUsers);
-        setPagination(data.pagination);
+        setPagination({
+          page: currentPage,
+          limit: itemsPerPage,
+          total: data.pagination.total,
+          totalPages: data.pagination.totalPages,
+          hasNextPage: currentPage < data.pagination.totalPages,
+          hasPrevPage: currentPage > 1,
+        });
       }
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -190,14 +193,8 @@ export default function AdminDashboardPage() {
 
   const handleViewDetail = async (userId: string) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}`);
-      const data = await response.json();
-      if (data.success) {
-        // 转换数据格式：snake_case -> camelCase
-        const transformedData = transformUserData(data.data);
-        setSelectedUser(transformedData);
-        setShowDetailDialog(true);
-      }
+      // 暂时不实现这个功能，因为需要创建额外的 API
+      alert('用户详情功能需要创建额外的 API 端点');
     } catch (error) {
       console.error('Failed to fetch user detail:', error);
     }
@@ -225,27 +222,16 @@ export default function AdminDashboardPage() {
     setLoadingHistory(true);
     setHistoryPhone(user.phone || user.name);
     try {
-      // 优先使用 phoneGroupId 查询，其次使用 phone，最后使用 name
-      let queryParam = '';
-      if (user.phoneGroupId) {
-        queryParam = `phoneGroupId=${encodeURIComponent(user.phoneGroupId)}`;
-      } else if (user.phone) {
-        queryParam = `phone=${encodeURIComponent(user.phone)}`;
-      } else {
-        queryParam = `name=${encodeURIComponent(user.name)}`;
-      }
-
-      const response = await fetch(`/api/user/history?${queryParam}`);
-      const data = await response.json();
+      const data = await getUserHistory(user.id);
       if (data.success) {
-        setHistoryUsers(data.users);
+        setHistoryUsers(data.data);
         setShowHistoryDialog(true);
       } else {
         alert('获取历史记录失败');
       }
     } catch (error) {
       console.error('Failed to fetch user history:', error);
-      alert('获取历史记录失败，请重试');
+      alert('获取历史记录失败');
     } finally {
       setLoadingHistory(false);
     }

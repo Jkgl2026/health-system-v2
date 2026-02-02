@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock, AlertCircle, Shield } from 'lucide-react';
+import { adminLogin } from '@/lib/api-config';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -22,15 +23,9 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/admin/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
+      const data = await adminLogin(username, password);
 
-      const data = await response.json();
-
-      if (!response.ok) {
+      if (!data.success) {
         setError(data.error || '登录失败');
         return;
       }
