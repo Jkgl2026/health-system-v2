@@ -219,9 +219,9 @@ export async function POST(request: NextRequest) {
       sql.raw("SELECT COUNT(*) as count FROM admins WHERE username = 'admin'")
     );
 
-    const adminCount = adminCheck.rows[0]?.count || 0;
+    const adminCount = parseInt(String(adminCheck.rows[0]?.count || 0));
 
-    if (parseInt(adminCount) === 0) {
+    if (adminCount === 0) {
       // 创建默认管理员账号
       const bcrypt = require('bcrypt');
       const hashedPassword = await bcrypt.hash('admin123', 10);
