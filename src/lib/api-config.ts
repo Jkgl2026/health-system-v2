@@ -1,8 +1,8 @@
 // API 配置 - Supabase Edge Functions
 // 将所有 API 调用指向 Supabase Edge Functions
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://xxx.supabase.co';
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://rtccwmuryojxgxyuktjk.supabase.co';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_HTfxXE6oBS__mkkL7jMbsQ_nv-0Vq6z';
 
 // Supabase Edge Functions 端点
 export const API_ENDPOINTS = {
