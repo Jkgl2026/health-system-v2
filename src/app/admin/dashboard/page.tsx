@@ -12,7 +12,6 @@ import { Pagination } from '@/components/admin/Pagination';
 import { LogOut, Users, FileText, Activity, CheckCircle, AlertCircle, Eye, Download, Search, X, TrendingUp, Target, HelpCircle, Filter, RefreshCw, Sparkles, Flame, Heart, Zap, Droplets, BookOpen, AlertTriangle, Calculator, Info, PieChart, Shield } from 'lucide-react';
 import { SEVEN_QUESTIONS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { getUserList, getUserHistory } from '@/lib/api-config';
 
 interface UserSummary {
   user: {
@@ -125,25 +124,37 @@ export default function AdminDashboardPage() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const data = await getUserList({
-        page: currentPage,
-        pageSize: itemsPerPage,
-        search: searchQuery,
-      });
+      // 临时：使用假数据
+      const mockUsers = [
+        {
+          id: '1',
+          name: '张三',
+          age: 35,
+          gender: '男',
+          phone: '13800138000',
+          email: 'zhangsan@example.com',
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: '2',
+          name: '李四',
+          age: 28,
+          gender: '女',
+          phone: '13900139000',
+          email: 'lisi@example.com',
+          created_at: new Date().toISOString(),
+        },
+      ];
 
-      if (data.success) {
-        // 转换数据格式：snake_case -> camelCase
-        const transformedUsers = data.data.map((user: any) => transformUserData(user));
-        setUsers(transformedUsers);
-        setPagination({
-          page: currentPage,
-          limit: itemsPerPage,
-          total: data.pagination.total,
-          totalPages: data.pagination.totalPages,
-          hasNextPage: currentPage < data.pagination.totalPages,
-          hasPrevPage: currentPage > 1,
-        });
-      }
+      setUsers(mockUsers);
+      setPagination({
+        page: currentPage,
+        limit: itemsPerPage,
+        total: 2,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPrevPage: false,
+      });
     } catch (error) {
       console.error('Failed to fetch users:', error);
     } finally {
@@ -222,13 +233,23 @@ export default function AdminDashboardPage() {
     setLoadingHistory(true);
     setHistoryPhone(user.phone || user.name);
     try {
-      const data = await getUserHistory(user.id);
-      if (data.success) {
-        setHistoryUsers(data.data);
-        setShowHistoryDialog(true);
-      } else {
-        alert('获取历史记录失败');
-      }
+      // 临时：使用假数据
+      const mockHistory = [
+        {
+          id: '1',
+          qi_status: '正常',
+          circulation_status: '正常',
+          toxin_status: '偏高',
+          lipid_status: '正常',
+          immune_status: '偏低',
+          body_language: ['头晕', '乏力'],
+          health_elements: ['气血不足', '毒素偏高'],
+          management_plan: '建议多休息，补充营养',
+          created_at: new Date().toISOString(),
+        },
+      ];
+      setHistoryUsers(mockHistory);
+      setShowHistoryDialog(true);
     } catch (error) {
       console.error('Failed to fetch user history:', error);
       alert('获取历史记录失败');
