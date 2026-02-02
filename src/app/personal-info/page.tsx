@@ -249,24 +249,30 @@ export default function PersonalInfoPage() {
         bmi: bmi?.toString() || null,
       };
 
-      console.log('[前端] 开始保存用户数据（每次都创建新记录）:', { userId, userData });
+      console.log('[前端] 开始保存用户数据（使用客户端数据管理器）:', { userId, userData });
 
-      // 每次都创建新记录，不再更新已有记录
-      const res = await fetch('/api/user', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(userData),
+      // 使用客户端数据管理器保存用户数据
+      const response = await createUser({
+        name: formData.name,
+        phone: formData.phone || null,
+        gender: formData.gender,
+        age: formData.age || null,
+        weight: formData.weight || null,
+        height: formData.height || null,
+        bloodPressure: formData.bloodPressure || null,
+        occupation: formData.occupation || null,
+        address: formData.address || null,
+        bmi: bmi?.toString() || null,
       });
-      const response = await safeParseResponse(res);
 
       console.log('[前端] 保存响应:', response);
 
-      if (!response.success) {
+      if (!response.success || !response.user) {
         throw new Error(response.error || '保存失败');
       }
 
-      // 更新 localStorage 中的 userId 为新创建的用户ID
-      if (response.user?.id) {
+      // 更新 localStorage 中的 userId
+      if (response.user.id) {
         localStorage.setItem('health_app_user_id', response.user.id);
       }
 
