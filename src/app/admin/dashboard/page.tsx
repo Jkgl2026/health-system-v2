@@ -136,7 +136,9 @@ export default function AdminDashboardPage() {
       const response = await fetch(`/api/admin/users?${params.toString()}`);
       const data = await response.json();
       if (data.success) {
-        setUsers(data.data);
+        // 转换数据格式：snake_case -> camelCase
+        const transformedUsers = data.data.map((user: any) => transformUserData(user));
+        setUsers(transformedUsers);
         setPagination(data.pagination);
       }
     } catch (error) {
@@ -191,12 +193,32 @@ export default function AdminDashboardPage() {
       const response = await fetch(`/api/admin/users/${userId}`);
       const data = await response.json();
       if (data.success) {
-        setSelectedUser(data.data);
+        // 转换数据格式：snake_case -> camelCase
+        const transformedData = transformUserData(data.data);
+        setSelectedUser(transformedData);
         setShowDetailDialog(true);
       }
     } catch (error) {
       console.error('Failed to fetch user detail:', error);
     }
+  };
+
+  // 转换数据格式：snake_case -> camelCase
+  const transformUserData = (data: any) => {
+    const transformObject = (obj: any) => {
+      if (!obj || typeof obj !== 'object') return obj;
+      if (Array.isArray(obj)) return obj.map(transformObject);
+
+      const result: any = {};
+      for (const key in obj) {
+        // snake_case -> camelCase
+        const camelCaseKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+        result[camelCaseKey] = transformObject(obj[key]);
+      }
+      return result;
+    };
+
+    return transformObject(data);
   };
 
   const handleViewHistory = async (user: any) => {
