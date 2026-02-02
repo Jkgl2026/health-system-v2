@@ -27,20 +27,17 @@ export async function GET(request: NextRequest) {
         users.map(async (user: any) => {
           // 查询症状自检
           const symptomResult = await db.execute(
-            sql`SELECT * FROM symptom_checks WHERE user_id = $1 ORDER BY checked_at DESC`,
-            [user.id]
+            sql.raw(`SELECT * FROM symptom_checks WHERE user_id = '${user.id}' ORDER BY checked_at DESC`)
           );
 
           // 查询健康分析
           const analysisResult = await db.execute(
-            sql`SELECT * FROM health_analysis WHERE user_id = $1 ORDER BY analyzed_at DESC`,
-            [user.id]
+            sql.raw(`SELECT * FROM health_analysis WHERE user_id = '${user.id}' ORDER BY analyzed_at DESC`)
           );
 
           // 查询要求完成情况
           const reqResult = await db.execute(
-            sql`SELECT * FROM requirements WHERE user_id = $1 LIMIT 1`,
-            [user.id]
+            sql.raw(`SELECT * FROM requirements WHERE user_id = '${user.id}' LIMIT 1`)
           );
 
           return {

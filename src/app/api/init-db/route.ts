@@ -216,7 +216,7 @@ export async function POST(request: NextRequest) {
 
     // 检查是否已有管理员账号
     const adminCheck = await db.execute(
-      sql`SELECT COUNT(*) as count FROM admins WHERE username = 'admin'`
+      sql.raw("SELECT COUNT(*) as count FROM admins WHERE username = 'admin'")
     );
 
     const adminCount = adminCheck.rows[0]?.count || 0;
@@ -227,7 +227,7 @@ export async function POST(request: NextRequest) {
       const hashedPassword = await bcrypt.hash('admin123', 10);
 
       await db.execute(
-        sql`INSERT INTO admins (username, password, name, is_active) VALUES ('admin', ${hashedPassword}, '系统管理员', true)`
+        sql.raw(`INSERT INTO admins (username, password, name, is_active) VALUES ('admin', '${hashedPassword}', '系统管理员', true)`)
       );
     }
 

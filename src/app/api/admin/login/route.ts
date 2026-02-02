@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     const db = await getDb();
     const result = await db.execute(
-      sql`SELECT * FROM admins WHERE username = ${username} LIMIT 1`
+      sql.raw(`SELECT * FROM admins WHERE username = '${username}' LIMIT 1`)
     );
 
     const admin = result.rows[0];

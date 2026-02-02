@@ -14,20 +14,19 @@ export async function GET(request: NextRequest) {
 
     // 构建查询条件
     let whereClause = '';
-    const params: any[] = [];
 
     if (search) {
+      const escapedSearch = search.replace(/'/g, "''");
       whereClause = `
-        WHERE name ILIKE $1
-           OR phone ILIKE $1
-           OR email ILIKE $1
+        WHERE name ILIKE '%${escapedSearch}%'
+           OR phone ILIKE '%${escapedSearch}%'
+           OR email ILIKE '%${escapedSearch}%'
       `;
-      params.push(`%${search}%`);
     }
 
     // 查询用户总数
     const countResult = await db.execute(
-      sql`SELECT COUNT(*) as count FROM users ${search ? sql.raw(whereClause) : sql.raw('')}`
+      sql.raw(`SELECT COUNT(*) as count FROM users ${whereClause}`)
     );
 
     const total = parseInt(countResult.rows[0]?.count || '0');
@@ -35,13 +34,13 @@ export async function GET(request: NextRequest) {
 
     // 查询用户列表
     const usersResult = await db.execute(
-      sql`
+      sql.raw(`
         SELECT id, name, phone, email, age, gender, created_at
         FROM users
-        ${search ? sql.raw(whereClause) : sql.raw('')}
+        ${whereClause}
         ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
-      `
+      `)
     );
 
     // 查询每个用户的检测数据（只查询最新的）
