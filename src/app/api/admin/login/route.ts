@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isValidPassword = await bcrypt.compare(password, admin.password);
+    const isValidPassword = await bcrypt.compare(password, String(admin.password));
     if (!isValidPassword) {
       return NextResponse.json(
         { error: '用户名或密码错误' },
