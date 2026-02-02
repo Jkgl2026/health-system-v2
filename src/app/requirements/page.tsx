@@ -10,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ChevronLeft, ArrowRight, CheckCircle2, AlertCircle, BookOpen, ClipboardCheck, Users, GraduationCap, Lock, Unlock } from 'lucide-react';
 import { FOUR_REQUIREMENTS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
 import { getOrGenerateUserId } from '@/lib/user-context';
+import { saveRequirements } from '@/lib/api-client';
 import Link from 'next/link';
 
 // 页面步骤类型
@@ -61,7 +62,7 @@ export default function RequirementsPage() {
           console.log('[RequirementsPage] 恢复已选择的300症状:', symptoms.length);
         }
       } catch (error) {
-        console.error('[RequirementsPage] 恢复数据失败:', error);
+        console.error("保存失败:", error);
       }
     }, 0);
 
@@ -120,28 +121,22 @@ export default function RequirementsPage() {
       localStorage.setItem('selectedHabitsRequirements', JSON.stringify([...selectedHabits]));
       localStorage.setItem('selectedSymptoms300', JSON.stringify([...selectedSymptoms300]));
 
-      // 保存到数据库
-      const response = await fetch('/api/user/requirements', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId,
-          badHabitsChecklist: [...selectedHabits],
-          symptoms300Checklist: [...selectedSymptoms300],
-        }),
+      // 使用客户端数据管理器保存
+      const response = await saveRequirements({
+        userId,
+        badHabitsChecklist: [...selectedHabits],
+        symptoms300Checklist: [...selectedSymptoms300],
       });
 
-      if (response.ok) {
+      if (response.success) {
         router.push('/recovery');
       } else {
-        const error = await response.json();
-        console.error('保存失败:', error);
-        alert('保存失败，请重试：' + (error.error || '未知错误'));
+        // const error = await response.json(); // 已移除
+        console.error("保存失败:", response.error);
+        alert('保存失败，请重试：' + (response.error || '未知错误'));
       }
     } catch (error) {
-      console.error('保存失败:', error);
+      console.error("保存失败:", error);
       alert('保存失败，请检查网络连接后重试');
     }
   };
