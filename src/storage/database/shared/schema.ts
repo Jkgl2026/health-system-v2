@@ -4,7 +4,7 @@ import { sql } from "drizzle-orm"
 
 
 export const symptomChecks = pgTable("symptom_checks", {
-	id: varchar({ length: 36 }).default(gen_random_uuid()).primaryKey().notNull(),
+	id: varchar({ length: 36 }).default(sql`gen_random_uuid()`).primaryKey().notNull(),
 	userId: varchar("user_id", { length: 36 }).notNull(),
 	checkedSymptoms: jsonb("checked_symptoms").notNull(),
 	totalScore: integer("total_score"),
@@ -23,7 +23,7 @@ export const symptomChecks = pgTable("symptom_checks", {
 ]);
 
 export const healthAnalysis = pgTable("health_analysis", {
-	id: varchar({ length: 36 }).default(gen_random_uuid()).primaryKey().notNull(),
+	id: varchar({ length: 36 }).default(sql`gen_random_uuid()`).primaryKey().notNull(),
 	userId: varchar("user_id", { length: 36 }).notNull(),
 	qiAndBlood: integer("qi_and_blood"),
 	circulation: integer(),
@@ -47,7 +47,7 @@ export const healthAnalysis = pgTable("health_analysis", {
 ]);
 
 export const userChoices = pgTable("user_choices", {
-	id: varchar({ length: 36 }).default(gen_random_uuid()).primaryKey().notNull(),
+	id: varchar({ length: 36 }).default(sql`gen_random_uuid()`).primaryKey().notNull(),
 	userId: varchar("user_id", { length: 36 }).notNull(),
 	planType: varchar("plan_type", { length: 50 }).notNull(),
 	planDescription: text("plan_description"),
@@ -64,7 +64,7 @@ export const userChoices = pgTable("user_choices", {
 ]);
 
 export const admins = pgTable("admins", {
-	id: varchar({ length: 36 }).default(gen_random_uuid()).primaryKey().notNull(),
+	id: varchar({ length: 36 }).default(sql`gen_random_uuid()`).primaryKey().notNull(),
 	username: varchar({ length: 50 }).notNull(),
 	password: varchar({ length: 255 }).notNull(),
 	name: varchar({ length: 128 }),
@@ -77,7 +77,7 @@ export const admins = pgTable("admins", {
 ]);
 
 export const requirements = pgTable("requirements", {
-	id: varchar({ length: 36 }).default(gen_random_uuid()).primaryKey().notNull(),
+	id: varchar({ length: 36 }).default(sql`gen_random_uuid()`).primaryKey().notNull(),
 	userId: varchar("user_id", { length: 36 }).notNull(),
 	requirement1Completed: boolean("requirement1_completed").default(false),
 	requirement2Completed: boolean("requirement2_completed").default(false),
@@ -101,7 +101,7 @@ export const requirements = pgTable("requirements", {
 ]);
 
 export const users = pgTable("users", {
-	id: varchar({ length: 36 }).default(gen_random_uuid()).primaryKey().notNull(),
+	id: varchar({ length: 36 }).default(sql`gen_random_uuid()`).primaryKey().notNull(),
 	name: varchar({ length: 128 }),
 	phone: varchar({ length: 20 }),
 	email: varchar({ length: 255 }),
@@ -127,7 +127,7 @@ export const users = pgTable("users", {
 ]);
 
 export const auditLogs = pgTable("audit_logs", {
-	id: varchar({ length: 36 }).default(gen_random_uuid()).primaryKey().notNull(),
+	id: varchar({ length: 36 }).default(sql`gen_random_uuid()`).primaryKey().notNull(),
 	action: varchar({ length: 20 }).notNull(),
 	tableName: varchar("table_name", { length: 50 }).notNull(),
 	recordId: varchar("record_id", { length: 36 }).notNull(),
@@ -148,7 +148,7 @@ export const auditLogs = pgTable("audit_logs", {
 ]);
 
 export const courses = pgTable("courses", {
-	id: varchar({ length: 36 }).default(gen_random_uuid()).primaryKey().notNull(),
+	id: varchar({ length: 36 }).default(sql`gen_random_uuid()`).primaryKey().notNull(),
 	title: varchar({ length: 255 }).notNull(),
 	content: text().notNull(),
 	duration: varchar({ length: 50 }),
@@ -170,7 +170,7 @@ export const courses = pgTable("courses", {
 ]);
 
 export const migrationHistory = pgTable("migration_history", {
-	id: varchar({ length: 36 }).default(gen_random_uuid()).primaryKey().notNull(),
+	id: varchar({ length: 36 }).default(sql`gen_random_uuid()`).primaryKey().notNull(),
 	migrationId: varchar("migration_id", { length: 64 }).notNull(),
 	migrationType: varchar("migration_type", { length: 20 }).notNull(),
 	tableName: varchar("table_name", { length: 50 }).notNull(),

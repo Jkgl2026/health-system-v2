@@ -23,11 +23,11 @@ interface HealthAnalysis {
 
 interface User {
   id: string;
-  name: string | null;
-  phone: string | null;
-  email: string | null;
-  age: number | null;
-  gender: string | null;
+  name: string | null | undefined;
+  phone: string | null | undefined;
+  email: string | null | undefined;
+  age: number | null | undefined;
+  gender: string | null | undefined;
 }
 
 export default function HealthAnalysisResultPage() {
