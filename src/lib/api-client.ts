@@ -40,7 +40,8 @@ export async function createUser(userData: {
     return { success: true, user };
   } catch (error) {
     console.error('Error - createUser:', error);
-    throw error;
+    const errorMessage = error instanceof Error ? error.message : '未知错误';
+    return { success: false, error: errorMessage, user: null };
   }
 }
 
