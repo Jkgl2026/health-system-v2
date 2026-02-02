@@ -44,25 +44,71 @@ export async function GET(request: NextRequest) {
       `
     );
 
-    const users = usersResult.rows.map((user: any) => ({
-      user: {
-        id: user.id,
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        age: user.age,
-        gender: user.gender,
-        createdAt: user.created_at,
-      },
-      latestSymptomCheck: null,
-      latestHealthAnalysis: null,
-      latestChoice: null,
-      requirements: null,
-    }));
+    // 查询每个用户的检测数据（只查询最新的）
+    const users = usersResult.rows;
+
+    const usersWithData = await Promise.all(
+      users.map(async (user: any) => {
+        // 获取最新症状自检
+        const symptomResult = await db.execute(
+          sql`
+            SELECT * FROM symptom_checks
+            WHERE user_id = ${sql.raw(`'${user.id}'`)}
+            ORDER BY checked_at DESC
+            LIMIT 1
+          `
+        );
+
+        // 获取最新健康分析
+        const analysisResult = await db.execute(
+          sql`
+            SELECT * FROM health_analysis
+            WHERE user_id = ${sql.raw(`'${user.id}'`)}
+            ORDER BY analyzed_at DESC
+            LIMIT 1
+          `
+        );
+
+        // 获取最新选择
+        const choiceResult = await db.execute(
+          sql`
+            SELECT * FROM user_choices
+            WHERE user_id = ${sql.raw(`'${user.id}'`)}
+            ORDER BY selected_at DESC
+            LIMIT 1
+          `
+        );
+
+        // 获取要求完成情况
+        const reqResult = await db.execute(
+          sql`
+            SELECT * FROM requirements
+            WHERE user_id = ${sql.raw(`'${user.id}'`)}
+            LIMIT 1
+          `
+        );
+
+        return {
+          user: {
+            id: user.id,
+            name: user.name,
+            phone: user.phone,
+            email: user.email,
+            age: user.age,
+            gender: user.gender,
+            createdAt: user.created_at,
+          },
+          latestSymptomCheck: symptomResult.rows[0] || null,
+          latestHealthAnalysis: analysisResult.rows[0] || null,
+          latestChoice: choiceResult.rows[0] || null,
+          requirements: reqResult.rows[0] || null,
+        };
+      })
+    );
 
     return NextResponse.json({
       success: true,
-      data: users,
+      data: usersWithData,
       pagination: {
         page,
         limit,
