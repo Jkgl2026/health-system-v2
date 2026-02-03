@@ -5,16 +5,43 @@
  * - 显示系统统计数据
  * - 功能导航
  * - 登出功能
+ * - 用户列表
  */
 
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getCurrentUser, logout } from '@/app/lib/fetch';
+import { getCurrentUser, adminFetch } from '@/app/lib/fetch';
+
+interface StatsData {
+  totalUsers: number;
+  maleUsers: number;
+  femaleUsers: number;
+  newUsersThisWeek: number;
+  malePercentage: number;
+  femalePercentage: number;
+  systemStatus: string;
+}
+
+interface UserData {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  age: number;
+  gender: string;
+  bmi: string;
+  created_at: string;
+}
 
 export default function AdminDashboardPage() {
   const [user, setUser] = useState<any>(null);
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [users, setUsers] = useState<UserData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     // 获取当前用户信息
@@ -28,7 +55,47 @@ export default function AdminDashboardPage() {
 
     setUser(currentUser);
     setIsLoading(false);
+
+    // 加载统计数据和用户列表
+    loadDashboardData();
   }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      // 并行加载统计数据和用户列表
+      await Promise.all([
+        loadStats(),
+        loadUsers()
+      ]);
+    } catch (err) {
+      console.error('加载数据失败', err);
+      setError('加载数据失败，请刷新重试');
+    }
+  };
+
+  const loadStats = async () => {
+    try {
+      setStatsLoading(true);
+      const data = await adminFetch<{ totalUsers: number; maleUsers: number; femaleUsers: number; newUsersThisWeek: number; malePercentage: number; femalePercentage: number; systemStatus: string }>('/admin-stats');
+      setStats(data);
+    } catch (err) {
+      console.error('加载统计数据失败', err);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  const loadUsers = async () => {
+    try {
+      setUsersLoading(true);
+      const data = await adminFetch<{ users: UserData[] }>('/admin-users');
+      setUsers(data.users || []);
+    } catch (err) {
+      console.error('加载用户列表失败', err);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     // 清除本地存储
@@ -140,7 +207,7 @@ export default function AdminDashboardPage() {
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#667eea', marginBottom: '10px' }}>
-              3
+              {statsLoading ? '-' : (stats?.totalUsers || 0)}
             </div>
             <div style={{ fontSize: '16px', color: '#666' }}>总用户数</div>
           </div>
@@ -152,7 +219,7 @@ export default function AdminDashboardPage() {
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#48c774', marginBottom: '10px' }}>
-              2
+              {statsLoading ? '-' : (stats?.maleUsers || 0)}
             </div>
             <div style={{ fontSize: '16px', color: '#666' }}>男性用户</div>
           </div>
@@ -164,7 +231,7 @@ export default function AdminDashboardPage() {
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#ff3860', marginBottom: '10px' }}>
-              1
+              {statsLoading ? '-' : (stats?.femaleUsers || 0)}
             </div>
             <div style={{ fontSize: '16px', color: '#666' }}>女性用户</div>
           </div>
@@ -176,7 +243,7 @@ export default function AdminDashboardPage() {
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#ffdd57', marginBottom: '10px' }}>
-              100%
+              {statsLoading ? '-' : (stats?.systemStatus || '正常')}
             </div>
             <div style={{ fontSize: '16px', color: '#666' }}>系统状态</div>
           </div>
@@ -244,6 +311,57 @@ export default function AdminDashboardPage() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* User List */}
+        <h2 style={{ fontSize: '24px', color: '#333', marginBottom: '20px' }}>
+          用户列表
+        </h2>
+
+        <div style={{
+          background: 'white',
+          padding: '30px',
+          borderRadius: '10px',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+        }}>
+          {usersLoading ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+              加载用户列表中...
+            </div>
+          ) : users.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+              暂无用户数据
+            </div>
+          ) : (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid #eee' }}>
+                  <th style={{ padding: '15px', textAlign: 'left', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>ID</th>
+                  <th style={{ padding: '15px', textAlign: 'left', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>姓名</th>
+                  <th style={{ padding: '15px', textAlign: 'left', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>年龄</th>
+                  <th style={{ padding: '15px', textAlign: 'left', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>性别</th>
+                  <th style={{ padding: '15px', textAlign: 'left', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>电话</th>
+                  <th style={{ padding: '15px', textAlign: 'left', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>邮箱</th>
+                  <th style={{ padding: '15px', textAlign: 'left', color: '#666', fontSize: '14px', fontWeight: 'bold' }}>注册时间</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((userItem) => (
+                  <tr key={userItem.id} style={{ borderBottom: '1px solid #eee' }}>
+                    <td style={{ padding: '15px', color: '#333', fontSize: '14px' }}>{userItem.id.substring(0, 8)}...</td>
+                    <td style={{ padding: '15px', color: '#333', fontSize: '14px', fontWeight: 'bold' }}>{userItem.name || '-'}</td>
+                    <td style={{ padding: '15px', color: '#333', fontSize: '14px' }}>{userItem.age || '-'}</td>
+                    <td style={{ padding: '15px', color: '#333', fontSize: '14px' }}>{userItem.gender || '-'}</td>
+                    <td style={{ padding: '15px', color: '#333', fontSize: '14px' }}>{userItem.phone || '-'}</td>
+                    <td style={{ padding: '15px', color: '#333', fontSize: '14px' }}>{userItem.email || '-'}</td>
+                    <td style={{ padding: '15px', color: '#333', fontSize: '14px' }}>
+                      {new Date(userItem.created_at).toLocaleDateString('zh-CN')}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>
