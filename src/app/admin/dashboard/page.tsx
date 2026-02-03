@@ -1,25 +1,42 @@
+/**
+ * 后台管理首页
+ * 
+ * 功能：
+ * - 显示系统统计数据
+ * - 功能导航
+ * - 登出功能
+ */
+
 'use client';
 
 import { useEffect, useState } from 'react';
-import Link from 'next/link';
+import { getCurrentUser, logout } from '@/app/lib/fetch';
 
 export default function AdminDashboardPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 检查登录状态
-    const loggedIn = localStorage.getItem('adminLoggedIn');
-    setIsLoggedIn(loggedIn === 'true');
-
-    if (loggedIn !== 'true') {
-      window.location.href = '/admin-login.html';
+    // 获取当前用户信息
+    const currentUser = getCurrentUser();
+    
+    if (!currentUser) {
+      // 未登录，跳转到登录页
+      window.location.href = '/admin/login';
+      return;
     }
+
+    setUser(currentUser);
+    setIsLoading(false);
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin');
-    localStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin-login.html';
+  const handleLogout = async () => {
+    // 清除本地存储
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
+    
+    // 跳转到登录页
+    window.location.href = '/admin/login';
   };
 
   const features = [
@@ -57,7 +74,7 @@ export default function AdminDashboardPage() {
     }
   ];
 
-  if (!isLoggedIn) {
+  if (isLoading) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -66,7 +83,7 @@ export default function AdminDashboardPage() {
         alignItems: 'center',
         background: '#f5f5f5'
       }}>
-        <div>检查登录中...</div>
+        <div>加载中...</div>
       </div>
     );
   }
@@ -87,7 +104,7 @@ export default function AdminDashboardPage() {
             健康管理系统
           </h1>
           <p style={{ margin: '5px 0 0 0', fontSize: '14px', opacity: 0.9 }}>
-            管理后台
+            欢迎回来，{user?.name || user?.username || '管理员'}
           </p>
         </div>
         <button
@@ -197,7 +214,7 @@ export default function AdminDashboardPage() {
                 {feature.description}
               </p>
               {feature.status === 'available' ? (
-                <Link
+                <a
                   href={feature.link}
                   style={{
                     display: 'inline-block',
@@ -206,133 +223,27 @@ export default function AdminDashboardPage() {
                     color: 'white',
                     textDecoration: 'none',
                     borderRadius: '5px',
-                    fontSize: '14px'
+                    fontSize: '14px',
+                    fontWeight: 'bold'
                   }}
                 >
-                  访问功能
-                </Link>
+                  进入
+                </a>
               ) : (
-                <div style={{ fontSize: '12px', color: '#ffc107', fontWeight: 'bold' }}>
-                  ⚠️ 需要配置后端 API
+                <div style={{
+                  padding: '10px 20px',
+                  background: '#ffc107',
+                  color: '#333',
+                  borderRadius: '5px',
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  textAlign: 'center'
+                }}>
+                  需要API支持
                 </div>
               )}
             </div>
           ))}
-        </div>
-
-        {/* User Table */}
-        <h2 style={{ fontSize: '24px', color: '#333', marginBottom: '20px' }}>
-          用户列表
-        </h2>
-
-        <div style={{
-          background: 'white',
-          padding: '30px',
-          borderRadius: '10px',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
-        }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-              <thead>
-                <tr style={{ background: '#f5f5f5' }}>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
-                    ID
-                  </th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
-                    姓名
-                  </th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
-                    年龄
-                  </th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
-                    性别
-                  </th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
-                    电话
-                  </th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
-                    邮箱
-                  </th>
-                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
-                    注册时间
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '15px', color: '#666' }}>1</td>
-                  <td style={{ padding: '15px', fontWeight: 'bold', color: '#333' }}>张三</td>
-                  <td style={{ padding: '15px', color: '#666' }}>35</td>
-                  <td style={{ padding: '15px', color: '#666' }}>
-                    <span style={{
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      background: '#e3f2fd',
-                      color: '#1976d2'
-                    }}>男</span>
-                  </td>
-                  <td style={{ padding: '15px', color: '#666' }}>13800138000</td>
-                  <td style={{ padding: '15px', color: '#666' }}>zhangsan@example.com</td>
-                  <td style={{ padding: '15px', color: '#666' }}>2025-01-15</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '15px', color: '#666' }}>2</td>
-                  <td style={{ padding: '15px', fontWeight: 'bold', color: '#333' }}>李四</td>
-                  <td style={{ padding: '15px', color: '#666' }}>28</td>
-                  <td style={{ padding: '15px', color: '#666' }}>
-                    <span style={{
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      background: '#e3f2fd',
-                      color: '#1976d2'
-                    }}>男</span>
-                  </td>
-                  <td style={{ padding: '15px', color: '#666' }}>13900139000</td>
-                  <td style={{ padding: '15px', color: '#666' }}>lisi@example.com</td>
-                  <td style={{ padding: '15px', color: '#666' }}>2025-01-20</td>
-                </tr>
-                <tr style={{ borderBottom: '1px solid #eee' }}>
-                  <td style={{ padding: '15px', color: '#666' }}>3</td>
-                  <td style={{ padding: '15px', fontWeight: 'bold', color: '#333' }}>王五</td>
-                  <td style={{ padding: '15px', color: '#666' }}>42</td>
-                  <td style={{ padding: '15px', color: '#666' }}>
-                    <span style={{
-                      padding: '4px 12px',
-                      borderRadius: '20px',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      background: '#fce4ec',
-                      color: '#c2185b'
-                    }}>女</span>
-                  </td>
-                  <td style={{ padding: '15px', color: '#666' }}>13700137000</td>
-                  <td style={{ padding: '15px', color: '#666' }}>wangwu@example.com</td>
-                  <td style={{ padding: '15px', color: '#666' }}>2025-01-25</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        {/* Notice */}
-        <div style={{
-          background: '#fff3cd',
-          border: '1px solid #ffc107',
-          padding: '20px',
-          borderRadius: '5px',
-          marginTop: '30px'
-        }}>
-          <h3 style={{ fontSize: '16px', color: '#856404', marginBottom: '10px' }}>
-            ⚠️ 系统说明
-          </h3>
-          <p style={{ fontSize: '14px', color: '#856404', margin: 0 }}>
-            当前系统运行在静态托管平台（Cloudflare Pages）上。部分高级功能（如系统维护、七问管理）需要后端 API 支持。
-            如需使用完整功能，请联系管理员配置后端服务器。
-          </p>
         </div>
       </div>
     </div>

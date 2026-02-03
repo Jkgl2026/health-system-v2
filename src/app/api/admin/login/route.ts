@@ -1,9 +1,9 @@
 /**
- * 管理员登录接口（Drizzle ORM版本）
+ * 管理员登录接口（Drizzle ORM版本 + Cookie支持）
  * 
  * 功能：
  * - 接收账号密码，验证身份
- * - 生成JWT Token返回给前端
+ * - 生成JWT Token并设置到Cookie和localStorage
  * - 记录登录时间和IP
  * - 防暴力破解（失败次数限制）
  * 
@@ -26,12 +26,6 @@
  *     "username": "admin",
  *     "name": "系统管理员"
  *   }
- * }
- * 
- * 失败：
- * {
- *   "success": false,
- *   "error": "账号或密码错误"
  * }
  */
 
@@ -158,8 +152,8 @@ export async function POST(request: NextRequest) {
     // 9. 清除失败次数
     loginAttempts.delete(usernameTrimmed);
 
-    // 10. 返回Token和用户信息
-    return NextResponse.json({
+    // 10. 创建响应对象
+    const response = NextResponse.json({
       success: true,
       token,
       user: {
@@ -168,6 +162,18 @@ export async function POST(request: NextRequest) {
         name: admin.name,
       },
     });
+
+    // 11. 设置Cookie（关键修复）
+    response.cookies.set('admin_token', token, {
+      httpOnly: true,                    // 仅HTTP访问，防止XSS
+      secure: process.env.NODE_ENV === 'production',  // 生产环境仅HTTPS
+      sameSite: 'lax',                   // 防止CSRF
+      maxAge: 60 * 60 * 24 * 7,          // 7天过期
+      path: '/',                         // 全站可用
+    });
+
+    // 12. 返回响应
+    return response;
 
   } catch (error) {
     console.error('[登录] 服务器错误', error);

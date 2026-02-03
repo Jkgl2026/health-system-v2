@@ -2,22 +2,10 @@
  * 前端fetch请求封装工具
  * 
  * 功能：
- * - 自动携带Token（从localStorage读取）
+ * - 自动携带Token（优先使用Cookie，备用localStorage）
  * - 统一异常处理
  * - 统一返回格式
  * - 自动处理401未授权（跳转登录）
- * 
- * 使用方式：
- * import { adminFetch } from '@/app/lib/fetch';
- * 
- * // GET请求
- * const data = await adminFetch('/api/admin/users');
- * 
- * // POST请求
- * const data = await adminFetch('/api/admin/users', {
- *   method: 'POST',
- *   body: JSON.stringify({ name: 'test' })
- * });
  */
 
 /**
@@ -34,9 +22,7 @@ interface APIResponse<T = any> {
  * 请求配置接口
  */
 interface FetchConfig extends RequestInit {
-  /** 是否携带Token（默认true） */
-  withToken?: boolean;
-  /** 是否在401时自动跳转登录（默认true） */
+  /** 是否自动处理401（默认true） */
   redirectOn401?: boolean;
   /** 请求超时时间（毫秒，默认30000） */
   timeout?: number;
@@ -46,7 +32,6 @@ interface FetchConfig extends RequestInit {
  * 默认请求配置
  */
 const DEFAULT_CONFIG: FetchConfig = {
-  withToken: true,
   redirectOn401: true,
   timeout: 30000,
 };
@@ -57,21 +42,6 @@ const DEFAULT_CONFIG: FetchConfig = {
  * @param url - 请求路径
  * @param config - 请求配置
  * @returns API响应数据
- * 
- * @example
- * // GET请求
- * const users = await adminFetch('/api/admin/users');
- * 
- * // POST请求
- * const result = await adminFetch('/api/admin/users', {
- *   method: 'POST',
- *   body: JSON.stringify({ username: 'admin' })
- * });
- * 
- * // 不携带Token
- * const data = await adminFetch('/api/public/info', {
- *   withToken: false
- * });
  */
 export async function adminFetch<T = any>(
   url: string,
@@ -87,43 +57,43 @@ export async function adminFetch<T = any>(
       ...(config.headers || {}),
     };
     
-    // 2. 自动携带Token
-    if (mergedConfig.withToken) {
-      const token = localStorage.getItem('admin_token');
+    // 2. 尝试从localStorage获取Token（备用）
+    const token = localStorage.getItem('admin_token');
+    
+    if (!token) {
+      console.error('[adminFetch] 未找到Token');
       
-      if (!token) {
-        console.error('[adminFetch] 未找到Token');
-        
-        if (mergedConfig.redirectOn401) {
-          redirectToLogin();
-        }
-        
-        throw new Error('未登录，请先登录');
+      if (mergedConfig.redirectOn401) {
+        redirectToLogin();
       }
       
-      headers['Authorization'] = `Bearer ${token}`;
+      throw new Error('未登录，请先登录');
     }
     
-    // 3. 创建超时控制
+    // 3. Token将通过Cookie自动发送，不需要手动设置Authorization头
+    console.log('[adminFetch] 发送请求', { url });
+    
+    // 4. 创建超时控制
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
     }, mergedConfig.timeout);
     
-    // 4. 发送请求
+    // 5. 发送请求
     const response = await fetch(url, {
       ...mergedConfig,
       headers,
+      credentials: 'include',  // 包含Cookie
       signal: controller.signal,
     });
     
     // 清除超时
     clearTimeout(timeoutId);
     
-    // 5. 解析响应
+    // 6. 解析响应
     const data: APIResponse<T> = await response.json();
     
-    // 6. 处理401未授权
+    // 7. 处理401未授权
     if (response.status === 401) {
       console.error('[adminFetch] 401未授权', { url, error: data.error });
       
@@ -138,7 +108,7 @@ export async function adminFetch<T = any>(
       throw new Error(data.error || '登录已过期，请重新登录');
     }
     
-    // 7. 处理其他错误状态码
+    // 8. 处理其他错误状态码
     if (!response.ok) {
       console.error('[adminFetch] 请求失败', { 
         url, 
@@ -149,14 +119,13 @@ export async function adminFetch<T = any>(
       throw new Error(data.error || `请求失败：${response.status}`);
     }
     
-    // 8. 处理业务错误
+    // 9. 处理业务错误
     if (!data.success) {
       console.error('[adminFetch] 业务错误', { url, error: data.error });
       throw new Error(data.error || '操作失败');
     }
     
-    // 9. 返回数据
-    console.log('[adminFetch] 请求成功', { url });
+    // 10. 返回数据
     return data.data as T;
     
   } catch (error) {
@@ -188,14 +157,6 @@ function redirectToLogin() {
 
 /**
  * 获取当前登录用户信息
- * 
- * @returns 用户信息或null
- * 
- * @example
- * const user = getCurrentUser();
- * if (user) {
- *   console.log('当前用户:', user.username);
- * }
  */
 export function getCurrentUser() {
   try {
@@ -212,13 +173,6 @@ export function getCurrentUser() {
 
 /**
  * 检查是否已登录
- * 
- * @returns 是否已登录
- * 
- * @example
- * if (isLoggedIn()) {
- *   console.log('已登录');
- * }
  */
 export function isLoggedIn(): boolean {
   const token = localStorage.getItem('admin_token');
@@ -229,10 +183,6 @@ export function isLoggedIn(): boolean {
  * 登出
  * 
  * @param redirect - 是否跳转到登录页（默认true）
- * 
- * @example
- * await adminFetch('/api/admin/logout', { method: 'POST' });
- * logout();
  */
 export function logout(redirect: boolean = true) {
   console.log('[logout] 清除登录信息');
@@ -247,22 +197,11 @@ export function logout(redirect: boolean = true) {
   }
 }
 
-/**
- * GET请求快捷方法
- * 
- * @example
- * const users = await adminFetch.get('/api/admin/users');
- */
+// 导出快捷方法
 export const get = <T = any>(url: string, config?: Omit<FetchConfig, 'method'>) => {
   return adminFetch<T>(url, { ...config, method: 'GET' });
 };
 
-/**
- * POST请求快捷方法
- * 
- * @example
- * const result = await adminFetch.post('/api/admin/users', { username: 'admin' });
- */
 export const post = <T = any>(url: string, body?: any, config?: Omit<FetchConfig, 'method' | 'body'>) => {
   return adminFetch<T>(url, {
     ...config,
@@ -271,12 +210,6 @@ export const post = <T = any>(url: string, body?: any, config?: Omit<FetchConfig
   });
 };
 
-/**
- * PUT请求快捷方法
- * 
- * @example
- * const result = await adminFetch.put('/api/admin/users/1', { name: 'test' });
- */
 export const put = <T = any>(url: string, body?: any, config?: Omit<FetchConfig, 'method' | 'body'>) => {
   return adminFetch<T>(url, {
     ...config,
@@ -285,22 +218,8 @@ export const put = <T = any>(url: string, body?: any, config?: Omit<FetchConfig,
   });
 };
 
-/**
- * DELETE请求快捷方法
- * 
- * @example
- * const result = await adminFetch.delete('/api/admin/users/1');
- */
 export const del = <T = any>(url: string, config?: Omit<FetchConfig, 'method'>) => {
   return adminFetch<T>(url, { ...config, method: 'DELETE' });
-};
-
-// 导出所有方法
-export const adminFetchMethods = {
-  get,
-  post,
-  put,
-  delete: del,
 };
 
 // 默认导出
