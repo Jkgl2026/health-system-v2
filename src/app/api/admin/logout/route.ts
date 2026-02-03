@@ -1,56 +1,25 @@
-/**
- * 管理员登出接口
- * 
- * 功能：
- * - 清除Cookie中的Token
- * - 返回成功响应
- * 
- * 请求方式：POST
- * 请求路径：/api/admin/logout
- */
-
 import { NextRequest, NextResponse } from 'next/server';
+import { SessionManager } from '@/lib/session-manager';
 
-// 强制动态渲染，因为需要访问 request.cookies
-export const dynamic = 'force-dynamic';
-
-/**
- * POST请求处理 - 管理员登出
- */
+// POST /api/admin/logout - 管理员登出
 export async function POST(request: NextRequest) {
   try {
-    // 创建响应对象
+    // 清除认证cookie
+    await SessionManager.clearAuthCookies();
+
     const response = NextResponse.json({
       success: true,
       message: '登出成功',
     });
 
-    // 清除Cookie
-    response.cookies.delete('admin_token');
+    console.log('[AdminLogout] 登出成功');
 
     return response;
-
   } catch (error) {
-    console.error('[登出] 服务器错误', error);
-    
+    console.error('[AdminLogout] 登出失败:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: '服务器错误，请稍后再试',
-        details: process.env.NODE_ENV === 'development' ? 
-          (error instanceof Error ? error.message : String(error)) : undefined
-      },
+      { error: '登出失败' },
       { status: 500 }
     );
   }
-}
-
-/**
- * GET请求处理 - 不允许
- */
-export async function GET() {
-  return NextResponse.json(
-    { success: false, error: '请使用POST方式登出' },
-    { status: 405 }
-  );
 }
