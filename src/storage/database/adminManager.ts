@@ -144,7 +144,7 @@ export class AdminManager {
         .update(admins)
         .set({
           ...updateData,
-          updatedAt: new Date(),
+          updatedAt: new Date().toISOString(),
         })
         .where(eq(admins.id, id))
         .returning();

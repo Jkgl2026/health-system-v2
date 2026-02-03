@@ -29,7 +29,7 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'; // 默认7天过期
  * Token载荷接口
  */
 export interface JWTPayload {
-  userId: number;
+  userId: string | number;
   username: string;
   iat?: number;
   exp?: number;
@@ -55,11 +55,10 @@ export function generateToken(
   expiresIn?: string
 ): string {
   try {
-    const token = jwt.sign(
-      payload,
-      JWT_SECRET,
-      { expiresIn: expiresIn || JWT_EXPIRES_IN }
-    );
+    const secret: string = JWT_SECRET;
+    const options = { expiresIn: expiresIn || JWT_EXPIRES_IN };
+    // @ts-ignore - jsonwebtoken type definitions have issues with expiresIn type
+    const token = jwt.sign(payload, secret, options);
     
     console.log('[JWT] Token已生成', {
       userId: payload.userId,

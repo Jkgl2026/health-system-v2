@@ -11,6 +11,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
+// 强制动态渲染，因为需要访问 request.cookies
+export const dynamic = 'force-dynamic';
+
 /**
  * POST请求处理 - 管理员登出
  */
