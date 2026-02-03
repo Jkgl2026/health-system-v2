@@ -98,5 +98,8 @@ Desktop.ini
 
 .coze-logs
 
+# Miniprogram code (nested git repository)
+miniprogram-code/.git
+
 # Supabase (Edge Functions and migrations - should be deployed separately)
 supabase/
