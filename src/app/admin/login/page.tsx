@@ -1,184 +1,96 @@
+/**
+ * 后台管理登录页面
+ * 
+ * 功能：
+ * - 显示登录表单
+ * - 登录成功后跳转到后台首页
+ * - 已登录用户自动跳转到后台首页
+ * - 居中布局，适配电脑端
+ * 
+ * 路径：/admin/login
+ * 
+ * 使用方式：
+ * 直接访问 /admin/login 即可
+ */
+
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import LoginForm from '@/app/components/LoginForm';
 
-export default function AdminLoginPage() {
+/**
+ * 登录页面
+ */
+export default function LoginPage() {
+  const [isChecking, setIsChecking] = useState(true);
+
+  /**
+   * 检查是否已登录
+   */
   useEffect(() => {
-    // 在客户端执行登录逻辑
-    const usernameInput = document.getElementById('username') as HTMLInputElement;
-    const passwordInput = document.getElementById('password') as HTMLInputElement;
-    const loginButton = document.getElementById('login-button') as HTMLButtonElement;
-    const errorMessage = document.getElementById('error-message') as HTMLDivElement;
-
-    if (loginButton) {
-      loginButton.addEventListener('click', () => {
-        const username = usernameInput?.value || '';
-        const password = passwordInput?.value || '';
-
-        if (errorMessage) {
-          errorMessage.style.display = 'none';
+    const checkLoginStatus = () => {
+      try {
+        const token = localStorage.getItem('admin_token');
+        
+        if (token) {
+          console.log('[登录页面] 检测到Token，自动跳转到后台首页');
+          // 已登录，跳转到后台首页
+          window.location.href = '/admin/dashboard';
+          return;
         }
+        
+        console.log('[登录页面] 未检测到Token，显示登录表单');
+        setIsChecking(false);
+      } catch (error) {
+        console.error('[登录页面] 检查登录状态失败', error);
+        setIsChecking(false);
+      }
+    };
 
-        if (username === 'admin' && password === 'admin123') {
-          try {
-            localStorage.setItem('admin', JSON.stringify({
-              id: '1',
-              username: 'admin',
-              role: 'admin'
-            }));
-            localStorage.setItem('adminLoggedIn', 'true');
-            window.location.href = '/admin/dashboard';
-          } catch (err) {
-            if (errorMessage) {
-              errorMessage.textContent = '浏览器不支持本地存储';
-              errorMessage.style.display = 'block';
-            }
-          }
-        } else {
-          if (errorMessage) {
-            errorMessage.textContent = '用户名或密码错误';
-            errorMessage.style.display = 'block';
-          }
-        }
-      });
-    }
+    checkLoginStatus();
   }, []);
 
+  /**
+   * 登录成功处理
+   */
+  const handleLoginSuccess = (token: string, user: any) => {
+    console.log('[登录页面] 登录成功，准备跳转', { userId: user.id });
+    
+    // 延迟跳转，确保Token已保存
+    setTimeout(() => {
+      window.location.href = '/admin/dashboard';
+    }, 300);
+  };
+
+  /**
+   * 登录失败处理
+   */
+  const handleLoginError = (error: string) => {
+    console.error('[登录页面] 登录失败', error);
+    // 错误信息已在LoginForm中显示
+  };
+
+  // 检查中显示加载
+  if (isChecking) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">检查登录状态...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '20px'
-    }}>
-      <div style={{
-        background: 'white',
-        padding: '40px',
-        borderRadius: '10px',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <h2 style={{
-          textAlign: 'center',
-          margin: '0 0 30px 0',
-          color: '#333',
-          fontSize: '24px'
-        }}>
-          管理后台登录
-        </h2>
-
-        <div id="error-message" style={{
-          color: '#e74c3c',
-          backgroundColor: '#fee',
-          padding: '12px',
-          borderRadius: '5px',
-          marginBottom: '20px',
-          fontSize: '14px',
-          textAlign: 'center',
-          border: '1px solid #fcc',
-          display: 'none'
-        }}></div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{
-            display: 'block',
-            marginBottom: '8px',
-            color: '#555',
-            fontSize: '14px',
-            fontWeight: 'bold'
-          }}>
-            用户名
-          </label>
-          <input
-            type="text"
-            id="username"
-            defaultValue="admin"
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: '2px solid #ddd',
-              borderRadius: '5px',
-              fontSize: '16px',
-              boxSizing: 'border-box'
-            }}
-          />
-        </div>
-
-        <div style={{ marginBottom: '20px' }}>
-          <label style={{
-            display: 'block',
-            marginBottom: '8px',
-            color: '#555',
-            fontSize: '14px',
-            fontWeight: 'bold'
-          }}>
-            密码
-          </label>
-          <input
-            type="password"
-            id="password"
-            defaultValue="admin123"
-            style={{
-              width: '100%',
-              padding: '12px',
-              border: '2px solid #ddd',
-              borderRadius: '5px',
-              fontSize: '16px',
-              boxSizing: 'border-box'
-            }}
-          />
-        </div>
-
-        <button
-          id="login-button"
-          style={{
-            width: '100%',
-            padding: '14px',
-            background: '#667eea',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold'
-          }}
-        >
-          登录
-        </button>
-
-        <div style={{
-          textAlign: 'center',
-          marginTop: '30px',
-          fontSize: '14px',
-          color: '#666'
-        }}>
-          <a
-            href="/"
-            style={{
-              color: '#667eea',
-              textDecoration: 'none'
-            }}
-          >
-            返回首页
-          </a>
-        </div>
-
-        <div style={{
-          marginTop: '30px',
-          padding: '15px',
-          backgroundColor: '#f0f7ff',
-          borderRadius: '5px',
-          fontSize: '13px',
-          color: '#555',
-          lineHeight: '1.6'
-        }}>
-          <strong style={{ color: '#667eea' }}>默认账号：</strong><br/>
-          用户名：admin<br/>
-          密码：admin123
-        </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      {/* 登录卡片 */}
+      <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-8">
+        <LoginForm 
+          onSuccess={handleLoginSuccess}
+          onError={handleLoginError}
+          showTitle={true}
+        />
       </div>
     </div>
   );
