@@ -5,11 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>管理后台登录</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       min-height: 100vh;
       display: flex;
@@ -27,12 +23,7 @@
       width: 100%;
       max-width: 400px;
     }
-    h2 {
-      text-align: center;
-      margin: 0 0 30px 0;
-      color: #333;
-      font-size: 24px;
-    }
+    h2 { text-align: center; margin: 0 0 30px 0; color: #333; font-size: 24px; }
     #error-message {
       color: #e74c3c;
       background-color: #fee;
@@ -44,16 +35,8 @@
       border: 1px solid #fcc;
       display: none;
     }
-    .form-group {
-      margin-bottom: 20px;
-    }
-    label {
-      display: block;
-      margin-bottom: 8px;
-      color: #555;
-      font-size: 14px;
-      font-weight: bold;
-    }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; color: #555; font-size: 14px; font-weight: bold; }
     input {
       width: 100%;
       padding: 12px;
@@ -74,19 +57,9 @@
       font-weight: bold;
       transition: background 0.3s;
     }
-    button:hover {
-      background: #5568d3;
-    }
-    .back-link {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 14px;
-      color: #666;
-    }
-    .back-link a {
-      color: #667eea;
-      text-decoration: none;
-    }
+    button:hover { background: #5568d3; }
+    .back-link { text-align: center; margin-top: 30px; font-size: 14px; color: #666; }
+    .back-link a { color: #667eea; text-decoration: none; }
     .account-info {
       margin-top: 30px;
       padding: 15px;
@@ -96,9 +69,7 @@
       color: #555;
       line-height: 1.6;
     }
-    .account-info strong {
-      color: #667eea;
-    }
+    .account-info strong { color: #667eea; }
   </style>
 </head>
 <body>
@@ -140,7 +111,6 @@
       loginButton.addEventListener('click', function() {
         var username = usernameInput.value;
         var password = passwordInput.value;
-
         errorMessage.style.display = 'none';
 
         if (username === 'admin' && password === 'admin123') {
@@ -151,7 +121,7 @@
               role: 'admin'
             }));
             localStorage.setItem('adminLoggedIn', 'true');
-            window.location.href = '/admin/dashboard';
+            window.location.href = '/admin-dashboard.html';
           } catch (err) {
             errorMessage.textContent = '浏览器不支持本地存储';
             errorMessage.style.display = 'block';
