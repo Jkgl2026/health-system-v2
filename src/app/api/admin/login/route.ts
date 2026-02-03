@@ -1,5 +1,5 @@
 /**
- * 管理员登录接口
+ * 管理员登录接口（Drizzle ORM版本）
  * 
  * 功能：
  * - 接收账号密码，验证身份
@@ -22,9 +22,9 @@
  *   "success": true,
  *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
  *   "user": {
- *     "id": 1,
+ *     "id": "1",
  *     "username": "admin",
- *     "fullName": "系统管理员"
+ *     "name": "系统管理员"
  *   }
  * }
  * 
@@ -36,22 +36,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { executeSQL } from '@/app/lib/db';
+import { adminManager } from '@/storage/database/adminManager';
 import { generateToken } from '@/app/lib/jwt';
-import bcrypt from 'bcryptjs';
 
 /**
- * 管理员数据接口
+ * 登录失败计数（内存存储，生产环境建议使用Redis）
  */
-interface Admin {
-  id: number;
-  username: string;
-  password_hash: string;
-  full_name: string | null;
-  status: string;
-  failed_login_attempts: number;
-  locked_until: Date | null;
-}
+const loginAttempts = new Map<string, { count: number; lockedUntil: Date | null }>();
 
 /**
  * POST请求处理 - 管理员登录
@@ -77,66 +68,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 3. 查询管理员账号
-    const admins = await executeSQL<Admin>(
-      'SELECT * FROM admins WHERE username = $1',
-      [username.trim()]
-    );
+    const usernameTrimmed = username.trim();
 
-    if (admins.length === 0) {
-      console.log('[登录] 账号不存在', { username });
+    // 3. 检查账号是否被锁定
+    const attemptInfo = loginAttempts.get(usernameTrimmed);
+    if (attemptInfo && attemptInfo.lockedUntil && attemptInfo.lockedUntil > new Date()) {
+      console.log('[登录] 账号已锁定', { username: usernameTrimmed });
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: '登录失败次数过多，账号已被锁定30分钟',
+          lockedUntil: attemptInfo.lockedUntil.getTime()
+        },
+        { status: 403 }
+      );
+    }
+
+    // 4. 查询管理员账号
+    const admin = await adminManager.findByUsername(usernameTrimmed);
+
+    if (!admin) {
+      console.log('[登录] 账号不存在', { username: usernameTrimmed });
       return NextResponse.json(
         { success: false, error: '账号或密码错误' },
         { status: 401 }
       );
     }
 
-    const admin = admins[0];
-
-    // 4. 检查账号状态
-    if (admin.status !== 'active') {
-      console.log('[登录] 账号已禁用', { username, status: admin.status });
+    // 5. 检查账号状态
+    if (!admin.isActive) {
+      console.log('[登录] 账号已禁用', { username: usernameTrimmed });
       return NextResponse.json(
         { success: false, error: '账号已被禁用，请联系管理员' },
         { status: 403 }
       );
     }
 
-    // 5. 检查账号是否被锁定
-    if (admin.locked_until) {
-      const lockedUntil = new Date(admin.locked_until);
-      if (lockedUntil > new Date()) {
-        console.log('[登录] 账号已锁定', { username, lockedUntil });
-        return NextResponse.json(
-          { 
-            success: false, 
-            error: '账号已被锁定，请稍后再试或联系管理员',
-            lockedUntil: lockedUntil.getTime()
-          },
-          { status: 403 }
-        );
-      }
-    }
-
     // 6. 验证密码
-    const isPasswordValid = await bcrypt.compare(password, admin.password_hash);
+    const isPasswordValid = await adminManager.verifyPassword(admin, password);
 
     if (!isPasswordValid) {
-      console.log('[登录] 密码错误', { username });
+      console.log('[登录] 密码错误', { username: usernameTrimmed });
 
       // 增加失败次数
-      const newFailedAttempts = (admin.failed_login_attempts || 0) + 1;
+      const currentCount = (attemptInfo?.count || 0) + 1;
       
       // 超过5次失败，锁定账号30分钟
-      if (newFailedAttempts >= 5) {
+      if (currentCount >= 5) {
         const lockedUntil = new Date(Date.now() + 30 * 60 * 1000);
         
-        await executeSQL(
-          'UPDATE admins SET failed_login_attempts = $1, locked_until = $2 WHERE id = $3',
-          [newFailedAttempts, lockedUntil, admin.id]
-        );
+        loginAttempts.set(usernameTrimmed, {
+          count: currentCount,
+          lockedUntil,
+        });
         
-        console.log('[登录] 账号已锁定', { username, failedAttempts: newFailedAttempts });
+        console.log('[登录] 账号已锁定', { username: usernameTrimmed, failedAttempts: currentCount });
         
         return NextResponse.json(
           { 
@@ -149,10 +135,10 @@ export async function POST(request: NextRequest) {
       }
       
       // 更新失败次数
-      await executeSQL(
-        'UPDATE admins SET failed_login_attempts = $1 WHERE id = $2',
-        [newFailedAttempts, admin.id]
-      );
+      loginAttempts.set(usernameTrimmed, {
+        count: currentCount,
+        lockedUntil: null,
+      });
 
       return NextResponse.json(
         { success: false, error: '账号或密码错误' },
@@ -161,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 7. 登录成功
-    console.log('[登录] 登录成功', { username, userId: admin.id });
+    console.log('[登录] 登录成功', { username: usernameTrimmed, userId: admin.id });
 
     // 8. 生成JWT Token
     const token = generateToken({
@@ -169,15 +155,8 @@ export async function POST(request: NextRequest) {
       username: admin.username,
     });
 
-    // 9. 更新登录信息
-    const clientIp = request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 
-                    'unknown';
-    
-    await executeSQL(
-      'UPDATE admins SET last_login_at = $1, last_login_ip = $2, failed_login_attempts = 0, locked_until = NULL WHERE id = $3',
-      [new Date(), clientIp, admin.id]
-    );
+    // 9. 清除失败次数
+    loginAttempts.delete(usernameTrimmed);
 
     // 10. 返回Token和用户信息
     return NextResponse.json({
@@ -186,7 +165,7 @@ export async function POST(request: NextRequest) {
       user: {
         id: admin.id,
         username: admin.username,
-        fullName: admin.full_name,
+        name: admin.name,
       },
     });
 
