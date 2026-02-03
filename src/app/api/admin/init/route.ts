@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { hashPassword } from '@/lib/password';
 
 // 强制动态渲染
 export const dynamic = 'force-dynamic';
@@ -51,8 +51,8 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
-      // 生成密码哈希（简单加密，实际项目应使用 bcrypt）
-      const hash = crypto.createHash('sha256').update(password).digest('hex');
+      // 使用 bcrypt 哈希密码
+      const hash = await hashPassword(password);
 
       // 插入管理员
       await client.query(
