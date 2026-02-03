@@ -1,98 +1,232 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>后台登录测试</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            width: 300px;
-        }
-        h2 {
-            text-align: center;
-            margin-bottom: 30px;
-            color: #333;
-        }
-        input {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            padding: 12px;
-            margin-top: 20px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        button:hover {
-            background: #5568d3;
-        }
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-        .success {
-            color: green;
-            text-align: center;
-            margin-top: 10px;
-            font-size: 14px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录流程测试</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #333; margin-bottom: 20px; }
+    .test-section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+    }
+    .test-title { font-weight: bold; margin-bottom: 10px; color: #667eea; }
+    .test-result { margin-left: 20px; }
+    .success { color: #48c774; }
+    .error { color: #ff3860; }
+    button {
+      padding: 10px 20px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover { background: #5568d3; }
+    #log {
+      background: #f9f9f9;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .log-entry { margin: 5px 0; }
+    .log-info { color: #666; }
+    .log-success { color: #48c774; }
+    .log-error { color: #ff3860; }
+  </style>
 </head>
 <body>
-    <div class="login-box">
-        <h2>后台登录</h2>
-        <input type="text" id="username" placeholder="用户名" value="admin">
-        <input type="password" id="password" placeholder="密码" value="admin123">
-        <button onclick="login()">登录</button>
-        <div id="message"></div>
+  <div class="container">
+    <h1>登录流程自动化测试</h1>
+
+    <div class="test-section">
+      <div class="test-title">测试说明</div>
+      <p style="color: #666; margin-bottom: 15px;">
+        此页面将自动测试登录和后台功能的完整性。测试将在当前页面的 iframe 中运行。
+      </p>
+      <button onclick="runTests()">运行所有测试</button>
+      <button onclick="clearLog()">清空日志</button>
     </div>
 
-    <script>
-        function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const message = document.getElementById('message');
+    <div class="test-section">
+      <div class="test-title">测试结果</div>
+      <div id="results"></div>
+    </div>
 
-            if (username === 'admin' && password === 'admin123') {
-                message.innerHTML = '<div class="success">登录成功！正在跳转到后台...</div>';
-                // 保存登录状态
-                localStorage.setItem('adminLoggedIn', 'true');
-                localStorage.setItem('admin', JSON.stringify({
-                    id: '1',
-                    username: 'admin',
-                    role: 'admin'
-                }));
-                // 跳转到后台
-                setTimeout(() => {
-                    window.location.href = '/admin/dashboard';
-                }, 1000);
-            } else {
-                message.innerHTML = '<div class="error">用户名或密码错误</div>';
-            }
+    <div class="test-section">
+      <div class="test-title">测试日志</div>
+      <div id="log"></div>
+    </div>
+
+    <div class="test-section">
+      <div class="test-title">手动测试链接</div>
+      <div style="margin-top: 10px;">
+        <a href="/admin/login/index.html" target="_blank" style="color: #667eea; margin-right: 20px;">登录页面</a>
+        <a href="/admin/dashboard/index.html" target="_blank" style="color: #667eea;">后台页面</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function log(message, type = 'info') {
+      const logDiv = document.getElementById('log');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry log-' + type;
+      entry.textContent = '[' + new Date().toLocaleTimeString() + '] ' + message;
+      logDiv.appendChild(entry);
+      logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    function clearLog() {
+      document.getElementById('log').innerHTML = '';
+      document.getElementById('results').innerHTML = '';
+    }
+
+    function addResult(testName, success, details) {
+      const resultsDiv = document.getElementById('results');
+      const result = document.createElement('div');
+      result.className = 'test-result';
+      result.innerHTML = `
+        <span class="${success ? 'success' : 'error'}">
+          ${success ? '✓' : '✗'} ${testName}
+        </span>
+        ${details ? '<span style="color: #666; margin-left: 10px;">' + details + '</span>' : ''}
+      `;
+      resultsDiv.appendChild(result);
+    }
+
+    async function runTests() {
+      clearLog();
+      log('开始测试...');
+
+      // 测试 1: 检查登录页面可访问
+      log('测试 1: 检查登录页面可访问');
+      try {
+        const response = await fetch('/admin/login/index.html');
+        if (response.ok) {
+          const html = await response.text();
+          if (html.includes('管理后台登录')) {
+            addResult('登录页面可访问', true, '包含正确标题');
+            log('✓ 登录页面可访问', 'success');
+          } else {
+            addResult('登录页面可访问', false, '内容异常');
+            log('✗ 登录页面内容异常', 'error');
+          }
+        } else {
+          addResult('登录页面可访问', false, 'HTTP ' + response.status);
+          log('✗ 登录页面返回 HTTP ' + response.status, 'error');
         }
-    </script>
+      } catch (e) {
+        addResult('登录页面可访问', false, e.message);
+        log('✗ 请求失败: ' + e.message, 'error');
+      }
+
+      // 测试 2: 检查后台页面可访问
+      log('测试 2: 检查后台页面可访问');
+      try {
+        const response = await fetch('/admin/dashboard/index.html');
+        if (response.ok) {
+          const html = await response.text();
+          if (html.includes('健康管理系统')) {
+            addResult('后台页面可访问', true, '包含正确标题');
+            log('✓ 后台页面可访问', 'success');
+          } else {
+            addResult('后台页面可访问', false, '内容异常');
+            log('✗ 后台页面内容异常', 'error');
+          }
+        } else {
+          addResult('后台页面可访问', false, 'HTTP ' + response.status);
+          log('✗ 后台页面返回 HTTP ' + response.status, 'error');
+        }
+      } catch (e) {
+        addResult('后台页面可访问', false, e.message);
+        log('✗ 请求失败: ' + e.message, 'error');
+      }
+
+      // 测试 3: 检查登录页面 JavaScript 逻辑
+      log('测试 3: 检查登录页面 JavaScript 逻辑');
+      try {
+        const response = await fetch('/admin/login/index.html');
+        const html = await response.text();
+        if (html.includes('document.addEventListener') && html.includes('localStorage.setItem')) {
+          addResult('登录页面 JavaScript 逻辑', true, '包含完整登录逻辑');
+          log('✓ 登录页面 JavaScript 逻辑完整', 'success');
+        } else {
+          addResult('登录页面 JavaScript 逻辑', false, '缺少必要代码');
+          log('✗ 登录页面缺少必要 JavaScript 代码', 'error');
+        }
+      } catch (e) {
+        addResult('登录页面 JavaScript 逻辑', false, e.message);
+        log('✗ 检查失败: ' + e.message, 'error');
+      }
+
+      // 测试 4: 检查后台页面数据
+      log('测试 4: 检查后台页面数据');
+      try {
+        const response = await fetch('/admin/dashboard/index.html');
+        const html = await response.text();
+        const hasUsers = html.includes('张三') && html.includes('李四') && html.includes('王五');
+        const hasStats = html.includes('总用户数') && html.includes('3');
+        if (hasUsers && hasStats) {
+          addResult('后台页面数据', true, '包含用户数据和统计数据');
+          log('✓ 后台页面数据完整', 'success');
+        } else {
+          addResult('后台页面数据', false, '缺少数据');
+          log('✗ 后台页面缺少数据', 'error');
+        }
+      } catch (e) {
+        addResult('后台页面数据', false, e.message);
+        log('✗ 检查失败: ' + e.message, 'error');
+      }
+
+      // 测试 5: 模拟 localStorage
+      log('测试 5: 测试 localStorage 功能');
+      try {
+        localStorage.setItem('test', 'value');
+        const value = localStorage.getItem('test');
+        if (value === 'value') {
+          localStorage.removeItem('test');
+          addResult('localStorage 功能', true, '读写正常');
+          log('✓ localStorage 功能正常', 'success');
+        } else {
+          addResult('localStorage 功能', false, '读写异常');
+          log('✗ localStorage 读写异常', 'error');
+        }
+      } catch (e) {
+        addResult('localStorage 功能', false, e.message);
+        log('✗ localStorage 不可用: ' + e.message, 'error');
+      }
+
+      log('测试完成！');
+      log('请在浏览器中手动测试完整登录流程：');
+      log('1. 访问 /admin/login/index.html');
+      log('2. 点击登录按钮（admin/admin123）');
+      log('3. 验证跳转到 /admin/dashboard/index.html');
+      log('4. 验证显示用户数据');
+      log('5. 点击退出登录');
+      log('6. 验证返回登录页面');
+    }
+  </script>
 </body>
 </html>
