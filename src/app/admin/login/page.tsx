@@ -1,63 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
 export default function AdminLoginPage() {
-  const router = useRouter();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-
-    // 完全本地验证
-    setTimeout(() => {
-      if (username === 'admin' && password === 'admin123') {
-        if (typeof window !== 'undefined') {
-          try {
-            localStorage.setItem('admin', JSON.stringify({
-              id: '1',
-              username: 'admin',
-              role: 'admin'
-            }));
-            localStorage.setItem('adminLoggedIn', 'true');
-            router.push('/admin/dashboard');
-          } catch (err) {
-            console.error('LocalStorage error:', err);
-            setError('浏览器不支持本地存储');
-          }
-        }
-      } else {
-        setError('用户名或密码错误');
-      }
-      setLoading(false);
-    }, 500);
-  };
-
-  if (!mounted) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
-      }}>
-        <div style={{ color: 'white', fontSize: '18px' }}>加载中...</div>
-      </div>
-    );
-  }
-
   return (
     <div style={{
       minHeight: '100vh',
@@ -84,93 +27,84 @@ export default function AdminLoginPage() {
           管理后台登录
         </h2>
 
-        <form onSubmit={handleLogin}>
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '8px',
-              color: '#555',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}>
-              用户名
-            </label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '16px',
-                boxSizing: 'border-box'
-              }}
-              placeholder="请输入用户名"
-            />
-          </div>
+        <div id="error-message" style={{
+          color: '#e74c3c',
+          backgroundColor: '#fee',
+          padding: '12px',
+          borderRadius: '5px',
+          marginBottom: '20px',
+          fontSize: '14px',
+          textAlign: 'center',
+          border: '1px solid #fcc',
+          display: 'none'
+        }}></div>
 
-          <div style={{ marginBottom: '20px' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '8px',
-              color: '#555',
-              fontSize: '14px',
-              fontWeight: 'bold'
-            }}>
-              密码
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '12px',
-                border: '2px solid #ddd',
-                borderRadius: '5px',
-                fontSize: '16px',
-                boxSizing: 'border-box'
-              }}
-              placeholder="请输入密码"
-            />
-          </div>
-
-          {error && (
-            <div style={{
-              color: '#e74c3c',
-              backgroundColor: '#fee',
-              padding: '12px',
-              borderRadius: '5px',
-              marginBottom: '20px',
-              fontSize: '14px',
-              textAlign: 'center',
-              border: '1px solid #fcc'
-            }}>
-              {error}
-            </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            color: '#555',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}>
+            用户名
+          </label>
+          <input
+            type="text"
+            id="username"
+            value="admin"
             style={{
               width: '100%',
-              padding: '14px',
-              background: loading ? '#999' : '#667eea',
-              color: 'white',
-              border: 'none',
+              padding: '12px',
+              border: '2px solid #ddd',
               borderRadius: '5px',
-              cursor: loading ? 'not-allowed' : 'pointer',
               fontSize: '16px',
-              fontWeight: 'bold',
-              transition: 'background 0.3s'
+              boxSizing: 'border-box'
             }}
-          >
-            {loading ? '登录中...' : '登录'}
-          </button>
-        </form>
+          />
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{
+            display: 'block',
+            marginBottom: '8px',
+            color: '#555',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}>
+            密码
+          </label>
+          <input
+            type="password"
+            id="password"
+            value="admin123"
+            style={{
+              width: '100%',
+              padding: '12px',
+              border: '2px solid #ddd',
+              borderRadius: '5px',
+              fontSize: '16px',
+              boxSizing: 'border-box'
+            }}
+          />
+        </div>
+
+        <button
+          id="login-button"
+          style={{
+            width: '100%',
+            padding: '14px',
+            background: '#667eea',
+            color: 'white',
+            border: 'none',
+            borderRadius: '5px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            fontWeight: 'bold'
+          }}
+        >
+          登录
+        </button>
 
         <div style={{
           textAlign: 'center',
@@ -203,6 +137,44 @@ export default function AdminLoginPage() {
           密码：admin123
         </div>
       </div>
+
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            document.addEventListener('DOMContentLoaded', function() {
+              var usernameInput = document.getElementById('username');
+              var passwordInput = document.getElementById('password');
+              var loginButton = document.getElementById('login-button');
+              var errorMessage = document.getElementById('error-message');
+
+              loginButton.addEventListener('click', function() {
+                var username = usernameInput.value;
+                var password = passwordInput.value;
+
+                errorMessage.style.display = 'none';
+
+                if (username === 'admin' && password === 'admin123') {
+                  try {
+                    localStorage.setItem('admin', JSON.stringify({
+                      id: '1',
+                      username: 'admin',
+                      role: 'admin'
+                    }));
+                    localStorage.setItem('adminLoggedIn', 'true');
+                    window.location.href = '/admin/dashboard';
+                  } catch (err) {
+                    errorMessage.textContent = '浏览器不支持本地存储';
+                    errorMessage.style.display = 'block';
+                  }
+                } else {
+                  errorMessage.textContent = '用户名或密码错误';
+                  errorMessage.style.display = 'block';
+                }
+              });
+            });
+          `
+        }}
+      />
     </div>
   );
 }

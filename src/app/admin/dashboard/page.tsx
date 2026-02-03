@@ -1,85 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-
-interface User {
-  id: string;
-  name: string;
-  age: number;
-  gender: string;
-  phone: string;
-  email: string;
-  created_at: string;
-}
-
 export default function AdminDashboardPage() {
-  const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [users] = useState<User[]>([
-    {
-      id: '1',
-      name: '张三',
-      age: 35,
-      gender: '男',
-      phone: '13800138000',
-      email: 'zhangsan@example.com',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: '2',
-      name: '李四',
-      age: 28,
-      gender: '女',
-      phone: '13900139000',
-      email: 'lisi@example.com',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: '3',
-      name: '王五',
-      age: 42,
-      gender: '男',
-      phone: '13700137000',
-      email: 'wangwu@example.com',
-      created_at: new Date().toISOString()
-    }
-  ]);
-
-  useEffect(() => {
-    setMounted(true);
-
-    // 检查登录状态
-    if (typeof window !== 'undefined') {
-      const isLoggedIn = localStorage.getItem('adminLoggedIn');
-      if (!isLoggedIn) {
-        router.push('/admin/login');
-      }
-    }
-  }, [router]);
-
-  const handleLogout = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('adminLoggedIn');
-      localStorage.removeItem('admin');
-    }
-    router.push('/admin/login');
-  };
-
-  if (!mounted) {
-    return (
-      <div style={{
-        minHeight: '100vh',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        background: '#f5f5f5'
-      }}>
-        <div style={{ fontSize: '18px', color: '#666' }}>加载中...</div>
-      </div>
-    );
-  }
-
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
       {/* Header */}
@@ -100,7 +21,7 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <button
-          onClick={handleLogout}
+          id="logout-button"
           style={{
             padding: '10px 20px',
             background: 'rgba(255,255,255,0.2)',
@@ -132,7 +53,7 @@ export default function AdminDashboardPage() {
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#667eea', marginBottom: '10px' }}>
-              {users.length}
+              3
             </div>
             <div style={{ fontSize: '16px', color: '#666' }}>
               总用户数
@@ -146,7 +67,7 @@ export default function AdminDashboardPage() {
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#48c774', marginBottom: '10px' }}>
-              {users.filter(u => u.gender === '男').length}
+              2
             </div>
             <div style={{ fontSize: '16px', color: '#666' }}>
               男性用户
@@ -160,7 +81,7 @@ export default function AdminDashboardPage() {
             boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
           }}>
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#ff3860', marginBottom: '10px' }}>
-              {users.filter(u => u.gender === '女').length}
+              1
             </div>
             <div style={{ fontSize: '16px', color: '#666' }}>
               女性用户
@@ -271,40 +192,66 @@ export default function AdminDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user) => (
-                  <tr key={user.id} style={{ borderBottom: '1px solid #eee' }}>
-                    <td style={{ padding: '15px', color: '#666' }}>
-                      {user.id}
-                    </td>
-                    <td style={{ padding: '15px', fontWeight: 'bold', color: '#333' }}>
-                      {user.name}
-                    </td>
-                    <td style={{ padding: '15px', color: '#666' }}>
-                      {user.age}
-                    </td>
-                    <td style={{ padding: '15px', color: '#666' }}>
-                      <span style={{
-                        padding: '5px 10px',
-                        borderRadius: '3px',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        background: user.gender === '男' ? '#48c774' : '#ff3860',
-                        color: 'white'
-                      }}>
-                        {user.gender}
-                      </span>
-                    </td>
-                    <td style={{ padding: '15px', color: '#666' }}>
-                      {user.phone}
-                    </td>
-                    <td style={{ padding: '15px', color: '#666' }}>
-                      {user.email}
-                    </td>
-                    <td style={{ padding: '15px', color: '#666', fontSize: '12px' }}>
-                      {new Date(user.created_at).toLocaleString('zh-CN')}
-                    </td>
-                  </tr>
-                ))}
+                <tr style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '15px', color: '#666' }}>1</td>
+                  <td style={{ padding: '15px', fontWeight: 'bold', color: '#333' }}>张三</td>
+                  <td style={{ padding: '15px', color: '#666' }}>35</td>
+                  <td style={{ padding: '15px', color: '#666' }}>
+                    <span style={{
+                      padding: '5px 10px',
+                      borderRadius: '3px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      background: '#48c774',
+                      color: 'white'
+                    }}>
+                      男
+                    </span>
+                  </td>
+                  <td style={{ padding: '15px', color: '#666' }}>13800138000</td>
+                  <td style={{ padding: '15px', color: '#666' }}>zhangsan@example.com</td>
+                  <td style={{ padding: '15px', color: '#666', fontSize: '12px' }}>2025-02-03</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '15px', color: '#666' }}>2</td>
+                  <td style={{ padding: '15px', fontWeight: 'bold', color: '#333' }}>李四</td>
+                  <td style={{ padding: '15px', color: '#666' }}>28</td>
+                  <td style={{ padding: '15px', color: '#666' }}>
+                    <span style={{
+                      padding: '5px 10px',
+                      borderRadius: '3px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      background: '#ff3860',
+                      color: 'white'
+                    }}>
+                      女
+                    </span>
+                  </td>
+                  <td style={{ padding: '15px', color: '#666' }}>13900139000</td>
+                  <td style={{ padding: '15px', color: '#666' }}>lisi@example.com</td>
+                  <td style={{ padding: '15px', color: '#666', fontSize: '12px' }}>2025-02-03</td>
+                </tr>
+                <tr style={{ borderBottom: '1px solid #eee' }}>
+                  <td style={{ padding: '15px', color: '#666' }}>3</td>
+                  <td style={{ padding: '15px', fontWeight: 'bold', color: '#333' }}>王五</td>
+                  <td style={{ padding: '15px', color: '#666' }}>42</td>
+                  <td style={{ padding: '15px', color: '#666' }}>
+                    <span style={{
+                      padding: '5px 10px',
+                      borderRadius: '3px',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      background: '#48c774',
+                      color: 'white'
+                    }}>
+                      男
+                    </span>
+                  </td>
+                  <td style={{ padding: '15px', color: '#666' }}>13700137000</td>
+                  <td style={{ padding: '15px', color: '#666' }}>wangwu@example.com</td>
+                  <td style={{ padding: '15px', color: '#666', fontSize: '12px' }}>2025-02-03</td>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -328,6 +275,22 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
+
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            document.addEventListener('DOMContentLoaded', function() {
+              var logoutButton = document.getElementById('logout-button');
+
+              logoutButton.addEventListener('click', function() {
+                localStorage.removeItem('adminLoggedIn');
+                localStorage.removeItem('admin');
+                window.location.href = '/admin/login';
+              });
+            });
+          `
+        }}
+      />
     </div>
   );
 }
