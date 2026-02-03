@@ -363,7 +363,7 @@ export default function LoginForm({
 
       {/* 提示信息 */}
       <div className="mt-6 text-center text-sm text-gray-500">
-        默认账号：admin / 密码：123456
+        默认账号：admin / 密码：admin123
       </div>
     </div>
   );
