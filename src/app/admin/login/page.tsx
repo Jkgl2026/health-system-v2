@@ -1,115 +1,208 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Lock, AlertCircle, Shield } from 'lucide-react';
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
-    try {
-      // 本地验证
+    // 完全本地验证
+    setTimeout(() => {
       if (username === 'admin' && password === 'admin123') {
-        // 保存登录信息到 localStorage
         if (typeof window !== 'undefined') {
-          localStorage.setItem('admin', JSON.stringify({
-            id: '1',
-            username: 'admin',
-            role: 'admin'
-          }));
-          localStorage.setItem('adminLoggedIn', 'true');
+          try {
+            localStorage.setItem('admin', JSON.stringify({
+              id: '1',
+              username: 'admin',
+              role: 'admin'
+            }));
+            localStorage.setItem('adminLoggedIn', 'true');
+            router.push('/admin/dashboard');
+          } catch (err) {
+            console.error('LocalStorage error:', err);
+            setError('浏览器不支持本地存储');
+          }
         }
-
-        // 跳转到管理后台主页
-        router.push('/admin/dashboard');
-        return;
+      } else {
+        setError('用户名或密码错误');
       }
-
-      // 用户名或密码错误
-      setError('用户名或密码错误');
-    } catch (err) {
-      setError('登录失败，请重试');
-    } finally {
       setLoading(false);
-    }
+    }, 500);
   };
 
+  if (!mounted) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}>
+        <div style={{ color: 'white', fontSize: '18px' }}>加载中...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md border-2 border-blue-100 dark:border-blue-900 shadow-xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mb-4">
-            <Shield className="w-8 h-8 text-white" />
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      justifyContent: 'center',
+      alignItems: 'center',
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px'
+    }}>
+      <div style={{
+        background: 'white',
+        padding: '40px',
+        borderRadius: '10px',
+        boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+        width: '100%',
+        maxWidth: '400px'
+      }}>
+        <h2 style={{
+          textAlign: 'center',
+          margin: '0 0 30px 0',
+          color: '#333',
+          fontSize: '24px'
+        }}>
+          管理后台登录
+        </h2>
+
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              color: '#555',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}>
+              用户名
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '2px solid #ddd',
+                borderRadius: '5px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+              placeholder="请输入用户名"
+            />
           </div>
-          <CardTitle className="text-2xl">管理后台登录</CardTitle>
-          <CardDescription>请输入管理员账号和密码</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">用户名</Label>
-              <Input
-                id="username"
-                type="text"
-                placeholder="请输入用户名"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">密码</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="请输入密码"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertCircle className="w-4 h-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-              disabled={loading}
-            >
-              {loading ? '登录中...' : '登录'}
-              <Lock className="w-4 h-4 ml-2" />
-            </Button>
-          </form>
-          <div className="mt-6 text-center">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/')}
-              className="text-sm"
-            >
-              返回首页
-            </Button>
+
+          <div style={{ marginBottom: '20px' }}>
+            <label style={{
+              display: 'block',
+              marginBottom: '8px',
+              color: '#555',
+              fontSize: '14px',
+              fontWeight: 'bold'
+            }}>
+              密码
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                border: '2px solid #ddd',
+                borderRadius: '5px',
+                fontSize: '16px',
+                boxSizing: 'border-box'
+              }}
+              placeholder="请输入密码"
+            />
           </div>
-        </CardContent>
-      </Card>
+
+          {error && (
+            <div style={{
+              color: '#e74c3c',
+              backgroundColor: '#fee',
+              padding: '12px',
+              borderRadius: '5px',
+              marginBottom: '20px',
+              fontSize: '14px',
+              textAlign: 'center',
+              border: '1px solid #fcc'
+            }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '14px',
+              background: loading ? '#999' : '#667eea',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              transition: 'background 0.3s'
+            }}
+          >
+            {loading ? '登录中...' : '登录'}
+          </button>
+        </form>
+
+        <div style={{
+          textAlign: 'center',
+          marginTop: '30px',
+          fontSize: '14px',
+          color: '#666'
+        }}>
+          <a
+            href="/"
+            style={{
+              color: '#667eea',
+              textDecoration: 'none'
+            }}
+          >
+            返回首页
+          </a>
+        </div>
+
+        <div style={{
+          marginTop: '30px',
+          padding: '15px',
+          backgroundColor: '#f0f7ff',
+          borderRadius: '5px',
+          fontSize: '13px',
+          color: '#555',
+          lineHeight: '1.6'
+        }}>
+          <strong style={{ color: '#667eea' }}>默认账号：</strong><br/>
+          用户名：admin<br/>
+          密码：admin123
+        </div>
+      </div>
     </div>
   );
 }
