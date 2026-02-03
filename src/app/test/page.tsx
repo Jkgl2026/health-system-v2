@@ -1,3 +1,5 @@
+'use client';
+
 export default function SimpleTestPage() {
   return (
     <div style={{
