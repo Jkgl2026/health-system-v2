@@ -97,3 +97,6 @@ Desktop.ini
 .turbo
 
 .coze-logs
+
+# Supabase (Edge Functions and migrations - should be deployed separately)
+supabase/
