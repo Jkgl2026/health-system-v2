@@ -1,26 +1,75 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 
 export default function AdminDashboardPage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   useEffect(() => {
-    const logoutButton = document.getElementById('logout-button') as HTMLButtonElement;
-    const isLoggedIn = localStorage.getItem('adminLoggedIn');
-
     // 检查登录状态
-    if (isLoggedIn !== 'true') {
-      window.location.href = '/admin/login';
-    }
+    const loggedIn = localStorage.getItem('adminLoggedIn');
+    setIsLoggedIn(loggedIn === 'true');
 
-    // 退出登录
-    if (logoutButton) {
-      logoutButton.addEventListener('click', () => {
-        localStorage.removeItem('admin');
-        localStorage.removeItem('adminLoggedIn');
-        window.location.href = '/admin/login';
-      });
+    if (loggedIn !== 'true') {
+      window.location.href = '/admin-login.html';
     }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin');
+    localStorage.removeItem('adminLoggedIn');
+    window.location.href = '/admin-login.html';
+  };
+
+  const features = [
+    {
+      id: 'dashboard',
+      title: '数据概览',
+      description: '查看系统统计数据和用户信息',
+      icon: '📊',
+      status: 'available',
+      link: '/admin/dashboard'
+    },
+    {
+      id: 'compare',
+      title: '健康对比',
+      description: '对比用户不同时期的健康数据变化',
+      icon: '📈',
+      status: 'available',
+      link: '/admin/compare'
+    },
+    {
+      id: 'maintenance',
+      title: '系统维护',
+      description: '数据库优化、备份和清理',
+      icon: '🔧',
+      status: 'requires-api',
+      link: '/admin/maintenance'
+    },
+    {
+      id: 'seven-questions',
+      title: '七问管理',
+      description: '查看和管理用户的健康七问数据',
+      icon: '❓',
+      status: 'requires-api',
+      link: '/admin/seven-questions-manager'
+    }
+  ];
+
+  if (!isLoggedIn) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        background: '#f5f5f5'
+      }}>
+        <div>检查登录中...</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
@@ -42,7 +91,7 @@ export default function AdminDashboardPage() {
           </p>
         </div>
         <button
-          id="logout-button"
+          onClick={handleLogout}
           style={{
             padding: '10px 20px',
             background: 'rgba(255,255,255,0.2)',
@@ -116,17 +165,72 @@ export default function AdminDashboardPage() {
           </div>
         </div>
 
+        {/* Features Grid */}
+        <h2 style={{ fontSize: '24px', color: '#333', marginBottom: '20px' }}>
+          管理功能
+        </h2>
+
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+          gap: '20px',
+          marginBottom: '40px'
+        }}>
+          {features.map((feature) => (
+            <div
+              key={feature.id}
+              style={{
+                background: 'white',
+                padding: '30px',
+                borderRadius: '10px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                border: feature.status === 'requires-api' ? '2px dashed #ffc107' : '2px solid transparent'
+              }}
+            >
+              <div style={{ fontSize: '48px', marginBottom: '15px' }}>
+                {feature.icon}
+              </div>
+              <h3 style={{ fontSize: '18px', color: '#333', marginBottom: '10px' }}>
+                {feature.title}
+              </h3>
+              <p style={{ fontSize: '14px', color: '#666', marginBottom: '15px' }}>
+                {feature.description}
+              </p>
+              {feature.status === 'available' ? (
+                <Link
+                  href={feature.link}
+                  style={{
+                    display: 'inline-block',
+                    padding: '10px 20px',
+                    background: '#667eea',
+                    color: 'white',
+                    textDecoration: 'none',
+                    borderRadius: '5px',
+                    fontSize: '14px'
+                  }}
+                >
+                  访问功能
+                </Link>
+              ) : (
+                <div style={{ fontSize: '12px', color: '#ffc107', fontWeight: 'bold' }}>
+                  ⚠️ 需要配置后端 API
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
         {/* User Table */}
+        <h2 style={{ fontSize: '24px', color: '#333', marginBottom: '20px' }}>
+          用户列表
+        </h2>
+
         <div style={{
           background: 'white',
           padding: '30px',
           borderRadius: '10px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
         }}>
-          <h2 style={{ margin: '0 0 20px 0', fontSize: '24px', color: '#333' }}>
-            用户列表
-          </h2>
-
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
@@ -212,6 +316,23 @@ export default function AdminDashboardPage() {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Notice */}
+        <div style={{
+          background: '#fff3cd',
+          border: '1px solid #ffc107',
+          padding: '20px',
+          borderRadius: '5px',
+          marginTop: '30px'
+        }}>
+          <h3 style={{ fontSize: '16px', color: '#856404', marginBottom: '10px' }}>
+            ⚠️ 系统说明
+          </h3>
+          <p style={{ fontSize: '14px', color: '#856404', margin: 0 }}>
+            当前系统运行在静态托管平台（Cloudflare Pages）上。部分高级功能（如系统维护、七问管理）需要后端 API 支持。
+            如需使用完整功能，请联系管理员配置后端服务器。
+          </p>
         </div>
       </div>
     </div>
