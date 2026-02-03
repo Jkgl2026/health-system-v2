@@ -1,250 +1,287 @@
-# 健康自我管理系统
+# 🚀 健康自检系统 - Cloudflare Pages 部署方案
 
-> 把健康把握在自己手里 - 让老百姓少花钱甚至不花钱解决问题
+> 将本地 Next.js 后台管理系统部署到 Cloudflare Pages，实现 HTTPS 公网访问
 
-## 项目简介
-
-这是一个基于文档和PDF内容开发的完整健康自检应用，帮助用户了解自己的身体状况，掌握健康管理的科学方法。应用完全按照文档要求，包含了所有的核心内容和服务流程。
-
-## 核心功能
-
-### 1. 身体语言简表（100项症状选择）
-- 包含100项常见的身体症状
-- 按类别分组，便于用户快速查找
-- 支持单选、全选、清空等操作
-- 实时显示已选症状数量
-
-### 2. 症状分析与健康要素归类
-- 自动将症状归类到7个健康要素：
-  - 气血
-  - 循环
-  - 毒素
-  - 血脂
-  - 寒凉
-  - 免疫
-  - 情绪
-- 显示每个健康要素对应的症状数量和原理
-
-### 3. 持续跟进落实健康的七问
-针对用户重点关注改善的症状，通过七个问题深入了解：
-1. 多长时间犯一次？
-2. 一次要多久？
-3. 具体表现是什么？
-4. 用了哪些方法干预？
-5. 这个症状从什么时候开始的？当时发生了什么事？（你是做什么工作的？是否与症状相关？）一般什么情况下会加重或复发？什么情况下会减轻？
-6. 什么情况下会减轻？
-7. 最近一次出现是什么时候，发生了什么？
-
-### 4. 系统战役故事
-通过生动的战场比喻，解释影响健康的七个核心要素：
-- 粮食弹药和兵源 → 营养
-- 运输车的运力 → 气血的输送能力
-- 运输的道路 → 循环系统
-- 运输车上的垃圾 → 血液里的油脂
-- 天气太冷 → 身体里的寒湿气
-- 战场上的尸体 → 体内新陈代谢产生的垃圾毒素
-- 战士们的心情 → 情绪
-- 整体的战斗力 → 免疫力
-
-### 5. 健康要素原理详解
-每个健康要素都有：
-- 对应的故事
-- 详细的原理说明
-- 相关症状列表
-- 对应的健康要素
-
-### 6. 三个选择和四个要求
-- 三个选择：继续现状、去医院治疗、学习健康自我管理
-- 四个要求：
-  1. 按时按量使用产品
-  2. 填写不良生活习惯表
-  3. 每月填写全面质检表
-  4. 每天好习惯打卡
-
-### 7. 健康管理方案（含大扫除故事）
-- 大扫除故事：解释好转反应的原理
-- 好转反应说明：帮助用户理解调理过程中的不适
-- 健康约定：确保调理效果的四个关键要求
-- 个性化总结：基于用户的自检结果
-
-## 技术栈
-
-- **框架**: Next.js 16 (App Router)
-- **核心**: React 19
-- **语言**: TypeScript 5
-- **UI组件**: shadcn/ui (基于 Radix UI)
-- **样式**: Tailwind CSS 4
-- **包管理器**: pnpm
-- **数据库**: PostgreSQL (集成数据库服务)
-- **ORM**: Drizzle ORM
-
-## 项目结构
+## 📋 部署架构
 
 ```
-.
+┌─────────────────────┐
+│  Cloudflare Pages   │  ← 静态前端（Next.js Export）
+│   health-system     │     HTTPS + 全球CDN
+└──────────┬──────────┘
+           │ API 调用
+           ▼
+┌─────────────────────┐
+│  Supabase Edge      │  ← 后端 API（Deno）
+│   Functions         │     登录/登出/验证
+└──────────┬──────────┘
+           │ 数据存储
+           ▼
+┌─────────────────────┐
+│  Supabase Database  │  ← PostgreSQL
+│   (supabase_admin)  │     管理员表
+└─────────────────────┘
+```
+
+## 🎯 核心特性
+
+### ✅ 已实现
+
+- [x] **静态导出配置**：Next.js 配置为 `output: 'export'`，适配 Cloudflare Pages
+- [x] **Supabase Edge Functions**：
+  - 登录接口 (`admin-login`)
+  - 登出接口 (`admin-logout`)
+  - 验证接口 (`admin-auth`)
+- [x] **JWT 认证**：基于 Cookie 的 Token 管理
+- [x] **前端适配**：fetch 封装支持 Supabase API
+- [x] **PWA 支持**：支持桌面安装
+- [x] **CORS 配置**：跨域请求支持
+
+### 🎨 UI 组件
+
+- 登录页面：`src/app/admin/login/page.tsx`
+- 仪表盘：`src/app/admin/dashboard/page.tsx`
+- shadcn/ui 组件库
+
+## 📂 项目结构
+
+```
+health-system/
+├── supabase/                    # Supabase Edge Functions
+│   └── functions/
+│       ├── admin-login/         # 登录接口
+│       ├── admin-logout/        # 登出接口
+│       └── admin-auth/          # 验证接口
 ├── src/
 │   ├── app/
-│   │   ├── page.tsx           # 首页
-│   │   ├── personal-info/     # 个人信息收集
-│   │   ├── check/             # 身体语言简表
-│   │   ├── analysis/          # 症状分析与健康要素归类
-│   │   ├── story/             # 系统战役故事
-│   │   ├── choices/           # 三个选择和四个要求
-│   │   ├── solution/          # 健康管理方案
-│   │   ├── recovery-speed/    # 康复速度说明
-│   │   ├── courses/           # 课程学习（含发心感悟）
-│   │   ├── inspiration/       # 健康理念
-│   │   ├── admin/             # 管理后台
-│   │   ├── layout.tsx         # 根布局
-│   │   └── globals.css        # 全局样式
-│   ├── components/ui/         # shadcn/ui 组件
-│   ├── storage/
-│   │   └── database/          # 数据库相关
-│   │       ├── shared/schema.ts    # 数据库Schema定义
-│   │       └── healthDataManager.ts # 数据管理类
-│   └── lib/
-│       ├── health-data.ts     # 健康数据定义
-│       └── utils.ts           # 工具函数
-├── .coze                      # 项目配置
-├── DATABASE_MIGRATION_GUIDE.md  # 数据库迁移指南
-├── ADMIN_BACKEND_GUIDE.md     # 管理后台指南
-├── package.json
-└── README.md
+│   │   ├── admin/
+│   │   │   ├── login/           # 登录页面
+│   │   │   └── dashboard/       # 仪表盘
+│   │   └── lib/
+│   │       └── fetch.ts         # API 封装
+│   └── components/
+│       └── ui/                  # shadcn/ui 组件
+├── scripts/
+│   └── deploy-cloudflare.sh     # Cloudflare 部署脚本
+├── next.config.mjs              # Next.js 配置（已配置静态导出）
+├── .env.production              # 生产环境变量
+└── CLOUDFLARE_DEPLOYMENT.md     # 详细部署文档
 ```
 
-## 使用说明
+## 🚀 快速开始
 
-### 开始自检
+### 前置要求
 
-1. 访问首页，了解健康自我管理的核心价值
-2. 点击"开始自检"按钮，进入身体语言简表页面
-3. 勾选半年内出现的症状
-4. 选择一个最想改善的重点症状
-5. 完成持续跟进落实健康的七问
-6. 学习系统战役故事和健康要素原理
-7. 做出三个选择并承诺四个要求
-8. 获取个性化的健康管理方案
+1. **Cloudflare 账户**
+   - 访问 [Cloudflare Dashboard](https://dash.cloudflare.com)
 
-### 页面导航
+2. **Supabase 项目**
+   - 访问 [Supabase 官网](https://supabase.com)
+   - 创建免费项目
 
+3. **本地开发环境**
+   - Node.js 24+
+   - pnpm
+
+### 部署步骤
+
+#### 1. 创建 Supabase 项目
+
+详细步骤请参考：[CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md)
+
+#### 2. 配置环境变量
+
+创建 `.env.production` 文件：
+
+```env
+# API 地址（Supabase Edge Functions）
+NEXT_PUBLIC_API_URL=https://your-project.supabase.co/functions/v1
+
+# 应用地址（Cloudflare Pages）
+NEXT_PUBLIC_APP_URL=https://health-system-v2.pages.dev
 ```
-首页 (/) → 身体语言简表 (/check) → 症状分析 (/analysis) →
-系统战役故事 (/story) → 三个选择 (/choices) → 健康管理方案 (/solution)
-```
 
-## 核心理念
+#### 3. 部署 Supabase Edge Functions
 
-### 健康自我管理的核心价值
-- 我们是健康管理，不是产品的推销员
-- 使命是"让老百姓少花钱甚至不花钱解决问题"
-- 有钱的顾客我们要服务，没有钱的顾客我们更要服务
-- 老百姓生不起病，我们要教他们会生活、少生病
-- 把健康把握在自己手里
-
-### 三个核心问题
-1. 老百姓是舒服的时候去医院检查，还是难受的时候？
-2. 明明难受，但医院检查结论却是"正常"？
-3. 大病检查出来一般是什么期？（一般都是中晚期）
-
-### 关键理解
-- 早期症状是大病的早期信号
-- 早期发现问题才能更好地预防和调理
-- 通过症状找出影响健康的要素，从根本上改善健康状况
-
-## 开发说明
-
-### 环境要求
-- Node.js 24
-- pnpm
-
-### 安装依赖
 ```bash
+# 安装 Supabase CLI
+brew install supabase/tap/supabase  # macOS
+
+# 登录
+supabase login
+
+# 链接项目
+supabase link --project-ref your-project-ref
+
+# 部署函数
+supabase functions deploy
+```
+
+#### 4. 部署到 Cloudflare Pages
+
+**方式一：使用部署脚本（推荐）**
+
+```bash
+# 赋予执行权限
+chmod +x scripts/deploy-cloudflare.sh
+
+# 执行部署
+./scripts/deploy-cloudflare.sh
+```
+
+**方式二：手动部署**
+
+```bash
+# 安装依赖
 pnpm install
+
+# 构建
+pnpm run build
+
+# 部署
+wrangler pages deploy out --project-name=health-system-v2
 ```
 
-### 开发模式
+#### 5. 访问系统
+
+- 登录页面：`https://health-system-v2.pages.dev/admin/login`
+- 仪表盘：`https://health-system-v2.pages.dev/admin/dashboard`
+
+### 默认账号
+
+- **账号**：`admin`
+- **密码**：`admin123`
+
+⚠️ **重要**：部署后请立即修改默认密码！
+
+## 🔧 配置说明
+
+### Next.js 配置
+
+`next.config.mjs` 已配置静态导出：
+
+```javascript
+const nextConfig = {
+  output: 'export',  // 静态导出
+  images: {
+    remotePatterns: [...],
+  },
+};
+```
+
+### PWA 配置
+
+```javascript
+const pwaConfig = withPWA({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+});
+```
+
+### CORS 配置
+
+所有 Edge Functions 已配置 CORS：
+
+```typescript
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+```
+
+## 🔒 安全建议
+
+1. **修改默认密码**
+2. **设置强 JWT Secret**
+3. **启用 IP 白名单**（可选）
+4. **定期更新依赖**
+
+详细安全配置请参考：[CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md#-安全建议)
+
+## 🧪 测试部署
+
+### 1. 测试登录
+
 ```bash
-pnpm dev
+curl -X POST \
+  https://your-project.supabase.co/functions/v1/admin-login \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"admin","password":"admin123"}'
 ```
 
-### 构建生产版本
-```bash
-pnpm build
-```
-
-### 启动生产环境
-```bash
-pnpm start
-```
-
-## 特性
-
-- ✅ 完全响应式设计，支持移动端和桌面端
-- ✅ 深色模式支持
-- ✅ 优雅的渐变色和动画效果
-- ✅ 100项症状选择，按类别分组
-- ✅ 7个健康要素详细解析
-- ✅ 持续跟进落实健康的七问
-- ✅ 系统战役故事和健康要素原理
-- ✅ 三个选择和四个要求
-- ✅ 大扫除故事和好转反应说明
-- ✅ 个性化的健康管理方案
-- ✅ 数据持久化存储（PostgreSQL）
-- ✅ 管理后台支持用户数据管理
-
-## 数据库管理
-
-### 重要原则
-**绝对不要在生产环境使用 `/api/init-db`！** 该API会删除所有数据。
-
-### 数据库迁移
-当需要修改数据库schema时，请参考 `DATABASE_MIGRATION_GUIDE.md`，使用迁移API：
+### 2. 测试验证
 
 ```bash
-# 应用迁移（安全添加列，不删除数据）
-curl -X POST http://localhost:5000/api/migrate-db
-
-# 诊断数据库状态
-curl http://localhost:5000/api/diagnose-db
-
-# 检查数据完整性
-curl http://localhost:5000/api/check-data-integrity
-
-# 查看审计日志
-curl http://localhost:5000/api/get-audit-logs
+curl -X GET \
+  https://your-project.supabase.co/functions/v1/admin-auth \
+  -H 'Cookie: admin_token=your-token'
 ```
 
-### 数据安全功能
+### 3. 检查 Cookie
 
-#### 1. 审计日志系统
-自动记录所有数据变更操作，包括：
-- 用户创建、更新、删除
-- 症状自检、健康分析、方案选择
-- 管理员操作
-- 软删除和恢复操作
+打开浏览器开发者工具 → Application → Cookies，查看 `admin_token`。
 
-#### 2. 软删除功能
-使用标记删除而非物理删除：
-- 数据可恢复
-- 保留操作历史
-- 支持批量清理过期数据
+## 📊 监控与日志
 
-#### 3. 数据完整性检查
-自动检测数据问题：
-- 孤立记录（没有关联用户的数据）
-- 必填字段缺失
-- 重复数据
-- 数据一致性检查
+- **Supabase Logs**: https://app.supabase.com/project/your-project/logs
+- **Cloudflare Analytics**: https://dash.cloudflare.com/pages/view/health-system-v2/analytics
 
-### 管理后台
-访问 `http://localhost:5000/admin` 查看和管理用户数据。
+## 🐛 常见问题
 
-详细说明请参考 `ADMIN_BACKEND_GUIDE.md` 和 `DATABASE_MIGRATION_GUIDE.md`。
+### Q1: 登录后提示"未登录"
 
-## 许可证
+**原因**：Cookie 设置失败
 
-MIT License
+**解决**：
+- 检查 `NEXT_PUBLIC_API_URL` 是否正确
+- 确认 Supabase Edge Functions 的 CORS 配置
+- 检查浏览器是否阻止第三方 Cookie
+
+### Q2: Edge Functions 部署失败
+
+**解决**：
+```bash
+supabase functions logs admin-login
+supabase functions deploy admin-login --no-verify-jwt
+```
+
+### Q3: 构建失败
+
+**检查**：
+- 确认 `next.config.mjs` 中 `output: 'export'`
+- 检查是否使用了不支持的 API
+
+更多问题请参考：[CLOUDFLARE_DEPLOYMENT.md](./CLOUDFLARE_DEPLOYMENT.md#-常见问题)
+
+## 📚 参考文档
+
+- [Supabase Edge Functions 文档](https://supabase.com/docs/guides/functions)
+- [Cloudflare Pages 文档](https://developers.cloudflare.com/pages)
+- [Next.js 静态导出](https://nextjs.org/docs/app/building-your-application/deploying/static-exports)
+- [shadcn/ui 文档](https://ui.shadcn.com)
+
+## 🎉 完成！
+
+您的健康自检系统已成功部署到 Cloudflare Pages 和 Supabase Edge Functions。
+
+现在您可以：
+- ✅ 通过 HTTPS 公网访问
+- ✅ 在家庭网络中登录使用
+- ✅ 享受全球 CDN 加速
+- ✅ 无需服务器维护
+
+## 📞 支持
+
+如有问题，请查看：
+- [部署文档](./CLOUDFLARE_DEPLOYMENT.md)
+- [WiFi访问修复文档](./WIFI_ACCESS_FIX.md)
+- [GitHub Issues](https://github.com/your-repo/issues)
 
 ---
 
-**健康自我管理 - 把健康把握在自己手里**
+**部署日期**：2025-01-15
+**版本**：v2.0
+**部署平台**：Cloudflare Pages + Supabase Edge Functions

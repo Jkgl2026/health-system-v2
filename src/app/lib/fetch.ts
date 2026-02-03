@@ -6,6 +6,7 @@
  * - 统一异常处理
  * - 统一返回格式
  * - 自动处理401未授权（跳转登录）
+ * - 支持本地API和Supabase Edge Functions
  */
 
 /**
@@ -16,6 +17,36 @@ interface APIResponse<T = any> {
   data?: T;
   error?: string;
   code?: string;
+  token?: string;
+  user?: any;
+}
+
+/**
+ * 获取API基础URL
+ * 
+ * 优先级：
+ * 1. 环境变量 NEXT_PUBLIC_API_URL
+ * 2. 本地开发环境使用相对路径
+ * 3. 生产环境默认使用Supabase Edge Functions
+ */
+export function getAPIBaseURL(): string {
+  // 生产环境：使用 Supabase Edge Functions
+  if (typeof window !== 'undefined') {
+    const envURL = process.env.NEXT_PUBLIC_API_URL;
+    if (envURL) {
+      return envURL;
+    }
+    
+    // 如果未配置，尝试从当前域名推断
+    const hostname = window.location.hostname;
+    if (hostname.includes('pages.dev') || hostname.includes('cloudflare')) {
+      // Cloudflare Pages 部署，需要配置 NEXT_PUBLIC_API_URL
+      console.warn('[getAPIBaseURL] 未配置 NEXT_PUBLIC_API_URL，请设置 Supabase Edge Functions URL');
+    }
+  }
+  
+  // 本地开发环境：使用相对路径
+  return '';
 }
 
 /**
@@ -39,7 +70,7 @@ const DEFAULT_CONFIG: FetchConfig = {
 /**
  * 封装的fetch函数（管理员专用）
  * 
- * @param url - 请求路径
+ * @param url - 请求路径（可以是完整URL或相对路径）
  * @param config - 请求配置
  * @returns API响应数据
  */
@@ -57,21 +88,11 @@ export async function adminFetch<T = any>(
       ...(config.headers || {}),
     };
     
-    // 2. 尝试从localStorage获取Token（备用）
-    const token = localStorage.getItem('admin_token');
-    
-    if (!token) {
-      console.error('[adminFetch] 未找到Token');
-      
-      if (mergedConfig.redirectOn401) {
-        redirectToLogin();
-      }
-      
-      throw new Error('未登录，请先登录');
-    }
+    // 2. 构建完整URL（如果是相对路径）
+    const fullURL = url.startsWith('http') ? url : `${getAPIBaseURL()}${url}`;
     
     // 3. Token将通过Cookie自动发送，不需要手动设置Authorization头
-    console.log('[adminFetch] 发送请求', { url });
+    console.log('[adminFetch] 发送请求', { fullURL });
     
     // 4. 创建超时控制
     const controller = new AbortController();
@@ -80,7 +101,7 @@ export async function adminFetch<T = any>(
     }, mergedConfig.timeout);
     
     // 5. 发送请求
-    const response = await fetch(url, {
+    const response = await fetch(fullURL, {
       ...mergedConfig,
       headers,
       credentials: 'include',  // 包含Cookie
@@ -125,8 +146,15 @@ export async function adminFetch<T = any>(
       throw new Error(data.error || '操作失败');
     }
     
-    // 10. 返回数据
-    return data.data as T;
+    // 10. 返回数据（支持两种格式：data 或直接返回）
+    // Supabase Edge Functions 直接返回 { success, token, user }
+    // 本地API 返回 { success, data: {...} }
+    if (data.data !== undefined) {
+      return data.data as T;
+    }
+    
+    // 如果没有 data 字段，返回整个响应对象
+    return data as any;
     
   } catch (error) {
     // 处理超时错误
@@ -184,8 +212,18 @@ export function isLoggedIn(): boolean {
  * 
  * @param redirect - 是否跳转到登录页（默认true）
  */
-export function logout(redirect: boolean = true) {
+export async function logout(redirect: boolean = true) {
   console.log('[logout] 清除登录信息');
+  
+  try {
+    // 调用登出API（清除服务器Cookie）
+    await fetch(`${getAPIBaseURL()}/admin/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+  } catch (error) {
+    console.error('[logout] 调用登出API失败', error);
+  }
   
   // 清除本地存储
   localStorage.removeItem('admin_token');
