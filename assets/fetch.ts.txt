@@ -1,0 +1,264 @@
+/**
+ * 前端fetch请求封装工具
+ * 
+ * 功能：
+ * - 自动携带Token（优先使用Cookie，备用localStorage）
+ * - 统一异常处理
+ * - 统一返回格式
+ * - 自动处理401未授权（跳转登录）
+ * - 支持本地API和Supabase Edge Functions
+ */
+
+/**
+ * API响应接口
+ */
+interface APIResponse<T = any> {
+  success: boolean;
+  data?: T;
+  error?: string;
+  code?: string;
+  token?: string;
+  user?: any;
+}
+
+/**
+ * 请求配置接口
+ */
+interface FetchConfig extends RequestInit {
+  /** 是否自动处理401（默认true） */
+  redirectOn401?: boolean;
+  /** 请求超时时间（毫秒，默认30000） */
+  timeout?: number;
+}
+
+/**
+ * 默认请求配置
+ */
+const DEFAULT_CONFIG: FetchConfig = {
+  redirectOn401: true,
+  timeout: 30000,
+};
+
+/**
+ * 获取API基础URL
+ * 
+ * 优先级：
+ * 1. 环境变量 NEXT_PUBLIC_API_URL
+ * 2. 本地开发环境使用相对路径
+ * 3. 生产环境默认使用Supabase Edge Functions
+ */
+export function getAPIBaseURL(): string {
+  // 生产环境：使用 Supabase Edge Functions
+  if (typeof window !== 'undefined') {
+    const envURL = process.env.NEXT_PUBLIC_API_URL;
+    if (envURL) {
+      return envURL;
+    }
+    
+    // 如果未配置，尝试从当前域名推断
+    const hostname = window.location.hostname;
+    if (hostname.includes('pages.dev') || hostname.includes('cloudflare')) {
+      // Cloudflare Pages 部署，需要配置 NEXT_PUBLIC_API_URL
+      console.warn('[getAPIBaseURL] 未配置 NEXT_PUBLIC_API_URL，请设置 Supabase Edge Functions URL');
+    }
+  }
+  
+  // 本地开发环境：使用相对路径
+  return '';
+}
+
+/**
+ * 封装的fetch函数（管理员专用）
+ * 
+ * @param url - 请求路径（可以是完整URL或相对路径）
+ * @param config - 请求配置
+ * @returns API响应数据
+ */
+export async function adminFetch<T = any>(
+  url: string,
+  config: FetchConfig = {}
+): Promise<T> {
+  // 合并配置
+  const mergedConfig = { ...DEFAULT_CONFIG, ...config };
+  
+  try {
+    // 1. 准备请求头
+    const headers: HeadersInit = {
+      'Content-Type': 'application/json',
+      ...(config.headers || {}),
+    };
+    
+    // 2. 构建完整URL（如果是相对路径）
+    const fullURL = url.startsWith('http') ? url : `${getAPIBaseURL()}${url}`;
+    
+    // 3. Token将通过Cookie自动发送，不需要手动设置Authorization头
+    console.log('[adminFetch] 发送请求', { fullURL });
+    
+    // 4. 创建超时控制
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, mergedConfig.timeout);
+    
+    // 5. 发送请求
+    const response = await fetch(fullURL, {
+      ...mergedConfig,
+      headers,
+      credentials: 'include',  // 包含Cookie
+      signal: controller.signal,
+    });
+    
+    // 清除超时
+    clearTimeout(timeoutId);
+    
+    // 6. 解析响应
+    const data: APIResponse<T> = await response.json();
+    
+    // 7. 处理401未授权
+    if (response.status === 401) {
+      console.error('[adminFetch] 401未授权', { url, error: data.error });
+      
+      // 清除Token
+      localStorage.removeItem('admin_token');
+      localStorage.removeItem('admin_user');
+      
+      if (mergedConfig.redirectOn401) {
+        redirectToLogin();
+      }
+      
+      throw new Error(data.error || '登录已过期，请重新登录');
+    }
+    
+    // 8. 处理其他错误状态码
+    if (!response.ok) {
+      console.error('[adminFetch] 请求失败', { 
+        url, 
+        status: response.status, 
+        error: data.error 
+      });
+      
+      throw new Error(data.error || `请求失败：${response.status}`);
+    }
+    
+    // 9. 处理业务错误
+    if (!data.success) {
+      console.error('[adminFetch] 业务错误', { url, error: data.error });
+      throw new Error(data.error || '操作失败');
+    }
+    
+    // 10. 返回数据（支持两种格式：data 或直接返回）
+    // Supabase Edge Functions 直接返回 { success, token, user }
+    // 本地API 返回 { success, data: {...} }
+    if (data.data !== undefined) {
+      return data.data as T;
+    }
+    
+    // 如果没有 data 字段，返回整个响应对象
+    return data as any;
+    
+  } catch (error) {
+    // 处理超时错误
+    if (error instanceof Error && error.name === 'AbortError') {
+      console.error('[adminFetch] 请求超时', { url });
+      throw new Error('请求超时，请检查网络连接');
+    }
+    
+    // 抛出原始错误
+    console.error('[adminFetch] 请求异常', { url, error });
+    throw error;
+  }
+}
+
+/**
+ * 跳转到登录页面
+ */
+function redirectToLogin() {
+  // 保存当前页面路径，登录后可以跳转回来
+  const currentPath = window.location.pathname;
+  if (currentPath !== '/admin/login') {
+    sessionStorage.setItem('redirectAfterLogin', currentPath);
+  }
+  
+  // 跳转到登录页
+  window.location.href = '/admin/login';
+}
+
+/**
+ * 获取当前登录用户信息
+ */
+export function getCurrentUser() {
+  try {
+    const userStr = localStorage.getItem('admin_user');
+    if (!userStr) {
+      return null;
+    }
+    return JSON.parse(userStr);
+  } catch (error) {
+    console.error('[getCurrentUser] 解析用户信息失败', error);
+    return null;
+  }
+}
+
+/**
+ * 检查是否已登录
+ */
+export function isLoggedIn(): boolean {
+  const token = localStorage.getItem('admin_token');
+  return !!token;
+}
+
+/**
+ * 登出
+ * 
+ * @param redirect - 是否跳转到登录页（默认true）
+ */
+export async function logout(redirect: boolean = true) {
+  console.log('[logout] 清除登录信息');
+  
+  try {
+    // 调用登出API（清除服务器Cookie）
+    await fetch(`${getAPIBaseURL()}/admin/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+  } catch (error) {
+    console.error('[logout] 调用登出API失败', error);
+  }
+  
+  // 清除本地存储
+  localStorage.removeItem('admin_token');
+  localStorage.removeItem('admin_user');
+  
+  // 跳转到登录页
+  if (redirect) {
+    window.location.href = '/admin/login';
+  }
+}
+
+// 导出快捷方法
+export const get = <T = any>(url: string, config?: Omit<FetchConfig, 'method'>) => {
+  return adminFetch<T>(url, { ...config, method: 'GET' });
+};
+
+export const post = <T = any>(url: string, body?: any, config?: Omit<FetchConfig, 'method' | 'body'>) => {
+  return adminFetch<T>(url, {
+    ...config,
+    method: 'POST',
+    body: body ? JSON.stringify(body) : undefined,
+  });
+};
+
+export const put = <T = any>(url: string, body?: any, config?: Omit<FetchConfig, 'method' | 'body'>) => {
+  return adminFetch<T>(url, {
+    ...config,
+    method: 'PUT',
+    body: body ? JSON.stringify(body) : undefined,
+  });
+};
+
+export const del = <T = any>(url: string, config?: Omit<FetchConfig, 'method'>) => {
+  return adminFetch<T>(url, { ...config, method: 'DELETE' });
+};
+
+// 默认导出
+export default adminFetch;
