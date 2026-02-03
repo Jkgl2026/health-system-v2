@@ -1,6 +1,27 @@
 'use client';
 
+import { useEffect } from 'react';
+
 export default function AdminDashboardPage() {
+  useEffect(() => {
+    const logoutButton = document.getElementById('logout-button') as HTMLButtonElement;
+    const isLoggedIn = localStorage.getItem('adminLoggedIn');
+
+    // 检查登录状态
+    if (isLoggedIn !== 'true') {
+      window.location.href = '/admin/login';
+    }
+
+    // 退出登录
+    if (logoutButton) {
+      logoutButton.addEventListener('click', () => {
+        localStorage.removeItem('admin');
+        localStorage.removeItem('adminLoggedIn');
+        window.location.href = '/admin/login';
+      });
+    }
+  }, []);
+
   return (
     <div style={{ minHeight: '100vh', background: '#f5f5f5' }}>
       {/* Header */}
@@ -13,7 +34,7 @@ export default function AdminDashboardPage() {
         color: 'white'
       }}>
         <div>
-          <h1 style={{ margin: '0', fontSize: '24px', fontWeight: 'bold' }}>
+          <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 'bold' }}>
             健康管理系统
           </h1>
           <p style={{ margin: '5px 0 0 0', fontSize: '14px', opacity: 0.9 }}>
@@ -39,7 +60,7 @@ export default function AdminDashboardPage() {
 
       {/* Main Content */}
       <div style={{ padding: '40px', maxWidth: '1400px', margin: '0 auto' }}>
-        {/* Stats Cards */}
+        {/* Stats Grid */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -55,9 +76,7 @@ export default function AdminDashboardPage() {
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#667eea', marginBottom: '10px' }}>
               3
             </div>
-            <div style={{ fontSize: '16px', color: '#666' }}>
-              总用户数
-            </div>
+            <div style={{ fontSize: '16px', color: '#666' }}>总用户数</div>
           </div>
 
           <div style={{
@@ -69,9 +88,7 @@ export default function AdminDashboardPage() {
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#48c774', marginBottom: '10px' }}>
               2
             </div>
-            <div style={{ fontSize: '16px', color: '#666' }}>
-              男性用户
-            </div>
+            <div style={{ fontSize: '16px', color: '#666' }}>男性用户</div>
           </div>
 
           <div style={{
@@ -83,9 +100,7 @@ export default function AdminDashboardPage() {
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#ff3860', marginBottom: '10px' }}>
               1
             </div>
-            <div style={{ fontSize: '16px', color: '#666' }}>
-              女性用户
-            </div>
+            <div style={{ fontSize: '16px', color: '#666' }}>女性用户</div>
           </div>
 
           <div style={{
@@ -97,9 +112,7 @@ export default function AdminDashboardPage() {
             <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#ffdd57', marginBottom: '10px' }}>
               100%
             </div>
-            <div style={{ fontSize: '16px', color: '#666' }}>
-              系统状态
-            </div>
+            <div style={{ fontSize: '16px', color: '#666' }}>系统状态</div>
           </div>
         </div>
 
@@ -110,83 +123,33 @@ export default function AdminDashboardPage() {
           borderRadius: '10px',
           boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
         }}>
-          <h2 style={{
-            margin: '0 0 20px 0',
-            fontSize: '24px',
-            color: '#333'
-          }}>
+          <h2 style={{ margin: '0 0 20px 0', fontSize: '24px', color: '#333' }}>
             用户列表
           </h2>
 
           <div style={{ overflowX: 'auto' }}>
-            <table style={{
-              width: '100%',
-              borderCollapse: 'collapse',
-              fontSize: '14px'
-            }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
               <thead>
                 <tr style={{ background: '#f5f5f5' }}>
-                  <th style={{
-                    padding: '15px',
-                    textAlign: 'left',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    borderBottom: '2px solid #ddd'
-                  }}>
+                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
                     ID
                   </th>
-                  <th style={{
-                    padding: '15px',
-                    textAlign: 'left',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    borderBottom: '2px solid #ddd'
-                  }}>
+                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
                     姓名
                   </th>
-                  <th style={{
-                    padding: '15px',
-                    textAlign: 'left',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    borderBottom: '2px solid #ddd'
-                  }}>
+                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
                     年龄
                   </th>
-                  <th style={{
-                    padding: '15px',
-                    textAlign: 'left',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    borderBottom: '2px solid #ddd'
-                  }}>
+                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
                     性别
                   </th>
-                  <th style={{
-                    padding: '15px',
-                    textAlign: 'left',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    borderBottom: '2px solid #ddd'
-                  }}>
+                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
                     电话
                   </th>
-                  <th style={{
-                    padding: '15px',
-                    textAlign: 'left',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    borderBottom: '2px solid #ddd'
-                  }}>
+                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
                     邮箱
                   </th>
-                  <th style={{
-                    padding: '15px',
-                    textAlign: 'left',
-                    fontWeight: 'bold',
-                    color: '#333',
-                    borderBottom: '2px solid #ddd'
-                  }}>
+                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold', color: '#333', borderBottom: '2px solid #ddd' }}>
                     注册时间
                   </th>
                 </tr>
@@ -198,19 +161,17 @@ export default function AdminDashboardPage() {
                   <td style={{ padding: '15px', color: '#666' }}>35</td>
                   <td style={{ padding: '15px', color: '#666' }}>
                     <span style={{
-                      padding: '5px 10px',
-                      borderRadius: '3px',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
                       fontSize: '12px',
                       fontWeight: 'bold',
-                      background: '#48c774',
-                      color: 'white'
-                    }}>
-                      男
-                    </span>
+                      background: '#e3f2fd',
+                      color: '#1976d2'
+                    }}>男</span>
                   </td>
                   <td style={{ padding: '15px', color: '#666' }}>13800138000</td>
                   <td style={{ padding: '15px', color: '#666' }}>zhangsan@example.com</td>
-                  <td style={{ padding: '15px', color: '#666', fontSize: '12px' }}>2025-02-03</td>
+                  <td style={{ padding: '15px', color: '#666' }}>2025-01-15</td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '15px', color: '#666' }}>2</td>
@@ -218,19 +179,17 @@ export default function AdminDashboardPage() {
                   <td style={{ padding: '15px', color: '#666' }}>28</td>
                   <td style={{ padding: '15px', color: '#666' }}>
                     <span style={{
-                      padding: '5px 10px',
-                      borderRadius: '3px',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
                       fontSize: '12px',
                       fontWeight: 'bold',
-                      background: '#ff3860',
-                      color: 'white'
-                    }}>
-                      女
-                    </span>
+                      background: '#e3f2fd',
+                      color: '#1976d2'
+                    }}>男</span>
                   </td>
                   <td style={{ padding: '15px', color: '#666' }}>13900139000</td>
                   <td style={{ padding: '15px', color: '#666' }}>lisi@example.com</td>
-                  <td style={{ padding: '15px', color: '#666', fontSize: '12px' }}>2025-02-03</td>
+                  <td style={{ padding: '15px', color: '#666' }}>2025-01-20</td>
                 </tr>
                 <tr style={{ borderBottom: '1px solid #eee' }}>
                   <td style={{ padding: '15px', color: '#666' }}>3</td>
@@ -238,59 +197,23 @@ export default function AdminDashboardPage() {
                   <td style={{ padding: '15px', color: '#666' }}>42</td>
                   <td style={{ padding: '15px', color: '#666' }}>
                     <span style={{
-                      padding: '5px 10px',
-                      borderRadius: '3px',
+                      padding: '4px 12px',
+                      borderRadius: '20px',
                       fontSize: '12px',
                       fontWeight: 'bold',
-                      background: '#48c774',
-                      color: 'white'
-                    }}>
-                      男
-                    </span>
+                      background: '#fce4ec',
+                      color: '#c2185b'
+                    }}>女</span>
                   </td>
                   <td style={{ padding: '15px', color: '#666' }}>13700137000</td>
                   <td style={{ padding: '15px', color: '#666' }}>wangwu@example.com</td>
-                  <td style={{ padding: '15px', color: '#666', fontSize: '12px' }}>2025-02-03</td>
+                  <td style={{ padding: '15px', color: '#666' }}>2025-01-25</td>
                 </tr>
               </tbody>
             </table>
           </div>
-
-          <div style={{
-            marginTop: '30px',
-            padding: '20px',
-            backgroundColor: '#fff3cd',
-            border: '1px solid #ffc107',
-            borderRadius: '5px',
-            fontSize: '14px',
-            color: '#856404',
-            lineHeight: '1.6'
-          }}>
-            <strong>提示：</strong>
-            <ul style={{ margin: '10px 0 0 0', paddingLeft: '20px' }}>
-              <li>当前显示的是模拟数据</li>
-              <li>真实数据需要配置数据库连接</li>
-              <li>所有功能界面已完成，可以正常使用</li>
-            </ul>
-          </div>
         </div>
       </div>
-
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            document.addEventListener('DOMContentLoaded', function() {
-              var logoutButton = document.getElementById('logout-button');
-
-              logoutButton.addEventListener('click', function() {
-                localStorage.removeItem('adminLoggedIn');
-                localStorage.removeItem('admin');
-                window.location.href = '/admin/login';
-              });
-            });
-          `
-        }}
-      />
     </div>
   );
 }

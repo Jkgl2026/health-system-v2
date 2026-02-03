@@ -1,6 +1,49 @@
 'use client';
 
+import { useEffect } from 'react';
+
 export default function AdminLoginPage() {
+  useEffect(() => {
+    // 在客户端执行登录逻辑
+    const usernameInput = document.getElementById('username') as HTMLInputElement;
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
+    const loginButton = document.getElementById('login-button') as HTMLButtonElement;
+    const errorMessage = document.getElementById('error-message') as HTMLDivElement;
+
+    if (loginButton) {
+      loginButton.addEventListener('click', () => {
+        const username = usernameInput?.value || '';
+        const password = passwordInput?.value || '';
+
+        if (errorMessage) {
+          errorMessage.style.display = 'none';
+        }
+
+        if (username === 'admin' && password === 'admin123') {
+          try {
+            localStorage.setItem('admin', JSON.stringify({
+              id: '1',
+              username: 'admin',
+              role: 'admin'
+            }));
+            localStorage.setItem('adminLoggedIn', 'true');
+            window.location.href = '/admin/dashboard';
+          } catch (err) {
+            if (errorMessage) {
+              errorMessage.textContent = '浏览器不支持本地存储';
+              errorMessage.style.display = 'block';
+            }
+          }
+        } else {
+          if (errorMessage) {
+            errorMessage.textContent = '用户名或密码错误';
+            errorMessage.style.display = 'block';
+          }
+        }
+      });
+    }
+  }, []);
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -52,7 +95,7 @@ export default function AdminLoginPage() {
           <input
             type="text"
             id="username"
-            value="admin"
+            defaultValue="admin"
             style={{
               width: '100%',
               padding: '12px',
@@ -77,7 +120,7 @@ export default function AdminLoginPage() {
           <input
             type="password"
             id="password"
-            value="admin123"
+            defaultValue="admin123"
             style={{
               width: '100%',
               padding: '12px',
@@ -137,44 +180,6 @@ export default function AdminLoginPage() {
           密码：admin123
         </div>
       </div>
-
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            document.addEventListener('DOMContentLoaded', function() {
-              var usernameInput = document.getElementById('username');
-              var passwordInput = document.getElementById('password');
-              var loginButton = document.getElementById('login-button');
-              var errorMessage = document.getElementById('error-message');
-
-              loginButton.addEventListener('click', function() {
-                var username = usernameInput.value;
-                var password = passwordInput.value;
-
-                errorMessage.style.display = 'none';
-
-                if (username === 'admin' && password === 'admin123') {
-                  try {
-                    localStorage.setItem('admin', JSON.stringify({
-                      id: '1',
-                      username: 'admin',
-                      role: 'admin'
-                    }));
-                    localStorage.setItem('adminLoggedIn', 'true');
-                    window.location.href = '/admin/dashboard';
-                  } catch (err) {
-                    errorMessage.textContent = '浏览器不支持本地存储';
-                    errorMessage.style.display = 'block';
-                  }
-                } else {
-                  errorMessage.textContent = '用户名或密码错误';
-                  errorMessage.style.display = 'block';
-                }
-              });
-            });
-          `
-        }}
-      />
     </div>
   );
 }
