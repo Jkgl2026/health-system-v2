@@ -5,9 +5,10 @@ import { useEffect } from 'react';
 export default function ComparePage() {
   useEffect(() => {
     // 检查登录状态
-    const loggedIn = localStorage.getItem('adminLoggedIn');
-    if (loggedIn !== 'true') {
-      window.location.href = '/admin-login.html';
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      console.log('[数据对比页] 未检测到登录Token，跳转到登录页');
+      window.location.href = '/admin/login';
     }
   }, []);
 

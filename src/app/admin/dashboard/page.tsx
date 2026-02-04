@@ -115,8 +115,9 @@ export default function AdminDashboardPage() {
   }, [currentPage, itemsPerPage]);
 
   const checkAuth = () => {
-    const isLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (!isLoggedIn) {
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      console.log('[后台首页] 未检测到登录Token，跳转到登录页');
       router.push('/admin/login');
     }
   };
@@ -181,8 +182,9 @@ export default function AdminDashboardPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('adminLoggedIn');
-    localStorage.removeItem('admin');
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('admin_user');
+    console.log('[后台首页] 已清除登录信息，跳转到登录页');
     router.push('/admin/login');
   };
 
