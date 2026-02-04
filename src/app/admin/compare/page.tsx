@@ -12,7 +12,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 import { BAD_HABITS_CHECKLIST, BODY_SYMPTOMS, BODY_SYMPTOMS_300, TWENTY_ONE_COURSES } from '@/lib/health-data';
 import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
-import { mockFetchUserHistory, mockFetchUserFullData } from '@/lib/mockCompareData';
+// 使用真实数据API，不再使用模拟数据
 
 interface UserData {
   id: string;
@@ -237,12 +237,21 @@ export default function ComparePage() {
 
     setLoading(true);
     try {
-      const response = await mockFetchUserHistory(phone, name) as { success: boolean; users: UserData[] };
-      if (response.success) {
-        setHistoryUsers(response.users);
+      console.log('[数据对比] 查询历史记录:', { phone, name });
+      const params = new URLSearchParams();
+      if (phone) params.append('phone', phone);
+      if (name) params.append('name', name);
+
+      const response = await fetch(`/api/admin/users/history?${params.toString()}`);
+      const data = await response.json();
+
+      console.log('[数据对比] 查询结果:', data);
+
+      if (data.success) {
+        setHistoryUsers(data.users);
         setSelectedVersions([]);
       } else {
-        alert('获取历史记录失败');
+        alert(data.error || '获取历史记录失败');
       }
     } catch (error) {
       console.error('Failed to fetch history:', error);
@@ -275,12 +284,38 @@ export default function ComparePage() {
     setLoading(true);
     try {
       console.log('[数据对比] 正在获取用户完整数据...');
-      const promises = selectedVersions.map(userId => mockFetchUserFullData(userId));
-      const results = await Promise.all(promises) as { success: boolean; data: { user: FullUserData } }[];
-      const fullData = results.filter((r: { success: boolean; data: { user: FullUserData } }) => r.success).map((r: { success: boolean; data: { user: FullUserData } }) => r.data.user);
+      const promises = selectedVersions.map(async (userId) => {
+        const response = await fetch(`/api/admin/users/${userId}`);
+        const data = await response.json();
+        console.log('[数据对比] 获取用户数据:', userId, data.success ? '成功' : '失败');
+        return data;
+      });
+
+      const results = await Promise.all(promises);
+
+      console.log('[数据对比] 所有数据获取完成:', results.length, '条');
+
+      const fullData = results
+        .filter((r: any) => r.success)
+        .map((r: any) => {
+          // 转换数据格式，确保与FullUserData接口匹配
+          const user = r.data.user;
+          return {
+            ...user,
+            createdAt: user.createdAt || new Date(),
+            isLatestVersion: user.isLatestVersion !== undefined ? user.isLatestVersion : true,
+            // 确保所有字段都存在
+            symptomChecks: user.symptomChecks || [],
+            healthAnalysis: user.healthAnalysis || [],
+            userChoices: user.userChoices || [],
+            requirements: user.requirements || {}
+          };
+        });
+
+      console.log('[数据对比] 过滤后的数据:', fullData.length, '条');
 
       if (fullData.length < 2) {
-        alert('获取完整数据失败');
+        alert('获取完整数据失败，请重试');
         setLoading(false);
         return;
       }
@@ -290,7 +325,7 @@ export default function ComparePage() {
       setShowCompareDialog(true);
     } catch (error) {
       console.error('Failed to fetch compare data:', error);
-      alert('获取对比数据失败');
+      alert('获取对比数据失败，请重试');
       setLoading(false);
     } finally {
       setLoading(false);
@@ -331,7 +366,7 @@ export default function ComparePage() {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900">数据对比分析</h1>
-                <p className="text-sm text-gray-500">对比同一用户不同时期的数据（演示模式）</p>
+                <p className="text-sm text-gray-500">对比同一用户不同时期的数据（真实数据）</p>
               </div>
             </div>
             <Button variant="destructive" size="sm" onClick={handleLogout}>
@@ -349,8 +384,6 @@ export default function ComparePage() {
             <CardTitle>选择对比对象</CardTitle>
             <CardDescription>
               输入手机号或姓名查看该用户的历史记录，然后选择需要对比的版本
-              <br />
-              <span className="text-blue-600">提示：可用测试手机号 13800138001（张三）、13900139001（李四）</span>
             </CardDescription>
           </CardHeader>
           <CardContent>
