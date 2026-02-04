@@ -4,8 +4,8 @@ import { SessionManager } from '@/lib/session-manager';
 import { getRateLimiter, getIdentifierFromRequest } from '@/lib/rate-limit';
 import { applyRateLimit } from '@/lib/rate-limit-middleware';
 
-// 创建速率限制器（严格模式：15分钟内最多5次登录尝试）
-const loginRateLimiter = getRateLimiter('admin-login', 'strict');
+// 创建速率限制器（中等模式：15分钟内最多30次登录尝试）
+const loginRateLimiter = getRateLimiter('admin-login', 'moderate');
 
 // POST /api/admin/login - 管理员登录
 export async function POST(request: NextRequest) {
