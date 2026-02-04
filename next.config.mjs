@@ -5,9 +5,11 @@ const nextConfig = {
   /* config options here */
   // 允许所有域名访问（开发环境）
   // allowedDevOrigins: ['*.dev.coze.site'],
-  // 静态导出配置（Cloudflare Pages 需要）
-  output: 'export',
-  // 图片优化配置（静态导出下不可用）
+
+  // ⚠️ 重要：不要使用 output: 'export'，因为它会禁用 API 路由
+  // 静态导出模式不支持 API 路由，会导致 src/app/api/* 下的接口无法访问
+
+  // 图片优化配置
   images: {
     remotePatterns: [
       {
@@ -17,6 +19,7 @@ const nextConfig = {
       },
     ],
   },
+
   // 环境变量
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || '',
