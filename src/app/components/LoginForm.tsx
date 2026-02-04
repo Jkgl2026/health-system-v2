@@ -136,10 +136,19 @@ export default function LoginForm({
     }
     
     setIsLoading(true);
-    
+    setError('');
+
     try {
+      // 构建API URL（使用绝对路径，确保在任何环境下都能正确访问）
+      const apiBaseUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : '';
+      const apiUrl = `${apiBaseUrl}/api/admin/login`;
+
+      console.log('[登录表单] 发送登录请求到:', apiUrl);
+
       // 发送登录请求
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -148,9 +157,24 @@ export default function LoginForm({
           username: username.trim(),
           password: password,
         }),
+        credentials: 'include', // 包含 cookies
       });
-      
-      const data: LoginResponse = await response.json();
+
+      // 获取响应文本和状态
+      const responseText = await response.text();
+      console.log('[登录表单] 响应状态:', response.status);
+      console.log('[登录表单] 响应内容:', responseText);
+
+      let data: LoginResponse;
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        throw new Error(`响应解析失败: ${responseText}`);
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || `请求失败 (${response.status})`);
+      }
 
       if (data.success && data.token && (data.user || data.admin)) {
         // 登录成功
@@ -188,10 +212,12 @@ export default function LoginForm({
       }
     } catch (err) {
       // 请求错误
-      const errorMsg = err instanceof Error ? err.message : '网络错误，请检查网络连接';
+      const errorMsg = err instanceof Error 
+        ? err.message 
+        : '网络错误，请检查网络连接';
       console.error('[登录表单] 请求错误', err);
       setError(errorMsg);
-      
+
       // 调用失败回调
       if (onError) {
         onError(errorMsg);
