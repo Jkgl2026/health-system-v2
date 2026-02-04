@@ -45,8 +45,10 @@ interface UserInfo {
  */
 interface LoginResponse {
   success: boolean;
-  token?: string;
-  user?: UserInfo;
+  message?: string;
+  token?: any;
+  admin?: UserInfo;
+  user?: UserInfo; // 兼容旧版本
   error?: string;
 }
 
@@ -149,25 +151,26 @@ export default function LoginForm({
       });
       
       const data: LoginResponse = await response.json();
-      
-      if (data.success && data.token && data.user) {
+
+      if (data.success && data.token && (data.user || data.admin)) {
         // 登录成功
-        console.log('[登录表单] 登录成功', { 
-          userId: data.user.id, 
-          username: data.user.username 
+        const user = data.user || data.admin;
+        console.log('[登录表单] 登录成功', {
+          userId: user.id,
+          username: user.username
         });
-        
+
         // 保存Token到localStorage
-        localStorage.setItem('admin_token', data.token);
-        localStorage.setItem('admin_user', JSON.stringify(data.user));
-        
+        localStorage.setItem('admin_token', JSON.stringify(data.token));
+        localStorage.setItem('admin_user', JSON.stringify(user));
+
         // 清空表单
         setUsername('');
         setPassword('');
-        
+
         // 调用成功回调
         if (onSuccess) {
-          onSuccess(data.token, data.user);
+          onSuccess(JSON.stringify(data.token), user);
         } else {
           // 默认跳转到后台首页
           window.location.href = '/admin/dashboard';
@@ -177,7 +180,7 @@ export default function LoginForm({
         const errorMsg = data.error || '登录失败，请稍后再试';
         console.error('[登录表单] 登录失败', errorMsg);
         setError(errorMsg);
-        
+
         // 调用失败回调
         if (onError) {
           onError(errorMsg);
