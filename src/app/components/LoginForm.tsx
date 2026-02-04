@@ -179,6 +179,12 @@ export default function LoginForm({
       if (data.success && data.token && (data.user || data.admin)) {
         // 登录成功
         const user = data.user || data.admin;
+
+        // 确保 user 存在
+        if (!user) {
+          throw new Error('用户信息缺失');
+        }
+
         console.log('[登录表单] 登录成功', {
           userId: user.id,
           username: user.username
