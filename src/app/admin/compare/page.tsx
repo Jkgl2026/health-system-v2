@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { LogOut, ArrowLeft, Activity, CheckCircle, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { LogOut, ArrowLeft, Activity, CheckCircle, TrendingUp, TrendingDown, Minus, X } from 'lucide-react';
 import { mockFetchUserHistory, mockFetchUserFullData } from '@/lib/mockCompareData';
 
 interface UserData {
@@ -38,7 +37,7 @@ export default function ComparePage() {
   const [historyUsers, setHistoryUsers] = useState<UserData[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedVersions, setSelectedVersions] = useState<string[]>([]);
-  const [showCompareDialog, setShowCompareDialog] = useState(false);
+  const [showCompareResult, setShowCompareResult] = useState(false);
   const [compareData, setCompareData] = useState<FullUserData[]>([]);
 
   useEffect(() => {
@@ -91,6 +90,8 @@ export default function ComparePage() {
   };
 
   const handleCompare = async () => {
+    console.log('[数据对比] 开始对比，选中的版本ID:', selectedVersions);
+
     if (selectedVersions.length < 2) {
       alert('请至少选择2个版本进行对比');
       return;
@@ -98,22 +99,32 @@ export default function ComparePage() {
 
     setLoading(true);
     try {
+      console.log('[数据对比] 正在获取用户完整数据...');
       const promises = selectedVersions.map(userId => mockFetchUserFullData(userId));
       const results = await Promise.all(promises) as { success: boolean; data: { user: FullUserData } }[];
+      console.log('[数据对比] 获取到的结果:', results);
+
       const fullData = results.filter((r: { success: boolean; data: { user: FullUserData } }) => r.success).map((r: { success: boolean; data: { user: FullUserData } }) => r.data.user);
+      console.log('[数据对比] 过滤后的完整数据:', fullData);
 
       if (fullData.length < 2) {
         alert('获取完整数据失败');
+        setLoading(false);
         return;
       }
 
       setCompareData(fullData);
-      setShowCompareDialog(true);
+      console.log('[数据对比] 设置对比数据完成，准备显示结果');
+      setLoading(false);
+      setShowCompareResult(true);
+      console.log('[数据对比] 结果显示状态已设置为 true');
     } catch (error) {
-      console.error('Failed to fetch compare data:', error);
+      console.error('[数据对比] 获取对比数据失败:', error);
       alert('获取对比数据失败');
+      setLoading(false);
     } finally {
       setLoading(false);
+      console.log('[数据对比] 对比流程结束');
     }
   };
 
@@ -258,112 +269,126 @@ export default function ComparePage() {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {/* 对比结果对话框 */}
-      <Dialog open={showCompareDialog} onOpenChange={setShowCompareDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl">数据对比结果</DialogTitle>
-            <DialogDescription>
-              对比 {compareData.length} 个版本的基本信息
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 mt-4">
-            {/* 基本信息对比 */}
-            <Card>
-              <CardHeader>
-                <CardTitle>基本信息</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-3 gap-4">
-                  {compareData.map((data, index) => (
-                    <div key={data.id} className="p-4 bg-gray-50 rounded-lg">
-                      <h4 className="font-semibold mb-2">版本 {index + 1}</h4>
-                      <div className="space-y-2 text-sm">
-                        <div><strong>姓名：</strong>{data.name || '-'}</div>
-                        <div><strong>手机号：</strong>{data.phone || '-'}</div>
-                        <div><strong>年龄：</strong>{data.age || '-'}岁</div>
-                        <div><strong>性别：</strong>{data.gender || '-'}</div>
-                        <div><strong>BMI：</strong>{data.bmi || '-'}</div>
-                        <div><strong>血压：</strong>{data.bloodPressure || '-'}</div>
-                        <div><strong>记录时间：</strong>{formatDate(data.createdAt)}</div>
-                      </div>
-                    </div>
-                  ))}
+        {/* 对比结果 - 使用固定定位的弹窗 */}
+        {showCompareResult && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+              {/* 头部 */}
+              <div className="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold">数据对比结果</h2>
+                  <p className="text-sm text-gray-500">对比 {compareData.length} 个版本的基本信息</p>
                 </div>
-              </CardContent>
-            </Card>
+                <Button variant="ghost" size="sm" onClick={() => setShowCompareResult(false)}>
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
 
-            {/* BMI对比 */}
-            {compareData.length >= 2 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>BMI 变化</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {compareData.slice(0, -1).map((data, index) => {
-                    const nextData = compareData[index + 1];
-                    const bmi1 = parseFloat(data.bmi || '0');
-                    const bmi2 = parseFloat(nextData.bmi || '0');
-                    const diff = bmi2 - bmi1;
-
-                    return (
-                      <div key={index} className="flex items-center gap-2 mb-2">
-                        {diff > 0 ? (
-                          <TrendingUp className="h-4 w-4 text-red-500" />
-                        ) : diff < 0 ? (
-                          <TrendingDown className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Minus className="h-4 w-4 text-gray-400" />
-                        )}
-                        <div className="flex-1">
-                          <span className="font-medium">版本 {index + 1} → 版本 {index + 2}：</span>
-                          <span> BMI {diff > 0 ? '上升' : diff < 0 ? '下降' : '保持'} {Math.abs(diff).toFixed(1)}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            )}
-
-            {/* 健康要素对比 */}
-            {compareData.length >= 1 && compareData[0].healthAnalysis?.[0] && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>健康要素</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-3 gap-4">
-                    {compareData.map((data, dataIndex) => {
-                      const analysis = data.healthAnalysis?.[0];
-                      if (!analysis) return null;
-
-                      return (
+              {/* 内容 */}
+              <div className="p-6 space-y-6">
+                {/* 基本信息对比 */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>基本信息</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 gap-4">
+                      {compareData.map((data, index) => (
                         <div key={data.id} className="p-4 bg-gray-50 rounded-lg">
-                          <h4 className="font-semibold mb-2">版本 {dataIndex + 1}</h4>
+                          <h4 className="font-semibold mb-2">版本 {index + 1}</h4>
                           <div className="space-y-2 text-sm">
-                            <div><strong>气血：</strong>{analysis.qiAndBlood || 0}分</div>
-                            <div><strong>循环：</strong>{analysis.circulation || 0}分</div>
-                            <div><strong>毒素：</strong>{analysis.toxins || 0}分</div>
-                            <div><strong>血脂：</strong>{analysis.bloodLipids || 0}分</div>
-                            <div><strong>寒凉：</strong>{analysis.coldness || 0}分</div>
-                            <div><strong>免疫力：</strong>{analysis.immunity || 0}分</div>
-                            <div><strong>情绪：</strong>{analysis.emotions || 0}分</div>
-                            <div><strong>整体：</strong>{analysis.overallHealth || 0}分</div>
+                            <div><strong>姓名：</strong>{data.name || '-'}</div>
+                            <div><strong>手机号：</strong>{data.phone || '-'}</div>
+                            <div><strong>年龄：</strong>{data.age || '-'}岁</div>
+                            <div><strong>性别：</strong>{data.gender || '-'}</div>
+                            <div><strong>BMI：</strong>{data.bmi || '-'}</div>
+                            <div><strong>血压：</strong>{data.bloodPressure || '-'}</div>
+                            <div><strong>记录时间：</strong>{formatDate(data.createdAt)}</div>
                           </div>
                         </div>
-                      );
-                    })}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* BMI对比 */}
+                {compareData.length >= 2 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>BMI 变化</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {compareData.slice(0, -1).map((data, index) => {
+                        const nextData = compareData[index + 1];
+                        const bmi1 = parseFloat(data.bmi || '0');
+                        const bmi2 = parseFloat(nextData.bmi || '0');
+                        const diff = bmi2 - bmi1;
+
+                        return (
+                          <div key={index} className="flex items-center gap-2 mb-2">
+                            {diff > 0 ? (
+                              <TrendingUp className="h-4 w-4 text-red-500" />
+                            ) : diff < 0 ? (
+                              <TrendingDown className="h-4 w-4 text-green-500" />
+                            ) : (
+                              <Minus className="h-4 w-4 text-gray-400" />
+                            )}
+                            <div className="flex-1">
+                              <span className="font-medium">版本 {index + 1} → 版本 {index + 2}：</span>
+                              <span> BMI {diff > 0 ? '上升' : diff < 0 ? '下降' : '保持'} {Math.abs(diff).toFixed(1)}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* 健康要素对比 */}
+                {compareData.length >= 1 && compareData[0].healthAnalysis?.[0] && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>健康要素</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-3 gap-4">
+                        {compareData.map((data, dataIndex) => {
+                          const analysis = data.healthAnalysis?.[0];
+                          if (!analysis) return null;
+
+                          return (
+                            <div key={data.id} className="p-4 bg-gray-50 rounded-lg">
+                              <h4 className="font-semibold mb-2">版本 {dataIndex + 1}</h4>
+                              <div className="space-y-2 text-sm">
+                                <div><strong>气血：</strong>{analysis.qiAndBlood || 0}分</div>
+                                <div><strong>循环：</strong>{analysis.circulation || 0}分</div>
+                                <div><strong>毒素：</strong>{analysis.toxins || 0}分</div>
+                                <div><strong>血脂：</strong>{analysis.bloodLipids || 0}分</div>
+                                <div><strong>寒凉：</strong>{analysis.coldness || 0}分</div>
+                                <div><strong>免疫力：</strong>{analysis.immunity || 0}分</div>
+                                <div><strong>情绪：</strong>{analysis.emotions || 0}分</div>
+                                <div><strong>整体：</strong>{analysis.overallHealth || 0}分</div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* 底部 */}
+              <div className="sticky bottom-0 bg-white border-t px-6 py-4 flex justify-end">
+                <Button onClick={() => setShowCompareResult(false)}>
+                  关闭
+                </Button>
+              </div>
+            </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        )}
+      </div>
     </div>
   );
 }
