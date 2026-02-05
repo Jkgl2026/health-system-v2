@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       [adminId, oldPassword]
     );
 
-    if (checkResult.rowCount === 0) {
+    if (!checkResult || checkResult.length === 0) {
       return NextResponse.json({
         code: 400,
         msg: '原密码错误',
