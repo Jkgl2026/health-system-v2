@@ -65,19 +65,19 @@ function getPool(): Pool {
  * 
  * @example
  * // 查询单条数据
- * const admins = await executeSQL('SELECT * FROM admins WHERE username = $1', ['admin']);
+ * const admins = await exec_sql('SELECT * FROM sys_admin WHERE username = $1', ['admin']);
  * const admin = admins[0];
  * 
  * // 插入数据
- * await executeSQL('INSERT INTO admins (username, password_hash) VALUES ($1, $2)', ['admin', '$2b$10$...']);
+ * await exec_sql('INSERT INTO sys_admin (username, password) VALUES ($1, $2)', ['admin', '123456']);
  * 
  * // 更新数据
- * await executeSQL('UPDATE admins SET last_login_at = $1 WHERE id = $2', [new Date(), 1]);
+ * await exec_sql('UPDATE sys_admin SET update_time = NOW() WHERE admin_id = $1', [1]);
  * 
  * // 删除数据
- * await executeSQL('DELETE FROM admins WHERE id = $1', [1]);
+ * await exec_sql('DELETE FROM sys_admin WHERE admin_id = $1', [1]);
  */
-export async function executeSQL<T = any>(
+export async function exec_sql<T = any>(
   sql: string, 
   params: any[] = []
 ): Promise<T[]> {

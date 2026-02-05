@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // 查询管理员
     const result = await exec_sql(
-      'SELECT id, username, password FROM sys_admin WHERE username = $1',
+      'SELECT admin_id, username, password FROM sys_admin WHERE username = $1',
       [username]
     );
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 生成简单token（实际项目应该用JWT）
-    const token = Buffer.from(`${admin.id}:${username}:${Date.now()}`).toString('base64');
+    const token = Buffer.from(`${admin.admin_id}:${username}:${Date.now()}`).toString('base64');
 
     // 返回统一格式
     return NextResponse.json({
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
       msg: '登录成功',
       data: {
         token,
-        adminId: admin.id,
+        adminId: admin.admin_id,
         username: admin.username
       }
     });
