@@ -10,12 +10,12 @@ export async function GET() {
   try {
     // 总用户数
     const totalUsers = await exec_sql('SELECT COUNT(*) as count FROM sys_user');
-    
+
     // 已完成自检人数
-    const doneSelfCheck = await exec_sql('SELECT COUNT(*) as count FROM sys_user WHERE done_self_check = true');
-    
+    const doneSelfCheck = await exec_sql('SELECT COUNT(*) as count FROM sys_user WHERE self_check_completed = true');
+
     // 已完成要求人数
-    const doneRequire = await exec_sql('SELECT COUNT(*) as count FROM sys_user WHERE done_require = true');
+    const doneRequire = await exec_sql('SELECT COUNT(*) as count FROM sys_user WHERE self_check_completed = true');
     
     // 平均健康分数
     const avgHealthScore = await exec_sql('SELECT AVG(health_score) as avg FROM sys_user WHERE health_score > 0');
