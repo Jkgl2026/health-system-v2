@@ -1,25 +1,31 @@
 -- ============================================
--- 健康自检后台系统 - 数据备份
+-- 健康自检后台系统 - 真实用户数据备份
 -- 文件名：health_check_db_data.sql
 -- 创建时间：2025-02-04
 -- 数据库类型：PostgreSQL
+-- 说明：包含1个默认管理员账号 + 14位真实用户数据
 -- ============================================
+
+-- 清空现有数据
+TRUNCATE sys_user CASCADE;
+TRUNCATE sys_admin CASCADE;
 
 -- ============================================
 -- 默认管理员账号
 -- 账号：admin
 -- 密码：123456
 -- ============================================
-INSERT INTO sys_admin (username, password, create_time, update_time) VALUES
-('admin', '123456', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+INSERT INTO sys_admin (admin_id, username, password, create_time, update_time) VALUES
+(1, 'admin', '123456', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- ============================================
--- 测试用户数据（14位真实用户模拟数据）
+-- 真实用户数据（14位）
+-- 说明：根据需求文档，缺失字段留空（NULL或空字符串）
 -- ============================================
 
--- 用户1：张三（优秀）
+-- 用户1：ID: d99deac8
 INSERT INTO sys_user (
-    name, phone, age, gender, height, weight, job,
+    user_id, name, phone, age, gender, height, weight, job,
     sleep, drink_smoke, exercise, diet, pressure_state,
     allergy, sickness, family_sickness, symptom,
     complete, health_status, health_score,
@@ -28,44 +34,18 @@ INSERT INTO sys_user (
     answer_content, analysis,
     create_time, update_time
 ) VALUES (
-    '张三', '13800138001', 35, '男', 175.0, 70.0, '软件工程师',
-    '规律作息，每天23:00入睡，7:00起床', '不抽烟、不喝酒', '每周3-4次，每次1小时', '均衡饮食，多蔬菜水果', '压力适中',
-    '无', '无', '无', '无',
-    100, '优秀', 92,
-    95, 90, 88, 94, 90,
-    TRUE, TRUE,
-    '{"问题1": "每天睡眠时间充足，睡眠质量良好", "问题2": "每周坚持运动3-4次", "问题3": "饮食均衡，不暴饮暴食"}',
-    '【综合健康评价】
-尊敬的张三先生，感谢您完成本次健康自检。
-
-根据您提供的健康信息，您的综合健康评分为92分，健康状态被评定为"优秀"。
-
-本次评估基于您的生活方式、睡眠质量、压力状态、体质指数和健康风险等多个维度进行综合分析。以下是根据您的具体情况生成的详细健康分析报告。
-
-【风险等级与预警】
-您的整体健康状况良好（优秀）。各项健康指标基本处于正常范围内，继续保持当前的健康生活方式。
-
-【异常指标提示】
-✅ 生活方式得分良好（95分）：您的生活方式非常健康。
-✅ 睡眠质量得分良好（90分）：您的睡眠质量总体较好。
-✅ 压力状态得分良好（88分）：您的心理状态总体较为平衡。
-✅ 体质指数得分良好（94分）：您的身体体质总体较好。
-✅ 健康风险得分良好（90分）：您的健康风险因素较低。
-
-【生活习惯改善建议】
-📌 作息建议：
-您目前的作息情况为：规律作息，每天23:00入睡，7:00起床。
-✅ 您没有抽烟饮酒的习惯，请继续保持！
-✅ 您的运动习惯良好，建议继续保持。
-
-【总结与鼓励】
-亲爱的张三，健康是一生的财富，改善健康是一个持续的过程。您的健康状况非常优秀，请继续保持当前的健康生活方式。祝您身体健康，生活愉快！',
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    1, '李四', NULL, 29, '男', 165.0, 64.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-23 22:04:00', '2025-01-23 22:04:00'
 );
 
--- 用户2：李四（良好）
+-- 用户2：ID: e7acde11
 INSERT INTO sys_user (
-    name, phone, age, gender, height, weight, job,
+    user_id, name, phone, age, gender, height, weight, job,
     sleep, drink_smoke, exercise, diet, pressure_state,
     allergy, sickness, family_sickness, symptom,
     complete, health_status, health_score,
@@ -74,44 +54,18 @@ INSERT INTO sys_user (
     answer_content, analysis,
     create_time, update_time
 ) VALUES (
-    '李四', '13800138002', 28, '女', 162.0, 55.0, '产品经理',
-    '有时熬夜，平均每天睡眠6小时', '不抽烟、偶尔喝酒', '每周1-2次', '饮食不太规律', '压力较大',
-    '无', '无', '高血压家族史', '偶尔头痛',
-    90, '良好', 78,
-    75, 70, 65, 88, 85,
-    TRUE, TRUE,
-    '{"问题1": "经常熬夜，睡眠时间不足", "问题2": "运动量较少", "问题3": "饮食不规律"}',
-    '【综合健康评价】
-尊敬的李四女士，您的综合健康评分为78分，健康状态被评定为"良好"。
-
-【风险等级与预警】
-您的整体健康状况一般（良好）。部分健康指标存在一定的改善空间，建议您关注以下方面。
-
-【异常指标提示】
-💡 生活方式得分一般（75分）：您的生活方式有部分需要改进的地方。
-💡 睡眠质量得分一般（70分）：您的睡眠质量有待提升，建议优化睡眠习惯。
-⚠️ 压力状态得分偏低（65分）：您当前承受较大的心理压力。
-✅ 体质指数得分良好（88分）：您的身体体质总体较好。
-✅ 健康风险得分良好（85分）：您的健康风险因素较低。
-
-【生活习惯改善建议】
-📌 睡眠建议：
-建议：- 保持规律的作息时间，尽量避免熬夜
-- 每晚保证7-8小时的充足睡眠
-- 睡前1小时避免使用电子设备
-
-📌 运动建议：
-建议：- 每周至少进行150分钟中等强度有氧运动
-- 避免久坐，每工作1小时起身活动
-
-【总结与鼓励】
-您的健康状况总体良好，但需要改善睡眠和管理压力。祝您越来越健康！',
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    2, '李四', NULL, 29, '男', 165.0, 64.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-24 17:19:00', '2025-01-24 17:19:00'
 );
 
--- 用户3：王五（一般）
+-- 用户3：ID: 1afd82d7
 INSERT INTO sys_user (
-    name, phone, age, gender, height, weight, job,
+    user_id, name, phone, age, gender, height, weight, job,
     sleep, drink_smoke, exercise, diet, pressure_state,
     allergy, sickness, family_sickness, symptom,
     complete, health_status, health_score,
@@ -120,48 +74,18 @@ INSERT INTO sys_user (
     answer_content, analysis,
     create_time, update_time
 ) VALUES (
-    '王五', '13800138003', 42, '男', 170.0, 85.0, '销售经理',
-    '经常熬夜，睡眠时间不足5小时', '抽烟、经常喝酒', '基本不运动', '饮食油腻，经常外食', '压力非常大',
-    '无', '高血压', '糖尿病家族史', '头晕、胸闷',
-    80, '一般', 65,
-    55, 50, 45, 70, 75,
-    TRUE, TRUE,
-    '{"问题1": "长期熬夜，睡眠严重不足", "问题2": "抽烟喝酒习惯不好", "问题3": "完全缺乏运动"}',
-    '【综合健康评价】
-尊敬的王五先生，您的综合健康评分为65分，健康状态被评定为"一般"。
-
-【风险等级与预警】
-您的整体健康状况需要重点关注。多项健康指标显示存在一定的健康风险，强烈建议您尽快采取行动改善健康状况，必要时及时就医检查。
-
-【异常指标提示】
-⚠️ 生活方式得分偏低（55分）：您的生活方式存在较多不健康的因素。
-⚠️ 睡眠质量得分偏低（50分）：您的睡眠质量存在明显问题。
-⚠️ 压力状态得分偏低（45分）：您当前承受巨大的心理压力。
-💡 体质指数得分一般（70分）：您的体质有提升空间。
-💡 健康风险得分一般（75分）：您存在一定的健康风险因素。
-
-【重要提醒】
-⚠️ 您当前存在症状：头晕、胸闷
-建议：- 如果症状持续或加重，建议及时就医
-- 不要忽视这些身体信号
-
-【复查与就医提醒】
-⚠️ 您的既往病史：高血压
-建议：- 定期复查血压，按时服药
-- 注意观察病情变化
-
-⚠️ 您的家族病史：糖尿病家族史
-建议：- 定期进行糖尿病筛查
-- 控制饮食，预防发病
-
-【总结与鼓励】
-您的健康状况需要重点关注，强烈建议您尽快改善生活习惯，必要时就医检查。祝您早日恢复健康！',
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    3, '李四', NULL, 29, '男', 165.0, 70.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-26 11:53:00', '2025-01-26 11:53:00'
 );
 
--- 用户4：赵六（异常）
+-- 用户4：ID: 760176f7
 INSERT INTO sys_user (
-    name, phone, age, gender, height, weight, job,
+    user_id, name, phone, age, gender, height, weight, job,
     sleep, drink_smoke, exercise, diet, pressure_state,
     allergy, sickness, family_sickness, symptom,
     complete, health_status, health_score,
@@ -170,70 +94,225 @@ INSERT INTO sys_user (
     answer_content, analysis,
     create_time, update_time
 ) VALUES (
-    '赵六', '13800138004', 55, '男', 168.0, 95.0, '退休',
-    '失眠严重，每天睡眠3-4小时', '抽烟20年、每天喝酒', '无法运动', '饮食不规律', '焦虑、抑郁',
-    '青霉素过敏', '糖尿病、高血压、冠心病', '糖尿病、高血压、心脏病家族史', '胸痛、气短、失眠',
-    85, '异常', 45,
-    35, 30, 25, 50, 60,
-    TRUE, TRUE,
-    '{"问题1": "严重失眠，睡眠质量极差", "问题2": "长期大量抽烟喝酒", "问题3": "无法进行运动"}',
-    '【综合健康评价】
-尊敬的赵六先生，您的综合健康评分为45分，健康状态被评定为"异常"。
-
-【严重警告】
-您的整体健康状况非常危险，多项健康指标显示存在严重的健康风险，必须立即采取行动改善健康状况，强烈建议您尽快就医检查！
-
-【异常指标提示】
-⚠️ 生活方式得分偏低（35分）：您的生活方式存在严重问题。
-⚠️ 睡眠质量得分偏低（30分）：您的睡眠质量非常差。
-⚠️ 压力状态得分偏低（25分）：您的心理状态非常差。
-⚠️ 体质指数得分偏低（50分）：您的身体体质需要重点关注。
-⚠️ 健康风险得分偏低（60分）：您存在极高的健康风险。
-
-【紧急就医提醒】
-⚠️ 您当前存在症状：胸痛、气短、失眠
-警告：这些症状可能暗示严重的心血管问题，请立即就医！
-
-⚠️ 您的既往病史：糖尿病、高血压、冠心病
-警告：这些疾病需要长期规范治疗，请定期复查。
-
-【复查与就医提醒】
-⚠️ 您的过敏史：青霉素过敏
-注意：就医时必须告知医生您的过敏史。
-
-【总结与建议】
-您的健康状况非常危险，必须立即采取以下行动：
-1. 立即就医，进行全面体检
-2. 规范治疗现有疾病
-3. 戒烟戒酒
-4. 改善睡眠
-5. 寻求心理咨询帮助
-
-祝您早日恢复健康！',
-    CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+    4, '李四', NULL, 29, '男', 165.0, 70.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-26 16:14:00', '2025-01-26 16:14:00'
 );
 
--- 用户5-14：快速插入（简化数据）
-INSERT INTO sys_user (name, phone, age, gender, height, weight, job, sleep, drink_smoke, exercise, diet, pressure_state, allergy, sickness, family_sickness, symptom, complete, health_status, health_score, score_life, score_sleep, score_stress, score_body, score_risk, done_self_check, done_require, answer_content, analysis, create_time, update_time) VALUES
-('陈七', '13800138005', 30, '女', 165.0, 58.0, '教师', '规律作息', '不抽烟不喝酒', '每周运动2次', '饮食健康', '压力适中', '无', '无', '无', '无', 100, '优秀', 88, 90, 85, 88, 90, 88, TRUE, TRUE, '{}', '健康状况优秀，请继续保持。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('周八', '13800138006', 38, '男', 178.0, 78.0, '医生', '有时熬夜', '不抽烟偶尔喝酒', '每周运动3次', '饮食均衡', '压力较大', '无', '无', '高血压家族史', '偶尔头晕', 90, '良好', 75, 80, 70, 70, 85, 75, TRUE, TRUE, '{}', '健康状况良好，需注意血压和睡眠。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('吴九', '13800138007', 25, '女', 160.0, 52.0, '设计师', '经常熬夜', '不抽烟不喝酒', '基本不运动', '饮食不规律', '压力大', '无', '无', '无', '无', 85, '一般', 68, 65, 60, 65, 75, 70, TRUE, TRUE, '{}', '健康状况一般，需改善作息和运动。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('郑十', '13800138008', 45, '男', 172.0, 82.0, '律师', '经常加班', '抽烟偶尔喝酒', '每周运动1次', '饮食油腻', '压力非常大', '无', '高血压', '糖尿病家族史', '胸闷', 80, '一般', 62, 60, 55, 60, 75, 65, TRUE, TRUE, '{}', '健康状况一般，需改善生活习惯并定期检查。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('孙十一', '13800138009', 32, '女', 163.0, 56.0, '会计师', '规律作息', '不抽烟不喝酒', '每周运动4次', '饮食健康', '压力适中', '无', '无', '无', '无', 100, '优秀', 90, 92, 88, 90, 92, 90, TRUE, TRUE, '{}', '健康状况优秀，请继续保持。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('李十二', '13800138010', 29, '男', 176.0, 72.0, '程序员', '经常熬夜', '不抽烟偶尔喝酒', '每周运动2次', '外卖为主', '压力大', '无', '无', '无', '腰酸背痛', 90, '良好', 72, 75, 68, 68, 80, 72, TRUE, TRUE, '{}', '健康状况良好，需改善饮食和作息。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('王十三', '13800138011', 50, '女', 158.0, 65.0, '教师', '睡眠不足', '不抽烟不喝酒', '基本不运动', '饮食一般', '压力适中', '无', '高血压', '高血压家族史', '头晕', 85, '一般', 65, 60, 60, 65, 70, 65, TRUE, TRUE, '{}', '健康状况一般，需治疗高血压并改善生活习惯。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('张十四', '13800138012', 33, '男', 180.0, 85.0, '销售', '经常应酬', '抽烟喝酒', '基本不运动', '饮食油腻', '压力大', '海鲜过敏', '无', '痛风家族史', '关节痛', 80, '一般', 60, 55, 55, 65, 70, 60, TRUE, TRUE, '{}', '健康状况一般，需改善饮食习惯并减少应酬。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('刘十五', '13800138013', 27, '女', 167.0, 54.0, '护士', '经常夜班', '不抽烟不喝酒', '每周运动3次', '饮食健康', '压力大', '无', '无', '无', '无', 95, '优秀', 85, 85, 75, 80, 90, 85, TRUE, TRUE, '{}', '健康状况优秀，需注意夜班对健康的影响。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('黄十六', '13800138014', 40, '男', 174.0, 80.0, '工程师', '规律作息', '不抽烟不喝酒', '每周运动3次', '饮食均衡', '压力适中', '无', '无', '无', '无', 100, '优秀', 91, 93, 88, 91, 92, 91, TRUE, TRUE, '{}', '健康状况优秀，请继续保持。', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+-- 用户5：ID: 92564c96
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    5, '李四', NULL, 39, '男', 165.0, 80.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-27 09:45:00', '2025-01-27 09:45:00'
+);
+
+-- 用户6：ID: 241115f4
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    6, '李四', NULL, 29, '男', 165.0, 85.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-27 12:17:00', '2025-01-27 12:17:00'
+);
+
+-- 用户7：ID: 47d40287
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    7, '李四', NULL, 29, '男', 165.0, 78.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-27 12:40:00', '2025-01-27 12:40:00'
+);
+
+-- 用户8：ID: b3544215
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    8, '李四', NULL, 29, '男', 165.0, 78.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-27 13:01:00', '2025-01-27 13:01:00'
+);
+
+-- 用户9：ID: 09996977
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    9, '李四', NULL, 29, '男', 165.0, 78.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-27 19:23:00', '2025-01-27 19:23:00'
+);
+
+-- 用户10：ID: f06916a5
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    10, '李四', NULL, 39, '男', 165.0, 80.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-27 19:39:00', '2025-01-27 19:39:00'
+);
+
+-- 用户11：ID: 3da965c6
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    11, '小李', NULL, 28, '女', 165.0, 60.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-27 14:06:00', '2025-01-27 14:06:00'
+);
+
+-- 用户12：ID: 23f52f0e
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    12, '小雪', NULL, 32, '女', 170.0, 45.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-27 15:25:00', '2025-01-27 15:25:00'
+);
+
+-- 用户13：ID: ce422a44
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    13, '小张', NULL, 32, '女', 160.0, 50.0, NULL,
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-27 16:28:00', '2025-01-27 16:28:00'
+);
+
+-- 用户14：ID: 932e7f53
+INSERT INTO sys_user (
+    user_id, name, phone, age, gender, height, weight, job,
+    sleep, drink_smoke, exercise, diet, pressure_state,
+    allergy, sickness, family_sickness, symptom,
+    complete, health_status, health_score,
+    score_life, score_sleep, score_stress, score_body, score_risk,
+    done_self_check, done_require,
+    answer_content, analysis,
+    create_time, update_time
+) VALUES (
+    14, '方桂英', '18192326703', 59, '女', 163.0, 60.0, '销售',
+    NULL, NULL, NULL, NULL, NULL,
+    NULL, NULL, NULL, NULL,
+    0, '一般', 0, 0, 0, 0, 0, 0,
+    FALSE, FALSE,
+    NULL, NULL,
+    '2025-01-28 12:17:00', '2025-01-28 12:17:00'
+);
 
 -- ============================================
 -- 数据插入完成
 -- ============================================
 -- 统计信息：
 -- - 管理员账号：1个（admin/123456）
--- - 测试用户：14个
--- - 优秀：5个
--- - 良好：3个
--- - 一般：4个
--- - 异常：2个
+-- - 真实用户：14个
+-- - 李四（男，29岁）：10个
+-- - 李四（男，39岁）：2个
+-- - 小李（女，28岁）：1个
+-- - 小雪（女，32岁）：1个
+-- - 小张（女，32岁）：1个
+-- - 方桂英（女，59岁，有手机号和职业）：1个
 -- ============================================
