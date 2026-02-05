@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>检查王同学的七问备份</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .success {
+      background-color: #d4edda;
+      border-color: #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      border-color: #f5c6cb;
+    }
+    .warning {
+      background-color: #fff3cd;
+      border-color: #ffeaa7;
+    }
+    pre {
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .btn-success {
+      background-color: #28a745;
+      color: white;
+      border: none;
+    }
+    .btn-danger {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>📊 检查王同学的七问答案备份</h1>
+
+  <div id="userInfo" class="section warning">
+    <h3>用户信息</h3>
+    <p><strong>用户ID：</strong>970ef135-ad1b-4028-bab7-5006c13dab6c</p>
+    <p><strong>用户名：</strong>王同学</p>
+    <p><strong>手机号：</strong>-</p>
+  </div>
+
+  <div id="backupCheck" class="section">
+    <h3>本地存储检查</h3>
+    <p>正在检查...</p>
+  </div>
+
+  <div id="actions" class="section" style="display: none;">
+    <h3>操作</h3>
+    <button class="btn-success" onclick="recoverFromBackup()">从备份恢复真实答案</button>
+    <button class="btn-danger" onclick="clearBackup()">清除备份</button>
+  </div>
+
+  <div id="backupDetails" class="section" style="display: none;">
+    <h3>备份详情</h3>
+    <pre id="backupContent"></pre>
+  </div>
+
+  <script>
+    const TEST_USER_ID = '970ef135-ad1b-4028-bab7-5006c13dab6c';
+    let backupData = null;
+
+    function checkLocalStorage() {
+      const backupDiv = document.getElementById('backupCheck');
+      const actionsDiv = document.getElementById('actions');
+      const backupDetailsDiv = document.getElementById('backupDetails');
+      const backupContent = document.getElementById('backupContent');
+
+      // 检查七问备份
+      const sevenQuestionsBackup = localStorage.getItem('sevenQuestionsBackup');
+      const userData = localStorage.getItem('userData');
+
+      if (sevenQuestionsBackup) {
+        try {
+          backupData = JSON.parse(sevenQuestionsBackup);
+
+          // 检查是否是当前用户的备份
+          if (backupData.userId === TEST_USER_ID) {
+            backupDiv.innerHTML = `
+              <div class="success">
+                <p><strong>✅ 找到七问答案备份！</strong></p>
+                <p>备份时间：${new Date(backupData.timestamp).toLocaleString('zh-CN')}</p>
+                <p>答案数量：${backupData.answers ? backupData.answers.length : 0}</p>
+              </div>
+            `;
+
+            backupContent.textContent = JSON.stringify(backupData, null, 2);
+            backupDetailsDiv.style.display = 'block';
+            actionsDiv.style.display = 'block';
+            return;
+          } else {
+            backupDiv.innerHTML = `
+              <div class="warning">
+                <p><strong>⚠️ 找到备份，但不是当前用户的</strong></p>
+                <p>备份用户ID：${backupData.userId}</p>
+                <p>当前用户ID：${TEST_USER_ID}</p>
+              </div>
+            `;
+          }
+        } catch (error) {
+          backupDiv.innerHTML = `
+            <div class="error">
+              <p><strong>❌ 解析备份数据失败</strong></p>
+              <p>错误：${error.message}</p>
+            </div>
+          `;
+        }
+      } else {
+        backupDiv.innerHTML = `
+          <div class="error">
+            <p><strong>❌ 没有找到七问答案备份</strong></p>
+            <p>用户可能没有填写过七问，或者备份已清除</p>
+            <p>解决方案：请用户重新填写七问答案</p>
+          </div>
+        `;
+      }
+
+      // 显示用户数据
+      if (userData) {
+        try {
+          const parsedUserData = JSON.parse(userData);
+          backupDiv.innerHTML += `
+            <div class="section" style="margin-top: 20px;">
+              <h4>用户数据</h4>
+              <pre>${JSON.stringify(parsedUserData, null, 2)}</pre>
+            </div>
+          `;
+        } catch (error) {
+          console.error('解析用户数据失败:', error);
+        }
+      }
+    }
+
+    async function recoverFromBackup() {
+      if (!backupData || !backupData.answers) {
+        alert('没有可恢复的备份数据！');
+        return;
+      }
+
+      if (!confirm('确定要从备份恢复七问答案吗？\n\n这将用真实答案替换数据库中的默认答案。')) {
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/recover-local-data', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: TEST_USER_ID,
+            data: backupData,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert('✅ 恢复成功！\n\n真实答案已保存到数据库。\n请刷新后台页面查看结果。');
+          localStorage.removeItem('sevenQuestionsBackup');
+          checkLocalStorage();
+        } else {
+          alert('❌ 恢复失败：\n\n' + (result.error || '未知错误'));
+        }
+      } catch (error) {
+        alert('❌ 恢复失败：\n\n' + (error.message || '未知错误'));
+      }
+    }
+
+    function clearBackup() {
+      if (confirm('确定要清除本地备份吗？')) {
+        localStorage.removeItem('sevenQuestionsBackup');
+        localStorage.removeItem('userData');
+        alert('本地备份已清除');
+        checkLocalStorage();
+      }
+    }
+
+    // 页面加载时自动检查
+    window.onload = checkLocalStorage;
+  </script>
+</body>
+</html>

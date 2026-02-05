@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      background: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+    .header h1 { margin: 0; font-size: 24px; font-weight: bold; }
+    .header p { margin: 5px 0 0 0; font-size: 14px; opacity: 0.9; }
+    .logout-btn {
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: 2px solid white;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    .logout-btn:hover { background: rgba(255,255,255,0.3); }
+    .main-content { padding: 40px; max-width: 1400px; margin: 0 auto; }
+    .section-title {
+      font-size: 24px;
+      color: #333;
+      margin-bottom: 20px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .stat-card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .stat-number { font-size: 48px; font-weight: bold; margin-bottom: 10px; }
+    .stat-label { font-size: 16px; color: #666; }
+    .stats-1 { color: #667eea; }
+    .stats-2 { color: #48c774; }
+    .stats-3 { color: #ff3860; }
+    .stats-4 { color: #ffdd57; }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 40px;
+    }
+    .feature-card {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      border: 2px solid transparent;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+    .feature-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+    .feature-icon { font-size: 48px; margin-bottom: 15px; }
+    .feature-title { font-size: 18px; color: #333; margin-bottom: 10px; }
+    .feature-desc { font-size: 14px; color: #666; margin-bottom: 15px; }
+    .feature-link {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #667eea;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+    .feature-link:hover { background: #5568d3; }
+    .feature-warning {
+      font-size: 12px;
+      color: #ffc107;
+      font-weight: bold;
+    }
+    .feature-card.requires-api {
+      border: 2px dashed #ffc107;
+    }
+    .user-table-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+    .user-table-container h2 { margin: 0 0 20px 0; font-size: 24px; color: #333; }
+    .table-wrapper { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    thead { background: #f5f5f5; }
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: bold;
+      color: #333;
+      border-bottom: 2px solid #ddd;
+    }
+    td { padding: 15px; color: #666; border-bottom: 1px solid #eee; }
+    tr:hover { background: #f9f9f9; }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .badge-male { background: #e3f2fd; color: #1976d2; }
+    .badge-female { background: #fce4ec; color: #c2185b; }
+    .notice {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      padding: 20px;
+      border-radius: 5px;
+    }
+    .notice h3 { font-size: 16px; color: #856404; margin-bottom: 10px; }
+    .notice p { font-size: 14px; color: #856404; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>健康管理系统</h1>
+      <p>管理后台</p>
+    </div>
+    <button class="logout-btn" id="logout-button">退出登录</button>
+  </div>
+
+  <div class="main-content">
+    <!-- Stats Cards -->
+    <h2 class="section-title">数据概览</h2>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number stats-1">3</div>
+        <div class="stat-label">总用户数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number stats-2">2</div>
+        <div class="stat-label">男性用户</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number stats-3">1</div>
+        <div class="stat-label">女性用户</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number stats-4">100%</div>
+        <div class="stat-label">系统状态</div>
+      </div>
+    </div>
+
+    <!-- Features Grid -->
+    <h2 class="section-title">管理功能</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3 class="feature-title">数据概览</h3>
+        <p class="feature-desc">查看系统统计数据和用户信息</p>
+        <a href="/admin-dashboard.html" class="feature-link">当前页面</a>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <h3 class="feature-title">健康对比</h3>
+        <p class="feature-desc">对比用户不同时期的健康数据变化</p>
+        <a href="/admin/compare" class="feature-link">访问功能</a>
+      </div>
+
+      <div class="feature-card requires-api">
+        <div class="feature-icon">🔧</div>
+        <h3 class="feature-title">系统维护</h3>
+        <p class="feature-desc">数据库优化、备份和清理</p>
+        <div class="feature-warning">⚠️ 需要配置后端 API</div>
+      </div>
+
+      <div class="feature-card requires-api">
+        <div class="feature-icon">❓</div>
+        <h3 class="feature-title">七问管理</h3>
+        <p class="feature-desc">查看和管理用户的健康七问数据</p>
+        <div class="feature-warning">⚠️ 需要配置后端 API</div>
+      </div>
+    </div>
+
+    <!-- User Table -->
+    <h2 class="section-title">用户列表</h2>
+    <div class="user-table-container">
+      <h2 style={{ margin: 0, fontSize: '24px', color: '#333', marginBottom: '20px' }}>
+        用户列表
+      </h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>姓名</th>
+              <th>年龄</th>
+              <th>性别</th>
+              <th>电话</th>
+              <th>邮箱</th>
+              <th>注册时间</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1</td>
+              <td style="font-weight: bold; color: #333;">张三</td>
+              <td>35</td>
+              <td><span class="badge badge-male">男</span></td>
+              <td>13800138000</td>
+              <td>zhangsan@example.com</td>
+              <td>2025-01-15</td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td style="font-weight: bold; color: #333;">李四</td>
+              <td>28</td>
+              <td><span class="badge badge-male">男</span></td>
+              <td>13900139000</td>
+              <td>lisi@example.com</td>
+              <td>2025-01-20</td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td style="font-weight: bold; color: #333;">王五</td>
+              <td>42</td>
+              <td><span class="badge badge-female">女</span></td>
+              <td>13700137000</td>
+              <td>wangwu@example.com</td>
+              <td>2025-01-25</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Notice -->
+    <div class="notice">
+      <h3>⚠️ 系统说明</h3>
+      <p>当前系统运行在静态托管平台（Cloudflare Pages）上。部分高级功能（如系统维护、七问管理）需要后端 API 支持。如需使用完整功能，请联系管理员配置后端服务器。</p>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var logoutButton = document.getElementById('logout-button');
+      var isLoggedIn = localStorage.getItem('adminLoggedIn');
+
+      if (isLoggedIn !== 'true') {
+        window.location.href = '/admin-login.html';
+      }
+
+      logoutButton.addEventListener('click', function() {
+        localStorage.removeItem('admin');
+        localStorage.removeItem('adminLoggedIn');
+        window.location.href = '/admin-login.html';
+      });
+    });
+  </script>
+</body>
+</html>

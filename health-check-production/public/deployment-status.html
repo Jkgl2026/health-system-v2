@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>部署状态检查</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .status-box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .status-item {
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 5px;
+      border-left: 4px solid #ccc;
+    }
+    .success {
+      background: #d4edda;
+      border-left-color: #28a745;
+      color: #155724;
+    }
+    .pending {
+      background: #fff3cd;
+      border-left-color: #ffc107;
+      color: #856404;
+    }
+    .error {
+      background: #f8d7da;
+      border-left-color: #dc3545;
+      color: #721c24;
+    }
+    button {
+      padding: 12px 24px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover { background: #0056b3; }
+    .link {
+      display: block;
+      padding: 12px;
+      margin: 10px 0;
+      background: #e9ecef;
+      border-radius: 5px;
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+    }
+    .link:hover { background: #dee2e6; }
+  </style>
+</head>
+<body>
+  <h1>🚀 Cloudflare Pages 部署状态</h1>
+
+  <div class="status-box pending">
+    <h3>当前状态</h3>
+    <div class="status-item pending">
+      <strong>⏳ 部署中</strong><br/>
+      代码已推送到 GitHub，Cloudflare Pages 正在自动部署中...
+    </div>
+    <p style="color: #666; margin-top: 15px;">
+      部署通常需要 2-5 分钟完成。部署完成后，下方的链接将可以访问。
+    </p>
+  </div>
+
+  <div class="status-box">
+    <h3>检查部署</h3>
+    <button onclick="checkDeployment()">检查部署状态</button>
+    <button onclick="location.reload()">刷新页面</button>
+  </div>
+
+  <div id="check-results"></div>
+
+  <div class="status-box">
+    <h3>部署完成后访问</h3>
+    <a href="https://health-system-v2.pages.dev/admin-login.html" class="link" target="_blank">
+      🔐 登录页面：https://health-system-v2.pages.dev/admin-login.html
+    </a>
+    <a href="https://health-system-v2.pages.dev/admin-dashboard.html" class="link" target="_blank">
+      📊 后台页面：https://health-system-v2.pages.dev/admin-dashboard.html
+    </a>
+    <a href="https://health-system-v2.pages.dev/login-test.html" class="link" target="_blank">
+      🧪 测试页面：https://health-system-v2.pages.dev/login-test.html
+    </a>
+  </div>
+
+  <div class="status-box">
+    <h3>登录账号</h3>
+    <div class="status-item" style="border-left-color: #007bff; background: #e7f1ff;">
+      <strong>用户名：</strong> admin<br/>
+      <strong>密　码：</strong> admin123
+    </div>
+  </div>
+
+  <div class="status-box">
+    <h3>如何确认部署完成？</h3>
+    <ol>
+      <li>点击上方的"登录页面"链接</li>
+      <li>如果能看到登录页面，说明部署成功</li>
+      <li>如果显示 404 错误，说明部署还未完成</li>
+      <li>请等待 2-5 分钟后重试</li>
+    </ol>
+  </div>
+
+  <script>
+    function checkDeployment() {
+      const resultsDiv = document.getElementById('check-results');
+      resultsDiv.innerHTML = '<div class="status-item pending">正在检查部署状态...</div>';
+
+      // 检查登录页面
+      fetch('https://health-system-v2.pages.dev/admin-login.html', { method: 'HEAD' })
+        .then(response => {
+          if (response.ok) {
+            resultsDiv.innerHTML = '<div class="status-item success"><strong>✅ 部署成功！</strong><br/>登录页面可以访问了。请点击上方的"登录页面"链接测试登录功能。</div>';
+          } else {
+            resultsDiv.innerHTML = '<div class="status-item error"><strong>❌ 部署未完成</strong><br/>返回状态码：' + response.status + '<br/>请再等待 2-3 分钟后重试。</div>';
+          }
+        })
+        .catch(error => {
+          resultsDiv.innerHTML = '<div class="status-item pending"><strong>⏳ 正在检查...</strong><br/>无法连接到服务器，可能是部署中。请等待 2-3 分钟后重试。</div>';
+        });
+    }
+
+    // 页面加载后自动检查一次
+    setTimeout(checkDeployment, 3000);
+  </script>
+</body>
+</html>

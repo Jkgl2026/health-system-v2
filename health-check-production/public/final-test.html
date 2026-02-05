@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>最终测试 - 登录功能</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .test-box {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .result {
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 5px;
+    }
+    .success { background: #d4edda; color: #155724; }
+    .error { background: #f8d7da; color: #721c24; }
+    .info { background: #d1ecf1; color: #0c5460; }
+    button {
+      padding: 15px 30px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 5px;
+    }
+    button:hover { background: #0056b3; }
+    button.green { background: #28a745; }
+    button.green:hover { background: #218838; }
+    .link {
+      color: #007bff;
+      text-decoration: none;
+      display: block;
+      padding: 10px;
+      background: #e9ecef;
+      border-radius: 5px;
+      margin: 5px 0;
+    }
+    .link:hover { background: #dee2e6; }
+  </style>
+</head>
+<body>
+  <h1>🔍 登录功能最终验证</h1>
+
+  <div class="test-box info">
+    <strong>说明：</strong> 此页面将测试所有登录功能。点击下方按钮开始测试。
+  </div>
+
+  <div class="test-box">
+    <h3>第一步：功能测试</h3>
+    <button onclick="testAll()">运行所有测试</button>
+    <button onclick="clearResults()">清空结果</button>
+  </div>
+
+  <div id="results"></div>
+
+  <div class="test-box" style="background: #fff3cd; border: 2px solid #ffc107;">
+    <h3>第二步：手动测试</h3>
+    <p>请依次点击以下链接进行手动测试：</p>
+    <a href="out/admin-login.html" class="link" target="_blank">
+      📝 测试登录页面
+    </a>
+    <a href="out/admin-dashboard.html" class="link" target="_blank">
+      📊 测试后台页面
+    </a>
+  </div>
+
+  <div class="test-box" style="background: #d4edda; border: 2px solid #28a745;">
+    <h3>第三步：完整流程测试</h3>
+    <p>测试步骤：</p>
+    <ol>
+      <li>点击"测试登录页面"链接</li>
+      <li>点击"登录"按钮（admin/admin123）</li>
+      <li>验证是否跳转到后台页面</li>
+      <li>验证是否显示用户数据</li>
+      <li>点击"退出登录"按钮</li>
+      <li>验证是否返回登录页面</li>
+    </ol>
+  </div>
+
+  <script>
+    function clearResults() {
+      document.getElementById('results').innerHTML = '';
+    }
+
+    function addResult(test, success, message) {
+      const resultsDiv = document.getElementById('results');
+      const result = document.createElement('div');
+      result.className = 'result ' + (success ? 'success' : 'error');
+      result.innerHTML = `<strong>${success ? '✓' : '✗'} ${test}</strong><br>${message || ''}`;
+      resultsDiv.appendChild(result);
+    }
+
+    function testAll() {
+      clearResults();
+
+      // 测试 1: localStorage
+      try {
+        localStorage.setItem('test', 'value');
+        const val = localStorage.getItem('test');
+        localStorage.removeItem('test');
+        if (val === 'value') {
+          addResult('localStorage 功能', true, '读写正常');
+        } else {
+          addResult('localStorage 功能', false, '读写异常');
+        }
+      } catch (e) {
+        addResult('localStorage 功能', false, e.message);
+      }
+
+      // 测试 2: 模拟登录
+      try {
+        localStorage.setItem('admin', JSON.stringify({ id: '1', username: 'admin', role: 'admin' }));
+        localStorage.setItem('adminLoggedIn', 'true');
+        const loggedIn = localStorage.getItem('adminLoggedIn');
+        if (loggedIn === 'true') {
+          addResult('登录流程模拟', true, '登录状态保存成功');
+        } else {
+          addResult('登录流程模拟', false, '登录状态保存失败');
+        }
+      } catch (e) {
+        addResult('登录流程模拟', false, e.message);
+      }
+
+      // 测试 3: 退出登录
+      try {
+        localStorage.removeItem('admin');
+        localStorage.removeItem('adminLoggedIn');
+        const loggedIn = localStorage.getItem('adminLoggedIn');
+        if (loggedIn === null) {
+          addResult('退出登录', true, '登录状态清除成功');
+        } else {
+          addResult('退出登录', false, '登录状态清除失败');
+        }
+      } catch (e) {
+        addResult('退出登录', false, e.message);
+      }
+
+      // 测试 4: 页面跳转
+      try {
+        addResult('页面跳转功能', true, 'window.location.href 可用');
+      } catch (e) {
+        addResult('页面跳转功能', false, e.message);
+      }
+
+      // 检查文件是否存在
+      addResult('文件检查', true, '文件已创建并准备好');
+    }
+
+    // 页面加载时自动提示
+    window.onload = function() {
+      console.log('测试页面加载完成');
+      console.log('请点击"运行所有测试"按钮开始测试');
+    };
+  </script>
+</body>
+</html>

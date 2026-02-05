@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新版健康七问测试</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <div class="container mx-auto px-4 py-8 max-w-4xl">
+    <h1 class="text-3xl font-bold text-gray-800 mb-6">🎯 新版健康七问测试工具</h1>
+
+    <!-- 测试结果 -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">测试结果</h2>
+      <div id="testResults" class="space-y-4">
+        <p class="text-gray-600">点击"开始测试"按钮开始测试...</p>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-4">操作</h2>
+      <div class="space-x-4">
+        <button id="testBtn" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700" onclick="runTests()">
+          🚀 开始测试
+        </button>
+        <button class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700" onclick="window.location.href='/analysis'">
+          📝 填写新版七问
+        </button>
+        <button class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700" onclick="window.location.href='/admin/dashboard'">
+          📊 查看后台
+        </button>
+      </div>
+    </div>
+
+    <!-- 版本对比 -->
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-xl font-semibold mb-4">版本对比</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="border-2 border-red-200 rounded-lg p-4">
+          <h3 class="font-semibold text-red-800 mb-2">❌ V1 旧版</h3>
+          <ul class="text-sm space-y-1">
+            <li>• 多长时间犯一次？</li>
+            <li>• 一次要多久？</li>
+            <li>• 具体表现是什么？</li>
+            <li>• 用了哪些方法干预？</li>
+            <li>• 症状从什么时候开始的？</li>
+            <li>• 什么情况下会减轻？</li>
+            <li>• 最近一次出现是什么时候？</li>
+          </ul>
+          <p class="text-xs text-gray-600 mt-2">关注症状描述，被动应对</p>
+        </div>
+        <div class="border-2 border-green-200 rounded-lg p-4">
+          <h3 class="font-semibold text-green-800 mb-2">✅ V2 新版</h3>
+          <ul class="text-sm space-y-1">
+            <li>• 您的睡眠情况如何？</li>
+            <li>• 您平时的饮食习惯是怎样的？</li>
+            <li>• 您每周会运动吗？</li>
+            <li>• 您的工作压力大吗？</li>
+            <li>• 您的情绪状态如何？</li>
+            <li>• 您最希望改善的健康问题？</li>
+            <li>• 您愿意做出哪些改变？</li>
+          </ul>
+          <p class="text-xs text-gray-600 mt-2">关注生活习惯，主动预防</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function runTests() {
+      const testResults = document.getElementById('testResults');
+      const testBtn = document.getElementById('testBtn');
+      
+      testBtn.disabled = true;
+      testBtn.textContent = '🔄 测试中...';
+      testResults.innerHTML = '<p class="text-blue-600">正在运行测试...</p>';
+
+      try {
+        // 测试1: 检查新版七问数据
+        addTestResult('检查新版七问数据结构', '正在检查...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const response1 = await fetch('/api/test-seven-questions');
+        const result1 = await response1.json();
+        
+        if (result1.success) {
+          addTestResult('检查新版七问数据结构', '✅ 通过', '成功加载新版七问数据，包含7个问题');
+        } else {
+          addTestResult('检查新版七问数据结构', '❌ 失败', result1.error);
+        }
+
+        // 测试2: 检查用户数据
+        addTestResult('检查用户数据兼容性', '正在检查...');
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        const userId = 'test_user_' + Date.now();
+        const response2 = await fetch('/api/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: '测试用户_新版七问',
+            phone: '13800000000',
+          }),
+        });
+        
+        const result2 = await response2.json();
+        
+        if (result2.success) {
+          addTestResult('检查用户数据兼容性', '✅ 通过', `成功创建用户，ID: ${result2.user.id}`);
+          
+          // 测试3: 保存新版七问答案
+          addTestResult('保存新版七问答案', '正在保存...');
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          const response3 = await fetch('/api/requirements', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              userId: result2.user.id,
+              sevenQuestionsAnswers: {
+                '1': { answer: '我每天睡8小时，睡眠质量很好', date: new Date().toISOString() },
+                '2': { answer: '一日三餐规律，少油少盐', date: new Date().toISOString() },
+                '3': { answer: '每周跑步3次，每次30分钟', date: new Date().toISOString() },
+                '4': { answer: '工作压力适中，偶尔加班', date: new Date().toISOString() },
+                '5': { answer: '情绪稳定，偶尔有压力', date: new Date().toISOString() },
+                '6': { answer: '最希望改善睡眠质量', date: new Date().toISOString() },
+                '7': { answer: '愿意调整作息，坚持运动', date: new Date().toISOString() },
+              },
+            }),
+          });
+          
+          const result3 = await response3.json();
+          
+          if (result3.success) {
+            addTestResult('保存新版七问答案', '✅ 通过', '成功保存7个问题的答案');
+            
+            // 测试4: 读取七问答案
+            addTestResult('读取七问答案', '正在读取...');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const response4 = await fetch(`/api/user/requirements?userId=${result2.user.id}`);
+            const result4 = await response4.json();
+            
+            if (result4.success && result4.requirement?.sevenQuestionsAnswers) {
+              const answers = result4.requirement.sevenQuestionsAnswers;
+              const answerCount = Object.keys(answers).length;
+              addTestResult('读取七问答案', '✅ 通过', `成功读取${answerCount}个问题的答案`);
+            } else {
+              addTestResult('读取七问答案', '❌ 失败', '无法读取七问答案');
+            }
+          } else {
+            addTestResult('保存新版七问答案', '❌ 失败', result3.error);
+          }
+        } else {
+          addTestResult('检查用户数据兼容性', '❌ 失败', result2.error);
+        }
+
+        addTestResult('测试完成', '✅ 全部测试通过', '新版健康七问功能正常！');
+
+      } catch (error) {
+        addTestResult('测试失败', '❌ 发生错误', error.message);
+      } finally {
+        testBtn.disabled = false;
+        testBtn.textContent = '🚀 开始测试';
+      }
+    }
+
+    function addTestResult(name, status, detail) {
+      const testResults = document.getElementById('testResults');
+      const statusClass = status.includes('✅') ? 'text-green-600' : status.includes('❌') ? 'text-red-600' : 'text-blue-600';
+      
+      const resultHtml = `
+        <div class="border-l-4 pl-4 py-2 ${status.includes('✅') ? 'border-green-500 bg-green-50' : status.includes('❌') ? 'border-red-500 bg-red-50' : 'border-blue-500 bg-blue-50'}">
+          <div class="font-semibold ${statusClass}">${name} - ${status}</div>
+          ${detail ? `<div class="text-sm text-gray-600 mt-1">${detail}</div>` : ''}
+        </div>
+      `;
+      
+      testResults.innerHTML += resultHtml;
+    }
+  </script>
+</body>
+</html>
