@@ -183,5 +183,5 @@ export type SQLResult<T = any> = {
   fields: any[];
 };
 
-// 默认导出executeSQL函数（便于快速导入）
-export default executeSQL;
+// 默认导出exec_sql函数（便于快速导入）
+export default exec_sql;
