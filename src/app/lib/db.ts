@@ -23,15 +23,12 @@ import { Pool, PoolConfig } from 'pg';
 
 // 数据库连接配置（从环境变量读取）
 const poolConfig: PoolConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'health_app',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
+  // 使用 DATABASE_URL（包含所有必要的连接参数和SSL设置）
+  connectionString: process.env.DATABASE_URL,
   // 连接池配置
   max: 20, // 最大连接数
   idleTimeoutMillis: 30000, // 空闲连接超时时间（30秒）
-  connectionTimeoutMillis: 2000, // 连接超时时间（2秒）
+  connectionTimeoutMillis: 15000, // 连接超时时间（15秒）
 };
 
 // 创建连接池（单例模式，全局共享）
@@ -90,14 +87,18 @@ export async function exec_sql<T = any>(
     // 返回查询结果（rows数组）
     return result.rows as T[];
   } catch (error) {
+    // 详细输出错误信息
     console.error('[数据库执行错误]', {
       sql,
       params: params.map((p, i) => `$${i + 1} = ${typeof p === 'string' ? `'${p}'` : p}`).join(', '),
-      error: error instanceof Error ? error.message : String(error),
+      errorType: typeof error,
+      errorKeys: error ? Object.keys(error).join(', ') : 'null',
+      error: error instanceof Error ? error.message : JSON.stringify(error),
+      stack: error instanceof Error ? error.stack : undefined
     });
-    
+
     // 抛出错误，由调用方处理
-    throw new Error('数据库操作失败：' + (error instanceof Error ? error.message : String(error)));
+    throw new Error('数据库操作失败：' + (error instanceof Error ? error.message : JSON.stringify(error)));
   }
 }
 

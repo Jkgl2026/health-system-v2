@@ -37,17 +37,17 @@ export async function GET(request: NextRequest) {
 
     // 查询列表
     const listQuery = `
-      SELECT 
+      SELECT
         user_id,
         name,
         phone,
         age,
         gender,
-        complete,
+        self_check_completed,
         health_status,
         health_score,
         create_time
-      FROM sys_user 
+      FROM sys_user
       ${whereClause}
       ORDER BY create_time DESC
       LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
