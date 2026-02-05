@@ -1,0 +1,14 @@
+[Unit]
+Description=Health Check System Cloudflare Tunnel
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/workspace/projects/health-check-production
+ExecStart=/usr/bin/node /root/.npm/_npx/75ac80b86e83d4a2/node_modules/.bin/lt --port 5000 --subdomain health-system-v2
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

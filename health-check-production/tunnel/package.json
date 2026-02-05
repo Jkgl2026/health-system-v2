@@ -10,6 +10,7 @@
     "axios": "^1.13.4",
     "express": "^4.22.1",
     "http-proxy-middleware": "^2.0.9",
-    "localtunnel": "^2.0.2"
+    "localtunnel": "^2.0.2",
+    "ngrok": "^5.0.0-beta.2"
   }
 }
