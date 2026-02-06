@@ -39,7 +39,7 @@ export default function UserListPage() {
 
   // 搜索参数
   const [keyword, setKeyword] = useState('');
-  const [gender, setGender] = useState('');
+  const [gender, setGender] = useState('all');
 
   // 对话框状态
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -64,7 +64,7 @@ export default function UserListPage() {
       });
 
       if (keyword) params.append('keyword', keyword);
-      if (gender) params.append('gender', gender);
+      if (gender && gender !== 'all') params.append('gender', gender);
 
       const response = await fetch(`/api/user/list?${params}`);
       const data = await response.json();
@@ -89,7 +89,7 @@ export default function UserListPage() {
 
   const handleReset = () => {
     setKeyword('');
-    setGender('');
+    setGender('all');
     setPage(1);
     fetchUsers();
   };
@@ -177,7 +177,7 @@ export default function UserListPage() {
       });
 
       if (keyword) params.append('keyword', keyword);
-      if (gender) params.append('gender', gender);
+      if (gender && gender !== 'all') params.append('gender', gender);
 
       window.open(`/api/user/export?${params}`, '_blank');
     } catch (err) {
@@ -233,7 +233,7 @@ export default function UserListPage() {
                   <SelectValue placeholder="全部" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">全部</SelectItem>
+                  <SelectItem value="all">全部</SelectItem>
                   <SelectItem value="男">男</SelectItem>
                   <SelectItem value="女">女</SelectItem>
                 </SelectContent>
