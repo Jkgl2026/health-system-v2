@@ -180,6 +180,7 @@ export default function CheckPage() {
           checkedSymptoms: symptomsArray.map(id => id.toString()),
           totalScore,
           elementScores,
+          targetSymptoms,
         });
 
         // 保存成功后清除错误状态，然后跳转

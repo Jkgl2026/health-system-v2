@@ -129,15 +129,39 @@ export async function saveSymptomCheck(data: {
   checkedSymptoms: string[];
   totalScore?: number | null;
   elementScores?: Record<string, number> | null;
+  targetSymptoms?: number[];
 }) {
   try {
-    // 使用客户端数据管理器
+    // 同时保存到客户端数据管理器（localStorage）和服务器数据库
+    // 1. 保存到客户端
     const symptomCheck = clientDataManager.saveSymptomCheck(
       data.userId,
       data.checkedSymptoms.map(id => parseInt(id))
     );
 
-    return { success: true, symptomCheck };
+    // 2. 保存到服务器数据库
+    const response = await fetch('/api/symptom-check', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId: data.userId,
+        checkedSymptoms: data.checkedSymptoms,
+        targetSymptoms: data.targetSymptoms || [],
+        totalScore: data.totalScore || data.checkedSymptoms.length,
+        elementScores: data.elementScores || {},
+      }),
+    });
+
+    const result = await response.json();
+
+    if (result.code !== 200) {
+      console.error('保存到服务器失败:', result.msg);
+      // 不抛出错误，因为客户端已保存成功
+    }
+
+    return { success: true, symptomCheck, serverResult: result };
   } catch (error) {
     console.error('Error - saveSymptomCheck:', error);
     throw error;

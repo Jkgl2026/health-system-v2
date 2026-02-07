@@ -68,6 +68,46 @@ export async function GET(request: NextRequest) {
       parsedHistory = [];
     }
 
+    // 查询自检历史记录
+    let symptomCheckHistory = [];
+    try {
+      const checkRecords = await exec_sql(
+        `SELECT
+          sc.id as check_id,
+          sc.check_date,
+          sc.selected_symptoms,
+          sc.target_symptoms,
+          sc.total_score,
+          sc.qi_blood_score,
+          sc.circulation_score,
+          sc.toxins_score,
+          sc.blood_lipids_score,
+          sc.coldness_score,
+          sc.immunity_score,
+          sc.emotions_score,
+          ha.qi_blood,
+          ha.circulation,
+          ha.toxins,
+          ha.blood_lipids,
+          ha.coldness,
+          ha.immunity,
+          ha.emotions,
+          ha.overall_health,
+          ha.health_status,
+          ha.analysis_report
+        FROM symptom_check sc
+        LEFT JOIN health_analysis ha ON sc.id = ha.check_id
+        WHERE sc.user_id = $1
+        ORDER BY sc.check_date DESC
+        LIMIT 20`,
+        [userId]
+      );
+      symptomCheckHistory = checkRecords;
+    } catch (e) {
+      console.error('[查询自检历史失败]', e);
+      symptomCheckHistory = [];
+    }
+
     return NextResponse.json({
       code: 200,
       msg: '成功',
@@ -75,7 +115,8 @@ export async function GET(request: NextRequest) {
         ...user,
         answer_content: parsedAnswerContent,
         analysis: parsedAnalysis,
-        history: parsedHistory
+        history: parsedHistory,
+        symptomCheckHistory
       }
     });
 

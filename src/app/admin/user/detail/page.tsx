@@ -45,6 +45,23 @@ interface UserDetail {
     health_status: string;
     analysis: string;
   }>;
+  symptomCheckHistory: Array<{
+    check_id: number;
+    check_date: string;
+    selected_symptoms: number[];
+    target_symptoms: number[];
+    total_score: number;
+    qi_blood_score: number;
+    circulation_score: number;
+    toxins_score: number;
+    blood_lipids_score: number;
+    coldness_score: number;
+    immunity_score: number;
+    emotions_score: number;
+    overall_health: number;
+    health_status: string;
+    analysis_report: string;
+  }>;
 }
 
 export default function UserDetailPage() {
@@ -343,6 +360,103 @@ export default function UserDetailPage() {
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="text-sm text-gray-600 whitespace-pre-wrap">{record.analysis}</p>
                     </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 自检数据历史记录 */}
+      {user.symptomCheckHistory && user.symptomCheckHistory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>症状自检记录</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {user.symptomCheckHistory.map((record) => (
+                <div key={record.check_id} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="text-sm text-gray-500">检测时间</p>
+                      <p className="font-semibold">{new Date(record.check_date).toLocaleString()}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-500">健康分数</p>
+                      <p className="text-2xl font-bold text-blue-600">{record.overall_health}分</p>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <span className={`px-2 py-1 rounded text-white text-xs ${getHealthStatusColor(record.health_status)}`}>
+                      {record.health_status}
+                    </span>
+                    <span className="ml-2 text-sm text-gray-500">
+                      选择了 {record.selected_symptoms?.length || 0} 项症状
+                    </span>
+                  </div>
+                  
+                  {/* 各维度得分 */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">气血</p>
+                      <p className="font-semibold">{record.qi_blood_score}分</p>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">循环</p>
+                      <p className="font-semibold">{record.circulation_score}分</p>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">毒素</p>
+                      <p className="font-semibold">{record.toxins_score}分</p>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">血脂</p>
+                      <p className="font-semibold">{record.blood_lipids_score}分</p>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">寒凉</p>
+                      <p className="font-semibold">{record.coldness_score}分</p>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">免疫</p>
+                      <p className="font-semibold">{record.immunity_score}分</p>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">情绪</p>
+                      <p className="font-semibold">{record.emotions_score}分</p>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">总症状数</p>
+                      <p className="font-semibold">{record.total_score}项</p>
+                    </div>
+                  </div>
+
+                  {/* 目标改善症状 */}
+                  {record.target_symptoms && record.target_symptoms.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-sm font-semibold text-gray-700 mb-1">目标改善症状：</p>
+                      <div className="flex flex-wrap gap-1">
+                        {record.target_symptoms.map((symptomId) => (
+                          <span key={symptomId} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                            症状ID: {symptomId}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 分析报告 */}
+                  {record.analysis_report && (
+                    <details className="mt-3">
+                      <summary className="cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-800">
+                        查看详细分析报告
+                      </summary>
+                      <div className="mt-2 bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
+                        <p className="text-sm text-gray-600 whitespace-pre-wrap">{record.analysis_report}</p>
+                      </div>
+                    </details>
                   )}
                 </div>
               ))}
