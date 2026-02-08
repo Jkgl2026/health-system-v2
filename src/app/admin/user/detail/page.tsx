@@ -1,50 +1,48 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RefreshCw, Clock, User, Activity, FileText } from 'lucide-react';
 
 interface UserDetail {
   user_id: number;
   name: string;
-  phone: string;
-  age: number;
-  gender: string;
-  height: number;
-  weight: number;
-  job: string;
-  sleep: string;
-  drink_smoke: string;
-  exercise: string;
-  diet: string;
-  pressure_state: string;
-  allergy: string;
-  sickness: string;
-  family_sickness: string;
-  symptom: string;
-  complete: number;
-  health_status: string;
-  health_score: number;
-  score_life: number;
-  score_sleep: number;
-  score_stress: number;
-  score_body: number;
-  score_risk: number;
-  done_self_check: boolean;
-  done_require: boolean;
-  answer_content: string;
-  analysis: string;
+  phone: string | null;
+  email: string | null;
+  gender: string | null;
+  age: number | null;
+  height: number | null;
+  weight: number | null;
+  bmi: number | null;
+  waistline: number | null;
+  hipline: number | null;
+  blood_pressure_high: string | null;
+  blood_pressure_low: string | null;
+  blood_sugar: string | null;
+  blood_fat: string | null;
+  heart_rate: string | null;
+  sleep_hours: number | null;
+  exercise_hours: number | null;
+  smoking: string | null;
+  drinking: string | null;
+  diet: string | null;
+  chronic_disease: string | null;
+  medication: string | null;
+  family_history: string | null;
+  symptoms: string | null;
+  occupation: string | null;
+  address: string | null;
+  answer_content: string | null;
+  analysis: string | null;
+  health_status: string | null;
+  health_score: number | null;
+  self_check_completed: boolean;
+  self_check_time: string | null;
   create_time: string;
   update_time: string;
-  history: Array<{
-    check_id: number;
-    check_time: string;
-    health_score: number;
-    health_status: string;
-    analysis: string;
-  }>;
   symptomCheckHistory: Array<{
     check_id: number;
     check_date: string;
@@ -71,16 +69,11 @@ export default function UserDetailPage() {
   const [user, setUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserDetail();
-    }
-  }, [userId]);
-
-  const fetchUserDetail = async () => {
-    setLoading(true);
-    setError('');
+  // 获取用户详情
+  const fetchUserDetail = useCallback(async () => {
+    if (!userId) return;
 
     try {
       const response = await fetch(`/api/user/detail?userId=${userId}`);
@@ -88,6 +81,8 @@ export default function UserDetailPage() {
 
       if (data.code === 200) {
         setUser(data.data);
+        setLastUpdateTime(new Date());
+        setError('');
       } else {
         setError(data.msg || '获取用户详情失败');
       }
@@ -96,9 +91,23 @@ export default function UserDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
-  const getHealthStatusColor = (status: string) => {
+  // 初始加载
+  useEffect(() => {
+    fetchUserDetail();
+  }, [fetchUserDetail]);
+
+  // 实时轮询更新（每5秒）
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchUserDetail();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [fetchUserDetail]);
+
+  const getHealthStatusColor = (status: string | null) => {
     switch (status) {
       case '优秀': return 'bg-green-500';
       case '良好': return 'bg-blue-500';
@@ -120,6 +129,7 @@ export default function UserDetailPage() {
     return <div className="text-red-500">用户不存在</div>;
   }
 
+  // 解析 answer_content
   let answerContent = null;
   try {
     if (user.answer_content) {
@@ -129,11 +139,33 @@ export default function UserDetailPage() {
     answerContent = null;
   }
 
+  // 解析 symptoms
+  let parsedSymptoms = null;
+  try {
+    if (user.symptoms) {
+      parsedSymptoms = JSON.parse(user.symptoms);
+    }
+  } catch (e) {
+    parsedSymptoms = user.symptoms;
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">用户详情</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold">用户详情</h1>
+          <div className="flex items-center gap-2 text-sm text-gray-500">
+            <Clock className="w-4 h-4" />
+            <span>
+              最后更新: {lastUpdateTime ? lastUpdateTime.toLocaleTimeString() : '-'}
+            </span>
+          </div>
+        </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={fetchUserDetail}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            刷新
+          </Button>
           <Button variant="outline" onClick={() => window.history.back()}>
             返回
           </Button>
@@ -143,7 +175,10 @@ export default function UserDetailPage() {
       {/* 用户基本信息卡片 */}
       <Card>
         <CardHeader>
-          <CardTitle>基本信息</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <User className="w-5 h-5" />
+            基本信息
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -157,113 +192,116 @@ export default function UserDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">手机号</p>
-              <p className="font-semibold">{user.phone}</p>
+              <p className="font-semibold">{user.phone || '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">邮箱</p>
+              <p className="font-semibold">{user.email || '未填写'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">年龄</p>
-              <p className="font-semibold">{user.age}岁</p>
+              <p className="font-semibold">{user.age ? `${user.age}岁` : '未填写'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">性别</p>
-              <p className="font-semibold">{user.gender}</p>
+              <p className="font-semibold">{user.gender || '未填写'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">身高</p>
-              <p className="font-semibold">{user.height}cm</p>
+              <p className="font-semibold">{user.height ? `${user.height}cm` : '未填写'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">体重</p>
-              <p className="font-semibold">{user.weight}kg</p>
+              <p className="font-semibold">{user.weight ? `${user.weight}kg` : '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">BMI</p>
+              <p className="font-semibold">{user.bmi ? user.bmi.toFixed(1) : '未填写'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">职业</p>
-              <p className="font-semibold">{user.job}</p>
+              <p className="font-semibold">{user.occupation || '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">地址</p>
+              <p className="font-semibold">{user.address || '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">创建时间</p>
+              <p className="font-semibold text-sm">{new Date(user.create_time).toLocaleString()}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* 健康评分卡片 */}
+      {/* 身体指标 */}
       <Card>
         <CardHeader>
-          <CardTitle>健康评分</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Activity className="w-5 h-5" />
+            身体指标
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">腰围</p>
+              <p className="font-semibold">{user.waistline ? `${user.waistline}cm` : '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">臀围</p>
+              <p className="font-semibold">{user.hipline ? `${user.hipline}cm` : '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">血压（高）</p>
+              <p className="font-semibold">{user.blood_pressure_high || '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">血压（低）</p>
+              <p className="font-semibold">{user.blood_pressure_low || '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">血糖</p>
+              <p className="font-semibold">{user.blood_sugar || '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">血脂</p>
+              <p className="font-semibold">{user.blood_fat || '未填写'}</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">心率</p>
+              <p className="font-semibold">{user.heart_rate || '未填写'}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 生活方式 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>生活方式</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <p className="text-sm text-gray-500">健康状态</p>
-              <span className={`px-3 py-1 rounded text-white mt-1 inline-block ${getHealthStatusColor(user.health_status)}`}>
-                {user.health_status}
-              </span>
+              <p className="text-sm text-gray-500">睡眠时长（小时）</p>
+              <p className="font-semibold">{user.sleep_hours || '未填写'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">综合健康分数</p>
-              <p className="text-3xl font-bold text-blue-600">{user.health_score}分</p>
+              <p className="text-sm text-gray-500">运动时长（小时）</p>
+              <p className="font-semibold">{user.exercise_hours || '未填写'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">完成度</p>
-              <div className="mt-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-gray-200 rounded-full h-3">
-                    <div
-                      className="bg-blue-600 h-3 rounded-full"
-                      style={{ width: `${user.complete}%` }}
-                    />
-                  </div>
-                  <span className="text-sm font-semibold">{user.complete}%</span>
-                </div>
-              </div>
+              <p className="text-sm text-gray-500">吸烟习惯</p>
+              <p className="font-semibold">{user.smoking || '未填写'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">生活方式得分</p>
-              <p className="text-2xl font-bold">{user.score_life}分</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">睡眠质量得分</p>
-              <p className="text-2xl font-bold">{user.score_sleep}分</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">压力状态得分</p>
-              <p className="text-2xl font-bold">{user.score_stress}分</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">体质指数得分</p>
-              <p className="text-2xl font-bold">{user.score_body}分</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">健康风险得分</p>
-              <p className="text-2xl font-bold">{user.score_risk}分</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 生活信息 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>生活信息</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-gray-500">作息情况</p>
-              <p className="font-semibold">{user.sleep || '未填写'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">烟酒习惯</p>
-              <p className="font-semibold">{user.drink_smoke || '未填写'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">运动习惯</p>
-              <p className="font-semibold">{user.exercise || '未填写'}</p>
+              <p className="text-sm text-gray-500">饮酒习惯</p>
+              <p className="font-semibold">{user.drinking || '未填写'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">饮食习惯</p>
               <p className="font-semibold">{user.diet || '未填写'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">压力状态</p>
-              <p className="font-semibold">{user.pressure_state || '未填写'}</p>
             </div>
           </div>
         </CardContent>
@@ -277,21 +315,56 @@ export default function UserDetailPage() {
         <CardContent>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-gray-500">过敏史</p>
-              <p className="font-semibold">{user.allergy || '无'}</p>
+              <p className="text-sm text-gray-500">慢性病</p>
+              <p className="font-semibold">{user.chronic_disease || '无'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">既往病史</p>
-              <p className="font-semibold">{user.sickness || '无'}</p>
+              <p className="text-sm text-gray-500">用药情况</p>
+              <p className="font-semibold">{user.medication || '无'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">家族病史</p>
-              <p className="font-semibold">{user.family_sickness || '无'}</p>
+              <p className="font-semibold">{user.family_history || '无'}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">当前症状</p>
-              <p className="font-semibold">{user.symptom || '无'}</p>
+              <p className="text-sm text-gray-500">症状</p>
+              <p className="font-semibold">
+                {Array.isArray(parsedSymptoms) ? parsedSymptoms.join(', ') : (user.symptoms || '无')}
+              </p>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 健康状态 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>健康状态</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div>
+              <p className="text-sm text-gray-500">健康状态</p>
+              <span className={`px-3 py-1 rounded text-white mt-1 inline-block ${getHealthStatusColor(user.health_status)}`}>
+                {user.health_status || '未评估'}
+              </span>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">健康分数</p>
+              <p className="text-3xl font-bold text-blue-600">{user.health_score || 0}分</p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-500">自检完成状态</p>
+              <span className={`px-3 py-1 rounded text-white mt-1 inline-block ${user.self_check_completed ? 'bg-green-500' : 'bg-gray-500'}`}>
+                {user.self_check_completed ? '已完成' : '未完成'}
+              </span>
+            </div>
+            {user.self_check_time && (
+              <div>
+                <p className="text-sm text-gray-500">自检时间</p>
+                <p className="font-semibold">{new Date(user.self_check_time).toLocaleString()}</p>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -300,7 +373,10 @@ export default function UserDetailPage() {
       {answerContent && (
         <Card>
           <CardHeader>
-            <CardTitle>自检原始内容</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              自检原始内容
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -319,7 +395,10 @@ export default function UserDetailPage() {
       {user.analysis && (
         <Card>
           <CardHeader>
-            <CardTitle>健康分析报告</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="w-5 h-5" />
+              健康分析报告
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="prose max-w-none">
@@ -331,48 +410,14 @@ export default function UserDetailPage() {
         </Card>
       )}
 
-      {/* 历史记录 */}
-      {user.history && user.history.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>历史自检记录</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {user.history.map((record) => (
-                <div key={record.check_id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-sm text-gray-500">检测时间</p>
-                      <p className="font-semibold">{new Date(record.check_time).toLocaleString()}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-500">健康分数</p>
-                      <p className="text-2xl font-bold text-blue-600">{record.health_score}分</p>
-                    </div>
-                  </div>
-                  <div className="mb-2">
-                    <span className={`px-2 py-1 rounded text-white text-xs ${getHealthStatusColor(record.health_status)}`}>
-                      {record.health_status}
-                    </span>
-                  </div>
-                  {record.analysis && (
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="text-sm text-gray-600 whitespace-pre-wrap">{record.analysis}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 自检数据历史记录 */}
+      {/* 症状自检记录 */}
       {user.symptomCheckHistory && user.symptomCheckHistory.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>症状自检记录</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-5 h-5" />
+              症状自检记录
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -396,7 +441,7 @@ export default function UserDetailPage() {
                       选择了 {record.selected_symptoms?.length || 0} 项症状
                     </span>
                   </div>
-                  
+
                   {/* 各维度得分 */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
                     <div className="bg-gray-50 p-2 rounded">
@@ -428,35 +473,15 @@ export default function UserDetailPage() {
                       <p className="font-semibold">{record.emotions_score}分</p>
                     </div>
                     <div className="bg-gray-50 p-2 rounded">
-                      <p className="text-xs text-gray-500">总症状数</p>
-                      <p className="font-semibold">{record.total_score}项</p>
+                      <p className="text-xs text-gray-500">总分</p>
+                      <p className="font-semibold">{record.total_score}分</p>
                     </div>
                   </div>
 
-                  {/* 目标改善症状 */}
-                  {record.target_symptoms && record.target_symptoms.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-sm font-semibold text-gray-700 mb-1">目标改善症状：</p>
-                      <div className="flex flex-wrap gap-1">
-                        {record.target_symptoms.map((symptomId) => (
-                          <span key={symptomId} className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                            症状ID: {symptomId}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 分析报告 */}
                   {record.analysis_report && (
-                    <details className="mt-3">
-                      <summary className="cursor-pointer text-sm font-semibold text-blue-600 hover:text-blue-800">
-                        查看详细分析报告
-                      </summary>
-                      <div className="mt-2 bg-gray-50 p-3 rounded max-h-60 overflow-y-auto">
-                        <p className="text-sm text-gray-600 whitespace-pre-wrap">{record.analysis_report}</p>
-                      </div>
-                    </details>
+                    <div className="bg-blue-50 p-3 rounded">
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{record.analysis_report}</p>
+                    </div>
                   )}
                 </div>
               ))}
@@ -465,28 +490,20 @@ export default function UserDetailPage() {
         </Card>
       )}
 
-      {/* 注册信息 */}
+      {/* 时间戳 */}
       <Card>
         <CardHeader>
-          <CardTitle>注册信息</CardTitle>
+          <CardTitle>数据时间戳</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500">注册时间</p>
+              <p className="text-sm text-gray-500">创建时间</p>
               <p className="font-semibold">{new Date(user.create_time).toLocaleString()}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-500">最后更新时间</p>
+              <p className="text-sm text-gray-500">更新时间</p>
               <p className="font-semibold">{new Date(user.update_time).toLocaleString()}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">已完成自检</p>
-              <p className="font-semibold">{user.done_self_check ? '是' : '否'}</p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-500">已完成要求</p>
-              <p className="font-semibold">{user.done_require ? '是' : '否'}</p>
             </div>
           </div>
         </CardContent>

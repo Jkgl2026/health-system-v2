@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Clock, RefreshCw } from 'lucide-react';
 
 interface User {
   user_id: number;
@@ -48,13 +49,27 @@ export default function UserListPage() {
 
   // 错误提示
   const [error, setError] = useState('');
+  const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchUsers();
   }, [page, pageSize]);
 
+  // 实时轮询更新（每5秒）
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchUsers();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [page, pageSize, keyword, gender]);
+
   const fetchUsers = async () => {
-    setLoading(true);
+    // 首次加载时显示加载状态，轮询时不显示
+    const isFirstLoad = !lastUpdateTime;
+    if (isFirstLoad) {
+      setLoading(true);
+    }
     setError('');
 
     try {
@@ -72,13 +87,16 @@ export default function UserListPage() {
       if (data.code === 200) {
         setUsers(data.data.list);
         setTotal(data.data.total);
+        setLastUpdateTime(new Date());
       } else {
         setError(data.msg || '获取用户列表失败');
       }
     } catch (err) {
       setError('网络错误，请重试');
     } finally {
-      setLoading(false);
+      if (isFirstLoad) {
+        setLoading(false);
+      }
     }
   };
 
@@ -205,7 +223,16 @@ export default function UserListPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">用户管理</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">用户管理</h1>
+        <div className="flex items-center gap-2 text-sm text-gray-500">
+          <Clock className="w-4 h-4" />
+          <span>
+            最后更新: {lastUpdateTime ? lastUpdateTime.toLocaleTimeString() : '-'}
+          </span>
+          <span className="text-xs text-gray-400">(自动每5秒刷新)</span>
+        </div>
+      </div>
 
       {error && (
         <Alert variant="destructive">
@@ -258,7 +285,10 @@ export default function UserListPage() {
         <Button variant="destructive" onClick={handleBatchDelete} disabled={selectedIds.length === 0}>
           批量删除
         </Button>
-        <Button variant="outline" onClick={fetchUsers}>刷新</Button>
+        <Button variant="outline" onClick={fetchUsers}>
+          <RefreshCw className="w-4 h-4 mr-2" />
+          刷新
+        </Button>
       </div>
 
       {/* 用户列表 */}
