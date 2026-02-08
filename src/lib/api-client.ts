@@ -22,7 +22,7 @@ export async function createUser(userData: {
   bmi?: string | null;
 }) {
   try {
-    // 使用客户端数据管理器
+    // 1. 保存到客户端数据管理器
     const user = clientDataManager.saveUserData({
       name: userData.name ?? null,
       phone: userData.phone ?? null,
@@ -36,6 +36,39 @@ export async function createUser(userData: {
       address: userData.address ?? null,
       bmi: userData.bmi ?? null,
     });
+
+    // 2. 同时保存到服务器数据库
+    try {
+      const response = await fetch('/api/user/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: userData.name,
+          phone: userData.phone,
+          email: userData.email,
+          age: userData.age ? parseInt(userData.age) : null,
+          gender: userData.gender,
+          weight: userData.weight ? parseFloat(userData.weight) : null,
+          height: userData.height ? parseInt(userData.height) : null,
+          bloodPressure: userData.bloodPressure,
+          occupation: userData.occupation,
+          address: userData.address,
+          bmi: userData.bmi ? parseFloat(userData.bmi) : null,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.code !== 200) {
+        console.error('保存用户到数据库失败:', result.msg);
+        // 不抛出错误，因为客户端已保存成功
+      }
+    } catch (dbError) {
+      console.error('保存用户到数据库异常:', dbError);
+      // 不抛出错误，因为客户端已保存成功
+    }
 
     return { success: true, user };
   } catch (error) {
