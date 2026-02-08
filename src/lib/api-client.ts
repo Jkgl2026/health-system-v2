@@ -39,6 +39,17 @@ export async function createUser(userData: {
 
     // 2. 同时保存到服务器数据库
     try {
+      // 解析血压值（格式：高压/低压）
+      let bloodPressureHigh = null;
+      let bloodPressureLow = null;
+      if (userData.bloodPressure) {
+        const bpParts = userData.bloodPressure.split('/');
+        if (bpParts.length === 2) {
+          bloodPressureHigh = bpParts[0].trim();
+          bloodPressureLow = bpParts[1].trim();
+        }
+      }
+
       const response = await fetch('/api/user/add', {
         method: 'POST',
         headers: {
@@ -52,7 +63,8 @@ export async function createUser(userData: {
           gender: userData.gender,
           weight: userData.weight ? parseFloat(userData.weight) : null,
           height: userData.height ? parseInt(userData.height) : null,
-          bloodPressure: userData.bloodPressure,
+          blood_pressure_high: bloodPressureHigh,
+          blood_pressure_low: bloodPressureLow,
           occupation: userData.occupation,
           address: userData.address,
           bmi: userData.bmi ? parseFloat(userData.bmi) : null,
