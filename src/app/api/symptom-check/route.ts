@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
       INSERT INTO health_analysis (
         user_id,
         check_id,
-        qi_blood,
+        qi_and_blood,
         circulation,
         toxins,
         blood_lipids,
@@ -94,10 +94,8 @@ export async function POST(request: NextRequest) {
         immunity,
         emotions,
         overall_health,
-        health_status,
-        analysis_report,
-        analysis_date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+        analyzed_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
     `, [
       userId,
       checkId,
@@ -109,8 +107,6 @@ export async function POST(request: NextRequest) {
       elementScores.免疫 || 0,
       elementScores.情绪 || 0,
       overallHealth,
-      healthStatus,
-      analysis,
     ]);
 
     // 更新用户的健康分数和状态

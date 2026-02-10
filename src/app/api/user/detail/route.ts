@@ -88,16 +88,14 @@ export async function GET(request: NextRequest) {
           sc.coldness_score,
           sc.immunity_score,
           sc.emotions_score,
-          ha.qi_blood,
+          ha.qi_and_blood,
           ha.circulation,
           ha.toxins,
           ha.blood_lipids,
           ha.coldness,
           ha.immunity,
           ha.emotions,
-          ha.overall_health,
-          ha.health_status,
-          ha.analysis_report
+          ha.overall_health
         FROM symptom_check sc
         LEFT JOIN health_analysis ha ON sc.id = ha.check_id
         WHERE sc.user_id = $1

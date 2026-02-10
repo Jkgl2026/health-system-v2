@@ -31,11 +31,10 @@ export async function POST() {
     // 创建健康分析表（先不创建外键约束）
     await exec_sql(`
       CREATE TABLE IF NOT EXISTS health_analysis (
-        id SERIAL PRIMARY KEY,
-        user_id VARCHAR(100) NOT NULL,
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR(36) NOT NULL,
         check_id INTEGER NOT NULL,
-        analysis_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        qi_blood INTEGER,
+        qi_and_blood INTEGER,
         circulation INTEGER,
         toxins INTEGER,
         blood_lipids INTEGER,
@@ -43,10 +42,7 @@ export async function POST() {
         immunity INTEGER,
         emotions INTEGER,
         overall_health INTEGER,
-        health_status VARCHAR(20) NOT NULL,
-        analysis_report TEXT,
-        create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        analyzed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       )
     `);
 
@@ -85,15 +81,7 @@ export async function POST() {
       EXECUTE FUNCTION update_update_time()
     `);
 
-    await exec_sql(`
-      DROP TRIGGER IF EXISTS trigger_update_health_analysis_update_time ON health_analysis
-    `);
-    await exec_sql(`
-      CREATE TRIGGER trigger_update_health_analysis_update_time
-      BEFORE UPDATE ON health_analysis
-      FOR EACH ROW
-      EXECUTE FUNCTION update_update_time()
-    `);
+    // health_analysis 表不再需要 update_time 触发器，因为只有一个时间戳字段
 
     return NextResponse.json({
       code: 200,
@@ -107,8 +95,7 @@ export async function POST() {
           'idx_health_analysis_check_id'
         ],
         triggers: [
-          'trigger_update_symptom_check_update_time',
-          'trigger_update_health_analysis_update_time'
+          'trigger_update_symptom_check_update_time'
         ]
       }
     });

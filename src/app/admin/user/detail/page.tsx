@@ -59,8 +59,6 @@ interface UserDetail {
     immunity_score: number;
     emotions_score: number;
     overall_health: number;
-    health_status: string;
-    analysis_report: string;
   }>;
 }
 
@@ -117,6 +115,20 @@ function UserDetailContent() {
       case '异常': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
+  };
+
+  const getHealthStatusColorFromScore = (score: number) => {
+    if (score >= 85) return 'bg-green-500';
+    if (score >= 70) return 'bg-blue-500';
+    if (score >= 50) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  const getHealthStatusFromScore = (score: number) => {
+    if (score >= 85) return '优秀';
+    if (score >= 70) return '良好';
+    if (score >= 50) return '一般';
+    return '异常';
   };
 
   if (loading) {
@@ -491,8 +503,8 @@ function UserDetailContent() {
                     </div>
                   </div>
                   <div className="mb-3">
-                    <span className={`px-2 py-1 rounded text-white text-xs ${getHealthStatusColor(record.health_status)}`}>
-                      {record.health_status}
+                    <span className={`px-2 py-1 rounded text-white text-xs ${getHealthStatusColorFromScore(record.overall_health)}`}>
+                      {getHealthStatusFromScore(record.overall_health)}
                     </span>
                     <span className="ml-2 text-sm text-gray-500">
                       选择了 {record.selected_symptoms?.length || 0} 项症状
@@ -534,12 +546,6 @@ function UserDetailContent() {
                       <p className="font-semibold">{record.total_score}分</p>
                     </div>
                   </div>
-
-                  {record.analysis_report && (
-                    <div className="bg-blue-50 p-3 rounded">
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{record.analysis_report}</p>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
