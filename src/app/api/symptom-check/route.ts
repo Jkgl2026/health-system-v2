@@ -44,8 +44,8 @@ export async function POST(request: NextRequest) {
       RETURNING id
     `, [
       userId,
-      JSON.stringify(checkedSymptoms.map(id => parseInt(id))),
-      JSON.stringify(targetSymptoms.map(id => parseInt(id))),
+      JSON.stringify(checkedSymptoms.map((id: string) => parseInt(id))),
+      JSON.stringify(targetSymptoms.map((id: string) => parseInt(id))),
       totalScore || 0,
       elementScores.气血 || 0,
       elementScores.循环 || 0,
