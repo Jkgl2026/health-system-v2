@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exec_sql } from '@/app/lib/db';
 
+// 强制动态渲染，因为使用了 request.url
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /user/list
  * 分页列表接口

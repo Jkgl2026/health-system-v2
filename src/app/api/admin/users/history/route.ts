@@ -3,6 +3,9 @@ import { healthDataManager } from '@/storage/database';
 import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 import type { User } from '@/storage/database/shared/schema';
 
+// 强制动态渲染，因为使用了 request.cookies
+export const dynamic = 'force-dynamic';
+
 // GET /api/admin/users/history - 获取用户的历史记录（用于数据对比）
 export async function GET(request: NextRequest) {
   try {

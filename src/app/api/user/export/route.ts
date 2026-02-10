@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { exec_sql } from '@/app/lib/db';
 
+// 强制动态渲染，因为访问了数据库
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /user/export
  * 导出Excel接口
@@ -10,7 +13,7 @@ export async function GET() {
   try {
     // 查询所有用户数据
     const users = await exec_sql(`
-      SELECT 
+      SELECT
         user_id,
         name,
         phone,
@@ -18,7 +21,7 @@ export async function GET() {
         gender,
         height,
         weight,
-        job,
+        occupation,
         sleep,
         drink_smoke,
         exercise,
@@ -58,7 +61,7 @@ export async function GET() {
         user.gender || '',
         user.height || '',
         user.weight || '',
-        user.job || '',
+        user.occupation || '',
         user.sleep || '',
         user.drink_smoke || '',
         user.exercise || '',

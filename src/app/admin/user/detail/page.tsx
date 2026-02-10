@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
+import { Clock, User, Activity, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshCw, Clock, User, Activity, FileText } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
 
 interface UserDetail {
   user_id: number;
@@ -62,7 +64,7 @@ interface UserDetail {
   }>;
 }
 
-export default function UserDetailPage() {
+function UserDetailContent() {
   const searchParams = useSearchParams();
   const userId = searchParams.get('userId');
 
@@ -639,5 +641,13 @@ export default function UserDetailPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function UserDetailPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-64">加载中...</div>}>
+      <UserDetailContent />
+    </Suspense>
   );
 }

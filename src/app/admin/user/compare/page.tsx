@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,7 +37,7 @@ interface User {
   analysis: string;
 }
 
-export default function UserComparePage() {
+function UserCompareContent() {
   const searchParams = useSearchParams();
   const userIdsParam = searchParams.get('userIds');
 
@@ -212,10 +212,10 @@ export default function UserComparePage() {
         </CardContent>
       </Card>
 
-      {/* 生活信息对比 */}
+      {/* 生活习惯对比 */}
       <Card>
         <CardHeader>
-          <CardTitle>生活信息对比</CardTitle>
+          <CardTitle>生活习惯对比</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -232,33 +232,102 @@ export default function UserComparePage() {
               </thead>
               <tbody>
                 <tr className={isDifferent('sleep') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">作息情况</td>
+                  <td className="py-2 px-4">睡眠</td>
                   {users.map((user) => (
                     <td key={user.user_id} className="py-2 px-4">{formatValue(user.sleep)}</td>
                   ))}
                 </tr>
                 <tr className={isDifferent('drink_smoke') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">烟酒习惯</td>
+                  <td className="py-2 px-4">烟酒</td>
                   {users.map((user) => (
                     <td key={user.user_id} className="py-2 px-4">{formatValue(user.drink_smoke)}</td>
                   ))}
                 </tr>
                 <tr className={isDifferent('exercise') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">运动习惯</td>
+                  <td className="py-2 px-4">运动</td>
                   {users.map((user) => (
                     <td key={user.user_id} className="py-2 px-4">{formatValue(user.exercise)}</td>
                   ))}
                 </tr>
                 <tr className={isDifferent('diet') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">饮食习惯</td>
+                  <td className="py-2 px-4">饮食</td>
                   {users.map((user) => (
                     <td key={user.user_id} className="py-2 px-4">{formatValue(user.diet)}</td>
                   ))}
                 </tr>
-                <tr className={isDifferent('pressure_state') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">压力状态</td>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* 健康状况对比 */}
+      <Card>
+        <CardHeader>
+          <CardTitle>健康状况对比</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-2 px-4 font-semibold">字段</th>
                   {users.map((user) => (
-                    <td key={user.user_id} className="py-2 px-4">{formatValue(user.pressure_state)}</td>
+                    <th key={user.user_id} className="text-left py-2 px-4 font-semibold">
+                      {user.name}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                <tr className={isDifferent('health_status') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">健康状态</td>
+                  {users.map((user) => (
+                    <td key={user.user_id} className="py-2 px-4">
+                      <span className={`px-2 py-1 rounded text-white text-xs ${getHealthStatusColor(user.health_status)}`}>
+                        {user.health_status || '未评估'}
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+                <tr className={isDifferent('health_score') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">健康分数</td>
+                  {users.map((user) => (
+                    <td key={user.user_id} className="py-2 px-4">
+                      <span className="text-2xl font-bold text-blue-600">
+                        {user.health_score || 0}分
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+                <tr className={isDifferent('score_life') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">生活评分</td>
+                  {users.map((user) => (
+                    <td key={user.user_id} className="py-2 px-4">{formatValue(user.score_life)}分</td>
+                  ))}
+                </tr>
+                <tr className={isDifferent('score_sleep') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">睡眠评分</td>
+                  {users.map((user) => (
+                    <td key={user.user_id} className="py-2 px-4">{formatValue(user.score_sleep)}分</td>
+                  ))}
+                </tr>
+                <tr className={isDifferent('score_stress') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">压力评分</td>
+                  {users.map((user) => (
+                    <td key={user.user_id} className="py-2 px-4">{formatValue(user.score_stress)}分</td>
+                  ))}
+                </tr>
+                <tr className={isDifferent('score_body') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">身体评分</td>
+                  {users.map((user) => (
+                    <td key={user.user_id} className="py-2 px-4">{formatValue(user.score_body)}分</td>
+                  ))}
+                </tr>
+                <tr className={isDifferent('score_risk') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">风险评分</td>
+                  {users.map((user) => (
+                    <td key={user.user_id} className="py-2 px-4">{formatValue(user.score_risk)}分</td>
                   ))}
                 </tr>
               </tbody>
@@ -286,6 +355,12 @@ export default function UserComparePage() {
                 </tr>
               </thead>
               <tbody>
+                <tr className={isDifferent('pressure_state') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">血压状况</td>
+                  {users.map((user) => (
+                    <td key={user.user_id} className="py-2 px-4">{formatValue(user.pressure_state)}</td>
+                  ))}
+                </tr>
                 <tr className={isDifferent('allergy') ? 'bg-yellow-50' : ''}>
                   <td className="py-2 px-4">过敏史</td>
                   {users.map((user) => (
@@ -293,7 +368,7 @@ export default function UserComparePage() {
                   ))}
                 </tr>
                 <tr className={isDifferent('sickness') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">既往病史</td>
+                  <td className="py-2 px-4">病史</td>
                   {users.map((user) => (
                     <td key={user.user_id} className="py-2 px-4">{formatValue(user.sickness)}</td>
                   ))}
@@ -305,7 +380,7 @@ export default function UserComparePage() {
                   ))}
                 </tr>
                 <tr className={isDifferent('symptom') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">当前症状</td>
+                  <td className="py-2 px-4">症状</td>
                   {users.map((user) => (
                     <td key={user.user_id} className="py-2 px-4">{formatValue(user.symptom)}</td>
                   ))}
@@ -316,17 +391,17 @@ export default function UserComparePage() {
         </CardContent>
       </Card>
 
-      {/* 健康评分对比 */}
+      {/* 完成状态对比 */}
       <Card>
         <CardHeader>
-          <CardTitle>健康评分对比</CardTitle>
+          <CardTitle>完成状态对比</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-2 px-4 font-semibold">评分项目</th>
+                  <th className="text-left py-2 px-4 font-semibold">字段</th>
                   {users.map((user) => (
                     <th key={user.user_id} className="text-left py-2 px-4 font-semibold">
                       {user.name}
@@ -335,52 +410,30 @@ export default function UserComparePage() {
                 </tr>
               </thead>
               <tbody>
-                <tr className={isDifferent('health_status') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">健康状态</td>
+                <tr className={isDifferent('done_self_check') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">自检完成</td>
                   {users.map((user) => (
                     <td key={user.user_id} className="py-2 px-4">
-                      <span className={`px-2 py-1 rounded text-white text-xs ${getHealthStatusColor(user.health_status)}`}>
-                        {user.health_status}
+                      <span className={`px-2 py-1 rounded text-white text-xs ${user.done_self_check ? 'bg-green-500' : 'bg-gray-500'}`}>
+                        {user.done_self_check ? '已完成' : '未完成'}
                       </span>
                     </td>
                   ))}
                 </tr>
-                <tr className={isDifferent('health_score') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">综合健康分数</td>
+                <tr className={isDifferent('done_require') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">七问完成</td>
                   {users.map((user) => (
-                    <td key={user.user_id} className="py-2 px-4 font-bold text-blue-600">
-                      {user.health_score}分
+                    <td key={user.user_id} className="py-2 px-4">
+                      <span className={`px-2 py-1 rounded text-white text-xs ${user.done_require ? 'bg-green-500' : 'bg-gray-500'}`}>
+                        {user.done_require ? '已完成' : '未完成'}
+                      </span>
                     </td>
                   ))}
                 </tr>
-                <tr className={isDifferent('score_life') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">生活方式得分</td>
+                <tr className={isDifferent('complete') ? 'bg-yellow-50' : ''}>
+                  <td className="py-2 px-4">完成度</td>
                   {users.map((user) => (
-                    <td key={user.user_id} className="py-2 px-4">{user.score_life}分</td>
-                  ))}
-                </tr>
-                <tr className={isDifferent('score_sleep') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">睡眠质量得分</td>
-                  {users.map((user) => (
-                    <td key={user.user_id} className="py-2 px-4">{user.score_sleep}分</td>
-                  ))}
-                </tr>
-                <tr className={isDifferent('score_stress') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">压力状态得分</td>
-                  {users.map((user) => (
-                    <td key={user.user_id} className="py-2 px-4">{user.score_stress}分</td>
-                  ))}
-                </tr>
-                <tr className={isDifferent('score_body') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">体质指数得分</td>
-                  {users.map((user) => (
-                    <td key={user.user_id} className="py-2 px-4">{user.score_body}分</td>
-                  ))}
-                </tr>
-                <tr className={isDifferent('score_risk') ? 'bg-yellow-50' : ''}>
-                  <td className="py-2 px-4">健康风险得分</td>
-                  {users.map((user) => (
-                    <td key={user.user_id} className="py-2 px-4">{user.score_risk}分</td>
+                    <td key={user.user_id} className="py-2 px-4">{formatValue(user.complete)}%</td>
                   ))}
                 </tr>
               </tbody>
@@ -389,65 +442,32 @@ export default function UserComparePage() {
         </CardContent>
       </Card>
 
-      {/* 完成度对比 */}
+      {/* 健康建议对比 */}
       <Card>
         <CardHeader>
-          <CardTitle>完成度对比</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {users.map((user, index) => (
-              <div key={user.user_id} className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-2">{user.name}</h3>
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>完成度</span>
-                    <span>{user.complete}%</span>
-                  </div>
-                  <div className="bg-gray-200 rounded-full h-3">
-                    <div
-                      className="bg-blue-600 h-3 rounded-full"
-                      style={{ width: `${user.complete}%` }}
-                    />
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    <p>已完成自检：{user.done_self_check ? '是' : '否'}</p>
-                    <p>已完成要求：{user.done_require ? '是' : '否'}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* 健康分析对比 */}
-      <Card>
-        <CardHeader>
-          <CardTitle>健康分析对比</CardTitle>
+          <CardTitle>健康建议对比</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {users.map((user) => (
-              <div key={user.user_id} className="border rounded-lg p-4">
-                <h3 className="font-semibold mb-2">{user.name}</h3>
-                <div className="bg-gray-50 p-3 rounded max-h-96 overflow-y-auto">
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                    {user.analysis || '暂无分析内容'}
-                  </p>
-                </div>
+              <div key={user.user_id} className="border rounded-lg p-4 bg-green-50">
+                <h3 className="font-bold text-lg mb-2">{user.name}</h3>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {user.analysis || '暂无分析报告'}
+                </p>
               </div>
             ))}
           </div>
         </CardContent>
       </Card>
-
-      {/* 说明 */}
-      <Alert>
-        <AlertDescription>
-          <strong>说明：</strong>黄色背景表示该字段在不同用户之间存在差异，方便您快速识别差异点。
-        </AlertDescription>
-      </Alert>
     </div>
+  );
+}
+
+export default function UserComparePage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center h-64">加载中...</div>}>
+      <UserCompareContent />
+    </Suspense>
   );
 }

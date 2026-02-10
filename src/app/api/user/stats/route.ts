@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { exec_sql } from '@/app/lib/db';
 
+// 强制动态渲染，因为访问了数据库
+export const dynamic = 'force-dynamic';
+
 // 获取用户统计数据
 export async function GET(request: NextRequest) {
   try {
