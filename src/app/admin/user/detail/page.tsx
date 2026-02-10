@@ -369,6 +369,61 @@ export default function UserDetailPage() {
         </CardContent>
       </Card>
 
+      {/* 待完成模块 */}
+      {!user.self_check_completed && (
+        <Card className="border-orange-300 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="text-orange-700">待完成模块</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                <span className="text-gray-700">基本信息</span>
+                <span className={`ml-auto text-xs px-2 py-1 rounded ${user.name ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {user.name ? '已完成' : '未完成'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                <span className="text-gray-700">身体指标</span>
+                <span className={`ml-auto text-xs px-2 py-1 rounded ${user.blood_pressure_high ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {user.blood_pressure_high ? '已完成' : '未完成'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                <span className="text-gray-700">生活方式</span>
+                <span className={`ml-auto text-xs px-2 py-1 rounded ${user.sleep_hours ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {user.sleep_hours ? '已完成' : '未完成'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                <span className="text-gray-700">病史信息</span>
+                <span className={`ml-auto text-xs px-2 py-1 rounded ${user.chronic_disease ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {user.chronic_disease ? '已完成' : '未完成'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                <span className="text-gray-700">症状自检</span>
+                <span className={`ml-auto text-xs px-2 py-1 rounded ${user.symptoms ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {user.symptoms ? '已完成' : '未完成'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+                <span className="text-gray-700">健康七问</span>
+                <span className={`ml-auto text-xs px-2 py-1 rounded ${user.answer_content ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                  {user.answer_content ? '已完成' : '未完成'}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* 自检原始内容 */}
       {answerContent && (
         <Card>
@@ -489,6 +544,81 @@ export default function UserDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* 中医健康分析 */}
+      <Card className="border-blue-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-blue-700">
+            <Activity className="w-5 h-5" />
+            中医健康分析
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {/* 体质分析 */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-3">体质分析</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded shadow-sm">
+                  <p className="text-xs text-gray-500">气血状况</p>
+                  <p className="text-lg font-semibold text-blue-600">
+                    {user.blood_pressure_high && user.blood_pressure_low ? '正常' : '需关注'}
+                  </p>
+                </div>
+                <div className="bg-white p-3 rounded shadow-sm">
+                  <p className="text-xs text-gray-500">循环状况</p>
+                  <p className="text-lg font-semibold text-green-600">
+                    {user.heart_rate ? '良好' : '需评估'}
+                  </p>
+                </div>
+                <div className="bg-white p-3 rounded shadow-sm">
+                  <p className="text-xs text-gray-500">寒凉体质</p>
+                  <p className="text-lg font-semibold text-orange-600">
+                    {user.smoking === '否' ? '不明显' : '可能存在'}
+                  </p>
+                </div>
+                <div className="bg-white p-3 rounded shadow-sm">
+                  <p className="text-xs text-gray-500">情绪状态</p>
+                  <p className="text-lg font-semibold text-purple-600">
+                    {user.diet ? '稳定' : '需观察'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 健康建议 */}
+            {user.analysis && (
+              <div className="bg-green-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-800 mb-3">健康建议</h3>
+                <p className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+                  {user.analysis}
+                </p>
+              </div>
+            )}
+
+            {/* 风险提示 */}
+            {(user.chronic_disease || user.family_history) && (
+              <div className="bg-red-50 p-4 rounded-lg">
+                <h3 className="font-semibold text-gray-800 mb-3">健康风险提示</h3>
+                <div className="space-y-2 text-sm text-gray-700">
+                  {user.chronic_disease && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-red-500">⚠</span>
+                      <span>有慢性病史：{user.chronic_disease}</span>
+                    </div>
+                  )}
+                  {user.family_history && (
+                    <div className="flex items-start gap-2">
+                      <span className="text-orange-500">⚠</span>
+                      <span>有家族病史：{user.family_history}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* 时间戳 */}
       <Card>

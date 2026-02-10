@@ -13,7 +13,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Clock, RefreshCw } from 'lucide-react';
+import { Clock, RefreshCw, Users, CheckCircle, TrendingUp, FileSpreadsheet, Search, BarChart3 } from 'lucide-react';
 
 interface User {
   user_id: number;
@@ -49,10 +49,19 @@ export default function UserListPage() {
 
   // 错误提示
   const [error, setError] = useState('');
+
+  // 统计数据
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    completedCheck: 0,
+    completedRequirement: 0,
+    avgHealthScore: 0,
+  });
   const [lastUpdateTime, setLastUpdateTime] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchUsers();
+    fetchStats();
   }, [page, pageSize]);
 
   // 实时轮询更新（每5秒）
@@ -63,6 +72,18 @@ export default function UserListPage() {
 
     return () => clearInterval(interval);
   }, [page, pageSize, keyword, gender]);
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/user/stats');
+      const data = await response.json();
+      if (data.code === 200) {
+        setStats(data.data);
+      }
+    } catch (err) {
+      console.error('获取统计数据失败:', err);
+    }
+  };
 
   const fetchUsers = async () => {
     // 首次加载时显示加载状态，轮询时不显示
