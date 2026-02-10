@@ -75,11 +75,14 @@ export async function createUser(userData: {
 
       if (result.code !== 200) {
         console.error('保存用户到数据库失败:', result.msg);
-        // 不抛出错误，因为客户端已保存成功
+        // 抛出错误，让前端知道数据库保存失败
+        throw new Error(`保存到数据库失败: ${result.msg}`);
       }
+      console.log('[数据库] 用户数据保存成功:', result.data);
     } catch (dbError) {
       console.error('保存用户到数据库异常:', dbError);
-      // 不抛出错误，因为客户端已保存成功
+      // 抛出错误，让前端知道数据库保存失败
+      throw new Error(`保存到数据库失败: ${dbError instanceof Error ? dbError.message : '未知错误'}`);
     }
 
     return { success: true, user };
