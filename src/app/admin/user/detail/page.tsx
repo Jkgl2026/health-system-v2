@@ -216,7 +216,7 @@ export default function UserDetailPage() {
             </div>
             <div>
               <p className="text-sm text-gray-500">BMI</p>
-              <p className="font-semibold">{user.bmi ? user.bmi.toFixed(1) : '未填写'}</p>
+              <p className="font-semibold">{user.bmi ? Number(user.bmi).toFixed(1) : '未填写'}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500">职业</p>
