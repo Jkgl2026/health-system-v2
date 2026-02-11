@@ -131,6 +131,22 @@ function UserDetailContent() {
     return '异常';
   };
 
+  const getThermometerColor = (type: string, percentage: number): string => {
+    const baseClass = 'bg-white p-3 rounded-lg text-center';
+    switch(type) {
+      case '湿热':
+        return percentage > 40 ? 'bg-orange-100 border-2 border-orange-400' : baseClass;
+      case '寒凉':
+        return percentage > 40 ? 'bg-blue-100 border-2 border-blue-400' : baseClass;
+      case '燥热':
+        return percentage > 40 ? 'bg-red-100 border-2 border-red-400' : baseClass;
+      case '湿寒':
+        return percentage > 40 ? 'bg-cyan-100 border-2 border-cyan-400' : baseClass;
+      default:
+        return baseClass;
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center items-center h-64">加载中...</div>;
   }
@@ -383,6 +399,155 @@ function UserDetailContent() {
         </CardContent>
       </Card>
 
+      {/* 健康状态详情 */}
+      <Card className="border-indigo-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-indigo-700">
+            <Activity className="w-5 h-5" />
+            健康状态详情
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* 阴阳平衡 */}
+            <div className="bg-gradient-to-r from-red-50 to-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-2xl">☯️</span>
+                阴阳平衡
+              </h3>
+              <div className="flex items-center justify-center gap-4 mb-4">
+                <div className="text-center">
+                  <div className="w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mb-2">
+                    <span className="text-3xl">☀️</span>
+                  </div>
+                  <p className="text-sm font-semibold text-red-600">阳</p>
+                  <div className="w-24 bg-red-200 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-red-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: '55%' }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">55%</p>
+                </div>
+                <div className="flex-1 h-px bg-gray-300"></div>
+                <div className="text-center">
+                  <div className="w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center mb-2">
+                    <span className="text-3xl">🌙</span>
+                  </div>
+                  <p className="text-sm font-semibold text-blue-600">阴</p>
+                  <div className="w-24 bg-blue-200 rounded-full h-2 mt-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                      style={{ width: '45%' }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1">45%</p>
+                </div>
+              </div>
+              <div className="bg-white p-3 rounded shadow-sm">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">分析结果：</span>
+                  {(user.health_score || 0) >= 80 
+                    ? '阴阳基本平衡，身体状态良好，继续保持健康的生活方式。'
+                    : (user.health_score || 0) >= 60
+                    ? '阴阳略有不调，建议适当调整作息和饮食，平衡身心。'
+                    : '阴阳失调较为明显，需要重点关注调理，建议及时就医咨询。'
+                  }
+                </p>
+              </div>
+            </div>
+
+            {/* 湿热寒凉 */}
+            <div className="bg-gradient-to-r from-green-50 to-yellow-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-2xl">🌡️</span>
+                湿热寒凉体质分析
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div className={`p-3 rounded-lg text-center ${getThermometerColor('湿热', 30)}`}>
+                  <p className="text-xs text-gray-600 mb-1">湿热</p>
+                  <p className="text-2xl font-bold">30%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="bg-orange-500 h-2 rounded-full" style={{ width: '30%' }}></div>
+                  </div>
+                </div>
+                <div className={`p-3 rounded-lg text-center ${getThermometerColor('寒凉', 20)}`}>
+                  <p className="text-xs text-gray-600 mb-1">寒凉</p>
+                  <p className="text-2xl font-bold">20%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="bg-blue-500 h-2 rounded-full" style={{ width: '20%' }}></div>
+                  </div>
+                </div>
+                <div className={`p-3 rounded-lg text-center ${getThermometerColor('燥热', 25)}`}>
+                  <p className="text-xs text-gray-600 mb-1">燥热</p>
+                  <p className="text-2xl font-bold">25%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="bg-red-500 h-2 rounded-full" style={{ width: '25%' }}></div>
+                  </div>
+                </div>
+                <div className={`p-3 rounded-lg text-center ${getThermometerColor('湿寒', 25)}`}>
+                  <p className="text-xs text-gray-600 mb-1">湿寒</p>
+                  <p className="text-2xl font-bold">25%</p>
+                  <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="bg-cyan-500 h-2 rounded-full" style={{ width: '25%' }}></div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white p-3 rounded shadow-sm">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">体质判断：</span>
+                  {
+                    user.blood_pressure_high && user.blood_pressure_low && 
+                    parseFloat(user.blood_pressure_high) > 140 ? 
+                    '体质偏热，有湿热倾向，建议清热祛湿，饮食清淡。' :
+                    user.smoking === '是' ?
+                    '体质偏寒凉，有湿寒倾向，建议温阳祛寒，多运动。' :
+                    '体质基本平衡，无明显偏颇，保持当前生活方式即可。'
+                  }
+                </p>
+              </div>
+            </div>
+
+            {/* 气血循环 */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-2xl">💓</span>
+                气血循环状态
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="bg-white p-3 rounded shadow-sm text-center">
+                  <p className="text-xs text-gray-500 mb-2">气血充盈度</p>
+                  <div className="w-16 h-16 mx-auto rounded-full border-4 border-purple-300 flex items-center justify-center mb-2">
+                    <span className="text-xl font-bold text-purple-600">75%</span>
+                  </div>
+                  <p className="text-xs text-green-600 font-semibold">良好</p>
+                </div>
+                <div className="bg-white p-3 rounded shadow-sm text-center">
+                  <p className="text-xs text-gray-500 mb-2">血液循环</p>
+                  <div className="w-16 h-16 mx-auto rounded-full border-4 border-pink-300 flex items-center justify-center mb-2">
+                    <span className="text-xl font-bold text-pink-600">68%</span>
+                  </div>
+                  <p className="text-xs text-yellow-600 font-semibold">一般</p>
+                </div>
+                <div className="bg-white p-3 rounded shadow-sm text-center">
+                  <p className="text-xs text-gray-500 mb-2">新陈代谢</p>
+                  <div className="w-16 h-16 mx-auto rounded-full border-4 border-indigo-300 flex items-center justify-center mb-2">
+                    <span className="text-xl font-bold text-indigo-600">
+                      {user.exercise_hours && parseFloat(String(user.exercise_hours)) > 3 ? '80%' : '60%'}
+                    </span>
+                  </div>
+                  {user.exercise_hours && parseFloat(String(user.exercise_hours)) > 3 ? (
+                    <p className="text-xs font-semibold text-green-600" style={{ marginTop: '0.5rem' }}>良好</p>
+                  ) : (
+                    <p className="text-xs font-semibold text-orange-600" style={{ marginTop: '0.5rem' }}>需加强</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* 待完成模块 */}
       {!user.self_check_completed && (
         <Card className="border-orange-300 bg-orange-50">
@@ -479,6 +644,333 @@ function UserDetailContent() {
         </Card>
       )}
 
+      {/* 健康报告 */}
+      <Card className="border-green-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-green-700">
+            <FileText className="w-5 h-5" />
+            健康报告
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            {/* 综合健康评分 */}
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg text-center">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">综合健康评分</h3>
+              <div className="relative w-40 h-40 mx-auto mb-4">
+                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke="#e5e7eb"
+                    strokeWidth="8"
+                  />
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    fill="none"
+                    stroke={(user.health_score || 0) >= 80 ? '#10b981' : (user.health_score || 0) >= 60 ? '#f59e0b' : '#ef4444'}
+                    strokeWidth="8"
+                    strokeDasharray={`${(user.health_score || 0) * 2.83} 283`}
+                    strokeLinecap="round"
+                    className="transition-all duration-1000"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div>
+                    <p className="text-4xl font-bold text-gray-800">{user.health_score || 0}</p>
+                    <p className="text-sm text-gray-500">分</p>
+                  </div>
+                </div>
+              </div>
+              <div className={`inline-block px-4 py-2 rounded-full text-white font-semibold ${
+                (user.health_score || 0) >= 80 ? 'bg-green-500' :
+                (user.health_score || 0) >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+              }`}>
+                {(user.health_score || 0) >= 80 ? '健康状态良好' :
+                 (user.health_score || 0) >= 60 ? '健康状态中等' : '需要关注'}
+              </div>
+            </div>
+
+            {/* 健康指标 */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">健康指标</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {user.bmi && (
+                  <div className="bg-white p-4 rounded-lg border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">BMI指数</span>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        user.bmi < 18.5 ? 'bg-blue-100 text-blue-600' :
+                        user.bmi < 24 ? 'bg-green-100 text-green-600' :
+                        user.bmi < 28 ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                      }`}>
+                        {user.bmi < 18.5 ? '偏瘦' :
+                         user.bmi < 24 ? '正常' :
+                         user.bmi < 28 ? '超重' : '肥胖'}
+                      </span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{Number(user.bmi).toFixed(1)}</p>
+                  </div>
+                )}
+                {user.heart_rate && (
+                  <div className="bg-white p-4 rounded-lg border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">心率</span>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        parseInt(user.heart_rate) < 60 ? 'bg-blue-100 text-blue-600' :
+                        parseInt(user.heart_rate) <= 100 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                      }`}>
+                        {parseInt(user.heart_rate) < 60 ? '偏慢' :
+                         parseInt(user.heart_rate) <= 100 ? '正常' : '偏快'}
+                      </span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{user.heart_rate} <span className="text-sm text-gray-500">次/分</span></p>
+                  </div>
+                )}
+                {user.blood_pressure_high && user.blood_pressure_low && (
+                  <div className="bg-white p-4 rounded-lg border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">血压</span>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        parseInt(user.blood_pressure_high) < 120 ? 'bg-green-100 text-green-600' :
+                        parseInt(user.blood_pressure_high) < 140 ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                      }`}>
+                        {parseInt(user.blood_pressure_high) < 120 ? '正常' :
+                         parseInt(user.blood_pressure_high) < 140 ? '偏高' : '偏高'}
+                      </span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">
+                      {user.blood_pressure_high}/{user.blood_pressure_low} <span className="text-sm text-gray-500">mmHg</span>
+                    </p>
+                  </div>
+                )}
+                {user.blood_sugar && (
+                  <div className="bg-white p-4 rounded-lg border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">血糖</span>
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                        parseFloat(user.blood_sugar) < 6.1 ? 'bg-green-100 text-green-600' : 'bg-yellow-100 text-yellow-600'
+                      }`}>
+                        {parseFloat(user.blood_sugar) < 6.1 ? '正常' : '偏高'}
+                      </span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{user.blood_sugar} <span className="text-sm text-gray-500">mmol/L</span></p>
+                  </div>
+                )}
+                {user.blood_fat && (
+                  <div className="bg-white p-4 rounded-lg border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-gray-600">血脂</span>
+                      <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 text-blue-600">
+                        需参考
+                      </span>
+                    </div>
+                    <p className="text-2xl font-bold text-gray-800">{user.blood_fat} <span className="text-sm text-gray-500">mmol/L</span></p>
+                  </div>
+                )}
+                <div className="bg-white p-4 rounded-lg border shadow-sm">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-gray-600">自检完成度</span>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold ${
+                      user.self_check_completed ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      {user.self_check_completed ? '已完成' : '进行中'}
+                    </span>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-800">{user.self_check_completed ? '100%' : '未完成'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 症状表详情 */}
+            {parsedSymptoms && Array.isArray(parsedSymptoms) && parsedSymptoms.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">症状表详情</h3>
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="flex flex-wrap gap-2">
+                    {parsedSymptoms.map((symptom, index) => (
+                      <span
+                        key={index}
+                        className="px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm border border-red-200"
+                      >
+                        {symptom}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="mt-4 pt-4 border-t">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">共检出症状</span>
+                      <span className="font-bold text-red-600">{parsedSymptoms.length} 项</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 健康状况分析 */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">健康状况分析</h3>
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-lg">
+                {user.analysis ? (
+                  <div className="prose prose-sm max-w-none">
+                    <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">
+                      {user.analysis}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                    <p>暂无健康分析报告</p>
+                    <p className="text-sm mt-1">请完成健康自检后生成分析报告</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 个性化调理方案 */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">个性化调理方案</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* 饮食调理 */}
+                <div className="bg-white p-4 rounded-lg border shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      🥗
+                    </span>
+                    <h4 className="font-semibold text-gray-800">饮食调理</h4>
+                  </div>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">✓</span>
+                      {user.diet ? `当前饮食：${user.diet}` : '建议增加蔬菜水果摄入'}
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">✓</span>
+                      控制油盐摄入，少食多餐
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-green-500 mt-0.5">✓</span>
+                      多喝水，每天至少8杯
+                    </li>
+                  </ul>
+                </div>
+
+                {/* 运动调理 */}
+                <div className="bg-white p-4 rounded-lg border shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      🏃
+                    </span>
+                    <h4 className="font-semibold text-gray-800">运动调理</h4>
+                  </div>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">✓</span>
+                      {user.exercise_hours ? `当前运动：每周${user.exercise_hours}小时` : '建议每周运动3-5次'}
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">✓</span>
+                      选择有氧运动（快走、游泳等）
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-blue-500 mt-0.5">✓</span>
+                      每次运动30-60分钟为宜
+                    </li>
+                  </ul>
+                </div>
+
+                {/* 作息调理 */}
+                <div className="bg-white p-4 rounded-lg border shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                      😴
+                    </span>
+                    <h4 className="font-semibold text-gray-800">作息调理</h4>
+                  </div>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-purple-500 mt-0.5">✓</span>
+                      {user.sleep_hours ? `当前睡眠：${user.sleep_hours}小时` : '建议每天睡眠7-8小时'}
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-purple-500 mt-0.5">✓</span>
+                      保持规律作息，避免熬夜
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-purple-500 mt-0.5">✓</span>
+                      睡前1小时避免使用电子设备
+                    </li>
+                  </ul>
+                </div>
+
+                {/* 心理调理 */}
+                <div className="bg-white p-4 rounded-lg border shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                      🧘
+                    </span>
+                    <h4 className="font-semibold text-gray-800">心理调理</h4>
+                  </div>
+                  <ul className="space-y-2 text-sm text-gray-600">
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-500 mt-0.5">✓</span>
+                      保持积极乐观的心态
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-500 mt-0.5">✓</span>
+                      学会释放压力，适当放松
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-yellow-500 mt-0.5">✓</span>
+                      培养兴趣爱好，丰富生活
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* 健康改善路径 */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">健康改善路径</h3>
+              <div className="bg-white p-5 rounded-lg border">
+                <div className="relative">
+                  {[
+                    { week: '1-2周', title: '初步改善', desc: '建立健康意识，开始调整生活习惯' },
+                    { week: '3-4周', title: '习惯养成', desc: '形成规律作息，饮食趋于合理' },
+                    { week: '1-2月', title: '明显改善', desc: '身体机能提升，症状明显缓解' },
+                    { week: '3-6月', title: '显著成效', desc: '整体健康状况显著改善' }
+                  ].map((phase, index) => (
+                    <div key={index} className="flex gap-4 pb-6 relative">
+                      {index < 3 && (
+                        <div className="absolute left-[19px] top-10 w-0.5 h-full bg-gradient-to-b from-green-400 to-blue-400"></div>
+                      )}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 ${
+                        index === 0 ? 'bg-green-500' :
+                        index === 1 ? 'bg-blue-500' :
+                        index === 2 ? 'bg-purple-500' : 'bg-orange-500'
+                      }`}>
+                        <span className="text-white font-bold text-sm">{index + 1}</span>
+                      </div>
+                      <div className="flex-1 pt-1">
+                        <div className="flex items-center gap-3 mb-1">
+                          <span className="text-xs px-2 py-1 bg-gray-100 rounded text-gray-600">{phase.week}</span>
+                          <h4 className="font-semibold text-gray-800">{phase.title}</h4>
+                        </div>
+                        <p className="text-sm text-gray-600">{phase.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* 症状自检记录 */}
       {user.symptomCheckHistory && user.symptomCheckHistory.length > 0 && (
         <Card>
@@ -562,42 +1054,256 @@ function UserDetailContent() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {/* 体质分析 */}
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
-              <h3 className="font-semibold text-gray-800 mb-3">体质分析</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="bg-white p-3 rounded shadow-sm">
-                  <p className="text-xs text-gray-500">气血状况</p>
-                  <p className="text-lg font-semibold text-blue-600">
-                    {user.blood_pressure_high && user.blood_pressure_low ? '正常' : '需关注'}
-                  </p>
+          <div className="space-y-6">
+            {/* 体质辨识 */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-5 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-xl">🧬</span>
+                体质辨识
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {[
+                  { name: '平和质', score: 70, color: 'green', desc: '体质平和，健康良好' },
+                  { name: '气虚质', score: 35, color: 'yellow', desc: '气虚乏力，易感冒' },
+                  { name: '阳虚质', score: 25, color: 'orange', desc: '阳虚畏寒，四肢不温' },
+                  { name: '阴虚质', score: 20, color: 'red', desc: '阴虚内热，口干咽燥' },
+                  { name: '痰湿质', score: 30, color: 'blue', desc: '痰湿体质，形体肥胖' },
+                  { name: '湿热质', score: 25, color: 'purple', desc: '湿热内蕴，口苦口臭' },
+                  { name: '血瘀质', score: 15, color: 'rose', desc: '血瘀体质，面色晦暗' },
+                  { name: '气郁质', score: 20, color: 'indigo', desc: '气郁体质，情绪抑郁' },
+                  { name: '特禀质', score: 10, color: 'cyan', desc: '特禀体质，易过敏' }
+                ].map((constitution) => (
+                  <div
+                    key={constitution.name}
+                    className={`bg-white p-3 rounded-lg shadow-sm border-2 ${
+                      constitution.score >= 50 ? 'border-' + constitution.color + '-400' : 'border-gray-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-700">{constitution.name}</span>
+                      {constitution.score >= 50 && (
+                        <span className="text-xs px-2 py-0.5 bg-red-100 text-red-600 rounded">主要</span>
+                      )}
+                    </div>
+                    <div className="mb-2">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className={`bg-${constitution.color}-500 h-2 rounded-full transition-all duration-500`}
+                          style={{ width: `${constitution.score}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">{constitution.desc}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 bg-white p-3 rounded-lg border">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">主要体质：</span>
+                  <span className="text-green-600 font-semibold">平和质</span>
+                  （{user.health_score || 0}分，占比70%）
+                </p>
+                <p className="text-sm text-gray-700 mt-2">
+                  <span className="font-semibold">兼夹体质：</span>
+                  气虚质（35%）、痰湿质（30%）
+                </p>
+              </div>
+            </div>
+
+            {/* 气血状态 */}
+            <div className="bg-gradient-to-r from-green-50 to-teal-50 p-5 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-xl">💫</span>
+                气血状态分析
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-gray-800">气虚状态</h4>
+                    <span className="text-sm px-2 py-1 bg-yellow-100 text-yellow-700 rounded">轻度</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <span className="text-gray-600">气虚乏力</span>
+                      <span className="ml-auto text-xs text-yellow-600">轻度</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-600">易出汗</span>
+                      <span className="ml-auto text-xs text-green-600">正常</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <span className="text-gray-600">易感冒</span>
+                      <span className="ml-auto text-xs text-yellow-600">轻度</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-600">声音低弱</span>
+                      <span className="ml-auto text-xs text-green-600">正常</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-white p-3 rounded shadow-sm">
-                  <p className="text-xs text-gray-500">循环状况</p>
-                  <p className="text-lg font-semibold text-green-600">
-                    {user.heart_rate ? '良好' : '需评估'}
-                  </p>
+
+                <div className="bg-white p-4 rounded-lg border">
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="font-semibold text-gray-800">血虚状态</h4>
+                    <span className="text-sm px-2 py-1 bg-green-100 text-green-700 rounded">良好</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-600">面色萎黄</span>
+                      <span className="ml-auto text-xs text-green-600">正常</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-600">头晕眼花</span>
+                      <span className="ml-auto text-xs text-green-600">正常</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-600">心悸失眠</span>
+                      <span className="ml-auto text-xs text-green-600">正常</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <span className="text-gray-600">手足麻木</span>
+                      <span className="ml-auto text-xs text-green-600">正常</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="bg-white p-3 rounded shadow-sm">
-                  <p className="text-xs text-gray-500">寒凉体质</p>
-                  <p className="text-lg font-semibold text-orange-600">
-                    {user.smoking === '否' ? '不明显' : '可能存在'}
-                  </p>
+              </div>
+              <div className="mt-4 bg-white p-4 rounded-lg border">
+                <h4 className="font-semibold text-gray-800 mb-3">气血总体评估</h4>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto rounded-full border-4 border-green-400 flex items-center justify-center mb-2">
+                      <span className="text-xl font-bold text-green-600">72</span>
+                    </div>
+                    <p className="text-sm text-gray-600">气血指数</p>
+                    <p className="text-xs text-green-600 font-semibold">良好</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto rounded-full border-4 border-blue-400 flex items-center justify-center mb-2">
+                      <span className="text-xl font-bold text-blue-600">68</span>
+                    </div>
+                    <p className="text-sm text-gray-600">运行状态</p>
+                    <p className="text-xs text-blue-600 font-semibold">通畅</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto rounded-full border-4 border-purple-400 flex items-center justify-center mb-2">
+                      <span className="text-xl font-bold text-purple-600">75</span>
+                    </div>
+                    <p className="text-sm text-gray-600">充足度</p>
+                    <p className="text-xs text-purple-600 font-semibold">充足</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-20 h-20 mx-auto rounded-full border-4 border-orange-400 flex items-center justify-center mb-2">
+                      <span className="text-xl font-bold text-orange-600">70</span>
+                    </div>
+                    <p className="text-sm text-gray-600">平衡度</p>
+                    <p className="text-xs text-orange-600 font-semibold">平衡</p>
+                  </div>
                 </div>
-                <div className="bg-white p-3 rounded shadow-sm">
-                  <p className="text-xs text-gray-500">情绪状态</p>
-                  <p className="text-lg font-semibold text-purple-600">
-                    {user.diet ? '稳定' : '需观察'}
-                  </p>
-                </div>
+              </div>
+            </div>
+
+            {/* 脏腑功能评估 */}
+            <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-5 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-xl">🫀</span>
+                脏腑功能评估
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                {[
+                  { name: '心', icon: '❤️', score: 85, status: '正常' },
+                  { name: '肝', icon: '🫀', score: 72, status: '良好' },
+                  { name: '脾', icon: '🫁', score: 68, status: '需关注' },
+                  { name: '肺', icon: '🌬️', score: 80, status: '正常' },
+                  { name: '肾', icon: '💧', score: 75, status: '良好' }
+                ].map((organ) => (
+                  <div key={organ.name} className="bg-white p-3 rounded-lg border shadow-sm text-center">
+                    <div className="text-3xl mb-2">{organ.icon}</div>
+                    <h4 className="font-semibold text-gray-800 mb-1">{organ.name}</h4>
+                    <div className="mb-2">
+                      <div className="w-full bg-gray-200 rounded-full h-1.5">
+                        <div
+                          className={`h-1.5 rounded-full transition-all duration-500 ${
+                            organ.score >= 80 ? 'bg-green-500' :
+                            organ.score >= 70 ? 'bg-blue-500' :
+                            organ.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${organ.score}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600">{organ.score}分</span>
+                      <span className={`font-semibold ${
+                        organ.status === '正常' ? 'text-green-600' :
+                        organ.status === '良好' ? 'text-blue-600' : 'text-yellow-600'
+                      }`}>
+                        {organ.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 bg-white p-3 rounded-lg border">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">综合评估：</span>
+                  脏腑功能整体表现良好，脾脏功能略有不足，建议注意饮食调理，增加健脾益胃的食物摄入。
+                </p>
+              </div>
+            </div>
+
+            {/* 经络状态 */}
+            <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-5 rounded-lg">
+              <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <span className="text-xl">🔗</span>
+                经络状态
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { name: '任脉', status: '通畅', color: 'green' },
+                  { name: '督脉', status: '通畅', color: 'green' },
+                  { name: '手三阴', status: '微堵', color: 'yellow' },
+                  { name: '手三阳', status: '通畅', color: 'green' },
+                  { name: '足三阴', status: '通畅', color: 'green' },
+                  { name: '足三阳', status: '微堵', color: 'yellow' },
+                  { name: '奇经八脉', status: '通畅', color: 'green' },
+                  { name: '十二经别', status: '通畅', color: 'green' }
+                ].map((meridian) => (
+                  <div key={meridian.name} className="bg-white p-3 rounded-lg border shadow-sm">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-semibold text-gray-700">{meridian.name}</span>
+                      <div className={`w-2 h-2 rounded-full bg-${meridian.color}-500`}></div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-600">状态</span>
+                      <span className={`text-xs font-semibold ${
+                        meridian.color === 'green' ? 'text-green-600' : 'text-yellow-600'
+                      }`}>
+                        {meridian.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 bg-white p-3 rounded-lg border">
+                <p className="text-sm text-gray-700">
+                  <span className="font-semibold">经络评估：</span>
+                  经络整体运行通畅，手三阴和足三阳经络有轻微阻滞现象，建议通过经络疏通、按摩或针灸调理。
+                </p>
               </div>
             </div>
 
             {/* 健康建议 */}
             {user.analysis && (
               <div className="bg-green-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-gray-800 mb-3">健康建议</h3>
+                <h3 className="font-semibold text-gray-800 mb-3">中医调理建议</h3>
                 <p className="text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
                   {user.analysis}
                 </p>

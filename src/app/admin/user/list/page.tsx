@@ -68,6 +68,7 @@ export default function UserListPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       fetchUsers();
+      fetchStats();
     }, 5000);
 
     return () => clearInterval(interval);
@@ -224,6 +225,10 @@ export default function UserListPage() {
     }
   };
 
+  const handleAutoFix = () => {
+    setError('自动修复功能开发中，请稍后再试');
+  };
+
   const handleCompare = () => {
     if (selectedIds.length === 0 || selectedIds.length > 3) {
       setError('请选择1-3个用户进行对比');
@@ -260,6 +265,69 @@ export default function UserListPage() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+
+      {/* 统计概览卡片 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">总用户数</p>
+                <p className="text-3xl font-bold text-blue-600 mt-1">{stats.totalUsers}</p>
+              </div>
+              <Users className="w-10 h-10 text-blue-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">已完成自检</p>
+                <p className="text-3xl font-bold text-green-600 mt-1">
+                  {stats.completedCheck}
+                  <span className="text-lg text-gray-500 ml-2">
+                    ({stats.totalUsers > 0 ? ((stats.completedCheck / stats.totalUsers) * 100).toFixed(1) : 0}%)
+                  </span>
+                </p>
+              </div>
+              <CheckCircle className="w-10 h-10 text-green-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">已完成要求</p>
+                <p className="text-3xl font-bold text-purple-600 mt-1">
+                  {stats.completedRequirement}
+                  <span className="text-lg text-gray-500 ml-2">
+                    ({stats.totalUsers > 0 ? ((stats.completedRequirement / stats.totalUsers) * 100).toFixed(1) : 0}%)
+                  </span>
+                </p>
+              </div>
+              <TrendingUp className="w-10 h-10 text-purple-500" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-500">平均健康分数</p>
+                <p className="text-3xl font-bold text-orange-600 mt-1">
+                  {stats.avgHealthScore || '无数据'}
+                </p>
+              </div>
+              <BarChart3 className="w-10 h-10 text-orange-500" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* 搜索和操作栏 */}
       <Card>
@@ -299,9 +367,15 @@ export default function UserListPage() {
       {/* 操作按钮 */}
       <div className="flex flex-wrap gap-2">
         <Button onClick={() => router.push('/admin/user/add')}>新增用户</Button>
-        <Button variant="outline" onClick={handleExport}>导出Excel</Button>
+        <Button variant="outline" onClick={() => router.push('/admin/user/qa-management')}>
+          七问管理
+        </Button>
+        <Button variant="outline" onClick={handleExport}>导出CSV</Button>
         <Button variant="outline" onClick={handleCompare} disabled={selectedIds.length === 0}>
           对比选中用户 ({selectedIds.length}/3)
+        </Button>
+        <Button variant="outline" onClick={handleAutoFix}>
+          自动修复
         </Button>
         <Button variant="destructive" onClick={handleBatchDelete} disabled={selectedIds.length === 0}>
           批量删除
