@@ -33,6 +33,66 @@ const poolConfig: PoolConfig = {
 
 // 创建连接池（单例模式，全局共享）
 let pool: Pool | null = null;
+let migrationChecked = false; // 标记是否已检查过迁移
+
+/**
+ * 检查并自动修复表结构
+ * 确保数据库表结构与 Drizzle Schema 一致
+ */
+async function checkAndFixSchema(): Promise<void> {
+  if (migrationChecked || !process.env.DATABASE_URL) {
+    return;
+  }
+
+  try {
+    console.log('[数据库初始化] 检查表结构...');
+
+    // 检查 health_analysis 表是否存在
+    const tablesExist = await pool!.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_name = 'health_analysis'
+      )
+    `);
+
+    if (!tablesExist.rows[0].exists) {
+      console.log('[数据库初始化] health_analysis 表不存在，跳过迁移检查');
+      migrationChecked = true;
+      return;
+    }
+
+    // 检查 id 列类型
+    const columnInfo = await pool!.query(`
+      SELECT data_type, character_maximum_length
+      FROM information_schema.columns
+      WHERE table_name = 'health_analysis' AND column_name = 'id'
+    `);
+
+    if (columnInfo.rows.length === 0) {
+      console.warn('[数据库初始化] health_analysis.id 列不存在，需要手动修复');
+      migrationChecked = true;
+      return;
+    }
+
+    const currentType = columnInfo.rows[0].data_type;
+    const maxLength = columnInfo.rows[0].character_maximum_length;
+
+    // 检查是否需要修复（id 应该是 VARCHAR(36)）
+    const needsFix = currentType !== 'character varying' || maxLength !== 36;
+
+    if (!needsFix) {
+      console.log('[数据库初始化] 表结构检查通过');
+    } else {
+      console.warn('[数据库初始化] 表结构不匹配，请调用 POST /api/migration/fix-health-analysis 手动修复');
+    }
+
+    migrationChecked = true;
+  } catch (error) {
+    console.error('[数据库初始化] 迁移检查失败:', error);
+    // 不抛出错误，允许应用继续启动
+    migrationChecked = true;
+  }
+}
 
 /**
  * 获取数据库连接池
@@ -41,13 +101,18 @@ let pool: Pool | null = null;
 function getPool(): Pool {
   if (!pool) {
     pool = new Pool(poolConfig);
-    
+
     // 监听连接错误
     pool.on('error', (err) => {
       console.error('[数据库连接池错误]', err);
     });
-    
+
     console.log('[数据库] 连接池已创建');
+
+    // 异步检查表结构（不阻塞启动）
+    checkAndFixSchema().catch(err => {
+      console.error('[数据库初始化] 异步检查失败:', err);
+    });
   }
   return pool;
 }

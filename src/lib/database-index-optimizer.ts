@@ -34,9 +34,10 @@ export class DatabaseIndexOptimizer {
       { name: 'idx_symptom_checks_user_id_checked_at', table: 'symptom_checks', columns: ['user_id', 'checked_at'] },
 
       // healthAnalysis 表索引
-      { name: 'idx_health_analysis_user_id', table: 'health_analysis', columns: ['user_id'] },
-      { name: 'idx_health_analysis_analyzed_at', table: 'health_analysis', columns: ['analyzed_at'] },
-      { name: 'idx_health_analysis_user_id_analyzed_at', table: 'health_analysis', columns: ['user_id', 'analyzed_at'] },
+      { name: 'health_analysis_user_id_idx', table: 'health_analysis', columns: ['user_id'] },
+      { name: 'health_analysis_analyzed_at_idx', table: 'health_analysis', columns: ['analyzed_at'] },
+      { name: 'health_analysis_user_id_analyzed_at_idx', table: 'health_analysis', columns: ['user_id', 'analyzed_at'] },
+      { name: 'health_analysis_check_id_idx', table: 'health_analysis', columns: ['check_id'] },
 
       // userChoices 表索引
       { name: 'idx_user_choices_user_id', table: 'user_choices', columns: ['user_id'] },

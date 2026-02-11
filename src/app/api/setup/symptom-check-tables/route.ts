@@ -45,22 +45,25 @@ export async function POST() {
 
     // 创建索引
     await exec_sql(`
-      CREATE INDEX IF NOT EXISTS idx_symptom_checks_user_id ON symptom_checks(user_id)
+      CREATE INDEX IF NOT EXISTS symptom_checks_user_id_idx ON symptom_checks(user_id)
     `);
     await exec_sql(`
-      CREATE INDEX IF NOT EXISTS idx_symptom_checks_user_id_checked_at ON symptom_checks(user_id, checked_at)
+      CREATE INDEX IF NOT EXISTS symptom_checks_user_id_checked_at_idx ON symptom_checks(user_id, checked_at)
     `);
     await exec_sql(`
-      CREATE INDEX IF NOT EXISTS idx_symptom_checks_checked_at ON symptom_checks(checked_at)
+      CREATE INDEX IF NOT EXISTS symptom_checks_checked_at_idx ON symptom_checks(checked_at)
     `);
     await exec_sql(`
-      CREATE INDEX IF NOT EXISTS idx_health_analysis_user_id ON health_analysis(user_id)
+      CREATE INDEX IF NOT EXISTS health_analysis_user_id_idx ON health_analysis(user_id)
     `);
     await exec_sql(`
-      CREATE INDEX IF NOT EXISTS idx_health_analysis_user_id_analyzed_at ON health_analysis(user_id, analyzed_at)
+      CREATE INDEX IF NOT EXISTS health_analysis_user_id_analyzed_at_idx ON health_analysis(user_id, analyzed_at)
     `);
     await exec_sql(`
-      CREATE INDEX IF NOT EXISTS idx_health_analysis_analyzed_at ON health_analysis(analyzed_at)
+      CREATE INDEX IF NOT EXISTS health_analysis_analyzed_at_idx ON health_analysis(analyzed_at)
+    `);
+    await exec_sql(`
+      CREATE INDEX IF NOT EXISTS health_analysis_check_id_idx ON health_analysis(check_id)
     `);
 
     // 创建触发器自动更新 update_time
@@ -92,13 +95,13 @@ export async function POST() {
       data: {
         tables: ['symptom_checks', 'health_analysis'],
         indexes: [
-          'idx_symptom_checks_user_id',
-          'idx_symptom_checks_user_id_checked_at',
-          'idx_symptom_checks_checked_at',
-          'idx_health_analysis_user_id',
-          'idx_health_analysis_user_id_analyzed_at',
-          'idx_health_analysis_analyzed_at',
-          'idx_health_analysis_check_id'
+          'symptom_checks_user_id_idx',
+          'symptom_checks_user_id_checked_at_idx',
+          'symptom_checks_checked_at_idx',
+          'health_analysis_user_id_idx',
+          'health_analysis_user_id_analyzed_at_idx',
+          'health_analysis_analyzed_at_idx',
+          'health_analysis_check_id_idx'
         ],
         triggers: [
           'trigger_update_symptom_checks_update_time'
