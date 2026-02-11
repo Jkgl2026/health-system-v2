@@ -25,42 +25,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // 插入自检数据
-    const result = await exec_sql(`
-      INSERT INTO symptom_check (
-        user_id,
-        selected_symptoms,
-        target_symptoms,
-        total_score,
-        qi_blood_score,
-        circulation_score,
-        toxins_score,
-        blood_lipids_score,
-        coldness_score,
-        immunity_score,
-        emotions_score,
-        check_date
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
-      RETURNING id
-    `, [
-      userId,
-      JSON.stringify(checkedSymptoms.map((id: string) => parseInt(id))),
-      JSON.stringify(targetSymptoms.map((id: string) => parseInt(id))),
-      totalScore || 0,
-      elementScores.气血 || 0,
-      elementScores.循环 || 0,
-      elementScores.毒素 || 0,
-      elementScores.血脂 || 0,
-      elementScores.寒凉 || 0,
-      elementScores.免疫 || 0,
-      elementScores.情绪 || 0,
-    ]);
-
-    const checkId = result[0].id;
-
-    // 生成健康分析报告
-    const analysis = generateHealthAnalysis(elementScores, checkedSymptoms);
-
     // 计算综合健康分数
     const scores = [
       elementScores.气血 || 0,
@@ -81,9 +45,30 @@ export async function POST(request: NextRequest) {
     else if (overallHealth >= 70) healthStatus = '良好';
     else if (overallHealth < 50) healthStatus = '异常';
 
-    // 插入健康分析数据
+    // 插入症状自检数据并获取生成的 UUID
+    const checkResult = await exec_sql(`
+      INSERT INTO symptom_checks (
+        id,
+        user_id,
+        checked_symptoms,
+        total_score,
+        element_scores,
+        checked_at
+      ) VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())
+      RETURNING id
+    `, [
+      userId,
+      JSON.stringify(checkedSymptoms.map((id: string) => parseInt(id))),
+      totalScore || 0,
+      JSON.stringify(elementScores),
+    ]);
+
+    const checkId = checkResult[0].id;
+
+    // 插入健康分析数据，关联到具体的自检记录
     await exec_sql(`
       INSERT INTO health_analysis (
+        id,
         user_id,
         check_id,
         qi_and_blood,
@@ -95,7 +80,7 @@ export async function POST(request: NextRequest) {
         emotions,
         overall_health,
         analyzed_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW())
+      ) VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW())
     `, [
       userId,
       checkId,
@@ -159,31 +144,22 @@ export async function GET(request: NextRequest) {
     const records = await exec_sql(`
       SELECT
         sc.id as check_id,
-        sc.check_date,
-        sc.selected_symptoms,
-        sc.target_symptoms,
+        sc.checked_at,
+        sc.checked_symptoms,
         sc.total_score,
-        sc.qi_blood_score,
-        sc.circulation_score,
-        sc.toxins_score,
-        sc.blood_lipids_score,
-        sc.coldness_score,
-        sc.immunity_score,
-        sc.emotions_score,
-        ha.qi_blood,
+        sc.element_scores,
+        ha.qi_and_blood,
         ha.circulation,
         ha.toxins,
         ha.blood_lipids,
         ha.coldness,
         ha.immunity,
         ha.emotions,
-        ha.overall_health,
-        ha.health_status,
-        ha.analysis_report
-      FROM symptom_check sc
+        ha.overall_health
+      FROM symptom_checks sc
       LEFT JOIN health_analysis ha ON sc.id = ha.check_id
       WHERE sc.user_id = $1
-      ORDER BY sc.check_date DESC
+      ORDER BY sc.checked_at DESC
       LIMIT 20
     `, [userId]);
 

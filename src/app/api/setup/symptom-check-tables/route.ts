@@ -7,33 +7,26 @@ import { exec_sql } from '@/app/lib/db';
  */
 export async function POST() {
   try {
-    // 创建自检数据表
+    // 创建症状自检结果表（与 Drizzle Schema 一致）
     await exec_sql(`
-      CREATE TABLE IF NOT EXISTS symptom_check (
-        id SERIAL PRIMARY KEY,
-        user_id VARCHAR(100) NOT NULL,
-        check_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        selected_symptoms JSONB NOT NULL,
-        target_symptoms JSONB NOT NULL,
-        total_score INTEGER NOT NULL DEFAULT 0,
-        qi_blood_score INTEGER DEFAULT 0,
-        circulation_score INTEGER DEFAULT 0,
-        toxins_score INTEGER DEFAULT 0,
-        blood_lipids_score INTEGER DEFAULT 0,
-        coldness_score INTEGER DEFAULT 0,
-        immunity_score INTEGER DEFAULT 0,
-        emotions_score INTEGER DEFAULT 0,
-        create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+      CREATE TABLE IF NOT EXISTS symptom_checks (
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR(36) NOT NULL,
+        checked_symptoms JSONB NOT NULL,
+        total_score INTEGER,
+        element_scores JSONB,
+        checked_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        CONSTRAINT fk_symptom_checks_user_id FOREIGN KEY (user_id)
+          REFERENCES users(id) ON DELETE CASCADE
       )
     `);
 
-    // 创建健康分析表（先不创建外键约束）
+    // 创建健康分析表（与 Drizzle Schema 一致）
     await exec_sql(`
       CREATE TABLE IF NOT EXISTS health_analysis (
         id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
         user_id VARCHAR(36) NOT NULL,
-        check_id INTEGER NOT NULL,
+        check_id VARCHAR(36),
         qi_and_blood INTEGER,
         circulation INTEGER,
         toxins INTEGER,
@@ -42,22 +35,32 @@ export async function POST() {
         immunity INTEGER,
         emotions INTEGER,
         overall_health INTEGER,
-        analyzed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+        analyzed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+        CONSTRAINT fk_health_analysis_user_id FOREIGN KEY (user_id)
+          REFERENCES users(id) ON DELETE CASCADE,
+        CONSTRAINT fk_health_analysis_check_id FOREIGN KEY (check_id)
+          REFERENCES symptom_checks(id) ON DELETE CASCADE
       )
     `);
 
     // 创建索引
     await exec_sql(`
-      CREATE INDEX IF NOT EXISTS idx_symptom_check_user_id ON symptom_check(user_id)
+      CREATE INDEX IF NOT EXISTS idx_symptom_checks_user_id ON symptom_checks(user_id)
     `);
     await exec_sql(`
-      CREATE INDEX IF NOT EXISTS idx_symptom_check_date ON symptom_check(check_date)
+      CREATE INDEX IF NOT EXISTS idx_symptom_checks_user_id_checked_at ON symptom_checks(user_id, checked_at)
+    `);
+    await exec_sql(`
+      CREATE INDEX IF NOT EXISTS idx_symptom_checks_checked_at ON symptom_checks(checked_at)
     `);
     await exec_sql(`
       CREATE INDEX IF NOT EXISTS idx_health_analysis_user_id ON health_analysis(user_id)
     `);
     await exec_sql(`
-      CREATE INDEX IF NOT EXISTS idx_health_analysis_check_id ON health_analysis(check_id)
+      CREATE INDEX IF NOT EXISTS idx_health_analysis_user_id_analyzed_at ON health_analysis(user_id, analyzed_at)
+    `);
+    await exec_sql(`
+      CREATE INDEX IF NOT EXISTS idx_health_analysis_analyzed_at ON health_analysis(analyzed_at)
     `);
 
     // 创建触发器自动更新 update_time
@@ -72,11 +75,11 @@ export async function POST() {
     `);
 
     await exec_sql(`
-      DROP TRIGGER IF EXISTS trigger_update_symptom_check_update_time ON symptom_check
+      DROP TRIGGER IF EXISTS trigger_update_symptom_checks_update_time ON symptom_checks
     `);
     await exec_sql(`
-      CREATE TRIGGER trigger_update_symptom_check_update_time
-      BEFORE UPDATE ON symptom_check
+      CREATE TRIGGER trigger_update_symptom_checks_update_time
+      BEFORE UPDATE ON symptom_checks
       FOR EACH ROW
       EXECUTE FUNCTION update_update_time()
     `);
@@ -87,15 +90,18 @@ export async function POST() {
       code: 200,
       msg: '自检数据表创建成功',
       data: {
-        tables: ['symptom_check', 'health_analysis'],
+        tables: ['symptom_checks', 'health_analysis'],
         indexes: [
-          'idx_symptom_check_user_id',
-          'idx_symptom_check_date',
+          'idx_symptom_checks_user_id',
+          'idx_symptom_checks_user_id_checked_at',
+          'idx_symptom_checks_checked_at',
           'idx_health_analysis_user_id',
+          'idx_health_analysis_user_id_analyzed_at',
+          'idx_health_analysis_analyzed_at',
           'idx_health_analysis_check_id'
         ],
         triggers: [
-          'trigger_update_symptom_check_update_time'
+          'trigger_update_symptom_checks_update_time'
         ]
       }
     });

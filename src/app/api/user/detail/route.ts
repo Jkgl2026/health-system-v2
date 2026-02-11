@@ -77,17 +77,10 @@ export async function GET(request: NextRequest) {
       const checkRecords = await exec_sql(
         `SELECT
           sc.id as check_id,
-          sc.check_date,
-          sc.selected_symptoms,
-          sc.target_symptoms,
+          sc.checked_at,
+          sc.checked_symptoms,
           sc.total_score,
-          sc.qi_blood_score,
-          sc.circulation_score,
-          sc.toxins_score,
-          sc.blood_lipids_score,
-          sc.coldness_score,
-          sc.immunity_score,
-          sc.emotions_score,
+          sc.element_scores,
           ha.qi_and_blood,
           ha.circulation,
           ha.toxins,
@@ -96,10 +89,10 @@ export async function GET(request: NextRequest) {
           ha.immunity,
           ha.emotions,
           ha.overall_health
-        FROM symptom_check sc
+        FROM symptom_checks sc
         LEFT JOIN health_analysis ha ON sc.id = ha.check_id
         WHERE sc.user_id = $1
-        ORDER BY sc.check_date DESC
+        ORDER BY sc.checked_at DESC
         LIMIT 20`,
         [userId]
       );
