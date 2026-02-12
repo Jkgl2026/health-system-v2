@@ -14,8 +14,8 @@ export function middleware(request: NextRequest) {
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
 
-  // 获取token
-  const token = request.cookies.get('adminToken')?.value;
+  // 获取token（使用admin_access_token）
+  const token = request.cookies.get('admin_access_token')?.value;
 
   // 如果是受保护的路由且没有token，重定向到登录页
   if (isProtectedRoute && !isPublicRoute && !token) {
