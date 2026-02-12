@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshCw } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
+import { getSymptomName, getSymptomCategoryName } from '@/lib/symptomMap';
 
 interface UserDetail {
   user_id: number;
@@ -813,19 +814,67 @@ function UserDetailContent() {
 
             {/* 健康状况分析 */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">健康状况分析</h3>
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <FileText className="w-5 h-5 text-purple-600" />
+                健康分析方案
+              </h3>
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-5 rounded-lg border border-purple-100">
                 {user.analysis ? (
-                  <div className="prose prose-sm max-w-none">
-                    <p className="whitespace-pre-wrap text-gray-700 leading-relaxed">
-                      {user.analysis}
-                    </p>
-                  </div>
+                  <>
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <FileText className="w-5 h-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-800">健康分析报告</p>
+                        <p className="text-xs text-gray-500">
+                          {user.self_check_time ?
+                            new Date(user.self_check_time).toLocaleDateString('zh-CN') :
+                            '生成日期未知'
+                          }
+                        </p>
+                      </div>
+                      {user.health_score && (
+                        <span className={`ml-auto px-3 py-1 rounded-full text-sm font-medium ${
+                          user.health_score >= 80 ? 'bg-green-100 text-green-700' :
+                          user.health_score >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          得分: {user.health_score}
+                        </span>
+                      )}
+                    </div>
+                    <div className="bg-white p-4 rounded-lg">
+                      <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                        {user.analysis}
+                      </p>
+                    </div>
+                    {parsedSymptoms && parsedSymptoms.length > 0 && (
+                      <div className="mt-4 pt-4 border-t border-purple-200">
+                        <p className="text-xs font-medium text-gray-600 mb-2">关注症状：</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {parsedSymptoms.slice(0, 10).map((symptom: string, idx: number) => (
+                            <span
+                              key={idx}
+                              className="px-2 py-0.5 bg-red-50 text-red-600 rounded text-xs"
+                            >
+                              {symptom}
+                            </span>
+                          ))}
+                          {parsedSymptoms.length > 10 && (
+                            <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-xs">
+                              +{parsedSymptoms.length - 10}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
                     <FileText className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-                    <p>暂无健康分析报告</p>
-                    <p className="text-sm mt-1">请完成健康自检后生成分析报告</p>
+                    <p>暂无健康分析方案</p>
+                    <p className="text-sm mt-1">请完成健康自检后生成分析方案</p>
                   </div>
                 )}
               </div>
@@ -1003,8 +1052,47 @@ function UserDetailContent() {
                     </span>
                   </div>
 
+                  {/* 选中的症状列表 */}
+                  {record.selected_symptoms && record.selected_symptoms.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">选中的症状：</p>
+                      <div className="flex flex-wrap gap-2">
+                        {record.selected_symptoms.map((symptomId) => (
+                          <span
+                            key={symptomId}
+                            className="px-2 py-1 bg-red-50 text-red-700 rounded text-xs border border-red-200"
+                            title={`${getSymptomCategoryName(symptomId)} - 症状ID: ${symptomId}`}
+                          >
+                            {getSymptomName(symptomId)}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">
+                        共 {record.selected_symptoms.length} 项症状
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 目标改善症状 */}
+                  {record.target_symptoms && record.target_symptoms.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-sm font-semibold text-gray-700 mb-2">目标改善症状：</p>
+                      <div className="flex flex-wrap gap-2">
+                        {record.target_symptoms.map((symptomId) => (
+                          <span
+                            key={symptomId}
+                            className="px-2 py-1 bg-orange-50 text-orange-700 rounded text-xs border border-orange-200"
+                            title={`${getSymptomCategoryName(symptomId)} - 症状ID: ${symptomId}`}
+                          >
+                            {getSymptomName(symptomId)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* 各维度得分 */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-3">
                     <div className="bg-gray-50 p-2 rounded">
                       <p className="text-xs text-gray-500">气血</p>
                       <p className="font-semibold">{record.qi_blood_score}分</p>
