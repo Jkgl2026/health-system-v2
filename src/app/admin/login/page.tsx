@@ -20,7 +20,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('/api/login', {
+      const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -30,19 +30,16 @@ export default function LoginPage() {
 
       const data = await response.json();
 
-      if (data.code === 200) {
-        // 保存token到localStorage和cookie
-        localStorage.setItem('adminToken', data.data.token);
-        localStorage.setItem('adminId', data.data.adminId);
-        localStorage.setItem('username', data.data.username);
-        
-        // 设置cookie供middleware使用
-        document.cookie = `adminToken=${data.data.token}; path=/; max-age=86400`;
+      if (data.success) {
+        // 保存token到localStorage
+        localStorage.setItem('adminToken', data.token.accessToken);
+        localStorage.setItem('adminId', data.admin.id);
+        localStorage.setItem('username', data.admin.username);
 
         // 跳转到首页
         router.push('/admin/dashboard');
       } else {
-        setError(data.msg || '登录失败');
+        setError(data.error || '登录失败');
       }
     } catch (err) {
       setError('网络错误，请重试');

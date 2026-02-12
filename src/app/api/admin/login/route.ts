@@ -57,8 +57,22 @@ export async function POST(request: NextRequest) {
       admin: tokenResponse.admin,
     });
 
-    // 设置认证cookie
-    await SessionManager.setAuthCookies(response, tokenResponse);
+    // 设置认证cookie（直接使用NextResponse的cookie方法）
+    response.cookies.set('admin_access_token', tokenResponse.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 24 * 60 * 60, // 24小时
+      path: '/',
+    });
+
+    response.cookies.set('admin_refresh_token', tokenResponse.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7天
+      path: '/',
+    });
 
     console.log('[AdminLogin] 登录成功:', admin.username, 'IP:', ip);
 
