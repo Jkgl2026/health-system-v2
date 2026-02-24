@@ -1,0 +1,322 @@
+// 用户管理页样式
+.user-management-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+  padding: 32rpx 24rpx;
+
+  // 内容滚动区域
+  .content-scroll {
+    height: calc(100vh - 64rpx);
+    padding-bottom: 40rpx;
+  }
+
+  // 顶部操作栏
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32rpx;
+
+    .back-btn {
+      width: 64rpx;
+      height: 64rpx;
+      border-radius: 32rpx;
+      background: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(10rpx);
+
+      .back-arrow {
+        font-size: 32rpx;
+        color: #ffffff;
+      }
+    }
+
+    .page-title {
+      font-size: 40rpx;
+      color: #ffffff;
+      font-weight: 600;
+      flex: 1;
+      text-align: center;
+      margin-left: -64rpx; // 抵消返回按钮的宽度，保持标题居中
+    }
+
+    .export-all-btn {
+      padding: 12rpx 24rpx;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 48rpx;
+      backdrop-filter: blur(10rpx);
+
+      .export-text {
+        font-size: 26rpx;
+        color: #ffffff;
+      }
+    }
+  }
+
+  // 搜索栏
+  .search-bar {
+    margin-bottom: 32rpx;
+
+    .search-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: #ffffff;
+      border-radius: 48rpx;
+      padding: 20rpx 32rpx;
+      box-shadow: 0 4rpx 16rpx rgba(124, 58, 237, 0.1);
+
+      .search-icon {
+        font-size: 32rpx;
+        margin-right: 16rpx;
+      }
+
+      .search-input {
+        flex: 1;
+        font-size: 28rpx;
+        color: #1f2937;
+      }
+
+      .search-placeholder {
+        color: #d1d5db;
+      }
+
+      .clear-btn {
+        width: 40rpx;
+        height: 40rpx;
+        border-radius: 20rpx;
+        background: #e5e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .clear-icon {
+          font-size: 24rpx;
+          color: #9ca3af;
+        }
+      }
+    }
+  }
+
+  // 用户列表
+  .user-list {
+    background: #ffffff;
+    border-radius: 24rpx;
+    padding: 24rpx;
+    min-height: 400rpx;
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 20rpx;
+      padding: 24rpx;
+      border-bottom: 2rpx solid #f3f4f6;
+      transition: background-color 0.2s;
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &:active {
+        background: #faf5ff;
+      }
+
+      .user-avatar {
+        width: 80rpx;
+        height: 80rpx;
+        border-radius: 40rpx;
+        border: 2rpx solid #e9d5ff;
+      }
+
+      .user-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8rpx;
+
+        .user-name {
+          font-size: 30rpx;
+          color: #1f2937;
+          font-weight: 600;
+        }
+
+        .user-meta {
+          display: flex;
+          align-items: center;
+          gap: 8rpx;
+
+          .meta-item {
+            font-size: 24rpx;
+            color: #9ca3af;
+          }
+        }
+      }
+
+      .user-level-badge {
+        padding: 8rpx 16rpx;
+        border-radius: 48rpx;
+        font-size: 24rpx;
+        color: #ffffff;
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+    }
+
+    // 加载状态
+    .loading-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 80rpx 40rpx;
+
+      .loading-text {
+        font-size: 28rpx;
+        color: #9ca3af;
+      }
+    }
+
+    // 空状态
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 120rpx 40rpx;
+
+      .empty-icon {
+        font-size: 120rpx;
+        margin-bottom: 16rpx;
+        opacity: 0.5;
+      }
+
+      .empty-text {
+        font-size: 28rpx;
+        color: #9ca3af;
+      }
+    }
+  }
+
+  // 详情弹窗
+  .detail-modal {
+    padding: 24rpx;
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 20rpx;
+      padding: 24rpx 0;
+      border-bottom: 2rpx solid #f3f4f6;
+      margin-bottom: 24rpx;
+
+      .detail-avatar {
+        width: 100rpx;
+        height: 100rpx;
+        border-radius: 50rpx;
+        border: 3rpx solid #e9d5ff;
+      }
+
+      .detail-user-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8rpx;
+
+        .detail-name {
+          font-size: 32rpx;
+          color: #1f2937;
+          font-weight: 600;
+        }
+
+        .detail-meta {
+          font-size: 24rpx;
+          color: #9ca3af;
+        }
+      }
+    }
+
+    .detail-stats {
+      display: flex;
+      gap: 24rpx;
+      margin-bottom: 32rpx;
+
+      .detail-stat-item {
+        flex: 1;
+        background: #faf5ff;
+        border-radius: 16rpx;
+        padding: 24rpx;
+        text-align: center;
+        border: 2rpx solid #e9d5ff;
+
+        .detail-stat-value {
+          display: block;
+          font-size: 48rpx;
+          color: #7c3aed;
+          font-weight: bold;
+          margin-bottom: 8rpx;
+        }
+
+        .detail-stat-label {
+          display: block;
+          font-size: 24rpx;
+          color: #9ca3af;
+        }
+      }
+    }
+
+    .detail-records {
+      max-height: 600rpx;
+      overflow-y: auto;
+
+      .detail-records-title {
+        display: block;
+        font-size: 28rpx;
+        color: #1f2937;
+        font-weight: 600;
+        margin-bottom: 16rpx;
+      }
+
+      .detail-record-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20rpx;
+        background: #faf5ff;
+        border-radius: 12rpx;
+        margin-bottom: 12rpx;
+
+        .record-left {
+          display: flex;
+          flex-direction: column;
+          gap: 8rpx;
+
+          .record-score {
+            font-size: 36rpx;
+            font-weight: bold;
+          }
+
+          .record-date {
+            font-size: 24rpx;
+            color: #9ca3af;
+          }
+        }
+
+        .record-level-badge {
+          padding: 6rpx 12rpx;
+          border-radius: 48rpx;
+          font-size: 24rpx;
+          color: #ffffff;
+          font-weight: 600;
+        }
+      }
+
+      .detail-records-empty {
+        display: block;
+        text-align: center;
+        padding: 60rpx 0;
+        font-size: 28rpx;
+        color: #9ca3af;
+      }
+    }
+  }
+}

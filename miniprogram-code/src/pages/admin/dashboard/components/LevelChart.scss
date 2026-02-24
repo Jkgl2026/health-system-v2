@@ -1,0 +1,13 @@
+.level-chart {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(124, 58, 237, 0.08);
+
+  canvas {
+    display: block;
+    margin: 0 auto;
+  }
+}

@@ -1,0 +1,221 @@
+// 我的页面样式
+.my-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+  padding: 32rpx 24rpx;
+
+  // 内容滚动区域
+  .content-scroll {
+    height: calc(100vh - 64rpx);
+    padding-bottom: 40rpx;
+  }
+
+  // 用户信息卡片
+  .user-card {
+    background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+    border-radius: 32rpx;
+    padding: 48rpx 32rpx;
+    margin-bottom: 32rpx;
+    box-shadow: 0 8rpx 32rpx rgba(124, 58, 237, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    .user-avatar {
+      width: 120rpx;
+      height: 120rpx;
+      border-radius: 60rpx;
+      border: 4rpx solid #e9d5ff;
+    }
+
+    .user-info {
+      flex: 1;
+      margin-left: 24rpx;
+      display: flex;
+      flex-direction: column;
+      gap: 12rpx;
+
+      .user-name {
+        font-size: 36rpx;
+        color: #1f2937;
+        font-weight: 600;
+      }
+
+      .user-meta {
+        font-size: 26rpx;
+        color: #9ca3af;
+      }
+    }
+
+    .logout-btn {
+      width: 64rpx;
+      height: 64rpx;
+      border-radius: 32rpx;
+      background: #faf5ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .logout-icon {
+        font-size: 32rpx;
+      }
+    }
+
+    // 登录提示
+    .login-prompt {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24rpx;
+
+      .login-icon {
+        font-size: 80rpx;
+      }
+
+      .login-text {
+        font-size: 28rpx;
+        color: #6b7280;
+      }
+
+      .login-btn {
+        background: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
+        color: #ffffff;
+        border-radius: 48rpx;
+        padding: 20rpx 64rpx;
+        font-size: 32rpx;
+        font-weight: 600;
+        border: none;
+
+        &::after {
+          border: none;
+        }
+      }
+    }
+  }
+
+  // 统计数据区域
+  .stats-section {
+    background: #ffffff;
+    border-radius: 24rpx;
+    padding: 32rpx;
+    margin-bottom: 32rpx;
+    display: flex;
+    gap: 24rpx;
+
+    .stat-item {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 16rpx;
+      padding: 24rpx;
+      background: #faf5ff;
+      border-radius: 20rpx;
+      border: 2rpx solid #e9d5ff;
+
+      .stat-icon {
+        font-size: 48rpx;
+      }
+
+      .stat-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8rpx;
+
+        .stat-value {
+          font-size: 48rpx;
+          color: #7c3aed;
+          font-weight: bold;
+        }
+
+        .stat-label {
+          font-size: 24rpx;
+          color: #9ca3af;
+        }
+      }
+    }
+  }
+
+  // 菜单区块
+  .menu-section {
+    margin-bottom: 32rpx;
+
+    .menu-title {
+      margin-bottom: 16rpx;
+
+      .title-text {
+        font-size: 28rpx;
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+      }
+    }
+
+    .menu-list {
+      background: #ffffff;
+      border-radius: 24rpx;
+      overflow: hidden;
+
+      .menu-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 32rpx;
+        border-bottom: 2rpx solid #f3f4f6;
+        transition: background-color 0.2s;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &:active {
+          background: #faf5ff;
+        }
+
+        &.danger {
+          .menu-item-left {
+            .menu-text {
+              color: #f5222d;
+            }
+          }
+        }
+
+        .menu-item-left {
+          display: flex;
+          align-items: center;
+          gap: 16rpx;
+
+          .menu-icon {
+            font-size: 40rpx;
+          }
+
+          .menu-text {
+            font-size: 30rpx;
+            color: #1f2937;
+          }
+        }
+
+        .menu-arrow {
+          font-size: 40rpx;
+          color: #d1d5db;
+        }
+      }
+    }
+  }
+
+  // 底部信息
+  .footer-info {
+    text-align: center;
+    padding: 40rpx 0;
+
+    .footer-text {
+      display: block;
+      font-size: 24rpx;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 8rpx;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}

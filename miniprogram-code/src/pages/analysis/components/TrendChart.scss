@@ -1,0 +1,32 @@
+.trend-chart {
+  width: 100%;
+  background: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 32rpx;
+  box-shadow: 0 4rpx 16rpx rgba(124, 58, 237, 0.08);
+
+  canvas {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80rpx 40rpx;
+
+    .empty-text {
+      font-size: 28rpx;
+      color: #9ca3af;
+      margin-bottom: 12rpx;
+    }
+
+    .empty-hint {
+      font-size: 24rpx;
+      color: #d1d5db;
+    }
+  }
+}
