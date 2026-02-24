@@ -31,6 +31,7 @@ async function importCourses() {
       const uniqueSymptoms = [...new Set(relatedSymptoms)];
 
       await db.insert(courses).values({
+        id: course.id,
         title: course.title,
         content: course.content,
         duration: course.duration,
@@ -42,6 +43,8 @@ async function importCourses() {
         isHidden: course.isHidden ?? true,
         courseNumber: course.courseNumber,
         season: course.season,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
 
       importedCount++;

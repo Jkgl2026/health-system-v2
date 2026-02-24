@@ -1,7 +1,4 @@
 // API 客户端工具函数
-// 为了支持 Cloudflare Pages 静态导出，使用客户端数据管理器替代 API 调用
-
-import { clientDataManager } from './client-data-manager';
 
 const API_BASE = '/api';
 
@@ -12,7 +9,7 @@ export async function createUser(userData: {
   name?: string | null;
   phone?: string | null;
   email?: string | null;
-  age?: string | null;
+  age?: number | null;
   gender?: string | null;
   weight?: string | null;
   height?: string | null;
@@ -22,74 +19,16 @@ export async function createUser(userData: {
   bmi?: string | null;
 }) {
   try {
-    // 1. 保存到客户端数据管理器
-    const user = clientDataManager.saveUserData({
-      name: userData.name ?? null,
-      phone: userData.phone ?? null,
-      email: userData.email ?? null,
-      age: userData.age ? parseInt(userData.age) : null,
-      gender: userData.gender ?? null,
-      weight: userData.weight ?? null,
-      height: userData.height ?? null,
-      bloodPressure: userData.bloodPressure ?? null,
-      occupation: userData.occupation ?? null,
-      address: userData.address ?? null,
-      bmi: userData.bmi ?? null,
+    const response = await fetch(`${API_BASE}/user`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
     });
-
-    // 2. 同时保存到服务器数据库
-    try {
-      // 解析血压值（格式：高压/低压）
-      let bloodPressureHigh = null;
-      let bloodPressureLow = null;
-      if (userData.bloodPressure) {
-        const bpParts = userData.bloodPressure.split('/');
-        if (bpParts.length === 2) {
-          bloodPressureHigh = bpParts[0].trim();
-          bloodPressureLow = bpParts[1].trim();
-        }
-      }
-
-      const response = await fetch('/api/user/add', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: userData.name,
-          phone: userData.phone,
-          email: userData.email,
-          age: userData.age ? parseInt(userData.age) : null,
-          gender: userData.gender,
-          weight: userData.weight ? parseFloat(userData.weight) : null,
-          height: userData.height ? parseInt(userData.height) : null,
-          blood_pressure_high: bloodPressureHigh,
-          blood_pressure_low: bloodPressureLow,
-          occupation: userData.occupation,
-          address: userData.address,
-          bmi: userData.bmi ? parseFloat(userData.bmi) : null,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.code !== 200) {
-        console.error('保存用户到数据库失败:', result.msg);
-        // 抛出错误，让前端知道数据库保存失败
-        throw new Error(`保存到数据库失败: ${result.msg}`);
-      }
-      console.log('[数据库] 用户数据保存成功:', result.data);
-    } catch (dbError) {
-      console.error('保存用户到数据库异常:', dbError);
-      // 抛出错误，让前端知道数据库保存失败
-      throw new Error(`保存到数据库失败: ${dbError instanceof Error ? dbError.message : '未知错误'}`);
-    }
-
-    return { success: true, user };
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Error - createUser:', error);
-    const errorMessage = error instanceof Error ? error.message : '未知错误';
-    return { success: false, error: errorMessage, user: null };
+    console.error('API Error - createUser:', error);
+    throw error;
   }
 }
 
@@ -98,28 +37,16 @@ export async function createUser(userData: {
  */
 export async function getUser(userId?: string, phone?: string) {
   try {
-    // 使用客户端数据管理器
-    const user = clientDataManager.getUserData();
+    const params = new URLSearchParams();
+    if (userId) params.append('userId', userId);
+    if (phone) params.append('phone', phone);
 
-    if (!user) {
-      return { success: false, error: '用户不存在', user: null };
-    }
-
-    // 如果提供了 userId，检查是否匹配
-    if (userId && user.id !== userId) {
-      return { success: false, error: '用户不存在', user: null };
-    }
-
-    // 如果提供了 phone，检查是否匹配
-    if (phone && user.phone !== phone) {
-      return { success: false, error: '用户不存在', user: null };
-    }
-
-    return { success: true, user };
+    const response = await fetch(`${API_BASE}/user?${params.toString()}`);
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Error - getUser:', error);
-    const errorMessage = error instanceof Error ? error.message : '未知错误';
-    return { success: false, error: errorMessage, user: null };
+    console.error('API Error - getUser:', error);
+    throw error;
   }
 }
 
@@ -130,7 +57,7 @@ export async function updateUser(userId: string, userData: {
   name?: string | null;
   phone?: string | null;
   email?: string | null;
-  age?: string | null;
+  age?: number | null;
   gender?: string | null;
   weight?: string | null;
   height?: string | null;
@@ -140,32 +67,16 @@ export async function updateUser(userId: string, userData: {
   bmi?: string | null;
 }) {
   try {
-    // 使用客户端数据管理器
-    const existingUser = clientDataManager.getUserData();
-
-    if (!existingUser || existingUser.id !== userId) {
-      return { success: false, error: '用户不存在', user: null };
-    }
-
-    const updatedUser = clientDataManager.saveUserData({
-      name: userData.name ?? null,
-      phone: userData.phone ?? null,
-      email: userData.email ?? null,
-      age: userData.age ? parseInt(userData.age) : null,
-      gender: userData.gender ?? null,
-      weight: userData.weight ?? null,
-      height: userData.height ?? null,
-      bloodPressure: userData.bloodPressure ?? null,
-      occupation: userData.occupation ?? null,
-      address: userData.address ?? null,
-      bmi: userData.bmi ?? null,
+    const response = await fetch(`${API_BASE}/user?userId=${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData),
     });
-
-    return { success: true, user: updatedUser };
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Error - updateUser:', error);
-    const errorMessage = error instanceof Error ? error.message : '未知错误';
-    return { success: false, error: errorMessage, user: null };
+    console.error('API Error - updateUser:', error);
+    throw error;
   }
 }
 
@@ -177,41 +88,17 @@ export async function saveSymptomCheck(data: {
   checkedSymptoms: string[];
   totalScore?: number | null;
   elementScores?: Record<string, number> | null;
-  targetSymptoms?: number[];
 }) {
   try {
-    // 同时保存到客户端数据管理器（localStorage）和服务器数据库
-    // 1. 保存到客户端
-    const symptomCheck = clientDataManager.saveSymptomCheck(
-      data.userId,
-      data.checkedSymptoms.map(id => parseInt(id))
-    );
-
-    // 2. 保存到服务器数据库
-    const response = await fetch('/api/symptom-check', {
+    const response = await fetch(`${API_BASE}/symptom-check`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId: data.userId,
-        checkedSymptoms: data.checkedSymptoms,
-        targetSymptoms: data.targetSymptoms || [],
-        totalScore: data.totalScore || data.checkedSymptoms.length,
-        elementScores: data.elementScores || {},
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
     });
-
     const result = await response.json();
-
-    if (result.code !== 200) {
-      console.error('保存到服务器失败:', result.msg);
-      // 不抛出错误，因为客户端已保存成功
-    }
-
-    return { success: true, symptomCheck, serverResult: result };
+    return result;
   } catch (error) {
-    console.error('Error - saveSymptomCheck:', error);
+    console.error('API Error - saveSymptomCheck:', error);
     throw error;
   }
 }
@@ -231,32 +118,15 @@ export async function saveHealthAnalysis(data: {
   overallHealth?: number | null;
 }) {
   try {
-    // 使用客户端数据管理器
-    // 计算健康评分（取所有指标的平均值）
-    const scores = [
-      data.qiAndBlood,
-      data.circulation,
-      data.toxins,
-      data.bloodLipids,
-      data.coldness,
-      data.immunity,
-      data.emotions,
-      data.overallHealth,
-    ].filter((s): s is number => s !== null && s !== undefined);
-
-    const averageScore = scores.length > 0
-      ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length)
-      : 0;
-
-    const healthAnalysis = clientDataManager.saveHealthAnalysis(
-      data.userId,
-      [], // 症状列表暂时为空
-      averageScore
-    );
-
-    return { success: true, healthAnalysis };
+    const response = await fetch(`${API_BASE}/health-analysis`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+    return result;
   } catch (error) {
-    console.error('Error - saveHealthAnalysis:', error);
+    console.error('API Error - saveHealthAnalysis:', error);
     throw error;
   }
 }
@@ -270,12 +140,15 @@ export async function saveUserChoice(data: {
   planDescription?: string | null;
 }) {
   try {
-    // 使用客户端数据管理器
-    const userChoice = clientDataManager.saveUserChoice(data.userId, data.planType);
-
-    return { success: true, userChoice };
+    const response = await fetch(`${API_BASE}/user-choice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+    return result;
   } catch (error) {
-    console.error('Error - saveUserChoice:', error);
+    console.error('API Error - saveUserChoice:', error);
     throw error;
   }
 }
@@ -295,19 +168,16 @@ export async function saveRequirements(data: {
   symptoms300Checklist?: number[] | null;
 }) {
   try {
-    // 使用客户端数据管理器
-    // 将所有需求数据合并保存
-    const requirements = clientDataManager.saveRequirements(
-      data.userId,
-      'bodySymptoms',
-      data.badHabitsChecklist || []
-    );
-
-    return { success: true, requirements };
+    const response = await fetch(`${API_BASE}/requirements`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await response.json();
+    return result;
   } catch (error) {
-    console.error('Error - saveRequirements:', error);
-    const errorMessage = error instanceof Error ? error.message : '未知错误';
-    return { success: false, error: errorMessage };
+    console.error('API Error - saveRequirements:', error);
+    throw error;
   }
 }
 
@@ -316,17 +186,11 @@ export async function saveRequirements(data: {
  */
 export async function getRequirements(userId: string) {
   try {
-    // 使用客户端数据管理器
-    const requirements = clientDataManager.getRequirements(userId);
-
-    if (!requirements) {
-      return { success: false, error: '未找到数据', requirements: null };
-    }
-
-    return { success: true, requirements };
+    const response = await fetch(`${API_BASE}/requirements?userId=${userId}`);
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error('Error - getRequirements:', error);
-    const errorMessage = error instanceof Error ? error.message : '未知错误';
-    return { success: false, error: errorMessage, requirements: null };
+    console.error('API Error - getRequirements:', error);
+    throw error;
   }
 }

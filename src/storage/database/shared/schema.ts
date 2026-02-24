@@ -81,8 +81,6 @@ export const healthAnalysis = pgTable(
     userId: varchar("user_id", { length: 36 })
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    checkId: varchar("check_id", { length: 36 })
-      .references(() => symptomChecks.id, { onDelete: "cascade" }), // 关联到具体的自检记录
     qiAndBlood: integer("qi_and_blood"), // 气血
     circulation: integer("circulation"), // 循环
     toxins: integer("toxins"), // 毒素
@@ -99,7 +97,6 @@ export const healthAnalysis = pgTable(
     userIdIdx: index("health_analysis_user_id_idx").on(table.userId),
     userIdAnalyzedAtIdx: index("health_analysis_user_id_analyzed_at_idx").on(table.userId, table.analyzedAt),
     analyzedAtIdx: index("health_analysis_analyzed_at_idx").on(table.analyzedAt),
-    checkIdIdx: index("health_analysis_check_id_idx").on(table.checkId),
   })
 );
 

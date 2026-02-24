@@ -227,7 +227,19 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 正确访问地址提示 - 已移除 */}
+      {/* 正确访问地址提示 */}
+      <div className="bg-blue-50 border-b border-blue-200">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-center gap-2 text-sm text-blue-800">
+            <svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+            </svg>
+            <span className="font-medium">正确访问地址：</span>
+            <code className="bg-white px-2 py-1 rounded text-xs font-mono">cd776816-213e-4c84-af60-dbe5b397d82e.dev.coze.site</code>
+            <span className="text-blue-600">（无需登录，可直接访问）</span>
+          </div>
+        </div>
+      </div>
 
       {/* 健康数据概览卡片（如果有数据） - 仅在有数据且在第一页时显示 */}
       {hasHealthData && healthData && currentPage === 1 && (
@@ -275,65 +287,23 @@ export default function Home() {
                 </div>
                 <Button
                   size="lg"
-                  onClick={() => router.push('/health-detail')}
+                  onClick={() => router.push('/my-solution')}
                   className="bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all group"
                 >
-                  <Activity className="w-5 h-5 mr-2" />
-                  健康详细数据
+                  <Eye className="w-5 h-5 mr-2" />
+                  查看完整方案
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="p-6">
               <div className="grid grid-cols-2 md:grid-cols-2 gap-3 md:gap-5">
-                {/* 综合健康评分 - 新格式 */}
-                <div className="md:col-span-2">
-                  <div
-                    className={`p-5 md:p-6 rounded-lg text-white ${
-                      healthData.healthScore >= 80
-                        ? 'bg-gradient-to-br from-green-500 to-emerald-600'
-                        : healthData.healthScore >= 60
-                        ? 'bg-gradient-to-br from-yellow-500 to-orange-600'
-                        : 'bg-gradient-to-br from-red-500 to-rose-600'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Activity className="w-5 h-5 opacity-80" />
-                          <span className="text-sm font-medium opacity-90">综合健康评分</span>
-                          <span className="px-2 py-0.5 bg-white/20 rounded-full text-xs font-medium">
-                            {healthData.healthScore >= 80 ? '优秀' : healthData.healthScore >= 60 ? '良好' : '需关注'}
-                          </span>
-                        </div>
-                        <div className="flex items-baseline gap-3 mb-2">
-                          <div className="text-5xl md:text-6xl font-bold">{healthData.healthScore}</div>
-                          <div className="text-sm opacity-80">分</div>
-                        </div>
-                        <div className="text-xs opacity-80">
-                          满分100分 | 总扣分：{(100 - healthData.healthScore).toFixed(1)}分 | 剩余：{healthData.healthScore.toFixed(1)}分
-                        </div>
-                      </div>
-                      <div className="w-20 h-20 relative flex-shrink-0">
-                        <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center">
-                          <div className="text-2xl font-bold">{healthData.healthScore}%</div>
-                        </div>
-                        <svg className="absolute top-0 left-0 w-20 h-20 -rotate-90" viewBox="0 0 80 80">
-                          <circle cx="40" cy="40" r="35" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="4" />
-                          <circle
-                            cx="40"
-                            cy="40"
-                            r="35"
-                            fill="none"
-                            stroke="white"
-                            strokeWidth="4"
-                            strokeLinecap="round"
-                            strokeDasharray={`${2 * Math.PI * 35}`}
-                            strokeDashoffset={`${2 * Math.PI * 35 * (1 - healthData.healthScore / 100)}`}
-                          />
-                        </svg>
-                      </div>
-                    </div>
+                <div className="md:col-span-2 p-5 md:p-6 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white text-center">
+                  <div className="text-sm font-medium mb-2 opacity-90">健康评分</div>
+                  <div className="text-5xl md:text-6xl font-bold mb-1">{healthData.healthScore}</div>
+                  <div className="text-sm opacity-80">分（满分100）</div>
+                  <div className="mt-3 text-xs opacity-70">
+                    综合身体语言简表、不良生活习惯表、300症状表计算
                   </div>
                 </div>
 

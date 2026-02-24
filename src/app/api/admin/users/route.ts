@@ -2,9 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { healthDataManager } from '@/storage/database';
 import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
 
-// 强制动态渲染，因为使用了 request.cookies
-export const dynamic = 'force-dynamic';
-
 // GET /api/admin/users - 管理员获取所有用户数据（含概要信息）
 export async function GET(request: NextRequest) {
   try {

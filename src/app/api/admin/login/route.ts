@@ -4,8 +4,8 @@ import { SessionManager } from '@/lib/session-manager';
 import { getRateLimiter, getIdentifierFromRequest } from '@/lib/rate-limit';
 import { applyRateLimit } from '@/lib/rate-limit-middleware';
 
-// 创建速率限制器（中等模式：15分钟内最多30次登录尝试）
-const loginRateLimiter = getRateLimiter('admin-login', 'moderate');
+// 创建速率限制器（严格模式：15分钟内最多5次登录尝试）
+const loginRateLimiter = getRateLimiter('admin-login', 'strict');
 
 // POST /api/admin/login - 管理员登录
 export async function POST(request: NextRequest) {
@@ -57,22 +57,8 @@ export async function POST(request: NextRequest) {
       admin: tokenResponse.admin,
     });
 
-    // 设置认证cookie（直接使用NextResponse的cookie方法）
-    response.cookies.set('admin_access_token', tokenResponse.accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 24 * 60 * 60, // 24小时
-      path: '/',
-    });
-
-    response.cookies.set('admin_refresh_token', tokenResponse.refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7天
-      path: '/',
-    });
+    // 设置认证cookie
+    await SessionManager.setAuthCookies(response, tokenResponse);
 
     console.log('[AdminLogin] 登录成功:', admin.username, 'IP:', ip);
 

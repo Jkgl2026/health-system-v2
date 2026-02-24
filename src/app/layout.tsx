@@ -1,11 +1,8 @@
 import type { Metadata } from 'next';
+import { Inspector } from 'react-dev-inspector';
 import { PWAUrlChecker } from '@/components/PWAUrlChecker';
 import { UrlWarningBanner } from '@/components/UrlWarningBanner';
 import './globals.css';
-
-// 暂时禁用可能导致启动失败的组件
-// const PWAUrlCheckerDynamic = dynamic(() => import('@/components/PWAUrlChecker'), { ssr: false });
-// const UrlWarningBannerDynamic = dynamic(() => import('@/components/UrlWarningBanner'), { ssr: false });
 
 export const metadata: Metadata = {
   title: {
@@ -68,12 +65,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isDev = process.env.NODE_ENV === 'development';
+
   return (
     <html lang="zh-CN">
       <body className={`antialiased`}>
-        {/* 暂时禁用可能导致启动失败的组件 */}
-        {/* <UrlWarningBanner /> */}
-        {/* <PWAUrlChecker /> */}
+        {isDev && <Inspector />}
+        <UrlWarningBanner />
+        <PWAUrlChecker />
         {children}
       </body>
     </html>

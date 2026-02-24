@@ -91,32 +91,37 @@ class AutoMaintenanceScheduler {
     console.log(`[AutoMaintenance] 开始执行任务: ${task}`);
 
     try {
-      // 通过 fetch 调用维护 API
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || ''}/api/admin/maintenance`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: task,
-        }),
-      });
+      // 直接调用维护函数，而不是通过fetch
+      const { performVacuum, performAnalyze, performReindex } = await import('@/app/api/admin/maintenance/route');
 
-      const result = await response.json();
+      let result;
+      switch (task) {
+        case 'vacuum':
+          result = await performVacuum();
+          break;
+        case 'analyze':
+          result = await performAnalyze();
+          break;
+        case 'reindex':
+          result = await performReindex();
+          break;
+        default:
+          throw new Error(`未知的任务: ${task}`);
+      }
 
       if (result.success) {
         const taskResult: TaskResult = {
           task,
           status: 'success',
-          message: result.message || '任务执行成功',
+          message: '任务执行成功',
           timestamp: new Date().toISOString(),
-          duration: result.results?.[task]?.duration || Date.now() - startTime,
+          duration: result.duration,
         };
         this.addResult(taskResult);
         console.log(`[AutoMaintenance] 任务执行成功: ${task}`);
         return taskResult;
       } else {
-        throw new Error(result.error || result.message || '任务执行失败');
+        throw new Error(result.message || '任务执行失败');
       }
     } catch (error) {
       const result: TaskResult = {
