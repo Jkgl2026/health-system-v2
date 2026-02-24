@@ -29,9 +29,9 @@ export async function POST(request: NextRequest) {
     let requirement;
     if (existing) {
       // 只更新传递的字段，保留其他字段的值
+      // 注意：updatedAt 会在 updateRequirement 方法中自动设置
       const updateData: Partial<InsertRequirement> = {
         userId: data.userId,
-        updatedAt: new Date(),
       };
 
       // 只添加传递的字段

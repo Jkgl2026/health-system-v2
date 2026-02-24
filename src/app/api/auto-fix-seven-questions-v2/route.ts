@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
 
         if (hasSevenQuestions) {
           // 检查是否是默认答案
-          const answers = requirement.sevenQuestionsAnswers;
+          const answers = requirement.sevenQuestionsAnswers as Record<string, any>;
           let allDefault = true;
 
           for (const key in answers) {
