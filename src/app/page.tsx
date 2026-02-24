@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info, AlertCircle, ArrowRight, Eye, User, Flame, Droplets, Zap, Sparkles, Award, TrendingUp } from 'lucide-react';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { PWARedirect } from './page-pwa-redirect';
-import { BODY_SYMPTOMS } from '@/lib/health-data';
+import { BODY_SYMPTOMS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
 import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
 
 export default function Home() {
@@ -18,6 +18,7 @@ export default function Home() {
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1); // 1 = 健康评分页，2 = 介绍页
+  const [expandedCard, setExpandedCard] = useState<string | null>(null); // 展开的卡片
 
   // 加载演示数据
   const loadDemoData = () => {
@@ -99,6 +100,35 @@ export default function Home() {
           })
           .filter((name: string) => name);
 
+        // 获取身体语言简表症状名称
+        const bodySymptomNames = bodySymptoms
+          .map((id: number) => {
+            const symptom = BODY_SYMPTOMS.find(s => s.id === id);
+            return symptom ? symptom.name : '';
+          })
+          .filter((name: string) => name);
+
+        // 获取不良生活习惯名称
+        const badHabitNames = badHabits
+          .map((id: number) => {
+            // BAD_HABITS_CHECKLIST 是按分类组织的对象
+            for (const category of Object.keys(BAD_HABITS_CHECKLIST)) {
+              const habits = (BAD_HABITS_CHECKLIST as Record<string, { id: number; habit: string; impact: string }[]>)[category];
+              const habit = habits?.find(h => h.id === id);
+              if (habit) return habit.habit;
+            }
+            return '';
+          })
+          .filter((name: string) => name);
+
+        // 获取300症状表名称
+        const symptoms300Names = symptoms300
+          .map((id: number) => {
+            const symptom = BODY_SYMPTOMS_300.find(s => s.id === id);
+            return symptom ? symptom.name : '';
+          })
+          .filter((name: string) => name);
+
         // 只要有任何数据就显示概览
         if (savedSymptoms || savedBadHabits || savedSymptoms300) {
           setHealthData({
@@ -106,11 +136,18 @@ export default function Home() {
             totalSymptoms,
             targetSymptoms: Array.isArray(targetSymptoms) ? targetSymptoms.length : (targetSymptoms ? 1 : 0),
             targetSymptomNames,
+            targetSymptomIds: Array.isArray(targetSymptoms) ? targetSymptoms : [],
             choice,
             healthScore,
             bodySymptomsCount,
             badHabitsCount,
             symptoms300Count,
+            bodySymptomNames,
+            bodySymptomIds: bodySymptoms,
+            badHabitNames,
+            badHabitIds: badHabits,
+            symptoms300Names,
+            symptoms300Ids: symptoms300,
           });
           setHasHealthData(true);
         } else {
@@ -308,7 +345,7 @@ export default function Home() {
                 </div>
 
                 <div
-                  onClick={() => router.push('/check')}
+                  onClick={() => setExpandedCard(expandedCard === 'bodySymptoms' ? null : 'bodySymptoms')}
                   className="p-5 md:p-5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -324,13 +361,23 @@ export default function Home() {
                     />
                   </div>
                   <div className="mt-3 text-xs opacity-70 flex items-center gap-1">
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className={`w-3 h-3 transition-transform ${expandedCard === 'bodySymptoms' ? 'rotate-90' : ''}`} />
                     点击查看详情
                   </div>
+                  {expandedCard === 'bodySymptoms' && healthData.bodySymptomNames && healthData.bodySymptomNames.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-white/20 max-h-40 overflow-y-auto">
+                      <div className="text-xs font-semibold mb-2 opacity-90">已勾选的症状：</div>
+                      <div className="flex flex-wrap gap-1">
+                        {healthData.bodySymptomNames.map((name: string, index: number) => (
+                          <span key={index} className="px-2 py-1 bg-white/20 rounded text-xs">{name}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div
-                  onClick={() => router.push('/requirements?step=habits')}
+                  onClick={() => setExpandedCard(expandedCard === 'badHabits' ? null : 'badHabits')}
                   className="p-5 md:p-5 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -346,13 +393,23 @@ export default function Home() {
                     />
                   </div>
                   <div className="mt-3 text-xs opacity-70 flex items-center gap-1">
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className={`w-3 h-3 transition-transform ${expandedCard === 'badHabits' ? 'rotate-90' : ''}`} />
                     点击查看详情
                   </div>
+                  {expandedCard === 'badHabits' && healthData.badHabitNames && healthData.badHabitNames.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-white/20 max-h-40 overflow-y-auto">
+                      <div className="text-xs font-semibold mb-2 opacity-90">已勾选的习惯：</div>
+                      <div className="flex flex-wrap gap-1">
+                        {healthData.badHabitNames.map((name: string, index: number) => (
+                          <span key={index} className="px-2 py-1 bg-white/20 rounded text-xs">{name}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div
-                  onClick={() => router.push('/requirements?step=symptoms300')}
+                  onClick={() => setExpandedCard(expandedCard === 'symptoms300' ? null : 'symptoms300')}
                   className="p-5 md:p-5 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group active:scale-95"
                 >
                   <div className="flex items-center justify-between mb-2">
@@ -368,13 +425,23 @@ export default function Home() {
                     />
                   </div>
                   <div className="mt-3 text-xs opacity-70 flex items-center gap-1">
-                    <ArrowRight className="w-3 h-3" />
+                    <ArrowRight className={`w-3 h-3 transition-transform ${expandedCard === 'symptoms300' ? 'rotate-90' : ''}`} />
                     点击查看详情
                   </div>
+                  {expandedCard === 'symptoms300' && healthData.symptoms300Names && healthData.symptoms300Names.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-white/20 max-h-40 overflow-y-auto">
+                      <div className="text-xs font-semibold mb-2 opacity-90">已勾选的症状：</div>
+                      <div className="flex flex-wrap gap-1">
+                        {healthData.symptoms300Names.map((name: string, index: number) => (
+                          <span key={index} className="px-2 py-1 bg-white/20 rounded text-xs">{name}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div
-                  onClick={() => router.push('/check')}
+                  onClick={() => setExpandedCard(expandedCard === 'targetSymptoms' ? null : 'targetSymptoms')}
                   className="p-5 md:p-5 bg-gradient-to-br from-red-600 to-red-700 rounded-lg text-white cursor-pointer hover:scale-105 transition-all duration-300 hover:shadow-xl group relative overflow-hidden active:scale-95"
                 >
                   <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 blur-2xl" />
@@ -392,9 +459,19 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="mt-3 text-xs opacity-80 flex items-center gap-1 font-medium">
-                      <ArrowRight className="w-3 h-3" />
+                      <ArrowRight className={`w-3 h-3 transition-transform ${expandedCard === 'targetSymptoms' ? 'rotate-90' : ''}`} />
                       点击查看详情
                     </div>
+                    {expandedCard === 'targetSymptoms' && healthData.targetSymptomNames && healthData.targetSymptomNames.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-white/20">
+                        <div className="text-xs font-semibold mb-2 opacity-90">需要改善的症状：</div>
+                        <div className="flex flex-wrap gap-1">
+                          {healthData.targetSymptomNames.map((name: string, index: number) => (
+                            <span key={index} className="px-2 py-1 bg-white/20 rounded text-xs font-medium">{name}</span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
