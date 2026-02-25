@@ -1054,50 +1054,46 @@ export default function AdminDashboardPage() {
                     <div className="space-y-6">
                       {/* 综合健康评分主展示区 */}
                       <div className="bg-white p-6 rounded-xl shadow-lg border-2 border-purple-100">
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                          {/* 左侧：主评分卡片 - 占据2/3宽度 */}
-                          <div className="lg:col-span-2 bg-gradient-to-br from-indigo-500 via-purple-500 to-violet-600 rounded-2xl p-6 text-white shadow-xl">
-                            <div className="flex flex-col lg:flex-row items-center gap-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                          {/* 左侧：主评分卡片 - 占据1/4宽度 */}
+                          <div className="lg:col-span-1 bg-gradient-to-br from-indigo-500 via-purple-500 to-violet-600 rounded-2xl p-5 text-white shadow-xl">
+                            <div className="flex flex-col items-center text-center">
                               {/* 评分数字和圆形进度 */}
-                              <div className="flex-shrink-0 text-center">
-                                <div className="relative inline-block">
-                                  <div className="w-32 h-32 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center shadow-inner">
-                                    <div className="text-center">
-                                      <div className="text-6xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">{healthScore}</div>
-                                      <div className="text-sm font-semibold drop-shadow-md">分</div>
-                                    </div>
+                              <div className="relative inline-block mb-4">
+                                <div className="w-28 h-28 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center shadow-inner">
+                                  <div className="text-center">
+                                    <div className="text-5xl font-bold drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)]">{healthScore}</div>
+                                    <div className="text-sm font-semibold drop-shadow-md">分</div>
                                   </div>
-                                  {/* 环形进度条（CSS模拟） */}
-                                  <svg className="absolute top-0 left-0 w-32 h-32 -rotate-90" viewBox="0 0 128 128">
-                                    <circle
-                                      cx="64"
-                                      cy="64"
-                                      r="56"
-                                      fill="none"
-                                      stroke="rgba(255,255,255,0.25)"
-                                      strokeWidth="6"
-                                    />
-                                    <circle
-                                      cx="64"
-                                      cy="64"
-                                      r="56"
-                                      fill="none"
-                                      stroke="white"
-                                      strokeWidth="6"
-                                      strokeLinecap="round"
-                                      strokeDasharray={`${2 * Math.PI * 56}`}
-                                      strokeDashoffset={`${2 * Math.PI * 56 * (1 - healthScore / 100)}`}
-                                    />
-                                  </svg>
                                 </div>
+                                {/* 环形进度条 */}
+                                <svg className="absolute top-0 left-0 w-28 h-28 -rotate-90" viewBox="0 0 112 112">
+                                  <circle
+                                    cx="56"
+                                    cy="56"
+                                    r="48"
+                                    fill="none"
+                                    stroke="rgba(255,255,255,0.25)"
+                                    strokeWidth="5"
+                                  />
+                                  <circle
+                                    cx="56"
+                                    cy="56"
+                                    r="48"
+                                    fill="none"
+                                    stroke="white"
+                                    strokeWidth="5"
+                                    strokeLinecap="round"
+                                    strokeDasharray={`${2 * Math.PI * 48}`}
+                                    strokeDashoffset={`${2 * Math.PI * 48 * (1 - healthScore / 100)}`}
+                                  />
+                                </svg>
                               </div>
 
-                              {/* 评分详情和状态 */}
-                              <div className="flex-1 space-y-3">
-                                <div>
-                                  <div className="text-sm font-semibold drop-shadow-md mb-1">综合健康评分</div>
-                                  <div className="text-xl font-bold drop-shadow-md">满分 100 分</div>
-                                </div>
+                              {/* 评分详情 */}
+                              <div className="space-y-2 w-full">
+                                <div className="text-sm font-semibold drop-shadow-md">综合健康评分</div>
+                                <div className="text-lg font-bold drop-shadow-md">满分 100 分</div>
 
                                 {/* 健康状态标签 */}
                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-white/25 backdrop-blur-sm rounded-lg shadow-sm">
@@ -1106,30 +1102,30 @@ export default function AdminDashboardPage() {
                                     healthScore >= 60 ? 'bg-yellow-400' :
                                     'bg-red-400'
                                   }`} />
-                                  <span className="font-semibold text-sm drop-shadow-sm">健康状态：{healthStatus}</span>
+                                  <span className="font-semibold text-sm drop-shadow-sm">{healthStatus}</span>
                                 </div>
 
                                 {/* 扣分信息 */}
-                                <div className="flex items-center gap-4">
-                                  <div className="text-sm">
-                                    <span className="opacity-90">总扣分：</span>
-                                    <span className="font-bold ml-1 drop-shadow-sm">{totalDeduction.toFixed(1)}分</span>
+                                <div className="flex justify-center gap-3 text-sm">
+                                  <div>
+                                    <span className="opacity-90">扣分：</span>
+                                    <span className="font-bold drop-shadow-sm">{totalDeduction.toFixed(1)}</span>
                                   </div>
-                                  <div className="text-sm">
+                                  <div>
                                     <span className="opacity-90">剩余：</span>
-                                    <span className="font-bold ml-1 drop-shadow-sm">{(100 - healthScore).toFixed(1)}分</span>
+                                    <span className="font-bold drop-shadow-sm">{(100 - healthScore).toFixed(1)}</span>
                                   </div>
                                 </div>
 
                                 {/* 评分进度条 */}
-                                <div className="space-y-1.5">
+                                <div className="space-y-1">
                                   <div className="flex justify-between text-xs font-medium">
-                                    <span className="drop-shadow-sm">健康评分进度</span>
+                                    <span className="drop-shadow-sm">进度</span>
                                     <span className="drop-shadow-sm">{healthScore}%</span>
                                   </div>
-                                  <div className="w-full bg-white/25 rounded-full h-2.5 overflow-hidden shadow-inner">
+                                  <div className="w-full bg-white/25 rounded-full h-2 overflow-hidden shadow-inner">
                                     <div
-                                      className={`h-2.5 rounded-full transition-all duration-1000 shadow-sm ${
+                                      className={`h-2 rounded-full transition-all duration-1000 shadow-sm ${
                                         healthScore >= 80 ? 'bg-green-400' :
                                         healthScore >= 60 ? 'bg-yellow-400' :
                                         'bg-red-400'
@@ -1142,53 +1138,53 @@ export default function AdminDashboardPage() {
                             </div>
                           </div>
 
-                          {/* 右侧：关键指标卡片 - 占据1/3宽度 */}
-                          <div className="space-y-3">
+                          {/* 右侧：关键指标卡片 - 占据3/4宽度 */}
+                          <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
                             {/* 症状总数卡片 */}
-                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border-2 border-blue-200 hover:shadow-md transition-shadow">
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
+                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border-2 border-blue-200 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-sm">
                                   <Activity className="w-5 h-5 text-white" />
                                 </div>
-                                <span className="text-sm font-bold text-blue-800">症状总数</span>
+                                <span className="text-base font-bold text-blue-800">症状总数</span>
                               </div>
-                              <div className="text-4xl font-bold text-blue-700">{totalSymptoms}</div>
-                              <div className="text-xs text-blue-600 mt-1">
+                              <div className="text-5xl font-bold text-blue-700">{totalSymptoms}</div>
+                              <div className="text-sm text-blue-600 mt-2">
                                 基于三个症状表统计
                               </div>
                             </div>
 
                             {/* 严重症状卡片 */}
-                            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-4 border-2 border-red-200 hover:shadow-md transition-shadow">
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-9 h-9 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center shadow-sm">
+                            <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-xl p-5 border-2 border-red-200 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center shadow-sm">
                                   <AlertTriangle className="w-5 h-5 text-white" />
                                 </div>
-                                <span className="text-sm font-bold text-red-800">严重+紧急症状</span>
+                                <span className="text-base font-bold text-red-800">严重+紧急症状</span>
                               </div>
-                              <div className="text-4xl font-bold text-red-700">
+                              <div className="text-5xl font-bold text-red-700">
                                 {breakdown.bodyLanguage.severityBreakdown.emergency + 
                                  breakdown.bodyLanguage.severityBreakdown.severe +
                                  breakdown.symptoms300.severityBreakdown.emergency +
                                  breakdown.symptoms300.severityBreakdown.severe}
                               </div>
-                              <div className="text-xs text-red-600 font-semibold mt-1">
+                              <div className="text-sm text-red-600 font-semibold mt-2">
                                 ⚠️ 需重点关注
                               </div>
                             </div>
 
                             {/* 指数系数卡片 */}
-                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border-2 border-purple-200 hover:shadow-md transition-shadow">
-                              <div className="flex items-center gap-2 mb-2">
-                                <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-sm">
+                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-5 border-2 border-purple-200 hover:shadow-md transition-shadow">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-sm">
                                   <Zap className="w-5 h-5 text-white" />
                                 </div>
-                                <span className="text-sm font-bold text-purple-800">指数系数</span>
+                                <span className="text-base font-bold text-purple-800">指数系数</span>
                               </div>
-                              <div className="text-4xl font-bold text-purple-700">
+                              <div className="text-5xl font-bold text-purple-700">
                                 {Math.max(...[breakdown.bodyLanguage.factor, breakdown.habits.factor, breakdown.symptoms300.factor]).toFixed(1)}x
                               </div>
-                              <div className="text-xs text-purple-600 mt-1">
+                              <div className="text-sm text-purple-600 mt-2">
                                 基于症状数量调整
                               </div>
                             </div>
