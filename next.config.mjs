@@ -14,7 +14,16 @@ const nextConfig = {
   },
 };
 
-// 完全禁用 PWA，避免缓存问题
-const pwaConfig = (config) => config;
+// 在开发环境禁用 PWA，避免与 Turbopack 冲突
+const pwaConfig = process.env.NODE_ENV === 'development' 
+  ? (config) => config
+  : withPWA({
+      dest: 'public',
+      register: true,
+      skipWaiting: true,
+      disable: true,
+      sw: 'sw.js',
+      scope: '/',
+    });
 
 export default pwaConfig(nextConfig);
