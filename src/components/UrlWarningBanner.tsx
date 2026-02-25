@@ -13,7 +13,8 @@ export function UrlWarningBanner() {
 
   useEffect(() => {
     const currentHostname = window.location.hostname;
-    const isCorrect = currentHostname.includes('.dev.coze.site');
+    // 兼容开发环境(.dev.coze.site)和线上环境(.coze.site)
+    const isCorrect = currentHostname.includes('.coze.site');
     setIsCorrectUrl(isCorrect);
 
     // 只在错误的地址显示警告

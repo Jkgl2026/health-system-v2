@@ -24,9 +24,8 @@ export function PWAUrlChecker() {
     // 检查当前 URL 是否正确
     const currentHostname = window.location.hostname;
 
-    // 正确的 hostname 应该包含 .dev.coze.site
-    // 错误的 hostname 可能是 code.coze.cn 或其他
-    const isCorrectHostname = currentHostname.includes('.dev.coze.site');
+    // 兼容开发环境(.dev.coze.site)和线上环境(.coze.site)
+    const isCorrectHostname = currentHostname.includes('.coze.site');
 
     // 检查是否在错误页面或安装指南页面
     const currentPath = window.location.pathname;
