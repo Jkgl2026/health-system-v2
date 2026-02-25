@@ -1721,9 +1721,11 @@ export default function AdminDashboardPage() {
                                 )}
                               </div>
                             </div>
+                          </div>
 
-                            {/* 改善路径 */}
-                            <div className="bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl p-5 shadow-lg text-white">
+                          {/* 健康改善路径 - 居中显示 */}
+                          <div className="col-span-1 lg:col-span-2 flex justify-center">
+                            <div className="w-full max-w-2xl bg-gradient-to-br from-indigo-600 to-violet-700 rounded-xl p-5 shadow-lg text-white">
                               <div className="flex items-center gap-2 mb-4">
                                 <div className="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                                   <TrendingUp className="w-5 h-5 text-white" />
