@@ -2,10 +2,18 @@
 
 const USER_ID_KEY = 'health_app_user_id';
 
+// 检查是否在浏览器环境中
+const isBrowser = typeof window !== 'undefined';
+
 /**
  * 生成用户ID（如果没有则创建）
  */
 export function getOrGenerateUserId(): string {
+  // 服务端环境下返回临时ID
+  if (!isBrowser) {
+    return 'server-side-user';
+  }
+  
   let userId = localStorage.getItem(USER_ID_KEY);
   if (!userId) {
     userId = generateUUID();
@@ -29,12 +37,17 @@ function generateUUID(): string {
  * 清除用户ID
  */
 export function clearUserId(): void {
-  localStorage.removeItem(USER_ID_KEY);
+  if (isBrowser) {
+    localStorage.removeItem(USER_ID_KEY);
+  }
 }
 
 /**
  * 获取当前用户ID（不自动生成）
  */
 export function getCurrentUserId(): string | null {
+  if (!isBrowser) {
+    return null;
+  }
   return localStorage.getItem(USER_ID_KEY);
 }
