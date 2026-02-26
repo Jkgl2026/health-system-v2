@@ -44,7 +44,7 @@
         "selectedIconPath": "images/solution-active.png"
       },
       {
-        "pagePath": "pages/admin-login/admin-login",
+        "pagePath": "pages/admin/login/login",
         "text": "后台",
         "iconPath": "images/admin.png",
         "selectedIconPath": "images/admin-active.png"
