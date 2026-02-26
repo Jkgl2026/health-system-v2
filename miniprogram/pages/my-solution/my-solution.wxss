@@ -1,0 +1,295 @@
+/* pages/my-solution/my-solution.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+.loading-icon {
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid #e0e0e0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20rpx;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 40rpx;
+  min-height: 100vh;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: 30rpx;
+}
+
+.empty-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.empty-desc {
+  font-size: 28rpx;
+  color: #666;
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 50rpx;
+}
+
+.start-btn {
+  width: 400rpx;
+  height: 88rpx;
+  line-height: 88rpx;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  font-size: 32rpx;
+  font-weight: bold;
+  border-radius: 44rpx;
+}
+
+/* 方案内容 */
+.solution-content {
+  padding: 20rpx;
+}
+
+/* 顶部卡 */
+.header-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  border-radius: 20rpx;
+  color: white;
+  margin-bottom: 20rpx;
+}
+
+.header-info {
+  flex: 1;
+}
+
+.greeting {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  margin-bottom: 15rpx;
+}
+
+.update-time {
+  font-size: 24rpx;
+  opacity: 0.8;
+}
+
+.score-circle {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-inner {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-num {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.score-label {
+  font-size: 20rpx;
+  color: #666;
+}
+
+/* 状态卡 */
+.status-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.status-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.status-icon {
+  font-size: 32rpx;
+  margin-right: 10rpx;
+}
+
+.status-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.status-content {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+}
+
+.status-item {
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+}
+
+.status-label {
+  display: block;
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.status-value {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+/* 快捷操作 */
+.quick-actions {
+  background: white;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.action-item:last-child {
+  border-bottom: none;
+}
+
+.action-icon {
+  font-size: 36rpx;
+  margin-right: 20rpx;
+}
+
+.action-text {
+  flex: 1;
+  font-size: 30rpx;
+  color: #333;
+}
+
+.action-arrow {
+  font-size: 32rpx;
+  color: #ccc;
+}
+
+/* 建议卡 */
+.suggestions-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 25rpx;
+}
+
+.card-icon {
+  font-size: 32rpx;
+  margin-right: 10rpx;
+}
+
+.card-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.suggestions-list {
+  display: grid;
+  gap: 20rpx;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: flex-start;
+}
+
+.suggestion-num {
+  width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  text-align: center;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border-radius: 50%;
+  font-size: 24rpx;
+  margin-right: 15rpx;
+  flex-shrink: 0;
+}
+
+.suggestion-text {
+  font-size: 28rpx;
+  color: #555;
+  line-height: 40rpx;
+}
+
+/* 底部操作 */
+.bottom-actions {
+  display: grid;
+  gap: 20rpx;
+  padding: 20rpx 0 40rpx;
+}
+
+.action-btn {
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.action-btn.secondary {
+  background: white;
+  color: #3b82f6;
+  border: 2rpx solid #3b82f6;
+}

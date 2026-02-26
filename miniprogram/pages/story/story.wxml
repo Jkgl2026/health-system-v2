@@ -1,0 +1,72 @@
+<!--pages/story/story.wxml-->
+<view class="container">
+  <!-- 章节导航 -->
+  <scroll-view class="chapter-nav" scroll-x>
+    <view 
+      wx:for="{{chapters}}" 
+      wx:key="title"
+      class="nav-item {{currentChapter === index ? 'active' : ''}}"
+      data-chapter="{{index}}"
+      bindtap="changeChapter"
+    >
+      <text class="nav-icon">{{item.icon}}</text>
+      <text class="nav-title">{{item.title}}</text>
+    </view>
+  </scroll-view>
+
+  <!-- 章节内容 -->
+  <swiper 
+    class="chapter-swiper"
+    current="{{currentChapter}}"
+    bindchange="onSwiperChange"
+  >
+    <swiper-item wx:for="{{chapters}}" wx:key="title">
+      <scroll-view class="chapter-content" scroll-y>
+        <!-- 章节标题 -->
+        <view class="chapter-header">
+          <text class="chapter-icon">{{item.icon}}</text>
+          <text class="chapter-title">{{item.title}}</text>
+        </view>
+
+        <!-- 章节内容 -->
+        <view class="chapter-text">
+          <text>{{item.content}}</text>
+        </view>
+
+        <!-- 重点提示 -->
+        <view class="chapter-highlight">
+          <view class="highlight-icon">💡</view>
+          <text class="highlight-text">{{item.highlight}}</text>
+        </view>
+
+        <!-- 章节进度 -->
+        <view class="chapter-progress">
+          <text>{{index + 1}} / {{chapters.length}}</text>
+        </view>
+      </scroll-view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 底部操作 -->
+  <view class="bottom-bar">
+    <button 
+      class="nav-btn prev {{currentChapter === 0 ? 'disabled' : ''}}"
+      bindtap="prevChapter"
+      disabled="{{currentChapter === 0}}"
+    >
+      <text>上一章</text>
+    </button>
+    
+    <button class="nav-btn back" bindtap="goBack">
+      <text>返回</text>
+    </button>
+    
+    <button 
+      class="nav-btn next {{currentChapter === chapters.length - 1 ? 'disabled' : ''}}"
+      bindtap="nextChapter"
+      disabled="{{currentChapter === chapters.length - 1}}"
+    >
+      <text>下一章</text>
+    </button>
+  </view>
+</view>

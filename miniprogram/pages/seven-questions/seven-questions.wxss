@@ -1,0 +1,149 @@
+/* pages/seven-questions/seven-questions.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 进度条 */
+.progress-section {
+  padding: 30rpx;
+  background: white;
+}
+
+.progress-bar {
+  height: 12rpx;
+  background: #e0e0e0;
+  border-radius: 6rpx;
+  overflow: hidden;
+  margin-bottom: 15rpx;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+  transition: width 0.3s;
+}
+
+.progress-text {
+  font-size: 26rpx;
+  color: #666;
+  text-align: center;
+  display: block;
+}
+
+/* 问题滑动 */
+.question-swiper {
+  flex: 1;
+  height: calc(100vh - 280rpx);
+}
+
+.question-card {
+  padding: 40rpx;
+  box-sizing: border-box;
+}
+
+.question-header {
+  margin-bottom: 40rpx;
+}
+
+.question-num {
+  display: inline-block;
+  padding: 8rpx 20rpx;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  font-size: 24rpx;
+  border-radius: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.question-text {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+  line-height: 1.5;
+}
+
+/* 选项 */
+.options {
+  display: grid;
+  gap: 20rpx;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  padding: 30rpx;
+  background: white;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+  transition: all 0.3s;
+}
+
+.option.selected {
+  border: 3rpx solid #3b82f6;
+  background: #eff6ff;
+}
+
+.option-radio {
+  width: 44rpx;
+  height: 44rpx;
+  border: 3rpx solid #ddd;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 20rpx;
+  font-size: 24rpx;
+  color: white;
+  transition: all 0.3s;
+}
+
+.option.selected .option-radio {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.option-text {
+  font-size: 30rpx;
+  color: #333;
+}
+
+/* 底部操作 */
+.bottom-bar {
+  display: flex;
+  gap: 20rpx;
+  padding: 20rpx 30rpx;
+  background: white;
+  box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.05);
+}
+
+.nav-btn {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 30rpx;
+  font-weight: bold;
+}
+
+.nav-btn.prev {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.nav-btn.prev.disabled {
+  opacity: 0.5;
+}
+
+.nav-btn.next {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.nav-btn.submit {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}

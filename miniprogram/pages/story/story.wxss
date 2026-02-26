@@ -1,0 +1,149 @@
+/* pages/story/story.wxss */
+.container {
+  min-height: 100vh;
+  background: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 章节导航 */
+.chapter-nav {
+  white-space: nowrap;
+  padding: 20rpx;
+  background: white;
+  border-bottom: 1rpx solid #eee;
+}
+
+.nav-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15rpx 25rpx;
+  margin-right: 15rpx;
+  border-radius: 12rpx;
+  background: #f5f5f5;
+  transition: all 0.3s;
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.nav-icon {
+  font-size: 36rpx;
+  margin-bottom: 8rpx;
+}
+
+.nav-title {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.nav-item.active .nav-title {
+  color: white;
+}
+
+/* 章节内容 */
+.chapter-swiper {
+  flex: 1;
+}
+
+.chapter-content {
+  padding: 30rpx;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.chapter-header {
+  text-align: center;
+  margin-bottom: 40rpx;
+}
+
+.chapter-icon {
+  font-size: 80rpx;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.chapter-title {
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.chapter-text {
+  background: white;
+  border-radius: 16rpx;
+  padding: 40rpx 30rpx;
+  margin-bottom: 30rpx;
+  font-size: 30rpx;
+  color: #555;
+  line-height: 2;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+}
+
+.chapter-highlight {
+  background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+  border-radius: 16rpx;
+  padding: 30rpx;
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 30rpx;
+}
+
+.highlight-icon {
+  font-size: 40rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+}
+
+.highlight-text {
+  font-size: 28rpx;
+  color: #856404;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.chapter-progress {
+  text-align: center;
+  font-size: 28rpx;
+  color: #999;
+}
+
+/* 底部操作 */
+.bottom-bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20rpx;
+  padding: 20rpx 30rpx;
+  background: white;
+  box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.05);
+}
+
+.nav-btn {
+  height: 80rpx;
+  line-height: 80rpx;
+  border-radius: 40rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.nav-btn.prev {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.nav-btn.next {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+}
+
+.nav-btn.back {
+  background: white;
+  border: 2rpx solid #ddd;
+  color: #666;
+}
+
+.nav-btn.disabled {
+  opacity: 0.5;
+}

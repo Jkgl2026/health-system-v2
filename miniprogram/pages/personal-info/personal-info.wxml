@@ -1,0 +1,103 @@
+<!--pages/personal-info/personal-info.wxml-->
+<view class="container">
+  <!-- 标题 -->
+  <view class="header">
+    <view class="header-icon">
+      <text>👤</text>
+    </view>
+    <text class="header-title">请填写您的基本信息</text>
+    <text class="header-desc">这些信息将帮助我们更好地分析您的健康状况</text>
+  </view>
+
+  <!-- 表单 -->
+  <view class="form">
+    <view class="form-item">
+      <text class="form-label">姓名 <text class="required">*</text></text>
+      <input 
+        class="form-input" 
+        placeholder="请输入您的姓名"
+        value="{{userInfo.name}}"
+        data-field="name"
+        bindinput="onInputChange"
+      />
+    </view>
+
+    <view class="form-item">
+      <text class="form-label">手机号</text>
+      <input 
+        class="form-input" 
+        type="number"
+        placeholder="请输入手机号"
+        value="{{userInfo.phone}}"
+        data-field="phone"
+        bindinput="onInputChange"
+        maxlength="11"
+      />
+    </view>
+
+    <view class="form-row">
+      <view class="form-item half">
+        <text class="form-label">年龄</text>
+        <input 
+          class="form-input" 
+          type="number"
+          placeholder="岁"
+          value="{{userInfo.age}}"
+          data-field="age"
+          bindinput="onInputChange"
+        />
+      </view>
+
+      <view class="form-item half">
+        <text class="form-label">性别</text>
+        <picker 
+          mode="selector" 
+          range="{{genderOptions}}" 
+          value="{{genderIndex}}"
+          bindchange="onGenderChange"
+        >
+          <view class="form-picker">
+            <text>{{genderOptions[genderIndex]}}</text>
+            <text class="picker-arrow">▼</text>
+          </view>
+        </picker>
+      </view>
+    </view>
+
+    <view class="form-row">
+      <view class="form-item half">
+        <text class="form-label">身高</text>
+        <input 
+          class="form-input" 
+          type="digit"
+          placeholder="cm"
+          value="{{userInfo.height}}"
+          data-field="height"
+          bindinput="onInputChange"
+        />
+      </view>
+
+      <view class="form-item half">
+        <text class="form-label">体重</text>
+        <input 
+          class="form-input" 
+          type="digit"
+          placeholder="kg"
+          value="{{userInfo.weight}}"
+          data-field="weight"
+          bindinput="onInputChange"
+        />
+      </view>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="buttons">
+    <button class="btn btn-primary btn-block" bindtap="onNext">
+      下一步：开始自检
+    </button>
+    <button class="btn btn-text" bindtap="onSkip">
+      跳过，稍后填写
+    </button>
+  </view>
+</view>

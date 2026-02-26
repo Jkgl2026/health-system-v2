@@ -1,0 +1,72 @@
+<!--pages/seven-questions/seven-questions.wxml-->
+<view class="container">
+  <!-- 进度条 -->
+  <view class="progress-section">
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%"></view>
+    </view>
+    <text class="progress-text">{{progress}}% 完成</text>
+  </view>
+
+  <!-- 问题卡片 -->
+  <swiper 
+    class="question-swiper"
+    current="{{currentIndex}}"
+    duration="300"
+  >
+    <swiper-item wx:for="{{questions}}" wx:key="id">
+      <view class="question-card">
+        <!-- 问题标题 -->
+        <view class="question-header">
+          <text class="question-num">问题 {{item.id}}/7</text>
+          <text class="question-text">{{item.question}}</text>
+        </view>
+
+        <!-- 选项 -->
+        <view class="options">
+          <view 
+            wx:for="{{item.options}}" 
+            wx:for-item="option"
+            wx:for-index="optIndex"
+            wx:key="optIndex"
+            class="option {{item.selected === optIndex ? 'selected' : ''}}"
+            data-question-id="{{item.id}}"
+            data-answer="{{optIndex}}"
+            bindtap="selectAnswer"
+          >
+            <view class="option-radio">
+              <text wx:if="{{item.selected === optIndex}}">✓</text>
+            </view>
+            <text class="option-text">{{option}}</text>
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <!-- 底部操作 -->
+  <view class="bottom-bar">
+    <button 
+      class="nav-btn prev {{currentIndex === 0 ? 'disabled' : ''}}"
+      bindtap="prevQuestion"
+      disabled="{{currentIndex === 0}}"
+    >
+      上一题
+    </button>
+    
+    <button 
+      wx:if="{{currentIndex < questions.length - 1}}"
+      class="nav-btn next"
+      bindtap="nextQuestion"
+    >
+      下一题
+    </button>
+    <button 
+      wx:else
+      class="nav-btn submit"
+      bindtap="submitAnswers"
+    >
+      提交答案
+    </button>
+  </view>
+</view>

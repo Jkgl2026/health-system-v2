@@ -1,0 +1,108 @@
+<!--pages/my-solution/my-solution.wxml-->
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">
+    <view class="loading-icon"></view>
+    <text>加载中...</text>
+  </view>
+
+  <!-- 无数据状态 -->
+  <view wx:elif="{{!hasData}}" class="empty-state">
+    <view class="empty-icon">📋</view>
+    <text class="empty-title">暂无健康方案</text>
+    <text class="empty-desc">完成健康自检后，您的专属方案将在这里展示</text>
+    <button class="start-btn" bindtap="startCheck">
+      开始健康自检
+    </button>
+  </view>
+
+  <!-- 有数据状态 -->
+  <view wx:else class="solution-content">
+    <!-- 顶部卡 -->
+    <view class="header-card">
+      <view class="header-info">
+        <text class="greeting">您好，{{personalInfo.name || '用户'}}</text>
+        <text class="update-time">最近更新：{{analysisResult.updateDate}}</text>
+      </view>
+      <view class="score-circle" style="background: conic-gradient({{analysisResult.riskColor}} {{analysisResult.healthScore}}%, #e0e0e0 0)">
+        <view class="score-inner">
+          <text class="score-num">{{analysisResult.healthScore}}</text>
+          <text class="score-label">分</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 健康状态 -->
+    <view class="status-card">
+      <view class="status-header">
+        <text class="status-icon">💚</text>
+        <text class="status-title">健康状态</text>
+      </view>
+      <view class="status-content">
+        <view class="status-item">
+          <text class="status-label">风险评估</text>
+          <text class="status-value" style="color: {{analysisResult.riskColor}}">{{analysisResult.riskLevel}}</text>
+        </view>
+        <view class="status-item">
+          <text class="status-label">检测进度</text>
+          <text class="status-value">已完成</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view class="quick-actions">
+      <view class="action-item" bindtap="viewDetail">
+        <text class="action-icon">📊</text>
+        <text class="action-text">查看详细报告</text>
+        <text class="action-arrow">›</text>
+      </view>
+      <view class="action-item" bindtap="onShare">
+        <text class="action-icon">📤</text>
+        <text class="action-text">分享健康方案</text>
+        <text class="action-arrow">›</text>
+      </view>
+      <view class="action-item" bindtap="downloadReport">
+        <text class="action-icon">📥</text>
+        <text class="action-text">下载健康报告</text>
+        <text class="action-arrow">›</text>
+      </view>
+    </view>
+
+    <!-- 改善建议 -->
+    <view class="suggestions-card">
+      <view class="card-header">
+        <text class="card-icon">💡</text>
+        <text class="card-title">改善建议</text>
+      </view>
+      <view class="suggestions-list">
+        <view class="suggestion-item">
+          <text class="suggestion-num">1</text>
+          <text class="suggestion-text">保持规律作息，每晚22:30前入睡</text>
+        </view>
+        <view class="suggestion-item">
+          <text class="suggestion-num">2</text>
+          <text class="suggestion-text">均衡饮食，多吃蔬果，少油腻</text>
+        </view>
+        <view class="suggestion-item">
+          <text class="suggestion-num">3</text>
+          <text class="suggestion-text">每周运动3次以上，每次30分钟</text>
+        </view>
+        <view class="suggestion-item">
+          <text class="suggestion-num">4</text>
+          <text class="suggestion-text">保持良好心态，学会压力管理</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 底部操作 -->
+    <view class="bottom-actions">
+      <button class="action-btn primary" bindtap="viewDetail">
+        查看完整报告
+      </button>
+      <button class="action-btn secondary" bindtap="recheck">
+        重新检测
+      </button>
+    </view>
+  </view>
+</view>

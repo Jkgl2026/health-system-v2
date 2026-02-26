@@ -1,0 +1,49 @@
+<!--pages/symptoms300/symptoms300.wxml-->
+<view class="container">
+  <!-- 顶部 -->
+  <view class="header purple">
+    <view class="header-content">
+      <text class="header-title">300症状表</text>
+      <text class="header-desc">请勾选您的症状（300项）</text>
+    </view>
+    <view class="selected-count">
+      <text class="count-num">{{selectedSymptoms300.length}}</text>
+      <text class="count-label">项已选</text>
+    </view>
+  </view>
+
+  <!-- 搜索框 -->
+  <view class="search-bar">
+    <input 
+      class="search-input" 
+      placeholder="搜索症状..."
+      value="{{searchKeyword}}"
+      bindinput="onSearch"
+    />
+  </view>
+
+  <!-- 症状列表 -->
+  <scroll-view class="symptom-list" scroll-y>
+    <view 
+      wx:for="{{filteredSymptoms}}" 
+      wx:key="id"
+      class="symptom-item {{selectedSymptoms300.indexOf(item.id) > -1 ? 'selected' : ''}}"
+      data-id="{{item.id}}"
+      bindtap="toggleSymptom"
+    >
+      <view class="checkbox {{selectedSymptoms300.indexOf(item.id) > -1 ? 'checked' : ''}}">
+        <text wx:if="{{selectedSymptoms300.indexOf(item.id) > -1}}">✓</text>
+      </view>
+      <view class="symptom-content">
+        <text class="symptom-name">{{item.name}}</text>
+        <text class="symptom-category">{{item.category}}</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar">
+    <button class="btn btn-secondary" bindtap="onSkip">跳过</button>
+    <button class="btn btn-primary" bindtap="onNext">下一步</button>
+  </view>
+</view>

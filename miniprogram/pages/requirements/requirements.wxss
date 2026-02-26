@@ -1,0 +1,196 @@
+/* pages/requirements/requirements.wxss */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f5f5f5;
+}
+
+.header {
+  padding: 30rpx;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header.purple {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.header-title {
+  font-size: 40rpx;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.header-desc {
+  font-size: 26rpx;
+  opacity: 0.9;
+}
+
+.header-icon {
+  font-size: 60rpx;
+}
+
+.requirements-list {
+  flex: 1;
+  padding: 20rpx;
+  max-height: calc(100vh - 250rpx);
+}
+
+.requirement-card {
+  background: white;
+  border-radius: 16rpx;
+  padding: 30rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+}
+
+.requirement-card.has-selected {
+  border-left: 6rpx solid #9b59b6;
+}
+
+.req-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.req-icon {
+  font-size: 40rpx;
+  margin-right: 15rpx;
+}
+
+.req-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.req-desc {
+  font-size: 28rpx;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 25rpx;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+}
+
+.req-options {
+  display: flex;
+  gap: 20rpx;
+}
+
+.option {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25rpx;
+  border-radius: 12rpx;
+  background: #f5f5f5;
+  transition: all 0.3s;
+}
+
+.option.selected.agree {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+}
+
+.option.selected.try {
+  background: linear-gradient(135deg, #f39c12, #f1c40f);
+  color: white;
+}
+
+.option-icon {
+  width: 36rpx;
+  height: 36rpx;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15rpx;
+  font-size: 22rpx;
+}
+
+.option.selected .option-icon {
+  background: rgba(255,255,255,0.3);
+}
+
+.option-text {
+  font-size: 28rpx;
+  font-weight: 500;
+}
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25rpx;
+  background: white;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.05);
+}
+
+.quick-icon {
+  font-size: 32rpx;
+  margin-right: 15rpx;
+}
+
+.quick-text {
+  font-size: 30rpx;
+  color: #9b59b6;
+  font-weight: 500;
+}
+
+.story-link {
+  display: flex;
+  align-items: center;
+  padding: 25rpx;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border-radius: 12rpx;
+  color: white;
+}
+
+.story-icon {
+  font-size: 36rpx;
+  margin-right: 15rpx;
+}
+
+.story-text {
+  flex: 1;
+  font-size: 28rpx;
+}
+
+.story-arrow {
+  font-size: 40rpx;
+  opacity: 0.8;
+}
+
+.bottom-bar {
+  padding: 20rpx 30rpx;
+  background: white;
+  box-shadow: 0 -2rpx 10rpx rgba(0,0,0,0.05);
+}
+
+.btn {
+  width: 100%;
+  height: 88rpx;
+  border-radius: 44rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #9b59b6, #8e44ad);
+  color: white;
+}

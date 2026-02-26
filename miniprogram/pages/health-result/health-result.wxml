@@ -1,0 +1,223 @@
+<!--pages/health-result/health-result.wxml-->
+<view class="container">
+  <!-- 加载中 -->
+  <view wx:if="{{loading}}" class="loading">
+    <view class="loading-icon"></view>
+    <text class="loading-text">正在分析健康数据...</text>
+  </view>
+
+  <!-- 结果内容 -->
+  <block wx:else>
+    <!-- 健康评分卡 -->
+    <view class="score-card">
+      <view class="score-circle" style="background: conic-gradient({{analysisResult.riskColor}} {{analysisResult.healthScore}}%, #e0e0e0 0)">
+        <view class="score-inner">
+          <text class="score-num">{{analysisResult.healthScore}}</text>
+          <text class="score-label">健康评分</text>
+        </view>
+      </view>
+      <view class="risk-info">
+        <text class="risk-label">风险评估</text>
+        <text class="risk-value" style="color: {{analysisResult.riskColor}}">{{analysisResult.riskLevel}}</text>
+      </view>
+    </view>
+
+    <!-- 标签切换 -->
+    <view class="tabs">
+      <view 
+        class="tab {{activeTab === 'overview' ? 'active' : ''}}"
+        data-tab="overview"
+        bindtap="switchTab"
+      >
+        <text>健康概览</text>
+      </view>
+      <view 
+        class="tab {{activeTab === 'detail' ? 'active' : ''}}"
+        data-tab="detail"
+        bindtap="switchTab"
+      >
+        <text>详细分析</text>
+      </view>
+      <view 
+        class="tab {{activeTab === 'tcm' ? 'active' : ''}}"
+        data-tab="tcm"
+        bindtap="switchTab"
+      >
+        <text>中医分析</text>
+      </view>
+      <view 
+        class="tab {{activeTab === 'suggestion' ? 'active' : ''}}"
+        data-tab="suggestion"
+        bindtap="switchTab"
+      >
+        <text>改善建议</text>
+      </view>
+    </view>
+
+    <!-- 内容区域 -->
+    <scroll-view class="content-area" scroll-y>
+      <!-- 健康概览 -->
+      <view wx:if="{{activeTab === 'overview'}}" class="tab-content">
+        <!-- 个人信息 -->
+        <view class="info-section">
+          <view class="section-title">
+            <text class="title-icon">👤</text>
+            <text>个人信息</text>
+          </view>
+          <view class="info-grid">
+            <view class="info-item">
+              <text class="info-label">姓名</text>
+              <text class="info-value">{{personalInfo.name || '未填写'}}</text>
+            </view>
+            <view class="info-item">
+              <text class="info-label">年龄</text>
+              <text class="info-value">{{personalInfo.age || '未填写'}}岁</text>
+            </view>
+            <view class="info-item">
+              <text class="info-label">性别</text>
+              <text class="info-value">{{personalInfo.gender || '未填写'}}</text>
+            </view>
+            <view class="info-item">
+              <text class="info-label">BMI</text>
+              <text class="info-value">{{personalInfo.bmi || '--'}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 症状统计 -->
+        <view class="info-section">
+          <view class="section-title">
+            <text class="title-icon">📊</text>
+            <text>症状统计</text>
+          </view>
+          <view class="stats-grid">
+            <view class="stat-item">
+              <text class="stat-num">{{selectedSymptoms.length}}</text>
+              <text class="stat-label">身体症状</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-num">{{selectedHabits.length}}</text>
+              <text class="stat-label">不良习惯</text>
+            </view>
+            <view class="stat-item">
+              <text class="stat-num">{{targetSymptoms.length}}</text>
+              <text class="stat-label">重点症状</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 主要问题 -->
+        <view class="info-section">
+          <view class="section-title">
+            <text class="title-icon">⚠️</text>
+            <text>主要问题</text>
+          </view>
+          <view class="issues-list">
+            <view wx:for="{{analysisResult.mainIssues}}" wx:key="name" class="issue-item">
+              <view class="issue-header">
+                <text class="issue-name">{{item.name}}</text>
+                <text class="issue-score">{{item.score}}分</text>
+              </view>
+              <view class="issue-bar">
+                <view class="issue-bar-fill" style="width: {{item.score}}%; background: {{item.score >= 70 ? '#27ae60' : item.score >= 50 ? '#f39c12' : '#e74c3c'}}"></view>
+              </view>
+              <text class="issue-suggestion">{{item.suggestion}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 详细分析 -->
+      <view wx:if="{{activeTab === 'detail'}}" class="tab-content">
+        <view class="detail-card">
+          <view class="detail-title">选择详情</view>
+          
+          <!-- 三个选择 -->
+          <view class="detail-section">
+            <text class="detail-subtitle">三个选择</text>
+            <view class="choices-list">
+              <view wx:for="{{threeChoices}}" wx:key="index" class="choice-badge">
+                <text>选择{{index + 1}}: {{item === 'a' ? '积极' : item === 'b' ? '中立' : '被动'}}</text>
+              </view>
+            </view>
+          </view>
+
+          <!-- 四个要求 -->
+          <view class="detail-section">
+            <text class="detail-subtitle">四个要求</text>
+            <view class="requirements-list">
+              <view wx:for="{{fourRequirements}}" wx:key="index" class="req-badge {{item === 'agree' ? 'agreed' : ''}}">
+                <text>要求{{index + 1}}: {{item === 'agree' ? '已同意' : '待确认'}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 中医分析 -->
+      <view wx:if="{{activeTab === 'tcm'}}" class="tab-content">
+        <view class="tcm-card">
+          <view class="tcm-header">
+            <text class="tcm-icon">🌿</text>
+            <text class="tcm-title">中医体质分析</text>
+          </view>
+          <view class="tcm-grid">
+            <view class="tcm-item">
+              <text class="tcm-label">体质类型</text>
+              <text class="tcm-value">{{analysisResult.tcmAnalysis.constitution}}</text>
+            </view>
+            <view class="tcm-item">
+              <text class="tcm-label">气血状态</text>
+              <text class="tcm-value">{{analysisResult.tcmAnalysis.qiStatus}}</text>
+            </view>
+            <view class="tcm-item">
+              <text class="tcm-label">脏腑功能</text>
+              <text class="tcm-value">{{analysisResult.tcmAnalysis.organFunction}}</text>
+            </view>
+            <view class="tcm-item">
+              <text class="tcm-label">经络状态</text>
+              <text class="tcm-value">{{analysisResult.tcmAnalysis.meridian}}</text>
+            </view>
+            <view class="tcm-item">
+              <text class="tcm-label">阴阳平衡</text>
+              <text class="tcm-value">{{analysisResult.tcmAnalysis.yinYang}}</text>
+            </view>
+            <view class="tcm-item">
+              <text class="tcm-label">湿热寒凉</text>
+              <text class="tcm-value">{{analysisResult.tcmAnalysis.dampHeat}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 改善建议 -->
+      <view wx:if="{{activeTab === 'suggestion'}}" class="tab-content">
+        <view class="suggestions-list">
+          <view wx:for="{{analysisResult.suggestions}}" wx:key="title" class="suggestion-card">
+            <view class="suggestion-header">
+              <text class="suggestion-icon">{{item.icon}}</text>
+              <text class="suggestion-title">{{item.title}}</text>
+            </view>
+            <text class="suggestion-content">{{item.content}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 底部操作 -->
+      <view class="actions">
+        <button class="action-btn share" bindtap="onShare">
+          <text class="btn-icon">📤</text>
+          <text>分享结果</text>
+        </button>
+        <button class="action-btn save" bindtap="savePlan">
+          <text class="btn-icon">💾</text>
+          <text>保存方案</text>
+        </button>
+        <button class="action-btn recheck" bindtap="recheck">
+          <text class="btn-icon">🔄</text>
+          <text>重新检测</text>
+        </button>
+      </view>
+    </scroll-view>
+  </block>
+</view>

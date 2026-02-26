@@ -1,0 +1,196 @@
+/* pages/check/check.wxss */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #f9fafb;
+}
+
+/* 顶部 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: #ffffff;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.header-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  display: block;
+}
+
+.header-desc {
+  font-size: 24rpx;
+  opacity: 0.9;
+  margin-top: 4rpx;
+  display: block;
+}
+
+.selected-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12rpx;
+}
+
+.count-num {
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.count-label {
+  font-size: 20rpx;
+  opacity: 0.9;
+}
+
+/* 搜索框 */
+.search-bar {
+  padding: 16rpx 24rpx;
+  background: #ffffff;
+}
+
+.search-input {
+  height: 72rpx;
+  padding: 0 24rpx;
+  background: #f3f4f6;
+  border-radius: 36rpx;
+  font-size: 28rpx;
+}
+
+/* 分类标签 */
+.category-tabs {
+  display: flex;
+  white-space: nowrap;
+  padding: 16rpx 24rpx;
+  background: #ffffff;
+  border-bottom: 2rpx solid #e5e7eb;
+}
+
+.tab-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 12rpx 24rpx;
+  margin-right: 16rpx;
+  border-radius: 24rpx;
+  font-size: 26rpx;
+  color: #6b7280;
+  background: #f3f4f6;
+}
+
+.tab-item.active {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.tab-count {
+  margin-left: 8rpx;
+  font-size: 22rpx;
+  padding: 2rpx 10rpx;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10rpx;
+}
+
+.tab-item.active .tab-count {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 操作按钮 */
+.action-bar {
+  display: flex;
+  gap: 16rpx;
+  padding: 16rpx 24rpx;
+  background: #ffffff;
+}
+
+.btn-small {
+  padding: 12rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.btn-outline {
+  background: #ffffff;
+  border: 2rpx solid #e5e7eb;
+  color: #6b7280;
+}
+
+/* 症状列表 */
+.symptom-list {
+  flex: 1;
+  padding: 16rpx 24rpx;
+  padding-bottom: 160rpx;
+}
+
+.symptom-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 20rpx;
+  margin-bottom: 12rpx;
+  background: #ffffff;
+  border-radius: 12rpx;
+  border: 2rpx solid #e5e7eb;
+}
+
+.symptom-item.selected {
+  background: #eff6ff;
+  border-color: #3b82f6;
+}
+
+.checkbox {
+  width: 44rpx;
+  height: 44rpx;
+  border: 4rpx solid #d1d5db;
+  border-radius: 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+  font-size: 24rpx;
+  color: #ffffff;
+}
+
+.checkbox.checked {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.symptom-content {
+  flex: 1;
+}
+
+.symptom-name {
+  font-size: 28rpx;
+  color: #1f2937;
+  display: block;
+  margin-bottom: 4rpx;
+}
+
+.symptom-desc {
+  font-size: 24rpx;
+  color: #6b7280;
+  display: block;
+}
+
+/* 底部按钮 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  gap: 16rpx;
+  padding: 24rpx;
+  background: #ffffff;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.05);
+}

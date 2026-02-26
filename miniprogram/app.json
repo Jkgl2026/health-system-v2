@@ -1,0 +1,29 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/personal-info/personal-info",
+    "pages/check/check",
+    "pages/habits/habits",
+    "pages/symptoms300/symptoms300",
+    "pages/target/target",
+    "pages/choices/choices",
+    "pages/requirements/requirements",
+    "pages/health-result/health-result",
+    "pages/my-solution/my-solution",
+    "pages/story/story",
+    "pages/seven-questions/seven-questions",
+    "pages/admin/login/login",
+    "pages/admin/dashboard/dashboard",
+    "pages/admin/user-detail/user-detail"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#3b82f6",
+    "navigationBarTitleText": "健康自检",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f0f9ff"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

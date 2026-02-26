@@ -1,0 +1,59 @@
+<!--pages/admin/login/login.wxml-->
+<view class="container">
+  <!-- 顶部 -->
+  <view class="header">
+    <text class="header-icon">🔐</text>
+    <text class="header-title">健康自检后台管理</text>
+    <text class="header-desc">请登录管理员账号</text>
+  </view>
+
+  <!-- 登录表单 -->
+  <view class="login-form">
+    <!-- 用户名 -->
+    <view class="form-item">
+      <view class="input-icon">👤</view>
+      <input 
+        class="input"
+        placeholder="请输入用户名"
+        value="{{username}}"
+        bindinput="onUsernameInput"
+      />
+    </view>
+
+    <!-- 密码 -->
+    <view class="form-item">
+      <view class="input-icon">🔒</view>
+      <input 
+        class="input"
+        placeholder="请输入密码"
+        password="{{!showPassword}}"
+        value="{{password}}"
+        bindinput="onPasswordInput"
+      />
+      <view class="toggle-password" bindtap="togglePassword">
+        <text>{{showPassword ? '🙈' : '👁️'}}</text>
+      </view>
+    </view>
+
+    <!-- 登录按钮 -->
+    <button 
+      class="login-btn {{loading ? 'loading' : ''}}" 
+      bindtap="onLogin"
+      disabled="{{loading}}"
+    >
+      {{loading ? '登录中...' : '登录'}}
+    </button>
+
+    <!-- 提示 -->
+    <view class="hint">
+      <text class="hint-icon">💡</text>
+      <text class="hint-text">默认账号：admin / admin123</text>
+    </view>
+  </view>
+
+  <!-- 底部 -->
+  <view class="footer">
+    <text class="footer-text">© 2024 健康自检系统</text>
+    <text class="footer-link" bindtap="goHome">返回首页</text>
+  </view>
+</view>
