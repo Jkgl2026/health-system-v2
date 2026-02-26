@@ -1,83 +1,36 @@
 <!--pages/choices/choices.wxml-->
 <view class="container">
-  <!-- 进度条 -->
-  <view class="progress-bar">
-    <view class="progress-fill" style="width: {{(currentIndex + 1) / choices.length * 100}}%"></view>
-    <view class="progress-steps">
-      <view 
-        wx:for="{{choices}}" 
-        wx:key="id"
-        class="step {{index <= currentIndex ? 'active' : ''}} {{index < currentIndex ? 'done' : ''}}"
-      >
-        <text class="step-num">{{index + 1}}</text>
+  <view class="header">
+    <view class="back-btn" bindtap="goBack"><text class="back-icon">←</text><text>返回</text></view>
+    <text class="header-title">三个选择</text>
+    <text class="progress">2/4</text>
+  </view>
+  <view class="intro-section">
+    <text class="intro-title">请认真思考并做出您的选择</text>
+    <text class="intro-desc">这三个选择将决定您的健康管理方向</text>
+  </view>
+  <view class="choices-list">
+    <view wx:for="{{choices}}" wx:key="id" class="choice-card">
+      <view class="choice-header">
+        <view class="choice-num">{{item.id}}</view>
+        <text class="choice-title">{{item.title}}</text>
+      </view>
+      <text class="choice-question">{{item.question}}</text>
+      <view class="options-list">
+        <view wx:for="{{item.options}}" wx:for-item="option" wx:for-index="optIndex" wx:key="value" 
+          class="option-item {{selectedChoices[item.id-1] === option.value ? 'selected' : ''}}"
+          bindtap="selectOption" data-choice="{{item.id}}" data-value="{{option.value}}">
+          <view class="option-radio">{{selectedChoices[item.id-1] === option.value ? '●' : '○'}}</view>
+          <view class="option-content">
+            <text class="option-label">{{option.label}}</text>
+            <text class="option-desc">{{option.description}}</text>
+          </view>
+        </view>
       </view>
     </view>
   </view>
-
-  <!-- 选择卡片 -->
-  <swiper 
-    class="choice-swiper"
-    current="{{currentIndex}}"
-    duration="300"
-    bindchange="onSwiperChange"
-  >
-    <swiper-item wx:for="{{choices}}" wx:key="id">
-      <scroll-view class="choice-card" scroll-y>
-        <!-- 选择标题 -->
-        <view class="choice-header">
-          <text class="choice-title">{{item.title}}</text>
-          <text class="choice-question">{{item.question}}</text>
-        </view>
-
-        <!-- 选项列表 -->
-        <view class="options">
-          <view 
-            wx:for="{{item.options}}" 
-            wx:for-item="option"
-            wx:for-index="optIndex"
-            wx:key="value"
-            class="option {{item.selected === option.value ? 'selected' : ''}}"
-            data-choice-id="{{item.id}}"
-            data-value="{{option.value}}"
-            bindtap="selectOption"
-          >
-            <view class="option-radio">
-              <text wx:if="{{item.selected === option.value}}">✓</text>
-            </view>
-            <view class="option-content">
-              <text class="option-label">{{option.label}}</text>
-              <text class="option-desc">{{option.desc}}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 说明 -->
-        <view class="choice-note">
-          <text class="note-icon">💡</text>
-          <text class="note-text">每个选择代表一个健康态度，请根据真实想法选择</text>
-        </view>
-      </scroll-view>
-    </swiper-item>
-  </swiper>
-
-  <!-- 底部导航 -->
-  <view class="bottom-nav">
-    <button 
-      wx:if="{{currentIndex > 0}}"
-      class="nav-btn prev"
-      bindtap="prevChoice"
-    >上一个</button>
-    <view wx:else class="nav-placeholder"></view>
-
-    <button 
-      wx:if="{{currentIndex < choices.length - 1}}"
-      class="nav-btn next"
-      bindtap="nextChoice"
-    >下一个</button>
-    <button 
-      wx:else
-      class="nav-btn next primary"
-      bindtap="onNext"
-    >完成选择</button>
+  <view class="bottom-actions">
+    <button class="btn btn-outline" bindtap="goBack">上一步</button>
+    <button class="btn btn-primary" bindtap="goNext" disabled="{{!isComplete}}">下一步 →</button>
   </view>
 </view>

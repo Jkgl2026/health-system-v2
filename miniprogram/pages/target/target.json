@@ -1,4 +1,1 @@
-{
-  "usingComponents": {},
-  "navigationBarTitleText": "选择重点症状"
-}
+{ "navigationBarTitleText": "重点症状选择", "usingComponents": {} }

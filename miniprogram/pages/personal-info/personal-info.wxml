@@ -1,103 +1,192 @@
 <!--pages/personal-info/personal-info.wxml-->
+<!--个人信息页 - 基于Web版personal-info/page.tsx精确转换-->
+
 <view class="container">
-  <!-- 标题 -->
+  <!-- 头部导航 -->
   <view class="header">
-    <view class="header-icon">
-      <text>👤</text>
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回</text>
     </view>
-    <text class="header-title">请填写您的基本信息</text>
-    <text class="header-desc">这些信息将帮助我们更好地分析您的健康状况</text>
+    <text class="header-title">个人信息</text>
+    <view class="placeholder"></view>
   </view>
 
-  <!-- 表单 -->
-  <view class="form">
-    <view class="form-item">
-      <text class="form-label">姓名 <text class="required">*</text></text>
-      <input 
-        class="form-input" 
-        placeholder="请输入您的姓名"
-        value="{{userInfo.name}}"
-        data-field="name"
-        bindinput="onInputChange"
-      />
+  <!-- 自动保存提示 -->
+  <view wx:if="{{lastSaveTime}}" class="auto-save-tip">
+    <text class="save-icon">💾</text>
+    <text>已自动保存</text>
+  </view>
+
+  <!-- 表单区域 -->
+  <view class="form-card">
+    <view class="card-header">
+      <text class="card-icon">👤</text>
+      <view>
+        <text class="card-title">基本信息</text>
+        <text class="card-desc">请填写您的个人信息</text>
+      </view>
     </view>
 
-    <view class="form-item">
-      <text class="form-label">手机号</text>
-      <input 
-        class="form-input" 
-        type="number"
-        placeholder="请输入手机号"
-        value="{{userInfo.phone}}"
-        data-field="phone"
-        bindinput="onInputChange"
-        maxlength="11"
-      />
-    </view>
-
-    <view class="form-row">
-      <view class="form-item half">
-        <text class="form-label">年龄</text>
+    <view class="form-content">
+      <!-- 姓名 -->
+      <view class="form-group">
+        <text class="form-label required">姓名</text>
         <input 
-          class="form-input" 
-          type="number"
-          placeholder="岁"
-          value="{{userInfo.age}}"
-          data-field="age"
-          bindinput="onInputChange"
+          class="input" 
+          placeholder="请输入姓名" 
+          value="{{formData.name}}"
+          bindinput="handleInput"
+          data-field="name"
         />
       </view>
 
-      <view class="form-item half">
-        <text class="form-label">性别</text>
-        <picker 
-          mode="selector" 
-          range="{{genderOptions}}" 
-          value="{{genderIndex}}"
-          bindchange="onGenderChange"
-        >
-          <view class="form-picker">
-            <text>{{genderOptions[genderIndex]}}</text>
+      <!-- 手机号 -->
+      <view class="form-group">
+        <text class="form-label">手机号</text>
+        <input 
+          class="input" 
+          type="number"
+          placeholder="请输入手机号" 
+          maxlength="11"
+          value="{{formData.phone}}"
+          bindinput="handleInput"
+          data-field="phone"
+        />
+      </view>
+
+      <!-- 性别 -->
+      <view class="form-group">
+        <text class="form-label required">性别</text>
+        <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" bindchange="onGenderChange">
+          <view class="picker-input">
+            <text class="{{formData.gender ? '' : 'placeholder'}}">
+              {{formData.gender || '请选择性别'}}
+            </text>
             <text class="picker-arrow">▼</text>
           </view>
         </picker>
       </view>
-    </view>
 
-    <view class="form-row">
-      <view class="form-item half">
-        <text class="form-label">身高</text>
+      <!-- 年龄 -->
+      <view class="form-group">
+        <text class="form-label required">年龄</text>
         <input 
-          class="form-input" 
+          class="input" 
+          type="number"
+          placeholder="请输入年龄" 
+          maxlength="3"
+          value="{{formData.age}}"
+          bindinput="handleInput"
+          data-field="age"
+        />
+        <text class="form-hint">岁</text>
+      </view>
+
+      <!-- 身高 -->
+      <view class="form-group">
+        <text class="form-label required">身高</text>
+        <input 
+          class="input" 
           type="digit"
-          placeholder="cm"
-          value="{{userInfo.height}}"
+          placeholder="请输入身高" 
+          value="{{formData.height}}"
+          bindinput="handleInput"
           data-field="height"
-          bindinput="onInputChange"
+        />
+        <text class="form-hint">cm</text>
+      </view>
+
+      <!-- 体重 -->
+      <view class="form-group">
+        <text class="form-label required">体重</text>
+        <input 
+          class="input" 
+          type="digit"
+          placeholder="请输入体重" 
+          value="{{formData.weight}}"
+          bindinput="handleInput"
+          data-field="weight"
+        />
+        <text class="form-hint">kg</text>
+      </view>
+
+      <!-- BMI显示 -->
+      <view wx:if="{{bmi}}" class="bmi-section">
+        <view class="bmi-header">
+          <text class="bmi-icon">📊</text>
+          <text class="bmi-title">BMI指数</text>
+        </view>
+        <view class="bmi-content">
+          <text class="bmi-value {{bmiColorClass}}">{{bmi}}</text>
+          <text class="bmi-category {{bmiColorClass}}">{{bmiCategory}}</text>
+        </view>
+        <view class="bmi-bar">
+          <view class="bmi-range bmi-range-thin">偏瘦</view>
+          <view class="bmi-range bmi-range-normal">正常</view>
+          <view class="bmi-range bmi-range-overweight">超重</view>
+          <view class="bmi-range bmi-range-obese">肥胖</view>
+          <view class="bmi-indicator" style="left: {{bmiPosition}}%;"></view>
+        </view>
+        <text class="bmi-formula">BMI = 体重(kg) ÷ 身高(m)²</text>
+      </view>
+
+      <!-- 血压 -->
+      <view class="form-group">
+        <text class="form-label">血压</text>
+        <input 
+          class="input" 
+          placeholder="如：120/80" 
+          value="{{formData.bloodPressure}}"
+          bindinput="handleInput"
+          data-field="bloodPressure"
         />
       </view>
 
-      <view class="form-item half">
-        <text class="form-label">体重</text>
+      <!-- 职业 -->
+      <view class="form-group">
+        <text class="form-label">职业</text>
         <input 
-          class="form-input" 
-          type="digit"
-          placeholder="kg"
-          value="{{userInfo.weight}}"
-          data-field="weight"
-          bindinput="onInputChange"
+          class="input" 
+          placeholder="请输入职业" 
+          value="{{formData.occupation}}"
+          bindinput="handleInput"
+          data-field="occupation"
+        />
+      </view>
+
+      <!-- 地址 -->
+      <view class="form-group">
+        <text class="form-label">地址</text>
+        <input 
+          class="input" 
+          placeholder="请输入地址" 
+          value="{{formData.address}}"
+          bindinput="handleInput"
+          data-field="address"
         />
       </view>
     </view>
   </view>
 
-  <!-- 操作按钮 -->
-  <view class="buttons">
-    <button class="btn btn-primary btn-block" bindtap="onNext">
-      下一步：开始自检
+  <!-- 错误提示 -->
+  <view wx:if="{{error}}" class="error-card">
+    <view class="error-header">
+      <text class="error-icon">⚠️</text>
+      <text class="error-title">保存失败</text>
+    </view>
+    <view class="error-content">
+      <text class="error-message">{{error.message}}</text>
+      <text class="error-detail">错误代码：{{error.status}}</text>
+    </view>
+    <view class="error-suggestion">{{errorSuggestion}}</view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <button class="btn btn-primary btn-block btn-lg" bindtap="handleSubmit" loading="{{isSaving}}">
+      {{isSaving ? '保存中...' : '保存并继续'}}
     </button>
-    <button class="btn btn-text" bindtap="onSkip">
-      跳过，稍后填写
-    </button>
+    <text class="submit-hint">保存后将进入身体语言简表页面</text>
   </view>
 </view>

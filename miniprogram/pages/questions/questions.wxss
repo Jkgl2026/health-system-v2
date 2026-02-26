@@ -1,0 +1,26 @@
+/* pages/questions/questions.wxss */
+.container { min-height: 100vh; background: #f5f5f5; }
+.header { padding: 32rpx; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: #fff; text-align: center; }
+.header-title { display: block; font-size: 36rpx; font-weight: 700; }
+.header-subtitle { display: block; font-size: 24rpx; opacity: 0.9; margin-top: 8rpx; }
+.progress-bar { position: relative; height: 8rpx; background: #e5e7eb; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #10b981); transition: width 0.3s; }
+.progress-text { position: absolute; right: 24rpx; top: 16rpx; font-size: 24rpx; color: #6b7280; }
+.question-card { margin: 24rpx; padding: 32rpx; background: #fff; border-radius: 16rpx; }
+.question-num { display: block; font-size: 24rpx; color: #3b82f6; margin-bottom: 16rpx; }
+.question-text { display: block; font-size: 32rpx; font-weight: 600; color: #1f2937; line-height: 1.6; margin-bottom: 32rpx; }
+.options { display: flex; flex-direction: column; gap: 16rpx; margin-bottom: 32rpx; }
+.option-item { padding: 24rpx; background: #f9fafb; border-radius: 12rpx; border: 2rpx solid #e5e7eb; }
+.option-item.selected { background: #eff6ff; border-color: #3b82f6; }
+.option-label { font-size: 28rpx; color: #1f2937; }
+.option-item.selected .option-label { color: #3b82f6; font-weight: 600; }
+.nav-btns { display: flex; gap: 16rpx; }
+.btn { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24rpx; border-radius: 12rpx; font-size: 28rpx; }
+.btn-primary { background: linear-gradient(90deg, #3b82f6, #10b981); color: #fff; }
+.btn-secondary { background: #f3f4f6; color: #1f2937; }
+.btn.disabled { opacity: 0.5; }
+.btn-block { width: 100%; }
+.complete-card { margin: 48rpx 24rpx; padding: 48rpx; background: #fff; border-radius: 16rpx; text-align: center; }
+.complete-icon { font-size: 80rpx; }
+.complete-title { display: block; font-size: 36rpx; font-weight: 600; color: #1f2937; margin: 16rpx 0; }
+.complete-desc { display: block; font-size: 26rpx; color: #6b7280; margin-bottom: 32rpx; }

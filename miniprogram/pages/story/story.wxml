@@ -1,72 +1,33 @@
 <!--pages/story/story.wxml-->
 <view class="container">
-  <!-- 章节导航 -->
-  <scroll-view class="chapter-nav" scroll-x>
-    <view 
-      wx:for="{{chapters}}" 
-      wx:key="title"
-      class="nav-item {{currentChapter === index ? 'active' : ''}}"
-      data-chapter="{{index}}"
-      bindtap="changeChapter"
-    >
-      <text class="nav-icon">{{item.icon}}</text>
-      <text class="nav-title">{{item.title}}</text>
+  <view class="header">
+    <text class="header-title">系统战役故事</text>
+  </view>
+  
+  <view class="story-content">
+    <view class="story-chapter" wx:for="{{chapters}}" wx:key="id">
+      <view class="chapter-header" bindtap="toggleChapter" data-id="{{item.id}}">
+        <text class="chapter-num">第{{item.id}}章</text>
+        <text class="chapter-title">{{item.title}}</text>
+        <text class="chapter-arrow {{item.expanded ? 'expanded' : ''}}">▼</text>
+      </view>
+      <view class="chapter-content {{item.expanded ? 'show' : ''}}">
+        <text class="story-text">{{item.content}}</text>
+      </view>
     </view>
-  </scroll-view>
-
-  <!-- 章节内容 -->
-  <swiper 
-    class="chapter-swiper"
-    current="{{currentChapter}}"
-    bindchange="onSwiperChange"
-  >
-    <swiper-item wx:for="{{chapters}}" wx:key="title">
-      <scroll-view class="chapter-content" scroll-y>
-        <!-- 章节标题 -->
-        <view class="chapter-header">
-          <text class="chapter-icon">{{item.icon}}</text>
-          <text class="chapter-title">{{item.title}}</text>
-        </view>
-
-        <!-- 章节内容 -->
-        <view class="chapter-text">
-          <text>{{item.content}}</text>
-        </view>
-
-        <!-- 重点提示 -->
-        <view class="chapter-highlight">
-          <view class="highlight-icon">💡</view>
-          <text class="highlight-text">{{item.highlight}}</text>
-        </view>
-
-        <!-- 章节进度 -->
-        <view class="chapter-progress">
-          <text>{{index + 1}} / {{chapters.length}}</text>
-        </view>
-      </scroll-view>
-    </swiper-item>
-  </swiper>
-
-  <!-- 底部操作 -->
-  <view class="bottom-bar">
-    <button 
-      class="nav-btn prev {{currentChapter === 0 ? 'disabled' : ''}}"
-      bindtap="prevChapter"
-      disabled="{{currentChapter === 0}}"
-    >
-      <text>上一章</text>
-    </button>
-    
-    <button class="nav-btn back" bindtap="goBack">
-      <text>返回</text>
-    </button>
-    
-    <button 
-      class="nav-btn next {{currentChapter === chapters.length - 1 ? 'disabled' : ''}}"
-      bindtap="nextChapter"
-      disabled="{{currentChapter === chapters.length - 1}}"
-    >
-      <text>下一章</text>
-    </button>
+  </view>
+  
+  <view class="philosophy">
+    <text class="philosophy-title">💡 核心理念</text>
+    <view class="philosophy-list">
+      <text class="philosophy-item">• 整体观念：人是一个有机整体，各部分相互联系</text>
+      <text class="philosophy-item">• 辨证论治：因人、因时、因地制宜</text>
+      <text class="philosophy-item">• 治未病：预防为主，防患于未然</text>
+      <text class="philosophy-item">• 天人合一：顺应自然规律生活</text>
+    </view>
+  </view>
+  
+  <view class="bottom-actions">
+    <button class="btn btn-primary btn-block" bindtap="goToQuestions">填写健康七问 →</button>
   </view>
 </view>

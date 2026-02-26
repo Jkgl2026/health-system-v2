@@ -1,69 +1,110 @@
 <!--pages/check/check.wxml-->
+<!--身体语言简表页 - 基于Web版check/page.tsx精确转换-->
+
 <view class="container">
-  <!-- 顶部提示 -->
+  <!-- 头部导航 -->
   <view class="header">
-    <view class="header-content">
-      <text class="header-title">身体语言简表</text>
-      <text class="header-desc">请勾选半年内出现的症状（100项）</text>
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回</text>
     </view>
-    <view class="selected-count">
-      <text class="count-num">{{selectedSymptoms.length}}</text>
-      <text class="count-label">项已选</text>
+    <text class="header-title">身体语言简表</text>
+    <view class="progress-info">
+      <text class="progress-text">{{selectedCount}}/100</text>
+    </view>
+  </view>
+
+  <!-- 进度条 -->
+  <view class="progress-bar-container">
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%;"></view>
     </view>
   </view>
 
   <!-- 搜索框 -->
-  <view class="search-bar">
-    <input 
-      class="search-input" 
-      placeholder="搜索症状..."
-      value="{{searchKeyword}}"
-      bindinput="onSearch"
-    />
+  <view class="search-section">
+    <view class="search-bar">
+      <text class="search-icon">🔍</text>
+      <input 
+        class="search-input" 
+        placeholder="搜索症状..." 
+        value="{{searchQuery}}"
+        bindinput="onSearch"
+      />
+      <text wx:if="{{searchQuery}}" class="clear-btn" bindtap="clearSearch">✕</text>
+    </view>
   </view>
 
   <!-- 分类标签 -->
-  <scroll-view wx:if="{{!isSearching}}" class="category-tabs" scroll-x enable-flex>
-    <view 
-      wx:for="{{categories}}" 
-      wx:key="name"
-      class="tab-item {{currentCategory === index ? 'active' : ''}}"
-      data-index="{{index}}"
-      bindtap="onCategoryChange"
-    >
-      <text>{{item.name}}</text>
-      <text class="tab-count">{{item.symptoms.length}}</text>
+  <scroll-view class="category-scroll" scroll-x>
+    <view class="category-list">
+      <view 
+        class="category-item {{currentCategory === 'all' ? 'active' : ''}}"
+        bindtap="selectCategory"
+        data-category="all"
+      >
+        全部
+      </view>
+      <view 
+        wx:for="{{categories}}" 
+        wx:key="*this"
+        class="category-item {{currentCategory === item ? 'active' : ''}}"
+        bindtap="selectCategory"
+        data-category="{{item}}"
+      >
+        {{item}}
+      </view>
     </view>
   </scroll-view>
 
-  <!-- 操作按钮 -->
-  <view class="action-bar">
-    <button class="btn-small btn-outline" bindtap="selectAll">全选</button>
-    <button class="btn-small btn-outline" bindtap="clearCurrent">清空</button>
+  <!-- 提示信息 -->
+  <view class="tip-section">
+    <text class="tip-icon">💡</text>
+    <text class="tip-text">请勾选半年内出现过的症状</text>
   </view>
 
   <!-- 症状列表 -->
   <scroll-view class="symptom-list" scroll-y>
-    <view 
-      wx:for="{{filteredSymptoms}}" 
-      wx:key="id"
-      class="symptom-item {{selectedSymptoms.indexOf(item.id) > -1 ? 'selected' : ''}}"
-      data-id="{{item.id}}"
-      bindtap="toggleSymptom"
-    >
-      <view class="checkbox {{selectedSymptoms.indexOf(item.id) > -1 ? 'checked' : ''}}">
-        <text wx:if="{{selectedSymptoms.indexOf(item.id) > -1}}">✓</text>
+    <view wx:for="{{filteredSymptoms}}" wx:key="id" class="symptom-item">
+      <view 
+        class="symptom-checkbox {{isSelected(item.id) ? 'checked' : ''}}"
+        bindtap="toggleSymptom"
+        data-id="{{item.id}}"
+      >
+        <text class="checkbox-icon">{{isSelected(item.id) ? '✓' : ''}}</text>
       </view>
       <view class="symptom-content">
         <text class="symptom-name">{{item.name}}</text>
-        <text class="symptom-desc">{{item.description}}</text>
+        <text class="symptom-category">{{item.category}}</text>
       </view>
     </view>
   </scroll-view>
 
+  <!-- 已选症状统计 -->
+  <view class="selected-summary">
+    <view class="summary-header">
+      <text class="summary-icon">📋</text>
+      <text class="summary-title">已选症状 ({{selectedCount}}项)</text>
+    </view>
+    <scroll-view wx:if="{{selectedSymptoms.length > 0}}" class="selected-tags" scroll-x>
+      <view class="tag-list">
+        <view wx:for="{{selectedSymptoms}}" wx:key="id" class="selected-tag">
+          <text class="tag-name">{{item.name}}</text>
+          <text class="tag-remove" bindtap="removeSymptom" data-id="{{item.id}}">✕</text>
+        </view>
+      </view>
+    </scroll-view>
+    <view wx:else class="empty-tip">
+      <text>请勾选您半年内出现过的症状</text>
+    </view>
+  </view>
+
   <!-- 底部按钮 -->
-  <view class="bottom-bar">
-    <button class="btn btn-secondary" bindtap="onSkip">跳过</button>
-    <button class="btn btn-primary" bindtap="onNext">下一步</button>
+  <view class="bottom-actions">
+    <button class="btn btn-outline" bindtap="goBack">上一步</button>
+    <button class="btn btn-primary" bindtap="goNext">
+      下一步
+      <text class="btn-arrow">→</text>
+    </button>
   </view>
 </view>

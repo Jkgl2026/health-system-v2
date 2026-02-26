@@ -11,19 +11,43 @@
     "pages/health-result/health-result",
     "pages/my-solution/my-solution",
     "pages/story/story",
-    "pages/seven-questions/seven-questions",
-    "pages/admin/login/login",
-    "pages/admin/dashboard/dashboard",
-    "pages/admin/user-detail/user-detail"
+    "pages/questions/questions",
+    "pages/admin-login/admin-login",
+    "pages/admin-dashboard/admin-dashboard",
+    "pages/admin-user-detail/admin-user-detail"
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#3b82f6",
+    "navigationBarBackgroundColor": "#10b981",
     "navigationBarTitleText": "健康自检",
-    "navigationBarTextStyle": "white",
-    "backgroundColor": "#f0f9ff"
+    "navigationBarTextStyle": "white"
+  },
+  "tabBar": {
+    "color": "#666666",
+    "selectedColor": "#10b981",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页",
+        "iconPath": "images/home.png",
+        "selectedIconPath": "images/home-active.png"
+      },
+      {
+        "pagePath": "pages/my-solution/my-solution",
+        "text": "我的方案",
+        "iconPath": "images/solution.png",
+        "selectedIconPath": "images/solution-active.png"
+      },
+      {
+        "pagePath": "pages/admin-login/admin-login",
+        "text": "后台",
+        "iconPath": "images/admin.png",
+        "selectedIconPath": "images/admin-active.png"
+      }
+    ]
   },
   "style": "v2",
-  "sitemapLocation": "sitemap.json",
-  "lazyCodeLoading": "requiredComponents"
+  "sitemapLocation": "sitemap.json"
 }

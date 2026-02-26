@@ -1,49 +1,35 @@
 <!--pages/symptoms300/symptoms300.wxml-->
 <view class="container">
-  <!-- 顶部 -->
-  <view class="header purple">
-    <view class="header-content">
-      <text class="header-title">300症状表</text>
-      <text class="header-desc">请勾选您的症状（300项）</text>
-    </view>
-    <view class="selected-count">
-      <text class="count-num">{{selectedSymptoms300.length}}</text>
-      <text class="count-label">项已选</text>
+  <view class="header">
+    <view class="back-btn" bindtap="goBack"><text class="back-icon">←</text><text>返回</text></view>
+    <text class="header-title">300症状表</text>
+    <view class="progress-info">{{selectedCount}}/300</view>
+  </view>
+  <view class="progress-bar-container">
+    <view class="progress-bar"><view class="progress-fill" style="width: {{progress}}%;"></view></view>
+  </view>
+  <view class="search-section">
+    <view class="search-bar">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" placeholder="搜索症状..." value="{{searchQuery}}" bindinput="onSearch" />
     </view>
   </view>
-
-  <!-- 搜索框 -->
-  <view class="search-bar">
-    <input 
-      class="search-input" 
-      placeholder="搜索症状..."
-      value="{{searchKeyword}}"
-      bindinput="onSearch"
-    />
-  </view>
-
-  <!-- 症状列表 -->
   <scroll-view class="symptom-list" scroll-y>
-    <view 
-      wx:for="{{filteredSymptoms}}" 
-      wx:key="id"
-      class="symptom-item {{selectedSymptoms300.indexOf(item.id) > -1 ? 'selected' : ''}}"
-      data-id="{{item.id}}"
-      bindtap="toggleSymptom"
-    >
-      <view class="checkbox {{selectedSymptoms300.indexOf(item.id) > -1 ? 'checked' : ''}}">
-        <text wx:if="{{selectedSymptoms300.indexOf(item.id) > -1}}">✓</text>
+    <view wx:for="{{filteredSymptoms}}" wx:key="id" class="symptom-item">
+      <view class="symptom-checkbox {{selectedIds.includes(item.id) ? 'checked' : ''}}" bindtap="toggleSymptom" data-id="{{item.id}}">
+        <text class="checkbox-icon">{{selectedIds.includes(item.id) ? '✓' : ''}}</text>
       </view>
       <view class="symptom-content">
         <text class="symptom-name">{{item.name}}</text>
-        <text class="symptom-category">{{item.category}}</text>
+        <text class="symptom-desc">{{item.description}}</text>
       </view>
     </view>
   </scroll-view>
-
-  <!-- 底部按钮 -->
-  <view class="bottom-bar">
-    <button class="btn btn-secondary" bindtap="onSkip">跳过</button>
-    <button class="btn btn-primary" bindtap="onNext">下一步</button>
+  <view class="selected-summary">
+    <view class="summary-header"><text class="summary-icon">📋</text><text class="summary-title">已选症状 ({{selectedCount}}项)</text></view>
+  </view>
+  <view class="bottom-actions">
+    <button class="btn btn-outline" bindtap="goBack">上一步</button>
+    <button class="btn btn-primary" bindtap="goNext">下一步 →</button>
   </view>
 </view>

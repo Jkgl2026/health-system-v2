@@ -1,0 +1,15 @@
+/* pages/admin-login/admin-login.wxss */
+.container { min-height: 100vh; background: linear-gradient(135deg, #1e3a5f, #0f172a); display: flex; align-items: center; justify-content: center; padding: 24rpx; }
+.login-card { width: 100%; max-width: 600rpx; background: #fff; border-radius: 24rpx; padding: 48rpx; }
+.login-title { display: block; font-size: 40rpx; font-weight: 700; color: #1f2937; text-align: center; }
+.login-subtitle { display: block; font-size: 24rpx; color: #6b7280; text-align: center; margin-top: 8rpx; margin-bottom: 40rpx; }
+.form { display: flex; flex-direction: column; gap: 24rpx; }
+.form-item { display: flex; flex-direction: column; gap: 12rpx; }
+.form-label { font-size: 26rpx; color: #374151; }
+.form-input { padding: 24rpx; background: #f9fafb; border: 2rpx solid #e5e7eb; border-radius: 12rpx; font-size: 28rpx; }
+.btn { display: flex; align-items: center; justify-content: center; padding: 24rpx; border-radius: 12rpx; font-size: 28rpx; margin-top: 16rpx; }
+.btn-primary { background: linear-gradient(90deg, #3b82f6, #1d4ed8); color: #fff; }
+.btn-block { width: 100%; }
+.hint { margin-top: 24rpx; text-align: center; }
+.hint-text { font-size: 24rpx; }
+.hint-text.error { color: #ef4444; }

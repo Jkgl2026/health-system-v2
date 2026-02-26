@@ -1,284 +1,277 @@
-// utils/storage.js - 本地存储工具
+// utils/storage.js
+// 本地存储管理
 
-/**
- * 存储键名常量
- */
 const STORAGE_KEYS = {
-  USER_INFO: 'userInfo',                    // 用户基本信息
-  PERSONAL_INFO: 'personalInfo',            // 个人信息
-  SELECTED_SYMPTOMS: 'selectedSymptoms',    // 身体语言简表（100项）
-  SELECTED_HABITS: 'selectedHabitsRequirements', // 不良生活习惯（252项）
-  SELECTED_SYMPTOMS_300: 'selectedSymptoms300',  // 300症状表
-  TARGET_SYMPTOMS: 'targetSymptoms',        // 重点症状
-  SELECTED_CHOICE: 'selectedChoice',        // 选择方案
-  THREE_CHOICES: 'threeChoices',            // 三个选择
-  FOUR_REQUIREMENTS: 'fourRequirements',    // 四个要求
-  SEVEN_QUESTIONS: 'sevenQuestions',        // 健康七问
-  ADMIN_TOKEN: 'admin_access_token',        // 管理员访问令牌
-  ADMIN_REFRESH_TOKEN: 'admin_refresh_token' // 管理员刷新令牌
+  HEALTH_DATA: 'healthData',
+  ADMIN_TOKEN: 'adminToken',
+  USER_INFO: 'userInfo',
+  DEMO_MODE: 'demoMode'
 };
 
 /**
- * 设置存储
+ * 获取存储数据
+ * @param {string} key - 存储键名
+ * @param {*} defaultValue - 默认值
+ * @returns {*}
  */
-function setItem(key, value) {
-  try {
-    wx.setStorageSync(key, JSON.stringify(value));
-    return true;
-  } catch (e) {
-    console.error('存储失败:', key, e);
-    return false;
-  }
-}
-
-/**
- * 获取存储
- */
-function getItem(key, defaultValue = null) {
+const get = (key, defaultValue = null) => {
   try {
     const value = wx.getStorageSync(key);
-    if (value) {
-      return JSON.parse(value);
-    }
-    return defaultValue;
+    return value !== '' ? value : defaultValue;
   } catch (e) {
-    console.error('读取失败:', key, e);
+    console.error('Storage get error:', e);
     return defaultValue;
   }
-}
+};
 
 /**
- * 删除存储
+ * 设置存储数据
+ * @param {string} key - 存储键名
+ * @param {*} value - 存储值
+ * @returns {boolean}
  */
-function removeItem(key) {
+const set = (key, value) => {
+  try {
+    wx.setStorageSync(key, value);
+    return true;
+  } catch (e) {
+    console.error('Storage set error:', e);
+    return false;
+  }
+};
+
+/**
+ * 删除存储数据
+ * @param {string} key - 存储键名
+ * @returns {boolean}
+ */
+const remove = (key) => {
   try {
     wx.removeStorageSync(key);
     return true;
   } catch (e) {
-    console.error('删除失败:', key, e);
+    console.error('Storage remove error:', e);
     return false;
   }
-}
+};
 
 /**
- * 清空所有存储
+ * 清空所有存储数据
+ * @returns {boolean}
  */
-function clearAll() {
+const clear = () => {
   try {
     wx.clearStorageSync();
     return true;
   } catch (e) {
-    console.error('清空失败:', e);
+    console.error('Storage clear error:', e);
     return false;
   }
-}
+};
 
 /**
- * 获取用户信息
+ * 获取健康数据
+ * @returns {object}
  */
-function getUserInfo() {
-  return getItem(STORAGE_KEYS.USER_INFO);
-}
+const getHealthData = () => {
+  return get(STORAGE_KEYS.HEALTH_DATA, {
+    personalInfo: null,
+    selectedSymptoms: [],
+    selectedHabits: [],
+    targetSymptoms: [],
+    choices: null,
+    requirements: null,
+    analysisResult: null,
+    createdAt: null,
+    updatedAt: null
+  });
+};
 
 /**
- * 保存用户信息
+ * 保存健康数据
+ * @param {object} data - 健康数据
+ * @returns {boolean}
  */
-function saveUserInfo(userInfo) {
-  return setItem(STORAGE_KEYS.USER_INFO, userInfo);
-}
-
-/**
- * 获取选中的身体语言简表症状
- */
-function getSelectedSymptoms() {
-  return getItem(STORAGE_KEYS.SELECTED_SYMPTOMS, []);
-}
-
-/**
- * 保存选中的身体语言简表症状
- */
-function saveSelectedSymptoms(symptoms) {
-  return setItem(STORAGE_KEYS.SELECTED_SYMPTOMS, symptoms);
-}
-
-/**
- * 获取选中的不良生活习惯
- */
-function getSelectedHabits() {
-  return getItem(STORAGE_KEYS.SELECTED_HABITS, []);
-}
-
-/**
- * 保存选中的不良生活习惯
- */
-function saveSelectedHabits(habits) {
-  return setItem(STORAGE_KEYS.SELECTED_HABITS, habits);
-}
-
-/**
- * 获取选中的300症状表
- */
-function getSelectedSymptoms300() {
-  return getItem(STORAGE_KEYS.SELECTED_SYMPTOMS_300, []);
-}
-
-/**
- * 保存选中的300症状表
- */
-function saveSelectedSymptoms300(symptoms) {
-  return setItem(STORAGE_KEYS.SELECTED_SYMPTOMS_300, symptoms);
-}
-
-/**
- * 获取重点症状
- */
-function getTargetSymptoms() {
-  return getItem(STORAGE_KEYS.TARGET_SYMPTOMS, []);
-}
-
-/**
- * 保存重点症状
- */
-function saveTargetSymptoms(symptoms) {
-  return setItem(STORAGE_KEYS.TARGET_SYMPTOMS, symptoms);
-}
-
-/**
- * 获取选择的方案
- */
-function getSelectedChoice() {
-  return getItem(STORAGE_KEYS.SELECTED_CHOICE, '');
-}
-
-/**
- * 保存选择的方案
- */
-function saveSelectedChoice(choice) {
-  return setItem(STORAGE_KEYS.SELECTED_CHOICE, choice);
-}
-
-/**
- * 获取健康七问
- */
-function getSevenQuestions() {
-  return getItem(STORAGE_KEYS.SEVEN_QUESTIONS, {});
-}
-
-/**
- * 保存健康七问
- */
-function saveSevenQuestions(questions) {
-  return setItem(STORAGE_KEYS.SEVEN_QUESTIONS, questions);
-}
-
-/**
- * 获取个人信息
- */
-function getPersonalInfo() {
-  return getItem(STORAGE_KEYS.PERSONAL_INFO);
-}
-
-/**
- * 保存个人信息
- */
-function savePersonalInfo(info) {
-  return setItem(STORAGE_KEYS.PERSONAL_INFO, info);
-}
-
-/**
- * 获取三个选择
- */
-function getThreeChoices() {
-  return getItem(STORAGE_KEYS.THREE_CHOICES, []);
-}
-
-/**
- * 保存三个选择
- */
-function saveThreeChoices(choices) {
-  return setItem(STORAGE_KEYS.THREE_CHOICES, choices);
-}
-
-/**
- * 获取四个要求
- */
-function getFourRequirements() {
-  return getItem(STORAGE_KEYS.FOUR_REQUIREMENTS, []);
-}
-
-/**
- * 保存四个要求
- */
-function saveFourRequirements(requirements) {
-  return setItem(STORAGE_KEYS.FOUR_REQUIREMENTS, requirements);
-}
-
-/**
- * 获取所有健康数据
- */
-function getAllHealthData() {
-  return {
-    userInfo: getUserInfo(),
-    bodySymptoms: getSelectedSymptoms(),
-    badHabits: getSelectedHabits(),
-    symptoms300: getSelectedSymptoms300(),
-    targetSymptoms: getTargetSymptoms(),
-    selectedChoice: getSelectedChoice(),
-    sevenQuestions: getSevenQuestions()
+const saveHealthData = (data) => {
+  const currentData = getHealthData();
+  const newData = {
+    ...currentData,
+    ...data,
+    updatedAt: new Date().toISOString()
   };
-}
+  
+  if (!currentData.createdAt) {
+    newData.createdAt = new Date().toISOString();
+  }
+  
+  return set(STORAGE_KEYS.HEALTH_DATA, newData);
+};
 
 /**
- * 清除所有健康数据
+ * 清空健康数据
+ * @returns {boolean}
  */
-function clearHealthData() {
-  removeItem(STORAGE_KEYS.USER_INFO);
-  removeItem(STORAGE_KEYS.SELECTED_SYMPTOMS);
-  removeItem(STORAGE_KEYS.SELECTED_HABITS);
-  removeItem(STORAGE_KEYS.SELECTED_SYMPTOMS_300);
-  removeItem(STORAGE_KEYS.TARGET_SYMPTOMS);
-  removeItem(STORAGE_KEYS.SELECTED_CHOICE);
-  removeItem(STORAGE_KEYS.SEVEN_QUESTIONS);
-}
+const clearHealthData = () => {
+  return saveHealthData({
+    personalInfo: null,
+    selectedSymptoms: [],
+    selectedHabits: [],
+    targetSymptoms: [],
+    choices: null,
+    requirements: null,
+    analysisResult: null
+  });
+};
 
 /**
- * 检查是否有健康数据
+ * 更新个人信息
+ * @param {object} personalInfo - 个人信息
+ * @returns {boolean}
  */
-function hasHealthData() {
-  const data = getAllHealthData();
-  return data.bodySymptoms.length > 0 || 
-         data.badHabits.length > 0 || 
-         data.symptoms300.length > 0;
-}
+const updatePersonalInfo = (personalInfo) => {
+  const data = getHealthData();
+  return saveHealthData({ ...data, personalInfo });
+};
+
+/**
+ * 更新选中症状
+ * @param {array} symptoms - 症状列表
+ * @returns {boolean}
+ */
+const updateSelectedSymptoms = (symptoms) => {
+  const data = getHealthData();
+  return saveHealthData({ ...data, selectedSymptoms: symptoms });
+};
+
+/**
+ * 更新选中习惯
+ * @param {array} habits - 习惯列表
+ * @returns {boolean}
+ */
+const updateSelectedHabits = (habits) => {
+  const data = getHealthData();
+  return saveHealthData({ ...data, selectedHabits: habits });
+};
+
+/**
+ * 更新重点症状
+ * @param {array} symptoms - 重点症状列表
+ * @returns {boolean}
+ */
+const updateTargetSymptoms = (symptoms) => {
+  const data = getHealthData();
+  return saveHealthData({ ...data, targetSymptoms: symptoms });
+};
+
+/**
+ * 更新三个选择
+ * @param {object} choices - 选择数据
+ * @returns {boolean}
+ */
+const updateChoices = (choices) => {
+  const data = getHealthData();
+  return saveHealthData({ ...data, choices });
+};
+
+/**
+ * 更新四个要求
+ * @param {object} requirements - 要求数据
+ * @returns {boolean}
+ */
+const updateRequirements = (requirements) => {
+  const data = getHealthData();
+  return saveHealthData({ ...data, requirements });
+};
+
+/**
+ * 更新分析结果
+ * @param {object} result - 分析结果
+ * @returns {boolean}
+ */
+const updateAnalysisResult = (result) => {
+  const data = getHealthData();
+  return saveHealthData({ ...data, analysisResult: result });
+};
+
+/**
+ * 获取管理员Token
+ * @returns {string|null}
+ */
+const getAdminToken = () => {
+  return get(STORAGE_KEYS.ADMIN_TOKEN);
+};
+
+/**
+ * 保存管理员Token
+ * @param {string} token - Token值
+ * @returns {boolean}
+ */
+const saveAdminToken = (token) => {
+  return set(STORAGE_KEYS.ADMIN_TOKEN, token);
+};
+
+/**
+ * 删除管理员Token
+ * @returns {boolean}
+ */
+const removeAdminToken = () => {
+  return remove(STORAGE_KEYS.ADMIN_TOKEN);
+};
+
+/**
+ * 检查是否已登录
+ * @returns {boolean}
+ */
+const isAdminLoggedIn = () => {
+  return !!getAdminToken();
+};
+
+/**
+ * 获取演示模式状态
+ * @returns {boolean}
+ */
+const getDemoMode = () => {
+  return get(STORAGE_KEYS.DEMO_MODE, false);
+};
+
+/**
+ * 设置演示模式
+ * @param {boolean} enabled - 是否启用
+ * @returns {boolean}
+ */
+const setDemoMode = (enabled) => {
+  return set(STORAGE_KEYS.DEMO_MODE, enabled);
+};
 
 module.exports = {
-  STORAGE_KEYS,
-  setItem,
-  getItem,
-  removeItem,
-  clearAll,
-  getUserInfo,
-  saveUserInfo,
-  getPersonalInfo,
-  savePersonalInfo,
-  getSelectedSymptoms,
-  saveSelectedSymptoms,
-  getSelectedHabits,
-  saveSelectedHabits,
-  getSelectedSymptoms300,
-  saveSelectedSymptoms300,
-  getTargetSymptoms,
-  saveTargetSymptoms,
-  getSelectedChoice,
-  saveSelectedChoice,
-  getThreeChoices,
-  saveThreeChoices,
-  getFourRequirements,
-  saveFourRequirements,
-  getSevenQuestions,
-  saveSevenQuestions,
-  getAllHealthData,
+  // 基础方法
+  get,
+  set,
+  remove,
+  clear,
+  
+  // 健康数据方法
+  getHealthData,
+  saveHealthData,
   clearHealthData,
-  hasHealthData,
-  clearAllData: clearAll
+  updatePersonalInfo,
+  updateSelectedSymptoms,
+  updateSelectedHabits,
+  updateTargetSymptoms,
+  updateChoices,
+  updateRequirements,
+  updateAnalysisResult,
+  
+  // 管理员认证
+  getAdminToken,
+  saveAdminToken,
+  removeAdminToken,
+  isAdminLoggedIn,
+  
+  // 演示模式
+  getDemoMode,
+  setDemoMode,
+  
+  // 常量
+  STORAGE_KEYS
 };

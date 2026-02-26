@@ -1,0 +1,26 @@
+<!--pages/admin-login/admin-login.wxml-->
+<view class="container">
+  <view class="login-card">
+    <text class="login-title">后台管理系统</text>
+    <text class="login-subtitle">请输入管理员密码登录</text>
+    
+    <view class="form">
+      <view class="form-item">
+        <text class="form-label">管理员密码</text>
+        <input 
+          class="form-input" 
+          type="password" 
+          placeholder="请输入密码"
+          value="{{password}}"
+          bindinput="onPasswordInput"
+        />
+      </view>
+      
+      <button class="btn btn-primary btn-block" bindtap="handleLogin">登录</button>
+    </view>
+    
+    <view class="hint" wx:if="{{errorMsg}}">
+      <text class="hint-text error">{{errorMsg}}</text>
+    </view>
+  </view>
+</view>

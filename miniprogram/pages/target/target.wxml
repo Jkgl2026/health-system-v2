@@ -1,51 +1,35 @@
 <!--pages/target/target.wxml-->
 <view class="container">
-  <!-- 顶部 -->
-  <view class="header red">
-    <view class="header-content">
-      <text class="header-title">选择重点症状</text>
-      <text class="header-desc">从您的症状中选择最困扰的3个</text>
-    </view>
-    <view class="selected-count">
-      <text class="count-num">{{targetSymptoms.length}}</text>
-      <text class="count-label">/3个</text>
-    </view>
+  <view class="header">
+    <view class="back-btn" bindtap="goBack"><text class="back-icon">←</text><text>返回</text></view>
+    <text class="header-title">重点症状选择</text>
+    <text class="progress-info">{{selectedCount}}/3</text>
   </view>
-
-  <!-- 提示 -->
-  <view class="tip">
+  <view class="tip-section">
     <text class="tip-icon">💡</text>
-    <text class="tip-text">重点症状将作为您改善健康的优先目标</text>
+    <text class="tip-text">请从已选症状中选择3个最困扰您的症状</text>
   </view>
-
-  <!-- 症状列表 -->
-  <scroll-view class="symptom-list" scroll-y>
-    <view 
-      wx:for="{{allSymptoms}}" 
-      wx:key="id"
-      class="symptom-item {{targetSymptoms.indexOf(item.id) > -1 ? 'selected' : ''}}"
-      data-id="{{item.id}}"
-      bindtap="toggleTarget"
-    >
-      <view class="checkbox {{targetSymptoms.indexOf(item.id) > -1 ? 'checked' : ''}}">
-        <text wx:if="{{targetSymptoms.indexOf(item.id) > -1}}">✓</text>
-      </view>
-      <view class="symptom-content">
+  <view class="selected-all">
+    <text class="section-title">您已选中的症状（{{allSymptoms.length}}项）</text>
+    <view class="symptom-grid">
+      <view wx:for="{{allSymptoms}}" wx:key="id" class="symptom-item {{selectedIds.includes(item.id) ? 'selected' : ''}}" bindtap="toggleSymptom" data-id="{{item.id}">
         <text class="symptom-name">{{item.name}}</text>
-        <text class="symptom-source">{{item.source}}</text>
+        <text class="symptom-category">{{item.category}}</text>
+        <view wx:if="{{selectedIds.includes(item.id)}}" class="check-mark">✓</view>
       </view>
     </view>
-
-    <view wx:if="{{allSymptoms.length === 0}}" class="empty">
-      <text class="empty-icon">📋</text>
-      <text class="empty-text">暂无症状数据</text>
-      <text class="empty-desc">请先完成身体语言简表或300症状表</text>
+  </view>
+  <view class="selected-summary">
+    <text class="summary-title">已选重点症状：</text>
+    <view class="selected-list">
+      <view wx:for="{{selectedSymptoms}}" wx:key="id" class="selected-item">
+        <text class="selected-index">{{index + 1}}</text>
+        <text class="selected-name">{{item.name}}</text>
+      </view>
     </view>
-  </scroll-view>
-
-  <!-- 底部按钮 -->
-  <view class="bottom-bar">
-    <button class="btn btn-secondary" bindtap="onSkip">跳过</button>
-    <button class="btn btn-primary" bindtap="onNext">下一步</button>
+  </view>
+  <view class="bottom-actions">
+    <button class="btn btn-outline" bindtap="goBack">上一步</button>
+    <button class="btn btn-primary" bindtap="goNext" disabled="{{selectedCount !== 3}}">下一步 →</button>
   </view>
 </view>

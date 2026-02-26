@@ -1,100 +1,159 @@
 /* pages/personal-info/personal-info.wxss */
+/* 个人信息页样式 */
 
 .container {
   min-height: 100vh;
-  padding: 40rpx 24rpx;
-  background: linear-gradient(135deg, #eff6ff 0%, #ffffff 50%, #f0fdf4 100%);
+  background: linear-gradient(to bottom right, #eff6ff, #ffffff, #f0fdf4);
+  padding-bottom: 200rpx;
 }
 
-/* 标题 */
+/* 头部导航 */
 .header {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  margin-bottom: 48rpx;
+  justify-content: space-between;
+  padding: 24rpx 32rpx;
+  background: #fff;
+  border-bottom: 1rpx solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
-.header-icon {
-  width: 100rpx;
-  height: 100rpx;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border-radius: 50%;
+.back-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-size: 48rpx;
-  margin-bottom: 24rpx;
+  gap: 8rpx;
+  color: #6b7280;
+  font-size: 28rpx;
+}
+
+.back-icon {
+  font-size: 32rpx;
 }
 
 .header-title {
-  font-size: 36rpx;
+  font-size: 32rpx;
   font-weight: 600;
   color: #1f2937;
-  margin-bottom: 8rpx;
 }
 
-.header-desc {
-  font-size: 26rpx;
-  color: #6b7280;
+.placeholder {
+  width: 80rpx;
 }
 
-/* 表单 */
-.form {
-  background: #ffffff;
-  border-radius: 20rpx;
-  padding: 30rpx;
-  margin-bottom: 40rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
-}
-
-.form-item {
-  margin-bottom: 24rpx;
-}
-
-.form-item.half {
-  flex: 1;
-}
-
-.form-row {
+/* 自动保存提示 */
+.auto-save-tip {
   display: flex;
-  gap: 24rpx;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  padding: 16rpx;
+  background: #f0fdf4;
+  color: #10b981;
+  font-size: 24rpx;
 }
 
-.form-label {
+.save-icon {
   font-size: 28rpx;
-  color: #374151;
-  margin-bottom: 12rpx;
+}
+
+/* 表单卡片 */
+.form-card {
+  margin: 24rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 24rpx;
+  background: linear-gradient(90deg, #eff6ff, #f0fdf4);
+  border-bottom: 1rpx solid #e5e7eb;
+}
+
+.card-icon {
+  font-size: 40rpx;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1f2937;
   display: block;
 }
 
-.required {
-  color: #ef4444;
+.card-desc {
+  font-size: 24rpx;
+  color: #6b7280;
+  display: block;
+  margin-top: 4rpx;
 }
 
-.form-input {
+.form-content {
+  padding: 24rpx;
+}
+
+/* 表单组 */
+.form-group {
+  margin-bottom: 32rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #374151;
+  margin-bottom: 12rpx;
+}
+
+.form-label.required::before {
+  content: '*';
+  color: #ef4444;
+  margin-right: 4rpx;
+}
+
+.form-hint {
+  display: block;
+  font-size: 24rpx;
+  color: #9ca3af;
+  margin-top: 8rpx;
+}
+
+.input {
   width: 100%;
   height: 88rpx;
   padding: 0 24rpx;
   border: 2rpx solid #e5e7eb;
-  border-radius: 12rpx;
+  border-radius: 16rpx;
   font-size: 28rpx;
+  background: #fff;
   box-sizing: border-box;
 }
 
-.form-input:focus {
-  border-color: #3b82f6;
+.input:focus {
+  border-color: #10b981;
 }
 
-.form-picker {
-  height: 88rpx;
-  padding: 0 24rpx;
-  border: 2rpx solid #e5e7eb;
-  border-radius: 12rpx;
+/* 选择器 */
+.picker-input {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  height: 88rpx;
+  padding: 0 24rpx;
+  border: 2rpx solid #e5e7eb;
+  border-radius: 16rpx;
   font-size: 28rpx;
-  color: #1f2937;
+  background: #fff;
+}
+
+.picker-input .placeholder {
+  color: #9ca3af;
 }
 
 .picker-arrow {
@@ -102,14 +161,220 @@
   color: #9ca3af;
 }
 
-/* 按钮 */
-.buttons {
-  padding: 0 24rpx;
+/* BMI区域 */
+.bmi-section {
+  margin: 32rpx 0;
+  padding: 24rpx;
+  background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+  border-radius: 16rpx;
+  border: 2rpx solid #bfdbfe;
 }
 
-.btn-text {
-  background: transparent;
+.bmi-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.bmi-icon {
+  font-size: 32rpx;
+}
+
+.bmi-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.bmi-content {
+  display: flex;
+  align-items: baseline;
+  gap: 16rpx;
+  margin-bottom: 24rpx;
+}
+
+.bmi-value {
+  font-size: 56rpx;
+  font-weight: 700;
+}
+
+.bmi-category {
+  font-size: 28rpx;
+  font-weight: 600;
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+/* BMI颜色 */
+.bmi-thin {
+  color: #f97316;
+}
+
+.bmi-normal {
+  color: #10b981;
+}
+
+.bmi-overweight {
+  color: #eab308;
+}
+
+.bmi-obese {
+  color: #ef4444;
+}
+
+/* BMI进度条 */
+.bmi-bar {
+  position: relative;
+  display: flex;
+  height: 48rpx;
+  border-radius: 24rpx;
+  overflow: hidden;
+  margin-bottom: 16rpx;
+}
+
+.bmi-range {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: 500;
+}
+
+.bmi-range-thin {
+  background: #f97316;
+}
+
+.bmi-range-normal {
+  background: #10b981;
+}
+
+.bmi-range-overweight {
+  background: #eab308;
+}
+
+.bmi-range-obese {
+  background: #ef4444;
+}
+
+.bmi-indicator {
+  position: absolute;
+  top: -8rpx;
+  width: 16rpx;
+  height: 64rpx;
+  background: #1f2937;
+  border-radius: 8rpx;
+  transform: translateX(-50%);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.3);
+}
+
+.bmi-formula {
+  display: block;
+  text-align: center;
+  font-size: 22rpx;
   color: #6b7280;
+}
+
+/* 错误卡片 */
+.error-card {
+  margin: 24rpx;
+  padding: 24rpx;
+  background: #fef2f2;
+  border-radius: 16rpx;
+  border: 2rpx solid #fecaca;
+}
+
+.error-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.error-icon {
+  font-size: 32rpx;
+}
+
+.error-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.error-content {
+  padding: 16rpx;
+  background: #fff;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+}
+
+.error-message {
+  display: block;
   font-size: 26rpx;
+  color: #1f2937;
+  margin-bottom: 8rpx;
+}
+
+.error-detail {
+  display: block;
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+.error-suggestion {
+  font-size: 24rpx;
+  color: #7f1d1d;
+  line-height: 1.5;
+}
+
+/* 提交区域 */
+.submit-section {
+  padding: 24rpx;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  box-shadow: 0 -4rpx 16rpx rgba(0, 0, 0, 0.05);
+}
+
+.submit-hint {
+  display: block;
+  text-align: center;
+  font-size: 24rpx;
+  color: #9ca3af;
   margin-top: 16rpx;
+}
+
+/* 按钮样式 */
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24rpx 32rpx;
+  border-radius: 16rpx;
+  font-size: 28rpx;
+  font-weight: 500;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #3b82f6, #10b981);
+  color: #fff;
+}
+
+.btn-primary:active {
+  opacity: 0.9;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+.btn-lg {
+  padding: 32rpx 48rpx;
+  font-size: 32rpx;
 }

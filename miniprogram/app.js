@@ -1,25 +1,37 @@
 // app.js
 App({
   onLaunch() {
-    // 初始化
-    console.log('健康自检小程序启动');
+    // 初始化本地存储
+    this.initStorage();
     
     // 检查登录状态
     this.checkLoginStatus();
   },
 
-  checkLoginStatus() {
-    const userInfo = wx.getStorageSync('userInfo');
-    if (userInfo) {
-      this.globalData.userInfo = userInfo;
+  initStorage() {
+    // 初始化健康数据存储
+    const healthData = wx.getStorageSync('healthData');
+    if (!healthData) {
+      wx.setStorageSync('healthData', {
+        personalInfo: null,
+        selectedSymptoms: [],
+        selectedHabits: [],
+        targetSymptoms: [],
+        choices: null,
+        requirements: null,
+        analysisResult: null
+      });
     }
+  },
+
+  checkLoginStatus() {
+    const adminToken = wx.getStorageSync('adminToken');
+    this.globalData.isAdminLoggedIn = !!adminToken;
   },
 
   globalData: {
     userInfo: null,
-    // API基础地址 - 部署时修改为实际域名
-    baseUrl: 'https://your-domain.com',
-    // 本地开发时可以使用
-    // baseUrl: 'http://localhost:5000',
+    isAdminLoggedIn: false,
+    apiBaseUrl: 'http://localhost:5000/api'
   }
 });

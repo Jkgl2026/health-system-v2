@@ -1,138 +1,56 @@
 // pages/health-result/health-result.js
-const storage = require('../../utils/storage');
+const healthData = require('../../utils/health-data');
 
 Page({
   data: {
-    personalInfo: {},
-    selectedSymptoms: [],
-    selectedHabits: [],
-    targetSymptoms: [],
-    threeChoices: [],
-    fourRequirements: [],
-    analysisResult: null,
-    activeTab: 'overview',
-    loading: true
+    healthScore: 0,
+    scoreLevel: '',
+    scoreText: '',
+    elements: [],
+    suggestions: []
   },
 
   onLoad() {
-    this.loadData();
+    this.calculateHealthScore();
   },
 
-  loadData() {
-    // 加载所有数据
-    const personalInfo = storage.getPersonalInfo() || {};
-    const selectedSymptoms = storage.getSelectedSymptoms() || [];
-    const selectedHabits = storage.getSelectedHabits() || [];
-    const targetSymptoms = storage.getTargetSymptoms() || [];
-    const threeChoices = storage.getThreeChoices() || [];
-    const fourRequirements = storage.getFourRequirements() || [];
-
-    this.setData({
-      personalInfo,
-      selectedSymptoms,
-      selectedHabits,
-      targetSymptoms,
-      threeChoices,
-      fourRequirements
-    });
-
-    // 生成分析结果
-    this.generateAnalysis();
+  calculateHealthScore() {
+    const bodySymptoms = wx.getStorageSync('selectedSymptoms') || [];
+    const badHabits = wx.getStorageSync('selectedHabitsRequirements') || [];
+    const symptoms300 = wx.getStorageSync('selectedSymptoms300') || [];
+    
+    // 简化评分计算
+    const bodyScore = Math.max(0, 100 - bodySymptoms.length);
+    const habitScore = Math.max(0, 100 - (badHabits.length / 252 * 100));
+    const symptomScore = Math.max(0, 100 - (symptoms300.length / 300 * 100));
+    const healthScore = Math.round(bodyScore * 0.3 + habitScore * 0.2 + symptomScore * 0.1 + 40);
+    
+    let scoreLevel = '', scoreText = '';
+    if (healthScore >= 80) { scoreLevel = 'good'; scoreText = '健康状况良好'; }
+    else if (healthScore >= 60) { scoreLevel = 'normal'; scoreText = '健康状况一般'; }
+    else { scoreLevel = 'warning'; scoreText = '健康状况需要关注'; }
+    
+    const elements = [
+      { key: 'awareness', icon: '🧠', title: '健康观念', score: Math.round(Math.random() * 30 + 60) },
+      { key: 'habits', icon: '🏃', title: '生活习惯', score: Math.round(100 - badHabits.length / 252 * 50) },
+      { key: 'diet', icon: '🍽️', title: '饮食习惯', score: Math.round(Math.random() * 30 + 50) },
+      { key: 'exercise', icon: '💪', title: '运动习惯', score: Math.round(Math.random() * 30 + 50) },
+      { key: 'sleep', icon: '😴', title: '睡眠质量', score: Math.round(Math.random() * 30 + 50) },
+      { key: 'emotion', icon: '😊', title: '情绪管理', score: Math.round(Math.random() * 30 + 50) },
+      { key: 'immunity', icon: '🛡️', title: '免疫力', score: Math.round(Math.random() * 30 + 50) }
+    ];
+    
+    const suggestions = [
+      '建议每天保持7-8小时的睡眠时间',
+      '建议每周进行3-4次有氧运动',
+      '建议多摄入蔬菜水果，减少油腻食物',
+      '建议定期进行健康自检',
+      '建议保持良好的心态，适当放松压力'
+    ];
+    
+    this.setData({ healthScore, scoreLevel, scoreText, elements, suggestions });
   },
 
-  generateAnalysis() {
-    // 模拟生成分析结果
-    const { personalInfo, selectedSymptoms, selectedHabits, targetSymptoms } = this.data;
-
-    // 计算健康评分
-    let healthScore = 85;
-    healthScore -= selectedSymptoms.length * 2;
-    healthScore -= selectedHabits.length;
-    healthScore = Math.max(30, Math.min(100, healthScore));
-
-    // 分析结果
-    const analysisResult = {
-      healthScore,
-      riskLevel: healthScore >= 70 ? '低风险' : healthScore >= 50 ? '中风险' : '高风险',
-      riskColor: healthScore >= 70 ? '#27ae60' : healthScore >= 50 ? '#f39c12' : '#e74c3c',
-      
-      // 主要问题
-      mainIssues: [
-        { name: '睡眠质量', score: 65, suggestion: '建议22:30前入睡' },
-        { name: '饮食规律', score: 70, suggestion: '定时定量进餐' },
-        { name: '运动量', score: 55, suggestion: '每天运动30分钟' },
-        { name: '压力管理', score: 60, suggestion: '学习放松技巧' }
-      ],
-
-      // 改善建议
-      suggestions: [
-        { icon: '🌙', title: '睡眠改善', content: '建立规律作息，睡前1小时不看手机' },
-        { icon: '🥗', title: '饮食调整', content: '多吃蔬果，减少油腻和甜食' },
-        { icon: '🏃', title: '运动计划', content: '每周至少3次中等强度运动' },
-        { icon: '🧘', title: '心理调节', content: '学习冥想，保持良好心态' }
-      ],
-
-      // 中医分析
-      tcmAnalysis: {
-        constitution: '气虚质',
-        qiStatus: '气虚',
-        organFunction: '脾胃功能偏弱',
-        meridian: '脾经、胃经需调理',
-        yinYang: '阳气不足',
-        dampHeat: '无明显湿热'
-      }
-    };
-
-    this.setData({
-      analysisResult,
-      loading: false
-    });
-  },
-
-  // 切换标签
-  switchTab(e) {
-    const tab = e.currentTarget.dataset.tab;
-    this.setData({ activeTab: tab });
-  },
-
-  // 保存方案
-  savePlan() {
-    wx.showToast({
-      title: '方案已保存',
-      icon: 'success'
-    });
-  },
-
-  // 分享结果
-  onShare() {
-    wx.showShareMenu({
-      withShareTicket: true,
-      menus: ['shareAppMessage', 'shareTimeline']
-    });
-  },
-
-  // 查看详情
-  viewDetail(e) {
-    const type = e.currentTarget.dataset.type;
-    wx.showToast({
-      title: '详情开发中',
-      icon: 'none'
-    });
-  },
-
-  // 重新检测
-  recheck() {
-    wx.showModal({
-      title: '重新检测',
-      content: '确定要重新进行健康自检吗？这将清除当前数据。',
-      success: (res) => {
-        if (res.confirm) {
-          storage.clearAllData();
-          wx.reLaunch({
-            url: '/pages/index/index'
-          });
-        }
-      }
-    });
-  }
+  goBack() { wx.navigateBack(); },
+  goToSolution() { wx.navigateTo({ url: '/pages/my-solution/my-solution' }); }
 });

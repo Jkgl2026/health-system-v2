@@ -1,91 +1,43 @@
 // pages/target/target.js
-const storage = require('../../utils/storage');
 const healthData = require('../../utils/health-data');
 
 Page({
   data: {
     allSymptoms: [],
-    targetSymptoms: [],
-    maxTargets: 3
+    selectedIds: [],
+    selectedSymptoms: [],
+    selectedCount: 0
   },
 
   onLoad() {
-    this.initData();
+    const bodySymptoms = wx.getStorageSync('selectedSymptoms') || [];
+    const symptoms300 = wx.getStorageSync('selectedSymptoms300') || [];
+    const allSymptomIds = [...bodySymptoms, ...symptoms300];
+    const allSymptoms = [
+      ...healthData.BODY_SYMPTOMS.filter(s => bodySymptoms.includes(s.id)),
+      ...healthData.BODY_SYMPTOMS_300.filter(s => symptoms300.includes(s.id))
+    ];
+    const savedTarget = wx.getStorageSync('targetSymptoms') || [];
+    const selectedSymptoms = allSymptoms.filter(s => savedTarget.includes(s.id));
+    this.setData({ allSymptoms, selectedIds: savedTarget, selectedSymptoms, selectedCount: savedTarget.length });
   },
 
-  initData() {
-    // 获取所有已选择的症状
-    const bodySymptoms = storage.getSelectedSymptoms();
-    const symptoms300 = storage.getSelectedSymptoms300();
-    const savedTargetSymptoms = storage.getTargetSymptoms();
-
-    // 获取症状名称
-    const allSymptoms = [];
-    
-    bodySymptoms.forEach(id => {
-      const name = healthData.getSymptomNameById(id);
-      if (name) {
-        allSymptoms.push({ id, name, source: '身体语言简表' });
-      }
-    });
-
-    // 添加300症状（简化处理）
-    symptoms300.forEach(id => {
-      allSymptoms.push({ id, name: `症状${id}`, source: '300症状表' });
-    });
-
-    this.setData({
-      allSymptoms: allSymptoms,
-      targetSymptoms: savedTargetSymptoms.filter(id => 
-        allSymptoms.some(s => s.id === id)
-      )
-    });
-  },
-
-  // 切换选择
-  toggleTarget(e) {
+  toggleSymptom(e) {
     const id = e.currentTarget.dataset.id;
-    const targetSymptoms = [...this.data.targetSymptoms];
-    const index = targetSymptoms.indexOf(id);
-    
-    if (index > -1) {
-      targetSymptoms.splice(index, 1);
+    let { selectedIds, allSymptoms } = this.data;
+    if (selectedIds.includes(id)) {
+      selectedIds = selectedIds.filter(i => i !== id);
+    } else if (selectedIds.length < 3) {
+      selectedIds.push(id);
     } else {
-      if (targetSymptoms.length >= this.data.maxTargets) {
-        wx.showToast({
-          title: `最多选择${this.data.maxTargets}个重点症状`,
-          icon: 'none'
-        });
-        return;
-      }
-      targetSymptoms.push(id);
+      wx.showToast({ title: '最多选择3个', icon: 'none' });
+      return;
     }
-
-    this.setData({ targetSymptoms });
+    const selectedSymptoms = allSymptoms.filter(s => selectedIds.includes(s.id));
+    this.setData({ selectedIds, selectedSymptoms, selectedCount: selectedIds.length });
+    wx.setStorageSync('targetSymptoms', selectedIds);
   },
 
-  // 下一步
-  onNext() {
-    storage.saveTargetSymptoms(this.data.targetSymptoms);
-
-    wx.showToast({
-      title: '已保存',
-      icon: 'success',
-      duration: 1000
-    });
-
-    setTimeout(() => {
-      wx.navigateTo({
-        url: '/pages/choices/choices'
-      });
-    }, 1000);
-  },
-
-  // 跳过
-  onSkip() {
-    storage.saveTargetSymptoms(this.data.targetSymptoms);
-    wx.navigateTo({
-      url: '/pages/choices/choices'
-    });
-  }
+  goBack() { wx.navigateBack(); },
+  goNext() { wx.navigateTo({ url: '/pages/choices/choices' }); }
 });
