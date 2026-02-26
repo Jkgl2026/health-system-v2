@@ -1,5 +1,5 @@
 <!--pages/index/index.wxml-->
-<!--首页 - 基于Web版page.tsx精确转换-->
+<!--首页 - 简洁版-->
 
 <view class="container">
   <!-- 头部区域 -->
@@ -14,9 +14,7 @@
           <text class="header-subtitle">把健康把握在自己手里</text>
         </view>
       </view>
-      <view class="header-actions">
-        <button class="btn btn-primary" bindtap="goToPersonalInfo">开始自检</button>
-      </view>
+      <button class="btn btn-primary" bindtap="goToPersonalInfo">开始自检</button>
     </view>
   </view>
 
@@ -28,321 +26,99 @@
         <view class="page-num">1</view>
         <text class="page-label">健康评分</text>
       </view>
-      <button class="btn btn-primary" bindtap="goToPage2">
-        下一页
-        <text class="arrow">→</text>
+      <button class="btn btn-primary btn-sm" bindtap="goToPage2">
+        下一页 →
       </button>
     </view>
 
-    <!-- 健康数据卡片 -->
-    <view class="health-card">
-      <view class="card-header">
-        <view class="card-title-section">
-          <view class="card-icon">📊</view>
-          <view>
-            <text class="card-title">您的健康数据概览</text>
-            <text class="card-desc">基于上次自检的综合分析报告</text>
-          </view>
-        </view>
-        <button class="btn btn-primary" bindtap="goToMySolution">查看完整方案 →</button>
+    <!-- 健康评分 -->
+    <view class="score-section">
+      <view class="score-main">
+        <text class="score-label">健康评分</text>
+        <text class="score-value">{{healthData.healthScore}}</text>
+        <text class="score-unit">分</text>
       </view>
+    </view>
 
-      <!-- 健康评分 -->
-      <view class="score-section">
-        <view class="score-main">
-          <text class="score-label">健康评分</text>
-          <text class="score-value">{{healthData.healthScore}}</text>
-          <text class="score-unit">分（满分100）</text>
+    <!-- 统计卡片 -->
+    <view class="stats-grid">
+      <view class="stat-card stat-blue" bindtap="toggleCard" data-card="bodySymptoms">
+        <text class="stat-label">身体语言简表</text>
+        <text class="stat-value">{{healthData.bodySymptomsCount}}</text>
+        <text class="stat-unit">/ 100项</text>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{healthData.bodySymptomsCount}}%;"></view>
         </view>
-      </view>
-
-      <!-- 统计卡片 -->
-      <view class="stats-grid">
-        <!-- 身体语言简表 -->
-        <view class="stat-card stat-blue" bindtap="toggleCard" data-card="bodySymptoms">
-          <view class="stat-header">
-            <text class="stat-label">身体语言简表</text>
-            <text class="stat-icon">📋</text>
-          </view>
-          <text class="stat-value">{{healthData.bodySymptomsCount}}</text>
-          <text class="stat-unit">/ 100项</text>
-          <view class="progress-bar">
-            <view class="progress-fill" style="width: {{healthData.bodySymptomsCount}}%;"></view>
-          </view>
-          <view class="expand-hint">
-            <text class="expand-arrow {{expandedCard === 'bodySymptoms' ? 'expanded' : ''}}">→</text>
-            <text>点击查看详情</text>
-          </view>
-          <view wx:if="{{expandedCard === 'bodySymptoms' && healthData.bodySymptomNames.length > 0}}" class="expanded-content">
-            <view class="expanded-title">已勾选的症状：</view>
-            <view class="tag-list">
-              <text wx:for="{{healthData.bodySymptomNames}}" wx:key="index" class="tag">{{item}}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 不良生活习惯 -->
-        <view class="stat-card stat-orange" bindtap="toggleCard" data-card="badHabits">
-          <view class="stat-header">
-            <text class="stat-label">不良生活习惯</text>
-            <text class="stat-icon">⚠️</text>
-          </view>
-          <text class="stat-value">{{healthData.badHabitsCount}}</text>
-          <text class="stat-unit">/ 252项</text>
-          <view class="progress-bar">
-            <view class="progress-fill" style="width: {{healthData.badHabitsCount / 252 * 100}}%;"></view>
-          </view>
-          <view class="expand-hint">
-            <text class="expand-arrow {{expandedCard === 'badHabits' ? 'expanded' : ''}}">→</text>
-            <text>点击查看详情</text>
-          </view>
-          <view wx:if="{{expandedCard === 'badHabits' && healthData.badHabitNames.length > 0}}" class="expanded-content">
-            <view class="expanded-title">已勾选的习惯：</view>
-            <view class="tag-list">
-              <text wx:for="{{healthData.badHabitNames}}" wx:key="index" class="tag">{{item}}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 300症状表 -->
-        <view class="stat-card stat-purple" bindtap="toggleCard" data-card="symptoms300">
-          <view class="stat-header">
-            <text class="stat-label">300症状表</text>
-            <text class="stat-icon">💔</text>
-          </view>
-          <text class="stat-value">{{healthData.symptoms300Count}}</text>
-          <text class="stat-unit">/ 300项</text>
-          <view class="progress-bar">
-            <view class="progress-fill" style="width: {{healthData.symptoms300Count / 300 * 100}}%;"></view>
-          </view>
-          <view class="expand-hint">
-            <text class="expand-arrow {{expandedCard === 'symptoms300' ? 'expanded' : ''}}">→</text>
-            <text>点击查看详情</text>
-          </view>
-          <view wx:if="{{expandedCard === 'symptoms300' && healthData.symptoms300Names.length > 0}}" class="expanded-content">
-            <view class="expanded-title">已勾选的症状：</view>
-            <view class="tag-list">
-              <text wx:for="{{healthData.symptoms300Names}}" wx:key="index" class="tag">{{item}}</text>
-            </view>
-          </view>
-        </view>
-
-        <!-- 重点症状 -->
-        <view class="stat-card stat-red" bindtap="toggleCard" data-card="targetSymptoms">
-          <view class="stat-header">
-            <text class="stat-label">重点症状</text>
-            <text class="stat-icon">🎯</text>
-          </view>
-          <text class="stat-value">{{healthData.targetSymptoms}}</text>
-          <text class="stat-unit">个需要改善</text>
-          <view class="stat-extra">
-            <text class="extra-label">症状总数</text>
-            <text class="extra-value">{{healthData.totalSymptoms}}项</text>
-          </view>
-          <view class="expand-hint">
-            <text class="expand-arrow {{expandedCard === 'targetSymptoms' ? 'expanded' : ''}}">→</text>
-            <text>点击查看详情</text>
-          </view>
-          <view wx:if="{{expandedCard === 'targetSymptoms' && healthData.targetSymptomNames.length > 0}}" class="expanded-content">
-            <view class="expanded-title">需要改善的症状：</view>
-            <view class="tag-list">
-              <text wx:for="{{healthData.targetSymptomNames}}" wx:key="index" class="tag tag-important">{{item}}</text>
-            </view>
-          </view>
+        <view wx:if="{{expandedCard === 'bodySymptoms' && healthData.bodySymptomNames.length > 0}}" class="expanded-content">
+          <text wx:for="{{healthData.bodySymptomNames}}" wx:key="index" class="tag">{{item}}</text>
         </view>
       </view>
 
-      <!-- 健康改善潜力进度条 -->
-      <view class="potential-section">
-        <view class="potential-header">
-          <text class="potential-icon">📊</text>
-          <text class="potential-title">整体健康改善潜力</text>
-          <text class="potential-value">{{healthData.healthScore}}%</text>
+      <view class="stat-card stat-orange" bindtap="toggleCard" data-card="badHabits">
+        <text class="stat-label">不良生活习惯</text>
+        <text class="stat-value">{{healthData.badHabitsCount}}</text>
+        <text class="stat-unit">/ 252项</text>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{healthData.badHabitsCount / 252 * 100}}%;"></view>
         </view>
-        <view class="progress-bar-lg">
-          <view class="progress-fill-lg" style="width: {{healthData.healthScore}}%;">
-            <text wx:if="{{healthData.healthScore > 10}}" class="progress-text">{{healthData.healthScore}}%</text>
-          </view>
+        <view wx:if="{{expandedCard === 'badHabits' && healthData.badHabitNames.length > 0}}" class="expanded-content">
+          <text wx:for="{{healthData.badHabitNames}}" wx:key="index" class="tag">{{item}}</text>
         </view>
       </view>
 
-      <!-- 权重说明 -->
-      <view class="weight-info">
-        <view class="weight-item weight-blue">
-          <view class="weight-dot"></view>
-          <text class="weight-label">身体语言简表</text>
-          <text class="weight-desc">权重30% · {{healthData.bodySymptomsCount}}/100项</text>
+      <view class="stat-card stat-purple" bindtap="toggleCard" data-card="symptoms300">
+        <text class="stat-label">300症状表</text>
+        <text class="stat-value">{{healthData.symptoms300Count}}</text>
+        <text class="stat-unit">/ 300项</text>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{healthData.symptoms300Count / 300 * 100}}%;"></view>
         </view>
-        <view class="weight-item weight-orange">
-          <view class="weight-dot"></view>
-          <text class="weight-label">不良生活习惯</text>
-          <text class="weight-desc">权重20% · {{healthData.badHabitsCount}}/252项</text>
+        <view wx:if="{{expandedCard === 'symptoms300' && healthData.symptoms300Names.length > 0}}" class="expanded-content">
+          <text wx:for="{{healthData.symptoms300Names}}" wx:key="index" class="tag">{{item}}</text>
         </view>
-        <view class="weight-item weight-purple">
-          <view class="weight-dot"></view>
-          <text class="weight-label">300症状表</text>
-          <text class="weight-desc">权重10% · {{healthData.symptoms300Count}}/300项</text>
+      </view>
+
+      <view class="stat-card stat-red" bindtap="toggleCard" data-card="targetSymptoms">
+        <text class="stat-label">重点症状</text>
+        <text class="stat-value">{{healthData.targetSymptoms}}</text>
+        <text class="stat-unit">个需改善</text>
+        <view wx:if="{{expandedCard === 'targetSymptoms' && healthData.targetSymptomNames.length > 0}}" class="expanded-content">
+          <text wx:for="{{healthData.targetSymptomNames}}" wx:key="index" class="tag tag-important">{{item}}</text>
         </view>
       </view>
     </view>
 
-    <!-- 健康状况总结 -->
-    <view class="summary-card">
-      <view class="summary-header">
-        <view class="summary-icon">✨</view>
-        <view>
-          <text class="summary-title">健康状况总结</text>
-          <text class="summary-subtitle">基于您的自检数据的综合评估</text>
-        </view>
-      </view>
-
-      <!-- 基本信息 -->
-      <view wx:if="{{healthData.userInfo}}" class="info-section">
-        <view class="info-header">
-          <text class="info-icon">👤</text>
-          <text class="info-title">基本信息</text>
-        </view>
-        <view class="info-grid">
-          <view class="info-item">
-            <text class="info-label">姓名：</text>
-            <text class="info-value">{{healthData.userInfo.name || '未填写'}}</text>
-          </view>
-          <view class="info-item">
-            <text class="info-label">年龄：</text>
-            <text class="info-value">{{healthData.userInfo.age || '未填写'}}岁</text>
-          </view>
-          <view class="info-item">
-            <text class="info-label">性别：</text>
-            <text class="info-value">{{healthData.userInfo.gender || '未填写'}}</text>
-          </view>
-          <view class="info-item">
-            <text class="info-label">BMI：</text>
-            <text class="info-value">{{healthData.userInfo.bmi || '未计算'}}</text>
-          </view>
-        </view>
-      </view>
-
-      <!-- 健康分析报告 -->
-      <view class="report-section">
-        <view class="report-icon">🏆</view>
-        <view class="report-content">
-          <text class="report-title">健康分析报告：</text>
-          <text class="report-text">
-            根据您的自检结果，您共有<text class="highlight highlight-indigo">{{healthData.totalSymptoms}}项</text>健康异常，
-            其中身体语言简表<text class="highlight highlight-blue">{{healthData.bodySymptomsCount}}项</text>、
-            不良生活习惯<text class="highlight highlight-orange">{{healthData.badHabitsCount}}项</text>、
-            300症状表<text class="highlight highlight-purple">{{healthData.symptoms300Count}}项</text>。
-            您的综合健康评分为<text class="highlight highlight-green">{{healthData.healthScore}}分</text>。
-            {{healthData.healthScore >= 80 ? '您的整体健康状况良好，继续保持健康的生活方式。' :
-              healthData.healthScore >= 60 ? '您的健康状况处于亚健康状态，建议及时调理。' :
-              '您的健康状况需要重点关注，建议尽快进行系统调理。'}}
-          </text>
-        </view>
-      </view>
-
-      <!-- 重点改善症状 -->
-      <view wx:if="{{healthData.targetSymptomNames.length > 0}}" class="target-section">
-        <view class="target-header">
-          <text class="target-icon">🎯</text>
-          <text class="target-title">重点改善症状</text>
-        </view>
-        <view class="target-list">
-          <view wx:for="{{healthData.targetSymptomNames}}" wx:key="index" class="target-item">
-            <view class="target-num">{{index + 1}}</view>
-            <text class="target-name">{{item}}</text>
-          </view>
-        </view>
-        <view class="target-advice">
-          <text class="advice-label">专家建议：</text>
-          <text class="advice-text">以上{{healthData.targetSymptomNames.length}}个症状是当前最困扰您的问题，也是调理的重点。</text>
-        </view>
-      </view>
+    <!-- 健康分析报告 -->
+    <view class="report-section">
+      <text class="report-title">📊 健康分析报告</text>
+      <text class="report-text">
+        您共有<text class="highlight">{{healthData.totalSymptoms}}项</text>健康异常，
+        综合健康评分<text class="highlight">{{healthData.healthScore}}分</text>。
+        {{healthData.healthScore >= 80 ? '整体健康状况良好，继续保持。' :
+          healthData.healthScore >= 60 ? '处于亚健康状态，建议及时调理。' :
+          '需要重点关注，建议尽快调理。'}}
+      </text>
     </view>
 
-    <!-- 推荐调理方向 -->
-    <view class="recommend-card">
-      <view class="recommend-header">
-        <view class="recommend-icon">🔥</view>
-        <view>
-          <text class="recommend-title">推荐调理方向</text>
-          <text class="recommend-subtitle">根据您的症状制定的调理建议</text>
-        </view>
-      </view>
+    <!-- 推荐调理 -->
+    <view class="recommend-section">
+      <text class="recommend-title">🔥 推荐调理方向</text>
       <view class="recommend-list">
         <view class="recommend-item">
-          <view class="recommend-item-icon">🔥</view>
-          <view class="recommend-item-content">
-            <text class="recommend-item-title">艾灸调理</text>
-            <text class="recommend-item-desc">适用于寒凉、气血不足、循环不畅等问题</text>
-            <view class="recommend-item-detail">
-              通过艾火的热力温通经络、调和气血，建议每次20-30分钟，每周3-4次。
-            </view>
-          </view>
+          <text class="recommend-name">艾灸调理</text>
+          <text class="recommend-desc">温通经络、调和气血</text>
         </view>
         <view wx:if="{{healthData.bodySymptomsCount > 5 || healthData.badHabitsCount > 10}}" class="recommend-item">
-          <view class="recommend-item-icon">⚡</view>
-          <view class="recommend-item-content">
-            <text class="recommend-item-title">火灸调理</text>
-            <text class="recommend-item-desc">适用于体内淤堵、毒素积压、寒湿较重的情况</text>
-            <view class="recommend-item-detail">
-              通过火之力强力疏通经络、祛除寒湿，建议在专业指导下进行。
-            </view>
-          </view>
+          <text class="recommend-name">火灸调理</text>
+          <text class="recommend-desc">疏通经络、祛除寒湿</text>
         </view>
       </view>
     </view>
 
-    <!-- 分阶段调理计划 -->
-    <view class="plan-card">
-      <view class="plan-header">
-        <view class="plan-icon">📈</view>
-        <view>
-          <text class="plan-title">分阶段调理计划</text>
-          <text class="plan-subtitle">循序渐进，科学调理</text>
-        </view>
-      </view>
-      <view class="plan-list">
-        <view class="plan-item">
-          <view class="plan-step plan-step-1">1</view>
-          <view class="plan-content">
-            <text class="plan-title-text">第一阶段：清理排毒（1-2周）</text>
-            <text class="plan-desc">先清理体内的毒素和淤堵，为后续调理打好基础。</text>
-            <view class="plan-tags">
-              <text class="plan-tag">调理重点：肠胃排毒、疏通经络</text>
-              <text class="plan-tag">推荐产品：艾灸、火灸</text>
-            </view>
-          </view>
-        </view>
-        <view class="plan-item">
-          <view class="plan-step plan-step-2">2</view>
-          <view class="plan-content">
-            <text class="plan-title-text">第二阶段：补益调理（3-4周）</text>
-            <text class="plan-desc">在清理的基础上，补充气血，调理脏腑功能。</text>
-            <view class="plan-tags">
-              <text class="plan-tag">调理重点：补气血、强免疫</text>
-              <text class="plan-tag">推荐产品：艾灸、营养补充</text>
-            </view>
-          </view>
-        </view>
-        <view class="plan-item">
-          <view class="plan-step plan-step-3">3</view>
-          <view class="plan-content">
-            <text class="plan-title-text">第三阶段：巩固养护（4-6周）</text>
-            <text class="plan-desc">巩固调理成果，建立健康的生活习惯。</text>
-            <view class="plan-tags">
-              <text class="plan-tag">调理重点：巩固疗效、健康养生</text>
-              <text class="plan-tag">推荐产品：养生灸、生活习惯调整</text>
-            </view>
-          </view>
-        </view>
-      </view>
-    </view>
-
-    <!-- 下一页按钮 -->
-    <view class="next-page-btn">
-      <button class="btn btn-primary btn-block" bindtap="goToPage2">
-        下一页：健康理念
-        <text class="arrow">→</text>
+    <!-- 查看完整方案按钮 -->
+    <view class="action-section">
+      <button class="btn btn-primary btn-block" bindtap="goToMySolution">
+        查看完整调理方案 →
       </button>
     </view>
   </view>
@@ -351,7 +127,7 @@
   <view wx:if="{{!hasHealthData || currentPage === 2}}" class="main-content">
     <!-- 返回按钮（有数据时显示） -->
     <view wx:if="{{hasHealthData}}" class="page-switch">
-      <button class="btn btn-outline" bindtap="goToPage1">← 返回评分</button>
+      <button class="btn btn-outline btn-sm" bindtap="goToPage1">← 返回评分</button>
       <view class="page-indicator">
         <view class="page-num">2</view>
         <text class="page-label">健康理念</text>
@@ -360,47 +136,33 @@
 
     <!-- 欢迎区域 -->
     <view class="welcome-section">
-      <view class="welcome-title">
-        让老百姓
-        <text class="highlight-text">少花钱</text>
-        甚至
-        <text class="highlight-text">不花钱</text>
-        解决问题
-      </view>
-      <view class="welcome-desc">
-        健康自我管理的核心价值在于教会您健康观念，把健康把握在自己手里。
-        最省钱的方法就是学会健康自我管理，少生病，把健康掌握在自己手里。
-      </view>
+      <text class="welcome-title">让老百姓少花钱甚至不花钱解决问题</text>
+      <text class="welcome-desc">健康自我管理的核心价值在于教会您健康观念，把健康把握在自己手里。</text>
     </view>
 
     <!-- 三个核心问题 -->
-    <view class="questions-card">
-      <view class="questions-header">
-        <text class="questions-title">三个核心问题</text>
-        <text class="questions-subtitle">思考这些问题，认识健康的重要性</text>
+    <view class="questions-section">
+      <text class="section-title">三个核心问题</text>
+      <view class="question-item">
+        <text class="question-num">1</text>
+        <text class="question-text">老百姓是舒服的时候去医院，还是难受的时候？</text>
       </view>
-      <view class="questions-list">
-        <view class="question-item question-blue">
-          <text class="question-text">1. 老百姓是舒服的时候去医院检查，还是难受的时候？</text>
-          <text class="question-answer">大多数人都是难受的时候才去医院检查</text>
-        </view>
-        <view class="question-item question-green">
-          <text class="question-text">2. 有没有这种情况？明明难受，但医院检查结论却是"正常"？</text>
-          <text class="question-answer">这种情况还挺多的</text>
-        </view>
-        <view class="question-item question-orange">
-          <text class="question-text">3. 很多人一辈子都没做过身体自检，不知道自己身体有什么问题？</text>
-          <text class="question-answer">身体语言简表帮您全面了解健康状况</text>
-        </view>
+      <view class="question-item">
+        <text class="question-num">2</text>
+        <text class="question-text">明明难受，但医院检查结论却是"正常"？</text>
+      </view>
+      <view class="question-item">
+        <text class="question-num">3</text>
+        <text class="question-text">很多人一辈子都没做过身体自检？</text>
       </view>
     </view>
 
     <!-- 功能特点 -->
     <view class="features-section">
-      <view class="section-title">功能特点</view>
+      <text class="section-title">功能特点</text>
       <view class="features-grid">
         <view class="feature-item" wx:for="{{features}}" wx:key="title">
-          <view class="feature-icon">{{item.icon}}</view>
+          <text class="feature-icon">{{item.icon}}</text>
           <text class="feature-title">{{item.title}}</text>
           <text class="feature-desc">{{item.description}}</text>
         </view>
@@ -409,10 +171,10 @@
 
     <!-- 自检流程 -->
     <view class="steps-section">
-      <view class="section-title">自检流程</view>
+      <text class="section-title">自检流程</text>
       <view class="steps-list">
         <view class="step-item" wx:for="{{steps}}" wx:key="title">
-          <view class="step-icon">{{item.icon}}</view>
+          <text class="step-icon">{{item.icon}}</text>
           <view class="step-content">
             <text class="step-title">{{item.title}}</text>
             <text class="step-desc">{{item.description}}</text>
@@ -425,9 +187,6 @@
     <view class="start-section">
       <button class="btn btn-primary btn-lg btn-block" bindtap="goToPersonalInfo">
         开始健康自检
-      </button>
-      <button wx:if="{{!hasHealthData && !isDemoMode}}" class="btn btn-outline btn-block demo-btn" bindtap="loadDemoData">
-        演示模式
       </button>
     </view>
   </view>
