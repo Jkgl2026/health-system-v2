@@ -132,7 +132,9 @@ export default function AdminDashboardPage() {
         params.append('search', searchQuery);
       }
 
-      const response = await fetch(`/api/admin/users?${params.toString()}`);
+      const response = await fetch(`/api/admin/users?${params.toString()}`, {
+        credentials: 'include', // 确保Cookie被正确发送
+      });
       const data = await response.json();
       if (data.success) {
         setUsers(data.data);
@@ -187,7 +189,9 @@ export default function AdminDashboardPage() {
 
   const handleViewDetail = async (userId: string) => {
     try {
-      const response = await fetch(`/api/admin/users/${userId}`);
+      const response = await fetch(`/api/admin/users/${userId}`, {
+        credentials: 'include', // 确保Cookie被正确发送
+      });
       const data = await response.json();
       if (data.success) {
         setSelectedUser(data.data);
@@ -202,7 +206,9 @@ export default function AdminDashboardPage() {
     setLoadingHistory(true);
     setHistoryPhone(phone);
     try {
-      const response = await fetch(`/api/user/history?phone=${encodeURIComponent(phone)}`);
+      const response = await fetch(`/api/user/history?phone=${encodeURIComponent(phone)}`, {
+        credentials: 'include', // 确保Cookie被正确发送
+      });
       const data = await response.json();
       if (data.success) {
         setHistoryUsers(data.users);

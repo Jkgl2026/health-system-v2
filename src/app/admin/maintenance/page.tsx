@@ -69,7 +69,9 @@ export default function MaintenancePage() {
   const loadStatus = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/maintenance');
+      const response = await fetch('/api/admin/maintenance', {
+        credentials: 'include', // 确保Cookie被正确发送
+      });
       const data = await response.json();
       if (data.success) {
         setStatus(data.data);
@@ -94,6 +96,7 @@ export default function MaintenancePage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ action }),
+        credentials: 'include', // 确保Cookie被正确发送
       });
 
       const data = await response.json();

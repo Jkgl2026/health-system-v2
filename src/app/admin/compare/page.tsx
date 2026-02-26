@@ -365,6 +365,7 @@ export default function AdminComparePage() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'include', // 确保Cookie被正确发送
         }).then(res => {
           if (!res.ok) {
             throw new Error(`HTTP ${res.status}`);

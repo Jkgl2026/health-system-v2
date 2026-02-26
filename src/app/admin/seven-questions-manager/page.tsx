@@ -159,7 +159,9 @@ export default function SevenQuestionsManagerPage() {
     setMissingUsers([]);
 
     try {
-      const response = await fetch('/api/admin/find-users-missing-seven-questions');
+      const response = await fetch('/api/admin/find-users-missing-seven-questions', {
+        credentials: 'include', // 确保Cookie被正确发送
+      });
       const data = await response.json();
 
       if (data.success) {
