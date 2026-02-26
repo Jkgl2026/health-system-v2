@@ -1,5 +1,5 @@
 // pages/admin/login/login.js
-const { adminAPI } = require('../../utils/api');
+const { adminAPI } = require('../../../utils/api');
 
 Page({
   data: {

@@ -1,7 +1,7 @@
 // pages/admin/user-detail/user-detail.js
-const { adminAPI } = require('../../utils/api');
-const { calculateComprehensiveHealthScore } = require('../../utils/health-score-calculator');
-const { BODY_SYMPTOMS, BODY_SYMPTOMS_300, BAD_HABITS_CHECKLIST } = require('../../utils/health-data');
+const { adminAPI } = require('../../../utils/api');
+const { calculateComprehensiveHealthScore } = require('../../../utils/health-score-calculator');
+const { BODY_SYMPTOMS, BODY_SYMPTOMS_300, BAD_HABITS_CHECKLIST } = require('../../../utils/health-data');
 
 Page({
   data: {
