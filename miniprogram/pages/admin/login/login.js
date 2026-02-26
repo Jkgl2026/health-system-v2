@@ -1,4 +1,6 @@
 // pages/admin/login/login.js
+const { adminAPI } = require('../../utils/api');
+
 Page({
   data: {
     username: '',
@@ -29,7 +31,7 @@ Page({
   },
 
   // 登录
-  onLogin() {
+  async onLogin() {
     const { username, password } = this.data;
 
     if (!username.trim()) {
@@ -50,12 +52,34 @@ Page({
 
     this.setData({ loading: true });
 
-    // 模拟登录验证
-    setTimeout(() => {
-      // 默认管理员账号：admin / admin123
-      if (username === 'admin' && password === 'admin123') {
+    try {
+      // 尝试调用真实API
+      const result = await adminAPI.login(username, password);
+      
+      if (result && result.success) {
         // 保存登录状态
         wx.setStorageSync('adminLoggedIn', true);
+        wx.setStorageSync('adminInfo', JSON.stringify(result.admin || {}));
+        
+        wx.showToast({
+          title: '登录成功',
+          icon: 'success',
+          duration: 1000
+        });
+
+        setTimeout(() => {
+          wx.redirectTo({
+            url: '/pages/admin/dashboard/dashboard'
+          });
+        }, 1000);
+      }
+    } catch (error) {
+      console.error('登录失败:', error);
+      
+      // 离线模式：使用默认管理员账号
+      if (username === 'admin' && password === 'admin123') {
+        wx.setStorageSync('adminLoggedIn', true);
+        wx.setStorageSync('adminInfo', JSON.stringify({ username: 'admin', role: 'admin' }));
         
         wx.showToast({
           title: '登录成功',
@@ -70,12 +94,12 @@ Page({
         }, 1000);
       } else {
         wx.showToast({
-          title: '用户名或密码错误',
+          title: error.message || '用户名或密码错误',
           icon: 'none'
         });
         this.setData({ loading: false });
       }
-    }, 1000);
+    }
   },
 
   // 返回首页

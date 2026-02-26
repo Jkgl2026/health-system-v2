@@ -14,9 +14,9 @@
     "pages/story/story",
     "pages/questions/questions",
     "pages/seven-questions/seven-questions",
-    "pages/admin-login/admin-login",
-    "pages/admin-dashboard/admin-dashboard",
-    "pages/admin-user-detail/admin-user-detail"
+    "pages/admin/login/login",
+    "pages/admin/dashboard/dashboard",
+    "pages/admin/user-detail/user-detail"
   ],
   "window": {
     "backgroundTextStyle": "light",

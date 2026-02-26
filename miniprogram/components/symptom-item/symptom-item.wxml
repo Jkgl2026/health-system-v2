@@ -1,0 +1,21 @@
+<!--components/symptom-item/symptom-item.wxml-->
+<view 
+  class="symptom-item {{checked ? 'checked' : ''}} {{disabled ? 'disabled' : ''}}"
+  bindtap="onTap"
+>
+  <view class="symptom-checkbox">
+    <view class="checkbox-inner {{checked ? 'checked' : ''}}">
+      <text wx:if="{{checked}}" class="check-icon">✓</text>
+    </view>
+  </view>
+  <view class="symptom-content">
+    <view class="symptom-main">
+      <text class="symptom-name">{{name}}</text>
+      <text wx:if="{{category}}" class="symptom-category">{{category}}</text>
+    </view>
+    <text wx:if="{{description}}" class="symptom-desc">{{description}}</text>
+  </view>
+  <view wx:if="{{severity}}" class="severity-badge {{severity}}">
+    {{severityText}}
+  </view>
+</view>

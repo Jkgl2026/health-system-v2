@@ -1,0 +1,123 @@
+/* components/health-score/health-score.wxss */
+.health-score-container {
+  padding: 20rpx;
+}
+
+.score-ring {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30rpx 0;
+}
+
+.score-circle {
+  width: 180rpx;
+  height: 180rpx;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f0f0f0, #e8e8e8);
+}
+
+.score-circle.excellent {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.score-circle.good {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.score-circle.normal {
+  background: linear-gradient(135deg, #eab308, #ca8a04);
+}
+
+.score-circle.attention {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+}
+
+.score-circle.warning {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.score-value {
+  font-size: 56rpx;
+  font-weight: bold;
+  color: white;
+}
+
+.score-unit {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.score-status {
+  margin-top: 16rpx;
+  font-size: 32rpx;
+  font-weight: 500;
+}
+
+.elements-grid {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 30rpx;
+  padding: 20rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+}
+
+.element-item {
+  width: 50%;
+  padding: 12rpx 0;
+}
+
+.element-bar {
+  height: 8rpx;
+  border-radius: 4rpx;
+  margin-bottom: 8rpx;
+}
+
+.element-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.element-value {
+  font-size: 24rpx;
+  color: #333;
+  font-weight: 500;
+  margin-left: 8rpx;
+}
+
+.recommendations {
+  margin-top: 24rpx;
+  padding: 20rpx;
+  background: #fff7ed;
+  border-radius: 12rpx;
+  border-left: 4rpx solid #f97316;
+}
+
+.recommendations-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 12rpx;
+}
+
+.recommendation-item {
+  display: flex;
+  align-items: flex-start;
+  margin-top: 8rpx;
+}
+
+.recommendation-dot {
+  color: #f97316;
+  margin-right: 8rpx;
+}
+
+.recommendation-text {
+  font-size: 26rpx;
+  color: #666;
+  line-height: 1.5;
+}

@@ -1,0 +1,24 @@
+<!--components/card/card.wxml-->
+<view class="card {{shadow ? 'card-shadow' : ''}} {{customClass}}">
+  <!-- 头部 -->
+  <view wx:if="{{title}}" class="card-header">
+    <view class="card-header-left">
+      <text wx:if="{{icon}}" class="card-icon">{{icon}}</text>
+      <text class="card-title">{{title}}</text>
+    </view>
+    <view wx:if="{{showMore}}" class="card-more" bindtap="onMore">
+      <text>更多</text>
+      <text class="more-arrow">›</text>
+    </view>
+  </view>
+  
+  <!-- 内容 -->
+  <view class="card-content">
+    <slot></slot>
+  </view>
+  
+  <!-- 底部 -->
+  <view wx:if="{{$slots.footer}}" class="card-footer">
+    <slot name="footer"></slot>
+  </view>
+</view>

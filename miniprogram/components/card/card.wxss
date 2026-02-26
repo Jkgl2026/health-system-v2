@@ -1,0 +1,56 @@
+/* components/card/card.wxss */
+.card {
+  background: white;
+  border-radius: 16rpx;
+  margin: 20rpx;
+  overflow: hidden;
+}
+
+.card-shadow {
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 28rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.card-header-left {
+  display: flex;
+  align-items: center;
+}
+
+.card-icon {
+  font-size: 36rpx;
+  margin-right: 12rpx;
+}
+
+.card-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.card-more {
+  display: flex;
+  align-items: center;
+  font-size: 26rpx;
+  color: #999;
+}
+
+.more-arrow {
+  margin-left: 4rpx;
+  font-size: 28rpx;
+}
+
+.card-content {
+  padding: 28rpx;
+}
+
+.card-footer {
+  padding: 20rpx 28rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
