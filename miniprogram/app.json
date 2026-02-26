@@ -8,10 +8,12 @@
     "pages/target/target",
     "pages/choices/choices",
     "pages/requirements/requirements",
+    "pages/healing/healing",
     "pages/health-result/health-result",
     "pages/my-solution/my-solution",
     "pages/story/story",
     "pages/questions/questions",
+    "pages/seven-questions/seven-questions",
     "pages/admin-login/admin-login",
     "pages/admin-dashboard/admin-dashboard",
     "pages/admin-user-detail/admin-user-detail"

@@ -1,34 +1,355 @@
 <!--pages/requirements/requirements.wxml-->
+<!--四个要求详细任务页 - Web版精确复刻-->
 <view class="container">
+  <!-- 头部导航 -->
   <view class="header">
-    <view class="back-btn" bindtap="goBack"><text class="back-icon">←</text><text>返回</text></view>
-    <text class="header-title">四个要求</text>
-    <text class="progress">3/4</text>
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回上一步</text>
+    </view>
+    <view class="header-right">
+      <view class="badge badge-outline">四个要求</view>
+      <view class="badge {{canContinue ? 'badge-primary' : 'badge-secondary'}}">{{visitedSteps.length}}/4 完成</view>
+    </view>
   </view>
-  <view class="intro-section">
-    <text class="intro-title">为了达到最好的调理效果</text>
-    <text class="intro-desc">请您遵守以下要求</text>
+
+  <!-- Tab 导航 -->
+  <view class="tab-nav">
+    <view class="tab-item {{activeStep === 'overview' ? 'active' : ''}}" bindtap="handleStepChange" data-step="overview">
+      <text class="tab-icon">📖</text>
+      <text class="tab-label">总览</text>
+      <text class="tab-check" wx:if="{{visitedSteps.includes('overview') && activeStep !== 'overview'}}">✓</text>
+    </view>
+    <view class="tab-item {{activeStep === 'req1-2' ? 'active' : ''}} {{visitedSteps.includes('overview') ? '' : 'disabled'}}" bindtap="handleStepChange" data-step="req1-2">
+      <text class="tab-icon">📋</text>
+      <text class="tab-label">要求1-2</text>
+      <text class="tab-check" wx:if="{{visitedSteps.includes('req1-2') && activeStep !== 'req1-2'}}">✓</text>
+      <text class="tab-lock" wx:if="{{!visitedSteps.includes('overview')}}">🔒</text>
+    </view>
+    <view class="tab-item {{activeStep === 'req3' ? 'active' : ''}} {{visitedSteps.includes('req1-2') ? '' : 'disabled'}}" bindtap="handleStepChange" data-step="req3">
+      <text class="tab-icon">🎓</text>
+      <text class="tab-label">要求3</text>
+      <text class="tab-check" wx:if="{{visitedSteps.includes('req3') && activeStep !== 'req3'}}">✓</text>
+      <text class="tab-lock" wx:if="{{!visitedSteps.includes('req1-2')}}">🔒</text>
+    </view>
+    <view class="tab-item {{activeStep === 'req4' ? 'active' : ''}} {{visitedSteps.includes('req3') ? '' : 'disabled'}}" bindtap="handleStepChange" data-step="req4">
+      <text class="tab-icon">🎯</text>
+      <text class="tab-label">要求4</text>
+      <text class="tab-check" wx:if="{{visitedSteps.includes('req4') && activeStep !== 'req4'}}">✓</text>
+      <text class="tab-lock" wx:if="{{!visitedSteps.includes('req3')}}">🔒</text>
+    </view>
   </view>
-  <view class="requirements-list">
-    <view wx:for="{{requirements}}" wx:key="id" class="requirement-card">
-      <view class="req-icon">{{item.icon}}</view>
-      <view class="req-content">
-        <text class="req-title">{{item.title}}</text>
-        <text class="req-desc">{{item.description}}</text>
+
+  <!-- 总览页面 -->
+  <view class="page-content" wx:if="{{activeStep === 'overview'}}">
+    <view class="card card-main">
+      <view class="card-header">
+        <view class="card-title-main">调理服务的四个要求</view>
+        <view class="card-desc">为了确保调理效果，需要您配合完成以下四个要求</view>
       </view>
-      <view class="req-checkbox {{agreed[index] ? 'checked' : ''}}" bindtap="toggleAgree" data-index="{{index}}">
-        <text class="check-icon">{{agreed[index] ? '✓' : ''}}</text>
+      <view class="card-body">
+        <!-- 重要提醒 -->
+        <view class="alert alert-danger">
+          <text class="alert-icon">⚠️</text>
+          <view class="alert-content">
+            <text class="alert-title">重要提醒：</text>
+            <text class="alert-text">如果您无法完成这四个要求，我也不能给您调理。这些要求是调理成功的基础，缺一不可。</text>
+            <text class="alert-highlight">请务必按顺序阅读完成所有四个要求！</text>
+          </view>
+        </view>
+
+        <!-- 四个要求概要 -->
+        <view class="requirement-overview-list">
+          <!-- 要求1 -->
+          <view class="requirement-overview-card req1-bg">
+            <view class="req-overview-header">
+              <view class="req-number req1-number">1</view>
+              <view class="req-overview-title">要求1：找病因 - 不良生活习惯表</view>
+            </view>
+            <view class="req-overview-content">
+              <text>{{requirements.requirement1.description}}</text>
+            </view>
+          </view>
+
+          <!-- 要求2 -->
+          <view class="requirement-overview-card req2-bg">
+            <view class="req-overview-header">
+              <view class="req-number req2-number">2</view>
+              <view class="req-overview-title">要求2：找病根 - 300症状自检表</view>
+            </view>
+            <view class="req-overview-content">
+              <text>{{requirements.requirement2.description}}</text>
+            </view>
+          </view>
+
+          <!-- 要求3 -->
+          <view class="requirement-overview-card req3-bg">
+            <view class="req-overview-header">
+              <view class="req-number req3-number">3</view>
+              <view class="req-overview-title">{{requirements.requirement3.title}}</view>
+            </view>
+            <view class="req-overview-content">
+              <text>{{requirements.requirement3.description}}</text>
+            </view>
+          </view>
+
+          <!-- 要求4 -->
+          <view class="requirement-overview-card req4-bg">
+            <view class="req-overview-header">
+              <view class="req-number req4-number">4</view>
+              <view class="req-overview-title">{{requirements.requirement4.title}}</view>
+            </view>
+            <view class="req-overview-content">
+              <text>{{requirements.requirement4.description}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 下一步提示 -->
+        <view class="alert alert-warning">
+          <text class="alert-icon">📖</text>
+          <view class="alert-content">
+            <text class="alert-title">下一步：</text>
+            <text class="alert-text">请点击下方导航或"要求1-2"按钮，开始详细阅读并填写要求1和要求2。</text>
+          </view>
+        </view>
       </view>
     </view>
   </view>
-  <view class="agree-section">
-    <view class="agree-checkbox {{allAgreed ? 'checked' : ''}}" bindtap="toggleAllAgree">
-      <text class="check-icon">{{allAgreed ? '✓' : ''}}</text>
+
+  <!-- 要求1-2页面 -->
+  <view class="page-content" wx:if="{{activeStep === 'req1-2'}}">
+    <!-- 要求1：找病因 -->
+    <view class="card card-section">
+      <view class="card-header">
+        <view class="req-header-row">
+          <view class="req-number req1-number">1</view>
+          <view class="req-header-info">
+            <view class="card-title-section">{{requirements.requirement1.title}}</view>
+            <view class="card-desc-section">{{requirements.requirement1.description}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="card-body">
+        <!-- 警告 -->
+        <view class="alert alert-danger">
+          <text class="alert-icon">⚠️</text>
+          <view class="alert-content">
+            <text class="alert-title">警告：</text>
+            <text class="alert-text">{{requirements.requirement1.warning}}</text>
+          </view>
+        </view>
+
+        <!-- 说明 -->
+        <view class="info-box blue">
+          <text class="info-title">说明：</text>
+          <text>{{requirements.requirement1.details}}</text>
+        </view>
+
+        <!-- 核心公式 -->
+        <view class="formula-box">
+          <view class="formula-text">疾病 = 坏习惯 + 时间</view>
+          <view class="formula-text">健康 = 好习惯 + 时间</view>
+          <view class="formula-tip">养成一个好习惯可以抵消一些坏习惯</view>
+        </view>
+
+        <!-- 不良习惯表 -->
+        <view class="checklist-section">
+          <view class="checklist-header">
+            <text class="checklist-count">已选择 <text class="count-number">{{selectedHabitsCount}}</text> 项习惯</text>
+            <view class="checklist-actions">
+              <view class="btn-small" bindtap="selectAllHabits">全选</view>
+              <view class="btn-small" bindtap="clearAllHabits">清空</view>
+            </view>
+          </view>
+
+          <!-- 习惯分类 -->
+          <view class="category-card" wx:for="{{habitCategories}}" wx:key="category" wx:for-item="category">
+            <view class="category-header">{{category}}</view>
+            <view class="category-items">
+              <view class="check-item {{selectedHabits[habit.id] ? 'checked' : ''}}" 
+                    wx:for="{{badHabitsChecklist[category]}}" 
+                    wx:key="id" 
+                    wx:for-item="habit"
+                    bindtap="toggleHabit" 
+                    data-id="{{habit.id}}">
+                <view class="checkbox">{{selectedHabits[habit.id] ? '✓' : ''}}</view>
+                <view class="check-content">
+                  <view class="check-label">{{habit.habit}}</view>
+                  <view class="check-impact" wx:if="{{habit.impact}}">{{habit.impact}}</view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
     </view>
-    <text class="agree-text">我已阅读并同意遵守以上四个要求</text>
+
+    <!-- 要求2：找病根 -->
+    <view class="card card-section">
+      <view class="card-header">
+        <view class="req-header-row">
+          <view class="req-number req2-number">2</view>
+          <view class="req-header-info">
+            <view class="card-title-section">{{requirements.requirement2.title}}</view>
+            <view class="card-desc-section">{{requirements.requirement2.description}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="card-body">
+        <!-- 说明 -->
+        <view class="alert alert-purple">
+          <text class="alert-icon">📋</text>
+          <view class="alert-content">
+            <text class="alert-title">说明：</text>
+            <text class="alert-text">{{requirements.requirement2.details}}</text>
+          </view>
+        </view>
+
+        <!-- 300症状表 -->
+        <view class="checklist-section">
+          <view class="checklist-header">
+            <text class="checklist-count">已选择 <text class="count-number purple">{{selectedSymptomsCount}}</text> 项症状</text>
+            <view class="checklist-actions">
+              <view class="btn-small purple" bindtap="selectAllSymptoms">全选</view>
+              <view class="btn-small purple" bindtap="clearAllSymptoms">清空</view>
+            </view>
+          </view>
+
+          <!-- 症状分类 -->
+          <view class="category-card" wx:for="{{symptomCategories}}" wx:key="category" wx:for-item="category">
+            <view class="category-header purple">{{category}}</view>
+            <view class="category-items">
+              <view class="check-item {{selectedSymptoms[symptom.id] ? 'checked purple' : ''}}" 
+                    wx:for="{{symptomsByCategory[category]}}" 
+                    wx:key="id" 
+                    wx:for-item="symptom"
+                    bindtap="toggleSymptom" 
+                    data-id="{{symptom.id}}">
+                <view class="checkbox purple">{{selectedSymptoms[symptom.id] ? '✓' : ''}}</view>
+                <view class="check-content">
+                  <view class="check-label">{{symptom.name}}</view>
+                  <view class="check-desc" wx:if="{{symptom.description}}">{{symptom.description}}</view>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
   </view>
+
+  <!-- 要求3页面 -->
+  <view class="page-content" wx:if="{{activeStep === 'req3'}}">
+    <view class="card card-section">
+      <view class="card-header">
+        <view class="req-header-row">
+          <view class="req-number req3-number">3</view>
+          <view class="req-header-info">
+            <view class="card-title-section">{{requirements.requirement3.title}}</view>
+            <view class="card-desc-section">{{requirements.requirement3.description}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="card-body">
+        <!-- 重要说明 -->
+        <view class="alert alert-green">
+          <text class="alert-icon">✓</text>
+          <view class="alert-content">
+            <text class="alert-title">重要：</text>
+            <text class="alert-text">{{requirements.requirement3.details}}</text>
+          </view>
+        </view>
+
+        <!-- 相信调理的原因 -->
+        <view class="info-box green">
+          <view class="info-title">相信调理的原因</view>
+          <view class="info-list">
+            <view class="info-item">• 身体有强大的自我修复能力</view>
+            <view class="info-item">• 找到病因，对症调理，效果显著</view>
+            <view class="info-item">• 无数成功案例证明了调理的有效性</view>
+            <view class="info-item">• 坚持调理，给身体足够的时间恢复</view>
+          </view>
+        </view>
+
+        <!-- 如何建立信心 -->
+        <view class="info-box blue">
+          <view class="info-title">如何建立信心</view>
+          <view class="info-list">
+            <view class="info-item">• 学习健康知识，了解调理原理</view>
+            <view class="info-item">• 观察身体变化，感受进步</view>
+            <view class="info-item">• 与导师沟通，获得鼓励和指导</view>
+            <view class="info-item">• 保持积极心态，相信自己能够恢复</view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 要求4页面 -->
+  <view class="page-content" wx:if="{{activeStep === 'req4'}}">
+    <view class="card card-section">
+      <view class="card-header">
+        <view class="req-header-row">
+          <view class="req-number req4-number">4</view>
+          <view class="req-header-info">
+            <view class="card-title-section">{{requirements.requirement4.title}}</view>
+            <view class="card-desc-section">{{requirements.requirement4.description}}</view>
+          </view>
+        </view>
+      </view>
+      <view class="card-body">
+        <!-- 重要说明 -->
+        <view class="alert alert-orange">
+          <text class="alert-icon">📖</text>
+          <view class="alert-content">
+            <text class="alert-title">重要：</text>
+            <text class="alert-text">{{requirements.requirement4.details}}</text>
+          </view>
+        </view>
+
+        <!-- 为什么学习知识 -->
+        <view class="info-box orange">
+          <view class="info-title">为什么学习知识</view>
+          <view class="info-list">
+            <view class="info-item">• 知识是最好的医生，能帮助您做出正确决策</view>
+            <view class="info-item">• 了解疾病原理，才能从根本上预防和治疗</view>
+            <view class="info-item">• 学习健康知识，能够帮助您和家人保持健康</view>
+            <view class="info-item">• 掌握健康管理的主动权，不再被动应对疾病</view>
+          </view>
+        </view>
+
+        <!-- 学习方法 -->
+        <view class="info-box purple">
+          <view class="info-title">学习方法</view>
+          <view class="info-list">
+            <view class="info-item">• 认真阅读提供的健康资料</view>
+            <view class="info-item">• 参加健康讲座和培训课程</view>
+            <view class="info-item">• 记录调理过程中的感受和变化</view>
+            <view class="info-item">• 将学到的知识应用到日常生活中</view>
+          </view>
+        </view>
+
+        <!-- 提示 -->
+        <view class="alert alert-success">
+          <text class="alert-icon">🎉</text>
+          <view class="alert-content">
+            <text class="alert-title">恭喜您完成所有四个要求的阅读！</text>
+            <text class="alert-text">您已经具备了调理成功的基础，现在可以开始您的健康调理之旅了。</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作按钮 -->
   <view class="bottom-actions">
-    <button class="btn btn-outline" bindtap="goBack">上一步</button>
-    <button class="btn btn-primary" bindtap="goNext" disabled="{{!allAgreed}}">下一步 →</button>
+    <button class="btn-primary {{canContinue ? '' : 'disabled'}}" bindtap="handleContinue" disabled="{{!canContinue || isSaving}}">
+      <text wx:if="{{isSaving}}">保存中...</text>
+      <text wx:else>开始健康管理方案 →</text>
+    </button>
+    <view class="action-tip" wx:if="{{!canContinue}}">
+      请先按顺序完成所有四个要求的阅读
+    </view>
   </view>
 </view>

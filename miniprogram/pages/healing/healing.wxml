@@ -1,0 +1,95 @@
+<!--pages/healing/healing.wxml-->
+<!--好转反应页面-->
+<view class="container">
+  <!-- 头部导航 -->
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回上一步</text>
+    </view>
+    <view class="header-badge">好转反应</view>
+  </view>
+
+  <!-- 主要内容 -->
+  <view class="content">
+    <!-- 介绍卡片 -->
+    <view class="intro-card">
+      <view class="intro-title">什么是好转反应</view>
+      <view class="intro-desc">
+        好转反应是指在调理过程中，身体出现的一些暂时性反应。这是身体正在恢复的信号，不必担心。
+      </view>
+    </view>
+
+    <!-- 大扫除的故事 -->
+    <view class="story-card">
+      <view class="story-title">🧹 大扫除的故事</view>
+      <view class="story-content">
+        <text>快过年的时候做过大扫除吗？彻底大扫除要把垃圾从死角清理出去一共分两步：</text>
+        <text class="story-highlight">第一步是把犄角旮旯里的垃圾清理出来，暂时先放在房间里。</text>
+        <text class="story-highlight">第二步是再把房间里的垃圾都清理到外面。</text>
+        <text>如果在第一步清理的时候，房间看起来会不会更脏、更乱、空气更加难闻？但这个时候不应该阻止，因为再坚持一会儿房间就彻底干净了。</text>
+        <text>我们的身体也是一样，调理时毒素清理到血液里，人可能会感觉更难受，但这是身体正在恢复的信号。</text>
+      </view>
+    </view>
+
+    <!-- 常见好转反应 -->
+    <view class="reactions-section">
+      <view class="section-title">常见好转反应</view>
+      
+      <view class="reaction-item">
+        <view class="reaction-icon">😴</view>
+        <view class="reaction-info">
+          <view class="reaction-name">嗜睡、乏力</view>
+          <view class="reaction-desc">身体正在修复，需要更多休息</view>
+        </view>
+      </view>
+
+      <view class="reaction-item">
+        <view class="reaction-icon">🤒</view>
+        <view class="reaction-info">
+          <view class="reaction-name">低烧</view>
+          <view class="reaction-desc">免疫系统正在工作</view>
+        </view>
+      </view>
+
+      <view class="reaction-item">
+        <view class="reaction-icon">💩</view>
+        <view class="reaction-info">
+          <view class="reaction-name">排便变化</view>
+          <view class="reaction-desc">肠道正在排毒</view>
+        </view>
+      </view>
+
+      <view class="reaction-item">
+        <view class="reaction-icon">💧</view>
+        <view class="reaction-info">
+          <view class="reaction-name">出汗增加</view>
+          <view class="reaction-desc">身体正在通过皮肤排毒</view>
+        </view>
+      </view>
+
+      <view class="reaction-item">
+        <view class="reaction-icon">😫</view>
+        <view class="reaction-info">
+          <view class="reaction-name">症状加重</view>
+          <view class="reaction-desc">毒素正在排出，暂时性的反应</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 重要提示 -->
+    <view class="notice-card">
+      <view class="notice-title">⚠️ 重要提示</view>
+      <view class="notice-content">
+        好转反应是身体恢复的信号，一般持续3-7天会逐渐消失。如果反应过于强烈，请及时联系您的健康顾问。
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="bottom-actions">
+    <button class="btn-primary" bindtap="handleContinue">
+      开始健康管理方案 →
+    </button>
+  </view>
+</view>

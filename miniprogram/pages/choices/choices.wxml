@@ -1,36 +1,200 @@
 <!--pages/choices/choices.wxml-->
+<!--三个选择，四个要求页面 - Web版精确复刻-->
 <view class="container">
+  <!-- 头部导航 -->
   <view class="header">
-    <view class="back-btn" bindtap="goBack"><text class="back-icon">←</text><text>返回</text></view>
-    <text class="header-title">三个选择</text>
-    <text class="progress">2/4</text>
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回上一步</text>
+    </view>
+    <view class="header-badge">调理方案选择</view>
   </view>
-  <view class="intro-section">
-    <text class="intro-title">请认真思考并做出您的选择</text>
-    <text class="intro-desc">这三个选择将决定您的健康管理方向</text>
+
+  <!-- 开场说明 -->
+  <view class="intro-card">
+    <view class="intro-title">三个选择，四个要求</view>
+    <view class="intro-desc">要解决您的问题有三个方法，有不花钱的、也有花钱的，我都给您介绍一下，您自己选择</view>
+    <view class="intro-alert">
+      <text class="alert-icon">📖</text>
+      <text class="alert-text">因为找不到病因是治不好病的，而真正的病因都在生活里。我给您提供几个选择，这里面有快的有慢的，也有不花钱的，有花钱的。您自己来选一下，好吧？</text>
+    </view>
   </view>
-  <view class="choices-list">
-    <view wx:for="{{choices}}" wx:key="id" class="choice-card">
-      <view class="choice-header">
-        <view class="choice-num">{{item.id}}</view>
-        <text class="choice-title">{{item.title}}</text>
+
+  <!-- 三个选择 -->
+  <view class="section-title">三个选择</view>
+  
+  <!-- 选择一：不花钱的方法 -->
+  <view class="choice-card {{selectedChoice === 'choice1' ? 'selected choice1-selected' : ''}}" bindtap="selectChoice" data-choice="choice1">
+    <view class="choice-header">
+      <view class="choice-icon choice1-icon">🏠</view>
+      <view class="choice-info">
+        <view class="choice-title">{{choices.choice1.title}}</view>
+        <view class="choice-desc">{{choices.choice1.description}}</view>
       </view>
-      <text class="choice-question">{{item.question}}</text>
-      <view class="options-list">
-        <view wx:for="{{item.options}}" wx:for-item="option" wx:for-index="optIndex" wx:key="value" 
-          class="option-item {{selectedChoices[item.id-1] === option.value ? 'selected' : ''}}"
-          bindtap="selectOption" data-choice="{{item.id}}" data-value="{{option.value}}">
-          <view class="option-radio">{{selectedChoices[item.id-1] === option.value ? '●' : '○'}}</view>
-          <view class="option-content">
-            <text class="option-label">{{option.label}}</text>
-            <text class="option-desc">{{option.description}}</text>
-          </view>
-        </view>
+      <view class="choice-check" wx:if="{{selectedChoice === 'choice1'}}">✓</view>
+    </view>
+    <view class="choice-details" wx:if="{{selectedChoice === 'choice1'}}">
+      <view class="details-section">
+        <view class="details-title">详细说明：</view>
+        <view class="detail-item" wx:for="{{choices.choice1.details}}" wx:key="index">{{item}}</view>
+      </view>
+      <view class="requirements-section warning">
+        <view class="requirements-title">⚠️ 要求：</view>
+        <view class="requirement-item" wx:for="{{choices.choice1.requirements}}" wx:key="index">{{item}}</view>
       </view>
     </view>
   </view>
+
+  <!-- 选择二：带产品来免费服务 -->
+  <view class="choice-card {{selectedChoice === 'choice2' ? 'selected choice2-selected' : ''}}" bindtap="selectChoice" data-choice="choice2">
+    <view class="choice-header">
+      <view class="choice-icon choice2-icon">🎯</view>
+      <view class="choice-info">
+        <view class="choice-title">{{choices.choice2.title}}</view>
+        <view class="choice-desc">{{choices.choice2.description}}</view>
+      </view>
+      <view class="choice-check" wx:if="{{selectedChoice === 'choice2'}}">✓</view>
+    </view>
+    <view class="choice-details" wx:if="{{selectedChoice === 'choice2'}}">
+      <view class="details-section">
+        <view class="details-title">详细说明：</view>
+        <view class="detail-item" wx:for="{{choices.choice2.details}}" wx:key="index">{{item}}</view>
+      </view>
+      <view class="requirements-section warning">
+        <view class="requirements-title">⚠️ 要求：</view>
+        <view class="requirement-item" wx:for="{{choices.choice2.requirements}}" wx:key="index">{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 选择三：使用我的产品和服务 -->
+  <view class="choice-card {{selectedChoice === 'choice3' ? 'selected choice3-selected' : ''}}" bindtap="selectChoice" data-choice="choice3">
+    <view class="choice-header">
+      <view class="choice-icon choice3-icon">✨</view>
+      <view class="choice-info">
+        <view class="choice-title">{{choices.choice3.title}}</view>
+        <view class="choice-desc">{{choices.choice3.description}}</view>
+      </view>
+      <view class="choice-check" wx:if="{{selectedChoice === 'choice3'}}">✓</view>
+    </view>
+    <view class="choice-details" wx:if="{{selectedChoice === 'choice3'}}">
+      <view class="details-section">
+        <view class="details-title">详细说明：</view>
+        <view class="detail-item" wx:for="{{choices.choice3.details}}" wx:key="index">{{item}}</view>
+      </view>
+      <view class="requirements-section danger">
+        <view class="requirements-title">⚠️ 必须满足的条件：</view>
+        <view class="requirement-item" wx:for="{{choices.choice3.requirements}}" wx:key="index">{{item}}</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 选择后的说明文案 -->
+  <view class="choice-alert {{selectedChoice}}" wx:if="{{selectedChoice}}">
+    <view class="alert-content">
+      <text wx:if="{{selectedChoice === 'choice3'}}">您选择了使用我的产品和服务。这就像坐豪车，跑得快还舒服，能加快恢复的速度。以后有任何需要，您都可以来找我，就算我的能力不足以解决您所有的问题，但是我的背后还有一个强大的平台。您就把我当成您的健康顾问就行！</text>
+      <text wx:if="{{selectedChoice === 'choice2'}}">您选择了带产品来免费服务。每个人挣钱都不容易，不要浪费，您的身体恢复这才是我的目的。您获得了健康，我也获得了经验。这就像坐车回家，舒服、安全、速度快。</text>
+      <text wx:if="{{selectedChoice === 'choice1'}}">您选择了不花钱的方法。这就像走路回家，要么冷要么热，还很辛苦，但是只要坚持，最后也肯定能到家。得个病也不容易，要十几年甚至几十年才能形成的。去掉一个病也需要时间和坚持。</text>
+    </view>
+  </view>
+
+  <!-- 四个要求（仅方案3显示） -->
+  <view class="requirements-section-container" wx:if="{{selectedChoice === 'choice3'}}">
+    <view class="section-title">四个要求</view>
+    <view class="requirements-intro">
+      <text class="intro-icon">📋</text>
+      <text class="intro-text">如果您选择第三个方案，需要同意以下四个要求：</text>
+    </view>
+
+    <!-- 要求1：找病因 -->
+    <view class="requirement-card {{acceptedRequirements[1] ? 'accepted req1-accepted' : ''}}" bindtap="toggleRequirement" data-id="1">
+      <view class="req-header">
+        <view class="req-checkbox">{{acceptedRequirements[1] ? '✓' : ''}}</view>
+        <view class="req-icon req1-icon">📋</view>
+        <view class="req-title">要求1：{{requirements.requirement1.title}}</view>
+      </view>
+      <view class="req-content">
+        <view class="req-desc">{{requirements.requirement1.description}}</view>
+        <view class="req-details-box blue">
+          <view class="box-title">详细内容：</view>
+          <view class="box-text">{{requirements.requirement1.details}}</view>
+          <view class="box-warning">{{requirements.requirement1.warning}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 要求2：建立身体恢复档案 -->
+    <view class="requirement-card {{acceptedRequirements[2] ? 'accepted req2-accepted' : ''}}" bindtap="toggleRequirement" data-id="2">
+      <view class="req-header">
+        <view class="req-checkbox">{{acceptedRequirements[2] ? '✓' : ''}}</view>
+        <view class="req-icon req2-icon">📝</view>
+        <view class="req-title">要求2：{{requirements.requirement2.title}}</view>
+      </view>
+      <view class="req-content">
+        <view class="req-desc">{{requirements.requirement2.description}}</view>
+        <view class="req-details-box green">
+          <view class="box-title">详细内容：</view>
+          <view class="box-text">{{requirements.requirement2.details}}</view>
+          <view class="box-benefit">好处：{{requirements.requirement2.benefit}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 要求3：跟着学习健康观念 -->
+    <view class="requirement-card {{acceptedRequirements[3] ? 'accepted req3-accepted' : ''}}" bindtap="toggleRequirement" data-id="3">
+      <view class="req-header">
+        <view class="req-checkbox">{{acceptedRequirements[3] ? '✓' : ''}}</view>
+        <view class="req-icon req3-icon">🎓</view>
+        <view class="req-title">要求3：{{requirements.requirement3.title}}</view>
+      </view>
+      <view class="req-content">
+        <view class="req-desc">{{requirements.requirement3.description}}</view>
+        <view class="req-details-box purple">
+          <view class="box-title">详细内容：</view>
+          <view class="box-text">{{requirements.requirement3.details}}</view>
+          <view class="box-title">好处：</view>
+          <view class="box-item" wx:for="{{requirements.requirement3.benefits}}" wx:key="index">• {{item}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 要求4：学会健康自我管理 -->
+    <view class="requirement-card {{acceptedRequirements[4] ? 'accepted req4-accepted' : ''}}" bindtap="toggleRequirement" data-id="4">
+      <view class="req-header">
+        <view class="req-checkbox">{{acceptedRequirements[4] ? '✓' : ''}}</view>
+        <view class="req-icon req4-icon">🎯</view>
+        <view class="req-title">要求4：{{requirements.requirement4.title}}</view>
+      </view>
+      <view class="req-content">
+        <view class="req-desc">{{requirements.requirement4.description}}</view>
+        <view class="req-details-box orange">
+          <view class="box-title">详细内容：</view>
+          <view class="box-text">{{requirements.requirement4.details}}</view>
+          <view class="box-reason">原因：{{requirements.requirement4.reason}}</view>
+          <view class="box-benefit orange">好处：{{requirements.requirement4.benefit}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 四个要求提示 -->
+    <view class="requirements-notice">
+      <text class="notice-icon">📖</text>
+      <text class="notice-text">这四个要求缺一不可，是健康管理成功的关键保障。只有严格执行，才能确保调理效果。请您认真对待每一项要求，如果做不到这四个要求，我也不能给您调理。</text>
+    </view>
+  </view>
+
+  <!-- 底部操作按钮 -->
   <view class="bottom-actions">
-    <button class="btn btn-outline" bindtap="goBack">上一步</button>
-    <button class="btn btn-primary" bindtap="goNext" disabled="{{!isComplete}}">下一步 →</button>
+    <button class="btn-primary {{canContinue ? '' : 'disabled'}}" bindtap="handleContinue" disabled="{{!canContinue || isSaving}}">
+      <text wx:if="{{isSaving}}">保存中...</text>
+      <text wx:elif="{{selectedChoice === 'choice3'}}">获取健康管理方案 →</text>
+      <text wx:else>确认选择 ✓</text>
+    </button>
+    <view class="action-tip" wx:if="{{selectedChoice === 'choice3' && !allRequirementsAccepted}}">
+      请先同意并承诺完成所有四个要求，如果做不到这四个要求，我也不能给您调理
+    </view>
+    <view class="action-tip" wx:if="{{!selectedChoice}}">
+      请先选择一个方向，这样才能为您提供合适的建议
+    </view>
   </view>
 </view>
