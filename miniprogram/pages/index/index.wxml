@@ -15,8 +15,7 @@
         </view>
       </view>
       <view class="header-actions">
-        <button class="btn btn-outline btn-sm" bindtap="goToInstallGuide">如何安装</button>
-        <button class="btn btn-primary btn-sm" bindtap="goToPersonalInfo">开始自检</button>
+        <button class="btn btn-primary" bindtap="goToPersonalInfo">开始自检</button>
       </view>
     </view>
   </view>
