@@ -14,6 +14,7 @@
     "pages/story/story",
     "pages/questions/questions",
     "pages/seven-questions/seven-questions",
+    "pages/local-data-recovery/local-data-recovery",
     "pages/admin/login/login",
     "pages/admin/dashboard/dashboard",
     "pages/admin/user-detail/user-detail"
