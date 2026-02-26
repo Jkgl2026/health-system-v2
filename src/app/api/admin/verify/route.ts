@@ -28,9 +28,7 @@ export async function GET(request: NextRequest) {
 
     if (!admin) {
       // 会话有效但管理员不存在，清除cookie
-      await SessionManager.clearAuthCookies();
-      
-      return NextResponse.json(
+      const errorResponse = NextResponse.json(
         { 
           success: false, 
           message: '管理员不存在',
@@ -38,6 +36,8 @@ export async function GET(request: NextRequest) {
         },
         { status: 401 }
       );
+      SessionManager.clearAuthCookies(errorResponse);
+      return errorResponse;
     }
 
     // 检查token是否即将过期

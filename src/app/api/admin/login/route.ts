@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
     });
 
     // 设置认证cookie
-    await SessionManager.setAuthCookies(response, tokenResponse);
+    SessionManager.setAuthCookies(response, tokenResponse);
 
     console.log('[AdminLogin] 登录成功:', admin.username, 'IP:', ip);
 

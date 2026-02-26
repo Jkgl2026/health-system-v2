@@ -4,13 +4,13 @@ import { SessionManager } from '@/lib/session-manager';
 // POST /api/admin/logout - 管理员登出
 export async function POST(request: NextRequest) {
   try {
-    // 清除认证cookie
-    await SessionManager.clearAuthCookies();
-
     const response = NextResponse.json({
       success: true,
       message: '登出成功',
     });
+
+    // 清除认证cookie
+    SessionManager.clearAuthCookies(response);
 
     console.log('[AdminLogout] 登出成功');
 

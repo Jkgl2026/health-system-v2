@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server';
 
 // JWT配置
 // 使用固定的密钥以确保开发环境中的稳定性
@@ -144,23 +145,25 @@ export class SessionManager {
 
   /**
    * 设置认证cookie
+   * 使用response.cookies.set()确保cookie正确设置到响应中
    */
-  static async setAuthCookies(response: any, tokenResponse: TokenResponse) {
-    const cookieStore = await cookies();
+  static setAuthCookies(response: NextResponse, tokenResponse: TokenResponse) {
+    const isProduction = process.env.NODE_ENV === 'production';
     
+    // 使用response.cookies.set()直接设置cookie到响应对象
     // 设置访问token
-    cookieStore.set('admin_access_token', tokenResponse.accessToken, {
+    response.cookies.set('admin_access_token', tokenResponse.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'lax',
       maxAge: 24 * 60 * 60, // 24小时
       path: '/',
     });
 
     // 设置刷新token
-    cookieStore.set('admin_refresh_token', tokenResponse.refreshToken, {
+    response.cookies.set('admin_refresh_token', tokenResponse.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: isProduction,
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60, // 7天
       path: '/',
@@ -169,12 +172,12 @@ export class SessionManager {
 
   /**
    * 清除认证cookie
+   * 使用response.cookies.delete()确保cookie正确清除
    */
-  static async clearAuthCookies() {
-    const cookieStore = await cookies();
-    
-    cookieStore.delete('admin_access_token');
-    cookieStore.delete('admin_refresh_token');
+  static clearAuthCookies(response: NextResponse) {
+    // 使用response.cookies.delete()直接从响应对象中删除cookie
+    response.cookies.delete('admin_access_token');
+    response.cookies.delete('admin_refresh_token');
   }
 
   /**
