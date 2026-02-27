@@ -1,72 +1,110 @@
 <!--pages/seven-questions/seven-questions.wxml-->
+<!--健康七问（V2新版）- 文本输入形式，1:1复刻Web版-->
+
 <view class="container">
-  <!-- 进度条 -->
-  <view class="progress-section">
-    <view class="progress-bar">
-      <view class="progress-fill" style="width: {{progress}}%"></view>
+  <!-- 顶部导航 -->
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回上一步</text>
     </view>
-    <text class="progress-text">{{progress}}% 完成</text>
+    <view class="header-right" bindtap="goToFollowUp">
+      <text class="follow-btn">持续跟进七问</text>
+    </view>
   </view>
 
-  <!-- 问题卡片 -->
-  <swiper 
-    class="question-swiper"
-    current="{{currentIndex}}"
-    duration="300"
-  >
-    <swiper-item wx:for="{{questions}}" wx:key="id">
-      <view class="question-card">
-        <!-- 问题标题 -->
-        <view class="question-header">
-          <text class="question-num">问题 {{item.id}}/7</text>
-          <text class="question-text">{{item.question}}</text>
-        </view>
+  <!-- 标题区域 -->
+  <view class="title-section">
+    <text class="main-title">健康七问（V2新版）</text>
+    <text class="sub-title">从生活习惯入手，找到健康问题的根源，制定可行的改善方案</text>
+    
+    <!-- 进度 -->
+    <view class="progress-row">
+      <text class="progress-label">问题 {{currentIndex + 1}} / 7</text>
+      <view class="progress-bar">
+        <view class="progress-fill" style="width: {{(currentIndex + 1) / 7 * 100}}%;"></view>
+      </view>
+      <text class="target-symptom" wx:if="{{targetSymptom}}">针对症状: {{targetSymptom}}</text>
+    </view>
+  </view>
 
-        <!-- 选项 -->
-        <view class="options">
-          <view 
-            wx:for="{{item.options}}" 
-            wx:for-item="option"
-            wx:for-index="optIndex"
-            wx:key="optIndex"
-            class="option {{item.selected === optIndex ? 'selected' : ''}}"
-            data-question-id="{{item.id}}"
-            data-answer="{{optIndex}}"
-            bindtap="selectAnswer"
-          >
-            <view class="option-radio">
-              <text wx:if="{{item.selected === optIndex}}">✓</text>
-            </view>
-            <text class="option-text">{{option}}</text>
-          </view>
+  <!-- 当前问题卡片 -->
+  <view class="question-card">
+    <!-- 问题头部 -->
+    <view class="question-header">
+      <view class="question-num">{{currentIndex + 1}}</view>
+      <view class="question-info">
+        <view class="question-title-row">
+          <text class="question-text">{{questions[currentIndex].question}}</text>
+          <text class="importance-tag importance-{{questions[currentIndex].importance === '高' ? 'high' : 'medium'}}">
+            {{questions[currentIndex].importance === '高' ? '高重要' : '重要'}}
+          </text>
+        </view>
+        <text class="category-tag">{{questions[currentIndex].category}}</text>
+      </view>
+    </view>
+
+    <!-- 问题说明 -->
+    <text class="question-desc">{{questions[currentIndex].description}}</text>
+
+    <!-- 输入区域 -->
+    <textarea 
+      class="answer-input"
+      placeholder="{{questions[currentIndex].placeholder}}"
+      value="{{answers[questions[currentIndex].id]}}"
+      bindinput="onAnswerInput"
+      maxlength="1000"
+      auto-height
+    ></textarea>
+
+    <!-- 底部按钮 -->
+    <view class="question-actions">
+      <button 
+        class="nav-btn prev {{currentIndex === 0 ? 'disabled' : ''}}" 
+        bindtap="prevQuestion"
+        disabled="{{currentIndex === 0}}"
+      >
+        ← 上一题
+      </button>
+      
+      <button 
+        wx:if="{{currentIndex < questions.length - 1}}"
+        class="nav-btn next" 
+        bindtap="nextQuestion"
+      >
+        下一题 →
+      </button>
+      <button 
+        wx:else
+        class="nav-btn submit" 
+        bindtap="submitAnswers"
+        disabled="{{isSubmitting}}"
+      >
+        {{isSubmitting ? '提交中...' : '提交答案'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 问题列表 -->
+  <view class="questions-list-section">
+    <text class="list-title">问题列表</text>
+    <view class="questions-list">
+      <view 
+        wx:for="{{questions}}" 
+        wx:key="id"
+        class="question-item {{currentIndex === index ? 'active' : ''}} {{answers[item.id] ? 'answered' : ''}}"
+        bindtap="goToQuestion"
+        data-index="{{index}}"
+      >
+        <view class="item-left">
+          <text class="item-num">{{index + 1}}</text>
+          <text class="item-text">{{item.question}}</text>
+        </view>
+        <view class="item-right">
+          <text class="item-category">{{item.category}}</text>
+          <text wx:if="{{item.importance === '高'}}" class="item-important">重要</text>
         </view>
       </view>
-    </swiper-item>
-  </swiper>
-
-  <!-- 底部操作 -->
-  <view class="bottom-bar">
-    <button 
-      class="nav-btn prev {{currentIndex === 0 ? 'disabled' : ''}}"
-      bindtap="prevQuestion"
-      disabled="{{currentIndex === 0}}"
-    >
-      上一题
-    </button>
-    
-    <button 
-      wx:if="{{currentIndex < questions.length - 1}}"
-      class="nav-btn next"
-      bindtap="nextQuestion"
-    >
-      下一题
-    </button>
-    <button 
-      wx:else
-      class="nav-btn submit"
-      bindtap="submitAnswers"
-    >
-      提交答案
-    </button>
+    </view>
   </view>
 </view>

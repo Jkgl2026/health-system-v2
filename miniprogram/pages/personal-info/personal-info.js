@@ -37,36 +37,16 @@ Page({
     this.loadSavedData();
   },
 
-  // 加载已保存的数据
+  // 加载已保存的数据 - 不再自动加载历史数据，每次都是全新填写
   loadSavedData() {
+    // 清除所有历史数据，确保每次填写都是新的开始
     try {
-      const savedUserInfo = wx.getStorageSync('userInfo');
-      if (savedUserInfo) {
-        const genderIndex = savedUserInfo.gender ? 
-          this.data.genderOptions.indexOf(savedUserInfo.gender) : -1;
-        
-        this.setData({
-          formData: {
-            name: savedUserInfo.name || '',
-            phone: savedUserInfo.phone || '',
-            gender: savedUserInfo.gender || '',
-            age: savedUserInfo.age ? String(savedUserInfo.age) : '',
-            weight: savedUserInfo.weight ? String(savedUserInfo.weight) : '',
-            height: savedUserInfo.height ? String(savedUserInfo.height) : '',
-            bloodPressure: savedUserInfo.bloodPressure || '',
-            occupation: savedUserInfo.occupation || '',
-            address: savedUserInfo.address || ''
-          },
-          genderIndex
-        });
-        
-        // 计算BMI
-        if (savedUserInfo.height && savedUserInfo.weight) {
-          this.calculateBMI(savedUserInfo.weight, savedUserInfo.height);
-        }
-      }
+      wx.removeStorageSync('userInfo');
+      wx.removeStorageSync('selectedSymptoms');
+      wx.removeStorageSync('targetSymptoms');
+      console.log('已清除所有历史数据，开始全新填写');
     } catch (error) {
-      console.error('加载保存的数据失败:', error);
+      console.error('清除数据失败:', error);
     }
   },
 

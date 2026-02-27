@@ -42,22 +42,15 @@ Page({
     });
   },
 
-  // 加载已保存的数据
+  // 加载已保存的数据 - 不再自动加载历史数据
   loadSavedData() {
+    // 清除历史数据，确保每次填写都是新的开始
     try {
-      const savedSymptoms = wx.getStorageSync('selectedSymptoms') || [];
-      const selectedSymptoms = savedSymptoms.map(id => 
-        this.data.symptoms.find(s => s.id === id)
-      ).filter(s => s);
-      
-      this.setData({
-        selectedIds: savedSymptoms,
-        selectedSymptoms,
-        selectedCount: savedSymptoms.length,
-        progress: (savedSymptoms.length / 100) * 100
-      });
+      wx.removeStorageSync('selectedSymptoms');
+      wx.removeStorageSync('targetSymptoms');
+      console.log('已清除症状历史数据');
     } catch (error) {
-      console.error('加载保存的数据失败:', error);
+      console.error('清除数据失败:', error);
     }
   },
 
@@ -164,10 +157,14 @@ Page({
     wx.navigateBack();
   },
 
-  // 下一步
+  // 下一步 - 跳过不良生活习惯和300症状，直接进入健康七问
   goNext() {
+    // 保存选择的症状
+    wx.setStorageSync('selectedSymptoms', this.data.selectedIds);
+    
+    // 跳转到健康七问页面
     wx.navigateTo({
-      url: '/pages/habits/habits'
+      url: '/pages/seven-questions/seven-questions'
     });
   }
 });

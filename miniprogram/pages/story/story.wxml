@@ -1,33 +1,139 @@
 <!--pages/story/story.wxml-->
+<!--系统战役故事页面 - 1:1复刻Web版-->
+
 <view class="container">
+  <!-- 顶部导航 -->
   <view class="header">
-    <text class="header-title">系统战役故事</text>
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回上一步</text>
+    </view>
+    <view class="header-right">
+      <text class="badge">健康原理学习</text>
+    </view>
   </view>
-  
-  <view class="story-content">
-    <view class="story-chapter" wx:for="{{chapters}}" wx:key="id">
-      <view class="chapter-header" bindtap="toggleChapter" data-id="{{item.id}}">
-        <text class="chapter-num">第{{item.id}}章</text>
-        <text class="chapter-title">{{item.title}}</text>
-        <text class="chapter-arrow {{item.expanded ? 'expanded' : ''}}">▼</text>
+
+  <!-- 系统战役故事卡片 -->
+  <view class="story-card">
+    <!-- 标题 -->
+    <view class="card-header">
+      <view class="icon-wrapper">
+        <text class="icon">📖</text>
       </view>
-      <view class="chapter-content {{item.expanded ? 'show' : ''}}">
-        <text class="story-text">{{item.content}}</text>
+      <text class="card-title">{{story.title}}</text>
+      <text class="card-desc">通过一个形象的比喻，了解影响健康的七个核心要素</text>
+    </view>
+
+    <!-- 内容章节 -->
+    <view class="card-content">
+      <view 
+        wx:for="{{story.content}}" 
+        wx:key="section"
+        class="section"
+      >
+        <view class="section-header">
+          <view class="section-num">{{index + 1}}</view>
+          <text class="section-title">{{item.section}}</text>
+        </view>
+        <view class="section-text">
+          <text>{{item.text}}</text>
+        </view>
+      </view>
+
+      <!-- 关键问题 -->
+      <view class="key-question">
+        <view class="question-icon">💬</view>
+        <view class="question-content">
+          <text class="question-text">{{keyQuestion.question}}</text>
+          <text class="answer-text">{{keyQuestion.answer}}</text>
+        </view>
+      </view>
+
+      <!-- 结论 -->
+      <view class="conclusion">
+        <text>其中任何一个要素出现了问题，都会对我们的免疫力和健康造成影响。只有所有要素都处于良好状态，身体才能保持健康。</text>
       </view>
     </view>
   </view>
-  
-  <view class="philosophy">
-    <text class="philosophy-title">💡 核心理念</text>
-    <view class="philosophy-list">
-      <text class="philosophy-item">• 整体观念：人是一个有机整体，各部分相互联系</text>
-      <text class="philosophy-item">• 辨证论治：因人、因时、因地制宜</text>
-      <text class="philosophy-item">• 治未病：预防为主，防患于未然</text>
-      <text class="philosophy-item">• 天人合一：顺应自然规律生活</text>
+
+  <!-- 健康要素原理详解 -->
+  <view class="elements-section">
+    <view class="section-title-area">
+      <text class="section-main-title">健康要素原理详解</text>
+      <text class="section-sub-title">深入了解影响健康的七个核心要素，掌握健康的根本</text>
+    </view>
+
+    <!-- Tab切换 -->
+    <scroll-view class="tab-scroll" scroll-x>
+      <view class="tab-list">
+        <view 
+          wx:for="{{elementKeys}}" 
+          wx:key="*this"
+          class="tab-item {{activeElement === item ? 'active' : ''}}"
+          style="{{activeElement === item ? 'background: linear-gradient(135deg, ' + elementColors[item].bg + ', ' + elementColors[item].bg + '); color: white;' : ''}}"
+          bindtap="switchElement"
+          data-element="{{item}}"
+        >
+          <text class="tab-icon">{{elementIcons[item]}}</text>
+          <text class="tab-name">{{elements[item].name}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 要素内容 -->
+    <view class="element-content">
+      <view class="element-header">
+        <view class="element-icon" style="background: {{elementColors[activeElement].bg}};">
+          <text>{{elementIcons[activeElement]}}</text>
+        </view>
+        <view class="element-info">
+          <text class="element-title">{{elements[activeElement].name}}</text>
+          <text class="element-desc">{{elements[activeElement].description}}</text>
+        </view>
+        <view class="story-btn" bindtap="toggleFullStory">
+          <text>{{showFullStory ? '收起故事' : '查看完整故事'}}</text>
+        </view>
+      </view>
+
+      <!-- 原理说明 -->
+      <view class="principle-section">
+        <view class="principle-header">
+          <text class="principle-icon">📖</text>
+          <text class="principle-title">基本原理</text>
+        </view>
+        <text class="principle-text">{{elements[activeElement].principle}}</text>
+      </view>
+
+      <!-- 完整故事 -->
+      <view wx:if="{{showFullStory}}" class="full-story">
+        <view class="story-header">
+          <text class="story-icon">📚</text>
+          <text class="story-title">{{elements[activeElement].story}}</text>
+        </view>
+        <text class="story-text">点击上方"查看完整故事"了解更多...</text>
+      </view>
+
+      <!-- 相关症状 -->
+      <view class="symptoms-section">
+        <view class="symptoms-header">
+          <text class="symptoms-icon">🔍</text>
+          <text class="symptoms-title">相关症状</text>
+        </view>
+        <view class="symptoms-tags">
+          <text 
+            wx:for="{{elements[activeElement].symptoms}}" 
+            wx:key="*this"
+            class="symptom-tag"
+          >{{item}}</text>
+        </view>
+      </view>
     </view>
   </view>
-  
+
+  <!-- 底部按钮 -->
   <view class="bottom-actions">
-    <button class="btn btn-primary btn-block" bindtap="goToQuestions">填写健康七问 →</button>
+    <button class="btn btn-primary btn-block" bindtap="goToQuestions">
+      填写三个选择四个要求 →
+    </button>
   </view>
 </view>
