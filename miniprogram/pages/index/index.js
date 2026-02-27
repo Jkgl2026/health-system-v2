@@ -226,7 +226,7 @@ Page({
 
   // 跳转到我的方案页
   goToMySolution() {
-    wx.navigateTo({
+    wx.switchTab({
       url: '/pages/my-solution/my-solution'
     });
   },
