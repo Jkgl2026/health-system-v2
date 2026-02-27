@@ -9,6 +9,8 @@
     "pages/choices/choices",
     "pages/requirements/requirements",
     "pages/healing/healing",
+    "pages/recovery-speed/recovery-speed",
+    "pages/inspiration/inspiration",
     "pages/health-result/health-result",
     "pages/my-solution/my-solution",
     "pages/story/story",

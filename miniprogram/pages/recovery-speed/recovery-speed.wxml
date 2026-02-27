@@ -1,0 +1,111 @@
+<!--pages/recovery-speed/recovery-speed.wxml-->
+<!--恢复速度8要素页面 - 1:1复刻Web版-->
+<view class="container">
+  <!-- 头部导航 -->
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回上一步</text>
+    </view>
+    <view class="header-badge">恢复速度8要素</view>
+  </view>
+
+  <!-- 主要内容 -->
+  <view class="content">
+    <!-- 标题部分 -->
+    <view class="title-card">
+      <view class="title-icon">⚡</view>
+      <view class="title-text">{{title}}</view>
+      <view class="title-desc">决定您调理恢复速度的八个关键因素</view>
+    </view>
+
+    <!-- 介绍 -->
+    <view class="intro-card">
+      <view class="intro-icon">ℹ️</view>
+      <view class="intro-text">{{intro}}</view>
+    </view>
+
+    <!-- 八个要素 -->
+    <view class="factors-card">
+      <view class="card-title">八大恢复速度要素</view>
+      <view class="card-desc">了解这些因素，做好配合，才能让调理效果事半功倍！</view>
+      
+      <view class="factor-list">
+        <view wx:for="{{factors}}" wx:key="id" class="factor-item">
+          <view class="factor-header">
+            <view class="factor-num">{{item.id}}</view>
+            <view class="factor-question">{{item.question}}</view>
+            <view wx:if="{{item.id <= 3}}" class="factor-badge">重要</view>
+          </view>
+          
+          <view class="factor-answer">
+            <text class="answer-label">答案：</text>
+            <text class="answer-text">{{item.answer}}</text>
+          </view>
+          
+          <view class="factor-principle">
+            <text class="principle-icon">💡</text>
+            <text class="principle-label">原理：</text>
+            <text class="principle-text">{{item.principle}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 总结 -->
+    <view class="conclusion-card">
+      <view class="conclusion-header">
+        <view class="conclusion-icon">📈</view>
+        <view class="conclusion-info">
+          <view class="conclusion-title">关键结论</view>
+          <view class="conclusion-desc">如何加快恢复速度</view>
+        </view>
+      </view>
+      
+      <view class="conclusion-content">
+        <view class="conclusion-text">{{conclusion}}</view>
+      </view>
+      
+      <view class="conclusion-list">
+        <view class="conclusion-item">
+          <view class="item-num item-green">1</view>
+          <view class="item-content">
+            <text class="item-title">配合调理：</text>
+            <text class="item-text">严格按照调理方案执行，不要随意中断或更改</text>
+          </view>
+        </view>
+        
+        <view class="conclusion-item">
+          <view class="item-num item-blue">2</view>
+          <view class="item-content">
+            <text class="item-title">改善习惯：</text>
+            <text class="item-text">改掉不良生活习惯，养成健康的生活习惯</text>
+          </view>
+        </view>
+        
+        <view class="conclusion-item">
+          <view class="item-num item-purple">3</view>
+          <view class="item-content">
+            <text class="item-title">保持心态：</text>
+            <text class="item-text">保持积极乐观的心态，相信身体的自我修复能力</text>
+          </view>
+        </view>
+        
+        <view class="conclusion-item">
+          <view class="item-num item-orange">4</view>
+          <view class="item-content">
+            <text class="item-title">及时沟通：</text>
+            <text class="item-text">有任何问题及时与调理导师沟通，获得专业指导</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部操作 -->
+  <view class="bottom-actions">
+    <button class="btn-primary" bindtap="handleContinue">
+      查看健康管理方案 →
+    </button>
+  </view>
+</view>

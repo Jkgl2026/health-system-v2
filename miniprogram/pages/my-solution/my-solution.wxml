@@ -1,56 +1,152 @@
 <!--pages/my-solution/my-solution.wxml-->
+<!--个性化健康管理方案页面 - 1:1复刻Web版-->
 <view class="container">
+  <!-- 头部导航 -->
   <view class="header">
-    <text class="header-title">我的健康方案</text>
-  </view>
-  
-  <!-- 用户信息 -->
-  <view class="user-card">
-    <view class="user-avatar">👤</view>
-    <view class="user-info">
-      <text class="user-name">{{userInfo.name || '用户'}}</text>
-      <text class="user-detail">{{userInfo.age}}岁 · {{userInfo.gender}} · BMI: {{userInfo.bmi || '--'}}</text>
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回上一步</text>
     </view>
+    <view class="header-badge">健康管理方案</view>
   </view>
-  
-  <!-- 健康评分 -->
-  <view class="score-card">
-    <text class="score-label">健康评分</text>
-    <text class="score-value">{{healthScore}}</text>
-    <view class="score-bar"><view class="score-fill" style="width: {{healthScore}}%;"></view></view>
-  </view>
-  
-  <!-- 重点症状 -->
-  <view class="section-card">
-    <text class="section-title">🎯 重点改善症状</text>
-    <view class="target-list">
-      <view wx:for="{{targetSymptoms}}" wx:key="*this" class="target-item">
-        <text class="target-num">{{index + 1}}</text>
-        <text class="target-name">{{item}}</text>
+
+  <!-- 主要内容 -->
+  <view class="content">
+    <!-- 欢迎信息 -->
+    <view class="welcome-card">
+      <view class="welcome-icon">✨</view>
+      <view class="welcome-title">您的个性化健康管理方案</view>
+      <view class="welcome-desc">恭喜您完成了健康自检流程！根据您的情况，为您量身定制以下方案</view>
+    </view>
+
+    <!-- 您的健康状况总结 -->
+    <view class="summary-card">
+      <view class="card-title">您的健康状况总结</view>
+      
+      <!-- 重点症状 -->
+      <view wx:if="{{targetSymptoms.length > 0}}" class="target-section">
+        <view class="target-title">您重点改善的症状（{{targetSymptoms.length}}个）：</view>
+        <view class="target-list">
+          <view wx:for="{{targetSymptoms}}" wx:key="id" class="target-item">
+            <text class="target-num">{{index + 1}}.</text>
+            <text class="target-name">{{item.name}}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 症状统计 -->
+      <view class="stats-grid">
+        <!-- 症状总数 -->
+        <view class="stats-item stats-green">
+          <view class="stats-header">
+            <text class="stats-icon">📊</text>
+            <text class="stats-label">症状总数统计</text>
+          </view>
+          <view class="stats-value-row">
+            <text class="stats-label-text">症状数量</text>
+            <text class="stats-value">{{symptomCount}}</text>
+          </view>
+          <view class="stats-bar">
+            <view class="stats-fill stats-fill-green" style="width: {{symptomPercent}}%;"></view>
+          </view>
+          <view class="stats-note">基于身体语言简表100项症状</view>
+        </view>
+
+        <!-- 主要健康要素 -->
+        <view class="stats-item stats-purple">
+          <view class="stats-header">
+            <text class="stats-icon">🎯</text>
+            <text class="stats-label">主要健康要素分布</text>
+          </view>
+          <view wx:if="{{primaryElements.length > 0}}" class="element-list">
+            <view wx:for="{{primaryElements}}" wx:key="name" class="element-item">
+              <view class="element-row">
+                <text class="element-name">{{item.name}}</text>
+                <text class="element-count">{{item.count}} 项</text>
+              </view>
+              <view class="element-bar">
+                <view class="element-fill" style="width: {{item.percent}}%; background: {{item.color}};"></view>
+              </view>
+            </view>
+          </view>
+          <view wx:else class="empty-text">暂无主要健康要素数据</view>
+        </view>
+      </view>
+
+      <!-- 选择方案 -->
+      <view wx:if="{{selectedChoice}}" class="choice-section">
+        <view class="choice-label">您选择的方案：</view>
+        <view class="choice-value">{{choiceName}}</view>
       </view>
     </view>
-  </view>
-  
-  <!-- 调理方案 -->
-  <view class="section-card">
-    <text class="section-title">📋 调理方案</text>
-    <view class="plan-list">
-      <view class="plan-item">
-        <text class="plan-phase">第一阶段：清理排毒</text>
-        <text class="plan-desc">通过艾灸调理，清理体内毒素</text>
+
+    <!-- 推荐调理产品 -->
+    <view class="products-card">
+      <view class="card-header">
+        <text class="card-icon">🎯</text>
+        <text class="card-title">推荐调理产品</text>
       </view>
-      <view class="plan-item">
-        <text class="plan-phase">第二阶段：补益调理</text>
-        <text class="plan-desc">补充气血，调理脏腑功能</text>
-      </view>
-      <view class="plan-item">
-        <text class="plan-phase">第三阶段：巩固养护</text>
-        <text class="plan-desc">建立健康生活习惯，巩固疗效</text>
+      <view class="card-desc">根据您的健康要素分析，为您推荐以下调理产品</view>
+      
+      <view class="products-grid">
+        <view wx:for="{{products}}" wx:key="name" class="product-item">
+          <view class="product-header">
+            <view class="product-icon" style="background: {{item.color}};">{{item.icon}}</view>
+            <view class="product-info">
+              <view class="product-name">{{item.name}}</view>
+              <view class="product-match">匹配度: {{item.matchScore}}%</view>
+            </view>
+          </view>
+          <view class="product-desc">{{item.description}}</view>
+          <view class="product-reasons">
+            <view class="reasons-title">调理作用：</view>
+            <view wx:for="{{item.reasons}}" wx:for-item="reason" wx:key="*this" class="reason-item">
+              <text class="reason-dot">•</text>
+              <text>{{reason}}</text>
+            </view>
+          </view>
+        </view>
       </view>
     </view>
-  </view>
-  
-  <view class="bottom-actions">
-    <button class="btn btn-primary btn-block" bindtap="goToStory">了解系统战役故事 →</button>
+
+    <!-- 推荐学习课程 -->
+    <view class="courses-card">
+      <view class="card-header">
+        <text class="card-icon">📚</text>
+        <text class="card-title">推荐学习课程</text>
+      </view>
+      <view class="card-desc">根据您的情况，重点学习以下课程</view>
+      
+      <view class="courses-grid">
+        <view wx:for="{{courses}}" wx:key="id" class="course-item">
+          <view class="course-header">
+            <view class="course-badge">第{{item.id}}课</view>
+            <view wx:if="{{item.relevance === 'high'}}" class="course-highlight">重点</view>
+          </view>
+          <view class="course-title">{{item.title}}</view>
+          <view class="course-content">{{item.content}}</view>
+          <view class="course-meta">📚 {{item.duration}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 重要提示 -->
+    <view class="notice-card">
+      <view class="notice-icon">⚠️</view>
+      <view class="notice-content">
+        <view class="notice-title">重要提示</view>
+        <view class="notice-text">以上调理方案仅供参考，具体调理方法和产品选择请咨询专业调理导师。调理过程中如出现不适，请及时暂停并寻求专业指导。</view>
+      </view>
+    </view>
+
+    <!-- 完成提示 -->
+    <view class="complete-card">
+      <view class="complete-icon">✅</view>
+      <view class="complete-title">恭喜您完成了整个健康自检流程！</view>
+      <view class="complete-desc">现在请根据以上方案，开始您的健康管理之旅。如有任何疑问，请及时联系您的调理导师。</view>
+      <button class="btn-courses" bindtap="goToCourses">
+        学习21堂必修课程 →
+      </button>
+    </view>
   </view>
 </view>

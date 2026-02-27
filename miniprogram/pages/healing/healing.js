@@ -1,5 +1,5 @@
 // pages/healing/healing.js
-// 好转反应页面逻辑
+// 好转反应页面逻辑 - 1:1复刻Web版
 
 Page({
   data: {
@@ -15,11 +15,10 @@ Page({
     wx.navigateBack();
   },
 
-  // 继续按钮
+  // 继续按钮 - 跳转到恢复速度8要素
   handleContinue() {
-    // 跳转到恢复速度八要素页面或其他页面
     wx.redirectTo({
-      url: '/pages/story/story'
+      url: '/pages/recovery-speed/recovery-speed'
     });
   },
 

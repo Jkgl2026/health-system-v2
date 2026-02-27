@@ -1,5 +1,5 @@
 <!--pages/healing/healing.wxml-->
-<!--好转反应页面-->
+<!--好转反应页面 - 1:1复刻Web版-->
 <view class="container">
   <!-- 头部导航 -->
   <view class="header">
@@ -12,76 +12,115 @@
 
   <!-- 主要内容 -->
   <view class="content">
-    <!-- 介绍卡片 -->
-    <view class="intro-card">
-      <view class="intro-title">什么是好转反应</view>
-      <view class="intro-desc">
-        好转反应是指在调理过程中，身体出现的一些暂时性反应。这是身体正在恢复的信号，不必担心。
+    <!-- 标题部分 -->
+    <view class="title-card">
+      <view class="title-icon">⚠️</view>
+      <view class="title-text">好转反应</view>
+      <view class="title-desc">理解调理过程中可能出现的好转反应，不要轻易放弃</view>
+    </view>
+
+    <!-- 重要提醒 -->
+    <view class="notice-card notice-orange">
+      <view class="notice-icon">ℹ️</view>
+      <view class="notice-content">
+        <view class="notice-title">重要提醒</view>
+        <view class="notice-text">在调理过程中，您可能会出现一些不适，这其实是好转反应，说明身体正在清理毒素。</view>
       </view>
     </view>
 
     <!-- 大扫除的故事 -->
     <view class="story-card">
-      <view class="story-title">🧹 大扫除的故事</view>
+      <view class="card-title">大扫除的故事</view>
+      <view class="card-desc">用一个形象的比喻理解好转反应</view>
       <view class="story-content">
         <text>快过年的时候做过大扫除吗？彻底大扫除要把垃圾从死角清理出去一共分两步：</text>
-        <text class="story-highlight">第一步是把犄角旮旯里的垃圾清理出来，暂时先放在房间里。</text>
-        <text class="story-highlight">第二步是再把房间里的垃圾都清理到外面。</text>
-        <text>如果在第一步清理的时候，房间看起来会不会更脏、更乱、空气更加难闻？但这个时候不应该阻止，因为再坚持一会儿房间就彻底干净了。</text>
-        <text>我们的身体也是一样，调理时毒素清理到血液里，人可能会感觉更难受，但这是身体正在恢复的信号。</text>
+        <text class="highlight">第一步是把犄角旮旯里的垃圾：比如空调、油烟机里的垃圾清理出来，暂时先放在房间里。</text>
+        <text class="highlight">第二步是再把房间里的垃圾都清理到外面。</text>
+        <text>如果在第一步清理的时候，你来检查，房间看起来会不会更脏、更乱、空气更加难闻？那这个时候你应不应该阻止我？为什么？</text>
+        <text>其实呢，因为你非常清楚，只要说再坚持一会儿这个房间就彻底干净了。</text>
+        <text>我们的身体健康也是一样，我们的细胞脏器里的毒素往外排，其实也是分两步的。</text>
+        <text>第一步呢就是我们要把这个细胞和脏器里的毒素，首先清理出来，它会一开始放在哪里呢？是进入到我们的血液当中，这是第一步。</text>
+        <text>第二步呢就是血液里的垃圾，在慢慢的清理到我们的身体外面。</text>
+        <text>如果说在细胞脏器的毒素清理到血液里的时候，你说人会不会更难受呢？会的。因为血液里突然多了这么多的垃圾毒素，那人肯定是难受。</text>
+        <text>那假如说去医院检查指标会不会升高？会。</text>
+        <text>那你说这个时候你能制止我吗？你说你别别弄了，这个太难受了，这个身体都都出现变化了，这个这个赶紧停吧，能不能？不能。</text>
+        <text>因为你现在清楚了。因为通过刚才大扫除的故事，你明白，只有说我们在坚持一段时间，让这些垃圾毒素彻底清出去，我们的身体才能够好转。</text>
       </view>
     </view>
 
-    <!-- 常见好转反应 -->
-    <view class="reactions-section">
-      <view class="section-title">常见好转反应</view>
+    <!-- 好转反应的特点 -->
+    <view class="feature-card">
+      <view class="card-title">好转反应的特点</view>
+      <view class="card-desc">如何区分好转反应和身体不适</view>
       
-      <view class="reaction-item">
-        <view class="reaction-icon">😴</view>
-        <view class="reaction-info">
-          <view class="reaction-name">嗜睡、乏力</view>
-          <view class="reaction-desc">身体正在修复，需要更多休息</view>
+      <!-- 好转反应的特征 -->
+      <view class="feature-item feature-green">
+        <view class="feature-header">
+          <text class="feature-icon">✅</text>
+          <text class="feature-name">好转反应的特征</text>
+        </view>
+        <view class="feature-list">
+          <view class="feature-list-item">• 症状与之前身体的问题有关，说明毒素正在排出</view>
+          <view class="feature-list-item">• 不会持续很久，随着毒素排出逐渐减轻</view>
+          <view class="feature-list-item">• 身体整体感觉在好转，精力在恢复</view>
+          <view class="feature-list-item">• 配合饮食和休息，反应会逐渐消失</view>
         </view>
       </view>
 
-      <view class="reaction-item">
-        <view class="reaction-icon">🤒</view>
-        <view class="reaction-info">
-          <view class="reaction-name">低烧</view>
-          <view class="reaction-desc">免疫系统正在工作</view>
+      <!-- 常见的好转反应 -->
+      <view class="feature-item feature-yellow">
+        <view class="feature-header">
+          <text class="feature-icon">⚠️</text>
+          <text class="feature-name">常见的好转反应</text>
         </view>
-      </view>
-
-      <view class="reaction-item">
-        <view class="reaction-icon">💩</view>
-        <view class="reaction-info">
-          <view class="reaction-name">排便变化</view>
-          <view class="reaction-desc">肠道正在排毒</view>
-        </view>
-      </view>
-
-      <view class="reaction-item">
-        <view class="reaction-icon">💧</view>
-        <view class="reaction-info">
-          <view class="reaction-name">出汗增加</view>
-          <view class="reaction-desc">身体正在通过皮肤排毒</view>
-        </view>
-      </view>
-
-      <view class="reaction-item">
-        <view class="reaction-icon">😫</view>
-        <view class="reaction-info">
-          <view class="reaction-name">症状加重</view>
-          <view class="reaction-desc">毒素正在排出，暂时性的反应</view>
+        <view class="feature-list">
+          <view class="feature-list-item">• 疲劳感加重：身体在排毒，需要更多休息</view>
+          <view class="feature-list-item">• 痛感出现或加重：炎症正在被清除</view>
+          <view class="feature-list-item">• 皮肤出疹或瘙痒：毒素通过皮肤排出</view>
+          <view class="feature-list-item">• 消化系统反应：肠胃在清理毒素</view>
+          <view class="feature-list-item">• 头痛头晕：头部血管在疏通</view>
         </view>
       </view>
     </view>
 
-    <!-- 重要提示 -->
-    <view class="notice-card">
-      <view class="notice-title">⚠️ 重要提示</view>
+    <!-- 如何应对好转反应 -->
+    <view class="response-card">
+      <view class="card-title">如何应对好转反应</view>
+      <view class="card-desc">出现好转反应时应该怎么做</view>
+      
+      <view class="response-grid">
+        <!-- 应该做的 -->
+        <view class="response-item response-do">
+          <view class="response-title">✅ 应该做的</view>
+          <view class="response-list">
+            <view class="response-list-item">• 多喝温水，帮助排毒</view>
+            <view class="response-list-item">• 保证充足睡眠，让身体修复</view>
+            <view class="response-list-item">• 坚持调理，不要轻易停止</view>
+            <view class="response-list-item">• 与导师沟通，获得指导</view>
+            <view class="response-list-item">• 记录身体变化，观察进展</view>
+          </view>
+        </view>
+
+        <!-- 不应该做的 -->
+        <view class="response-item response-dont">
+          <view class="response-title">❌ 不应该做的</view>
+          <view class="response-list">
+            <view class="response-list-item">• 不要因为不适就立即停止调理</view>
+            <view class="response-list-item">• 不要过度劳累，增加身体负担</view>
+            <view class="response-list-item">• 不要吃生冷油腻食物</view>
+            <view class="response-list-item">• 不要熬夜，影响身体修复</view>
+            <view class="response-list-item">• 不要过度担心，保持良好心态</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 特别提示 -->
+    <view class="notice-card notice-red">
+      <view class="notice-icon">⚠️</view>
       <view class="notice-content">
-        好转反应是身体恢复的信号，一般持续3-7天会逐渐消失。如果反应过于强烈，请及时联系您的健康顾问。
+        <view class="notice-title">特别提示</view>
+        <view class="notice-text">如果好转反应特别强烈，持续超过3-5天，或者出现发烧、剧烈疼痛等严重症状，请及时暂停调理并咨询医生。同时联系您的调理导师，获得专业指导。</view>
       </view>
     </view>
   </view>
@@ -89,7 +128,7 @@
   <!-- 底部操作 -->
   <view class="bottom-actions">
     <button class="btn-primary" bindtap="handleContinue">
-      开始健康管理方案 →
+      了解恢复速度8要素 →
     </button>
   </view>
 </view>

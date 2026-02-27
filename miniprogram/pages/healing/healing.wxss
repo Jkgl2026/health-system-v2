@@ -1,10 +1,10 @@
 /* pages/healing/healing.wxss */
-/* 好转反应页面样式 */
+/* 好转反应页面样式 - 1:1复刻Web版 */
 
 .container {
   min-height: 100vh;
   background: linear-gradient(135deg, #fef3c7 0%, #ffffff 50%, #dcfce7 100%);
-  padding-bottom: 120rpx;
+  padding-bottom: 140rpx;
 }
 
 /* 头部导航 */
@@ -47,29 +47,98 @@
   padding: 32rpx;
 }
 
-/* 介绍卡片 */
-.intro-card {
+/* 标题卡片 */
+.title-card {
   background: white;
   border-radius: 24rpx;
-  padding: 40rpx;
+  padding: 48rpx 32rpx;
   margin-bottom: 24rpx;
-  border: 2rpx solid #fcd34d;
+  border: 4rpx solid #fcd34d;
   box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  text-align: center;
 }
 
-.intro-title {
-  text-align: center;
-  font-size: 40rpx;
+.title-icon {
+  width: 96rpx;
+  height: 96rpx;
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48rpx;
+  margin: 0 auto 24rpx auto;
+}
+
+.title-text {
+  font-size: 44rpx;
   font-weight: 700;
   color: #111827;
   margin-bottom: 16rpx;
 }
 
-.intro-desc {
-  text-align: center;
+.title-desc {
   font-size: 28rpx;
   color: #6b7280;
   line-height: 1.6;
+}
+
+/* 提示卡片 */
+.notice-card {
+  display: flex;
+  padding: 24rpx;
+  border-radius: 16rpx;
+  margin-bottom: 24rpx;
+  border: 2rpx solid;
+}
+
+.notice-orange {
+  background: #fff7ed;
+  border-color: #fdba74;
+}
+
+.notice-red {
+  background: #fef2f2;
+  border-color: #fca5a5;
+}
+
+.notice-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.notice-content {
+  flex: 1;
+}
+
+.notice-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8rpx;
+}
+
+.notice-text {
+  font-size: 26rpx;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.notice-orange .notice-title {
+  color: #9a3412;
+}
+
+.notice-orange .notice-text {
+  color: #7c2d12;
+}
+
+.notice-red .notice-title {
+  color: #dc2626;
+}
+
+.notice-red .notice-text {
+  color: #991b1b;
 }
 
 /* 故事卡片 */
@@ -78,101 +147,148 @@
   border-radius: 24rpx;
   padding: 32rpx;
   margin-bottom: 24rpx;
-  border: 2rpx solid #e5e7eb;
+  border: 4rpx solid #bfdbfe;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
 }
 
-.story-title {
+.card-title {
   font-size: 32rpx;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 20rpx;
-}
-
-.story-content {
-  font-size: 26rpx;
-  color: #374151;
-  line-height: 1.8;
-}
-
-.story-content text {
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.story-highlight {
-  font-weight: 600;
-  color: #d97706;
-}
-
-/* 反应部分 */
-.reactions-section {
-  margin-bottom: 24rpx;
-}
-
-.section-title {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #111827;
-  margin-bottom: 20rpx;
-}
-
-.reaction-item {
-  display: flex;
-  align-items: flex-start;
-  background: white;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  margin-bottom: 16rpx;
-  border: 2rpx solid #e5e7eb;
-}
-
-.reaction-icon {
-  width: 64rpx;
-  height: 64rpx;
-  background: #fef3c7;
-  border-radius: 16rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 32rpx;
-  margin-right: 20rpx;
-}
-
-.reaction-info {
-  flex: 1;
-}
-
-.reaction-name {
-  font-size: 28rpx;
   font-weight: 600;
   color: #111827;
   margin-bottom: 8rpx;
 }
 
-.reaction-desc {
-  font-size: 24rpx;
+.card-desc {
+  font-size: 26rpx;
   color: #6b7280;
+  margin-bottom: 24rpx;
 }
 
-/* 提示卡片 */
-.notice-card {
-  background: #fef2f2;
+.story-content {
+  background: linear-gradient(135deg, #eff6ff, #f0f9ff);
+  padding: 32rpx;
   border-radius: 16rpx;
-  padding: 24rpx;
-  border: 2rpx solid #fca5a5;
+  border: 2rpx solid #bfdbfe;
 }
 
-.notice-title {
+.story-content text {
+  display: block;
+  font-size: 26rpx;
+  color: #374151;
+  line-height: 1.8;
+  margin-bottom: 16rpx;
+}
+
+.story-content .highlight {
+  font-weight: 600;
+  color: #d97706;
+}
+
+/* 特点卡片 */
+.feature-card {
+  background: white;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  border: 4rpx solid #dcfce7;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.feature-item {
+  padding: 24rpx;
+  border-radius: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.feature-item:last-child {
+  margin-bottom: 0;
+}
+
+.feature-green {
+  background: #f0fdf4;
+  border: 2rpx solid #86efac;
+}
+
+.feature-yellow {
+  background: #fefce8;
+  border: 2rpx solid #fde047;
+}
+
+.feature-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.feature-icon {
+  font-size: 32rpx;
+  margin-right: 12rpx;
+}
+
+.feature-name {
   font-size: 28rpx;
   font-weight: 600;
-  color: #dc2626;
-  margin-bottom: 12rpx;
+  color: #111827;
 }
 
-.notice-content {
+.feature-list {
+  padding-left: 16rpx;
+}
+
+.feature-list-item {
   font-size: 26rpx;
-  color: #991b1b;
-  line-height: 1.6;
+  color: #374151;
+  line-height: 1.8;
+  margin-bottom: 8rpx;
+}
+
+/* 应对方法卡片 */
+.response-card {
+  background: white;
+  border-radius: 24rpx;
+  padding: 32rpx;
+  margin-bottom: 24rpx;
+  border: 4rpx solid #f3e8ff;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+}
+
+.response-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.response-item {
+  padding: 24rpx;
+  border-radius: 16rpx;
+}
+
+.response-do {
+  background: #f0fdf4;
+  border: 2rpx solid #86efac;
+}
+
+.response-dont {
+  background: #fef2f2;
+  border: 2rpx solid #fecaca;
+}
+
+.response-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 16rpx;
+}
+
+.response-list {
+  padding-left: 8rpx;
+}
+
+.response-list-item {
+  font-size: 24rpx;
+  color: #374151;
+  line-height: 1.8;
+  margin-bottom: 8rpx;
 }
 
 /* 底部操作 */
@@ -190,7 +306,7 @@
 .btn-primary {
   width: 100%;
   padding: 28rpx;
-  background: linear-gradient(135deg, #f97316, #ef4444);
+  background: linear-gradient(135deg, #3b82f6, #22c55e);
   color: white;
   font-size: 32rpx;
   font-weight: 600;
