@@ -110,13 +110,15 @@
   background: white;
   border-radius: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.05);
-  border: 2rpx solid transparent;
-  transition: all 0.3s;
+  border: 3rpx solid transparent;
+  transition: all 0.3s ease;
 }
 
 .record-card.selected {
   border-color: #3b82f6;
-  background: #eff6ff;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  box-shadow: 0 4rpx 20rpx rgba(59, 130, 246, 0.25);
+  transform: scale(1.02);
 }
 
 .select-box {
@@ -124,24 +126,26 @@
 }
 
 .checkbox {
-  width: 44rpx;
-  height: 44rpx;
-  border: 2rpx solid #d1d5db;
+  width: 48rpx;
+  height: 48rpx;
+  border: 3rpx solid #d1d5db;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: white;
+  transition: all 0.3s ease;
 }
 
 .checkbox.checked {
-  background: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   border-color: #3b82f6;
+  box-shadow: 0 2rpx 8rpx rgba(59, 130, 246, 0.4);
 }
 
 .check-icon {
   color: white;
-  font-size: 24rpx;
+  font-size: 28rpx;
   font-weight: 700;
 }
 

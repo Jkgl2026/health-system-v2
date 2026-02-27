@@ -4,6 +4,19 @@
 const MAX_HISTORY_COUNT = 20; // 最多保存20条历史记录
 
 /**
+ * 计算健康评分（内置函数，确保评分正确）
+ */
+function calculateHealthScore(bodySymptoms, badHabits, symptoms300) {
+  // 权重：身体语言简表30%、不良生活习惯20%、300症状表10%、基础分40%
+  const bodyScore = Math.max(0, 100 - (bodySymptoms.length / 100 * 100));
+  const habitScore = Math.max(0, 100 - (badHabits.length / 252 * 100));
+  const symptomScore = Math.max(0, 100 - (symptoms300.length / 300 * 100));
+  
+  const healthScore = Math.round(bodyScore * 0.3 + habitScore * 0.2 + symptomScore * 0.1 + 40);
+  return Math.min(100, Math.max(0, healthScore));
+}
+
+/**
  * 保存一条历史记录
  * @returns {boolean} 是否保存成功
  */
@@ -17,7 +30,9 @@ function saveHistoryRecord() {
     const sevenQuestions = wx.getStorageSync('sevenQuestionsAnswers') || {};
     const targetSymptoms = wx.getStorageSync('targetSymptoms') || [];
     const selectedChoice = wx.getStorageSync('selectedChoice') || '';
-    const healthScore = wx.getStorageSync('healthScore') || 0;
+    
+    // 直接计算健康评分，不从storage读取
+    const healthScore = calculateHealthScore(selectedSymptoms, badHabits, symptoms300);
 
     // 获取健康要素
     const healthElements = calculateHealthElements(selectedSymptoms);

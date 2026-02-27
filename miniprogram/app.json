@@ -46,12 +46,6 @@
         "text": "我的方案",
         "iconPath": "images/solution.png",
         "selectedIconPath": "images/solution-active.png"
-      },
-      {
-        "pagePath": "pages/admin/login/login",
-        "text": "后台",
-        "iconPath": "images/admin.png",
-        "selectedIconPath": "images/admin-active.png"
       }
     ]
   },
