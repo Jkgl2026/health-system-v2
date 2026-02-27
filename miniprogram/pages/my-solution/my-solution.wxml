@@ -147,8 +147,8 @@
       <view class="complete-icon">✅</view>
       <view class="complete-title">恭喜您完成了整个健康自检流程！</view>
       <view class="complete-desc">现在请根据以上方案，开始您的健康管理之旅。如有任何疑问，请及时联系您的调理导师。</view>
-      <button class="btn-courses" bindtap="goToCourses">
-        学习更多健康课程 →
+      <button class="btn-courses" bindtap="goToHome">
+        返回首页 →
       </button>
     </view>
   </view>

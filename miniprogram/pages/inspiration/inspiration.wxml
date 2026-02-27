@@ -1,5 +1,6 @@
 <!--pages/inspiration/inspiration.wxml-->
-<!--发心感悟页面 - 1:1复刻Web版-->
+<!--发心感悟页面 - 为什么做健康行业-->
+
 <view class="container">
   <!-- 头部导航 -->
   <view class="header">
@@ -11,18 +12,20 @@
   </view>
 
   <!-- 主要内容 -->
-  <view class="content">
-    <!-- 标题部分 -->
+  <scroll-view scroll-y class="content">
+    <!-- 标题卡片 -->
     <view class="title-card">
-      <view class="title-icon">❤️</view>
+      <view class="title-icon">
+        <text class="icon-heart">❤️</text>
+      </view>
       <view class="title-text">{{title}}</view>
-      <view class="title-desc">用心感悟健康之道，用爱传递健康理念</view>
+      <view class="title-subtitle">{{subtitle}}</view>
     </view>
 
     <!-- 发心内容 -->
     <view class="content-card">
       <view class="card-header">
-        <text class="quote-icon">💬</text>
+        <text class="card-icon">💭</text>
         <text class="card-title">发心感悟</text>
       </view>
       <view class="card-desc">健康调理不仅需要方法，更需要用心</view>
@@ -32,74 +35,44 @@
     </view>
 
     <!-- 健康理念 -->
-    <view class="philosophy-card">
-      <view class="card-title">健康理念</view>
-      <view class="card-desc">我们的健康调理核心理念</view>
+    <view class="concepts-card">
+      <view class="card-header">
+        <text class="card-title">健康理念</text>
+        <text class="card-desc">我们的健康调理核心理念</text>
+      </view>
       
-      <view class="philosophy-grid">
-        <view class="philosophy-item philosophy-blue">
-          <view class="philosophy-icon">✨</view>
-          <view class="philosophy-name">治标更要治本</view>
-          <view class="philosophy-desc">不只是缓解症状，更要找到问题的根源，从根本上改善健康状况</view>
-        </view>
-        
-        <view class="philosophy-item philosophy-green">
-          <view class="philosophy-icon">❤️</view>
-          <view class="philosophy-name">用心对待身体</view>
-          <view class="philosophy-desc">身体是最诚实的伙伴，用心倾听它的信号，给予它应有的关爱和呵护</view>
-        </view>
-        
-        <view class="philosophy-item philosophy-orange">
-          <view class="philosophy-icon">✨</view>
-          <view class="philosophy-name">循序渐进</view>
-          <view class="philosophy-desc">健康恢复是一个循序渐进的过程，要有耐心，给身体足够的时间修复</view>
-        </view>
-        
-        <view class="philosophy-item philosophy-purple">
-          <view class="philosophy-icon">❤️</view>
-          <view class="philosophy-name">知行合一</view>
-          <view class="philosophy-desc">知道不如做到，将健康知识转化为实际行动，才能真正改变健康状况</view>
+      <view class="concepts-grid">
+        <view wx:for="{{healthConcepts}}" wx:key="title" class="concept-item" style="border-color: {{item.color}};">
+          <view class="concept-icon" style="background: {{item.color}};">{{item.icon}}</view>
+          <view class="concept-title">{{item.title}}</view>
+          <view class="concept-desc">{{item.desc}}</view>
         </view>
       </view>
     </view>
 
     <!-- 行动承诺 -->
-    <view class="promise-card">
-      <view class="card-title">行动承诺</view>
-      <view class="card-desc">现在开始，为自己的健康做出承诺</view>
+    <view class="promises-card">
+      <view class="card-header">
+        <text class="card-title">行动承诺</text>
+        <text class="card-desc">现在开始，为自己的健康做出承诺</text>
+      </view>
       
-      <view class="promise-list">
-        <view class="promise-item promise-yellow">
-          <view class="promise-num">1</view>
+      <view class="promises-list">
+        <view wx:for="{{actionPromises}}" wx:key="title" class="promise-item" style="background: linear-gradient(135deg, {{item.color}}15, {{item.color}}05);">
+          <view class="promise-num" style="background: {{item.color}};">{{item.num}}</view>
           <view class="promise-content">
-            <view class="promise-title">认真对待身体</view>
-            <view class="promise-desc">身体是革命的本钱，没有健康，一切都是空谈。从今天开始，认真对待自己的身体</view>
-          </view>
-        </view>
-        
-        <view class="promise-item promise-blue">
-          <view class="promise-num">2</view>
-          <view class="promise-content">
-            <view class="promise-title">坚持调理方案</view>
-            <view class="promise-desc">按照调理方案坚持执行，不轻易放弃，给身体足够的时间恢复健康</view>
-          </view>
-        </view>
-        
-        <view class="promise-item promise-green">
-          <view class="promise-num">3</view>
-          <view class="promise-content">
-            <view class="promise-title">传递健康理念</view>
-            <view class="promise-desc">将学到的健康知识分享给家人朋友，让更多人受益，共同守护健康</view>
+            <view class="promise-title">{{item.title}}</view>
+            <view class="promise-desc">{{item.desc}}</view>
           </view>
         </view>
       </view>
     </view>
-  </view>
 
-  <!-- 底部操作 -->
-  <view class="bottom-actions">
-    <button class="btn-primary" bindtap="handleContinue">
-      返回首页 →
-    </button>
-  </view>
+    <!-- 继续按钮 -->
+    <view class="action-section">
+      <button class="btn-continue" bindtap="handleContinue">
+        开始健康管理 →
+      </button>
+    </view>
+  </scroll-view>
 </view>

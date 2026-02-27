@@ -105,7 +105,7 @@
   <!-- 底部操作 -->
   <view class="bottom-actions">
     <button class="btn-primary" bindtap="handleContinue">
-      查看健康管理方案 →
+      继续了解发心 →
     </button>
   </view>
 </view>

@@ -325,7 +325,7 @@ Page({
     wx.navigateBack();
   },
 
-  goToCourses() {
+  goToHome() {
     wx.switchTab({
       url: '/pages/index/index'
     });

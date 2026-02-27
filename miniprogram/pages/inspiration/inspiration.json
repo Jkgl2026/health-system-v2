@@ -1,4 +1,8 @@
 {
   "usingComponents": {},
-  "navigationBarTitleText": "发心感悟"
+  "navigationBarTitleText": "为什么做健康行业",
+  "navigationBarBackgroundColor": "#FFFFFF",
+  "navigationBarTextStyle": "black",
+  "backgroundColor": "#F0F9FF",
+  "enablePullDownRefresh": false
 }

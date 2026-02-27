@@ -20,6 +20,19 @@
 
   <!-- 健康数据概览（有数据时显示） -->
   <view wx:if="{{hasHealthData && currentPage === 1}}" class="health-overview">
+    <!-- 健康数据卡片标题 -->
+    <view class="health-card">
+      <view class="card-header">
+        <view class="card-title-section">
+          <view class="card-icon">📊</view>
+          <view class="card-title-text">
+            <view class="card-title">您的健康数据概览</view>
+            <view class="card-desc">基于上次自检的综合分析报告</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
     <!-- 页面切换提示 -->
     <view class="page-switch">
       <view class="page-indicator">

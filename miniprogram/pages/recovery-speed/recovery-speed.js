@@ -67,12 +67,10 @@ Page({
     wx.navigateBack();
   },
 
-  // 继续按钮 - 跳转到健康管理方案（tabBar页面必须用switchTab）
+  // 继续按钮 - 跳转到为什么做健康行业页面
   handleContinue() {
-    // 设置标记，表示完成了整个流程，需要保存历史记录
-    wx.setStorageSync('shouldSaveHistory', true);
-    wx.switchTab({
-      url: '/pages/my-solution/my-solution'
+    wx.navigateTo({
+      url: '/pages/inspiration/inspiration'
     });
   },
 
