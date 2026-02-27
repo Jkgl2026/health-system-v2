@@ -1,6 +1,17 @@
 // app.js
 App({
   onLaunch() {
+    // 初始化云开发环境
+    if (wx.cloud) {
+      wx.cloud.init({
+        env: 'cloud1-5g8sp1s7313ea0db', // 云开发环境ID
+        traceUser: true
+      });
+      console.log('云开发初始化成功');
+    } else {
+      console.warn('请使用 2.2.3 或以上的基础库以使用云能力');
+    }
+    
     // 初始化本地存储
     this.initStorage();
     
@@ -32,6 +43,6 @@ App({
   globalData: {
     userInfo: null,
     isAdminLoggedIn: false,
-    apiBaseUrl: 'http://localhost:5000/api'
+    cloudEnvId: 'cloud1-5g8sp1s7313ea0db'
   }
 });

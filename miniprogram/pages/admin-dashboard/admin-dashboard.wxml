@@ -1,64 +1,123 @@
 <!--pages/admin-dashboard/admin-dashboard.wxml-->
 <view class="container">
+  <!-- 顶部导航 -->
   <view class="header">
     <text class="header-title">后台管理</text>
-    <text class="header-logout" bindtap="handleLogout">退出</text>
-  </view>
-  
-  <!-- 统计卡片 -->
-  <view class="stats">
-    <view class="stat-card">
-      <text class="stat-value">{{stats.totalUsers}}</text>
-      <text class="stat-label">总用户</text>
-    </view>
-    <view class="stat-card">
-      <text class="stat-value">{{stats.todayUsers}}</text>
-      <text class="stat-label">今日新增</text>
-    </view>
-    <view class="stat-card">
-      <text class="stat-value">{{stats.checkCount}}</text>
-      <text class="stat-label">自检次数</text>
-    </view>
-    <view class="stat-card">
-      <text class="stat-value">{{stats.avgScore}}</text>
-      <text class="stat-label">平均分</text>
+    <view class="header-actions">
+      <text class="header-btn" bindtap="goToCompareSelect">📊 对比</text>
+      <text class="header-btn logout" bindtap="handleLogout">退出</text>
     </view>
   </view>
-  
-  <!-- 用户列表 -->
-  <view class="section">
-    <view class="section-header">
-      <text class="section-title">用户列表</text>
-      <text class="section-action" bindtap="refreshUsers">刷新</text>
-    </view>
-    
-    <view class="user-list">
-      <view class="user-item" wx:for="{{users}}" wx:key="_id" bindtap="viewUser" data-id="{{item._id}}">
-        <view class="user-info">
-          <text class="user-name">{{item.name || '未填写'}}</text>
-          <text class="user-phone">{{item.phone || '未填写'}}</text>
-        </view>
-        <view class="user-meta">
-          <text class="user-score">健康分: {{item.healthScore || '--'}}</text>
-          <text class="user-time">{{item.createTime}}</text>
-        </view>
+
+  <!-- 统计概览 -->
+  <view class="stats-overview">
+    <view class="stat-card primary">
+      <view class="stat-icon">👥</view>
+      <view class="stat-info">
+        <text class="stat-value">{{stats.totalUsers}}</text>
+        <text class="stat-label">总用户数</text>
+      </view>
+      <view class="stat-trend positive" wx:if="{{stats.todayUsers > 0}}">
+        <text class="trend-value">+{{stats.todayUsers}}</text>
+        <text class="trend-label">今日</text>
       </view>
     </view>
     
-    <view class="empty" wx:if="{{!users.length}}">
-      <text class="empty-text">暂无用户数据</text>
+    <view class="stat-card success">
+      <view class="stat-icon">📋</view>
+      <view class="stat-info">
+        <text class="stat-value">{{stats.totalRecords}}</text>
+        <text class="stat-label">总检测数</text>
+      </view>
+      <view class="stat-trend positive" wx:if="{{stats.todayRecords > 0}}">
+        <text class="trend-value">+{{stats.todayRecords}}</text>
+        <text class="trend-label">今日</text>
+      </view>
     </view>
   </view>
-  
-  <!-- 数据管理 -->
+
+  <!-- 快捷操作 -->
+  <view class="quick-actions">
+    <view class="action-item" bindtap="goToCompareSelect">
+      <view class="action-icon">📊</view>
+      <text class="action-name">数据对比</text>
+    </view>
+    <view class="action-item" bindtap="refreshUsers">
+      <view class="action-icon">🔄</view>
+      <text class="action-name">刷新数据</text>
+    </view>
+    <view class="action-item" bindtap="clearAllData">
+      <view class="action-icon">🗑️</view>
+      <text class="action-name">清空数据</text>
+    </view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <view class="search-input-wrapper">
+      <text class="search-icon">🔍</text>
+      <input class="search-input" 
+             placeholder="搜索姓名或手机号" 
+             value="{{search}}"
+             bindconfirm="searchUser"
+             bindinput="onSearchInput" />
+    </view>
+  </view>
+
+  <!-- 用户列表 -->
   <view class="section">
     <view class="section-header">
-      <text class="section-title">数据管理</text>
+      <text class="section-title">用户列表 ({{users.length}})</text>
+      <text class="section-action" bindtap="refreshUsers">刷新</text>
     </view>
-    
-    <view class="action-list">
-      <button class="btn btn-secondary btn-block" bindtap="exportData">导出用户数据</button>
-      <button class="btn btn-secondary btn-block" bindtap="clearAllData">清空所有数据</button>
+
+    <view class="user-list">
+      <view class="user-item" wx:for="{{users}}" wx:key="_id" bindtap="viewUser" data-id="{{item._id}}">
+        <view class="user-avatar">
+          <text class="avatar-text">{{item.name ? item.name[0] : '未'}}</text>
+        </view>
+        <view class="user-main">
+          <view class="user-row">
+            <text class="user-name">{{item.name || '未填写'}}</text>
+            <text class="user-phone" 
+                  bindtap="callPhone" 
+                  catchtap="callPhone"
+                  data-phone="{{item.phone}}">{{item.phone || '未填写'}}</text>
+          </view>
+          <view class="user-meta">
+            <view class="meta-item" wx:if="{{item.latestRecord}}">
+              <text class="meta-icon">💚</text>
+              <text class="meta-label">评分:</text>
+              <text class="meta-value {{item.latestRecord.healthScore >= 60 ? 'good' : 'warning'}}">
+                {{item.latestRecord.healthScore || '--'}}
+              </text>
+            </view>
+            <view class="meta-item" wx:if="{{item.latestRecord}}">
+              <text class="meta-icon">📝</text>
+              <text class="meta-label">症状:</text>
+              <text class="meta-value">{{item.latestRecord.summary.symptomCount || 0}}</text>
+            </view>
+            <view class="meta-item">
+              <text class="meta-icon">🕐</text>
+              <text class="meta-value time">{{item.latestRecord ? item.latestRecord.dateStr : item.updatedAt || '未知'}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="user-action">
+          <text class="action-arrow">→</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 加载更多 -->
+    <view class="load-more" wx:if="{{hasMore}}" bindtap="loadMore">
+      <text class="load-more-text">{{loading ? '加载中...' : '加载更多'}}</text>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty" wx:if="{{users.length === 0 && !loading}}">
+      <text class="empty-icon">📭</text>
+      <text class="empty-text">暂无用户数据</text>
     </view>
   </view>
 </view>

@@ -21,7 +21,10 @@
     "pages/history-compare/history-compare",
     "pages/admin/login/login",
     "pages/admin/dashboard/dashboard",
-    "pages/admin/user-detail/user-detail"
+    "pages/admin/user-detail/user-detail",
+    "pages/admin-user-detail/admin-user-detail",
+    "pages/admin-compare/admin-compare",
+    "pages/admin-dashboard/admin-dashboard"
   ],
   "window": {
     "backgroundTextStyle": "light",

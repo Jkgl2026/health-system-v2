@@ -103,7 +103,7 @@ Page({
     if (shouldSave) {
       // 清除标记
       wx.removeStorageSync('shouldSaveHistory');
-      // 保存历史记录
+      // 保存历史记录到本地
       const saved = historyManager.saveHistoryRecord();
       if (saved) {
         wx.showToast({
@@ -111,6 +111,9 @@ Page({
           icon: 'success',
           duration: 1500
         });
+        
+        // 同时保存到云数据库
+        this.saveToCloudDatabase();
       }
     }
     
@@ -333,5 +336,30 @@ Page({
 
   goToStory() {
     wx.navigateTo({ url: '/pages/story/story' });
+  },
+
+  // 保存到云数据库
+  async saveToCloudDatabase() {
+    try {
+      // 获取最新保存的记录
+      const history = historyManager.getAllHistory();
+      if (history.length === 0) {
+        console.log('没有历史记录需要保存到云端');
+        return;
+      }
+      
+      const latestRecord = history[0];
+      
+      // 调用云数据库保存
+      const result = await historyManager.saveToCloud(latestRecord);
+      
+      if (result.success) {
+        console.log('云数据库同步成功');
+      } else {
+        console.error('云数据库同步失败:', result.error);
+      }
+    } catch (error) {
+      console.error('保存到云数据库异常:', error);
+    }
   }
 });

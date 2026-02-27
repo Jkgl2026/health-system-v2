@@ -2,6 +2,7 @@
 // 历史记录管理工具 - 用于保存和管理用户自检历史记录
 
 const MAX_HISTORY_COUNT = 20; // 最多保存20条历史记录
+const cloudDb = require('./cloud-db');
 
 /**
  * 计算健康评分（内置函数，确保评分正确）
@@ -227,8 +228,69 @@ function getHistoryStats() {
   };
 }
 
+/**
+ * 保存记录到云数据库
+ * @param {Object} record 记录数据
+ * @returns {Promise<Object>} 保存结果
+ */
+async function saveToCloud(record) {
+  try {
+    // 1. 保存用户信息
+    if (record.userInfo && record.userInfo.phone) {
+      const userResult = await cloudDb.saveUserInfo({
+        ...record.userInfo,
+        lastRecordTime: record.timestamp
+      });
+      
+      if (userResult.success && userResult.userId) {
+        // 2. 保存健康记录，关联用户ID
+        const healthRecord = {
+          userId: userResult.userId,
+          phone: record.userInfo.phone,
+          name: record.userInfo.name,
+          timestamp: record.timestamp,
+          dateStr: record.dateStr,
+          healthScore: record.healthScore,
+          selectedSymptoms: record.selectedSymptoms,
+          symptomNames: record.symptomNames,
+          badHabits: record.badHabits,
+          badHabitNames: record.badHabitNames,
+          symptoms300: record.symptoms300,
+          symptoms300Names: record.symptoms300Names,
+          sevenQuestions: record.sevenQuestions,
+          targetSymptoms: record.targetSymptoms,
+          targetSymptomNames: record.targetSymptomNames,
+          healthElements: record.healthElements,
+          selectedChoice: record.selectedChoice,
+          summary: record.summary
+        };
+        
+        const recordResult = await cloudDb.saveHealthRecord(healthRecord);
+        
+        if (recordResult.success) {
+          console.log('云数据库保存成功，用户ID:', userResult.userId, '记录ID:', recordResult.recordId);
+          return { success: true, userId: userResult.userId, recordId: recordResult.recordId };
+        } else {
+          console.error('保存健康记录失败:', recordResult.error);
+          return { success: false, error: recordResult.error };
+        }
+      } else {
+        console.error('保存用户信息失败:', userResult.error);
+        return { success: false, error: userResult.error };
+      }
+    } else {
+      console.error('缺少用户信息或手机号');
+      return { success: false, error: '缺少用户信息' };
+    }
+  } catch (error) {
+    console.error('云数据库保存异常:', error);
+    return { success: false, error: error.message };
+  }
+}
+
 module.exports = {
   saveHistoryRecord,
+  saveToCloud,
   getAllHistory,
   getHistoryById,
   deleteHistoryRecord,

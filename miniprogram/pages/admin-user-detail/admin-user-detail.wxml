@@ -1,79 +1,258 @@
 <!--pages/admin-user-detail/admin-user-detail.wxml-->
 <view class="container">
+  <!-- 顶部导航 -->
   <view class="header">
+    <text class="header-back" bindtap="goBack">← 返回</text>
     <text class="header-title">用户详情</text>
-    <text class="header-back" bindtap="goBack">返回</text>
+    <text class="header-action" bindtap="goToCompare">对比</text>
   </view>
-  
-  <view class="content" wx:if="{{user}}">
-    <!-- 基本信息 -->
-    <view class="section">
-      <text class="section-title">基本信息</text>
-      <view class="info-list">
-        <view class="info-item">
-          <text class="info-label">姓名</text>
-          <text class="info-value">{{user.name || '未填写'}}</text>
+
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 主内容 -->
+  <view class="content" wx:if="{{!loading && user}}">
+    <!-- 用户基本信息卡片 -->
+    <view class="user-card">
+      <view class="user-avatar">
+        <text class="avatar-text">{{user.name ? user.name[0] : '未'}}</text>
+      </view>
+      <view class="user-info">
+        <text class="user-name">{{user.name || '未填写姓名'}}</text>
+        <view class="user-meta">
+          <text class="meta-item" bindtap="copyPhone">{{user.phone || '未填写手机号'}}</text>
+          <text class="meta-divider" wx:if="{{user.phone && user.age}}">|</text>
+          <text class="meta-item">{{user.age ? user.age + '岁' : ''}}</text>
+          <text class="meta-divider" wx:if="{{user.age && user.gender}}">|</text>
+          <text class="meta-item">{{user.gender || ''}}</text>
         </view>
-        <view class="info-item">
-          <text class="info-label">手机号</text>
-          <text class="info-value">{{user.phone || '未填写'}}</text>
+        <view class="user-badges">
+          <text class="badge badge-{{latestRecord.healthScore >= 60 ? 'good' : 'warning'}}">
+            健康评分: {{latestRecord.healthScore || '--'}}分
+          </text>
+          <text class="badge badge-info" wx:if="{{records.length > 0}}">
+            {{records.length}}次检测
+          </text>
         </view>
-        <view class="info-item">
-          <text class="info-label">年龄</text>
-          <text class="info-value">{{user.age || '未填写'}}</text>
+      </view>
+      <view class="user-actions">
+        <text class="action-btn" bindtap="callPhone" wx:if="{{user.phone}}">📞</text>
+      </view>
+    </view>
+
+    <!-- 快速统计 -->
+    <view class="quick-stats">
+      <view class="stat-item">
+        <text class="stat-value">{{latestRecord.summary.symptomCount || 0}}</text>
+        <text class="stat-label">症状数</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{latestRecord.summary.badHabitCount || 0}}</text>
+        <text class="stat-label">不良习惯</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{latestRecord.summary.targetCount || 0}}</text>
+        <text class="stat-label">重点症状</text>
+      </view>
+      <view class="stat-item">
+        <text class="stat-value">{{(latestRecord.healthElements || []).length}}</text>
+        <text class="stat-label">健康要素</text>
+      </view>
+    </view>
+
+    <!-- Tab导航 -->
+    <view class="tab-nav">
+      <view class="tab-item {{activeTab === 'overview' ? 'active' : ''}}" 
+            data-tab="overview" bindtap="switchTab">
+        <text class="tab-text">概览</text>
+      </view>
+      <view class="tab-item {{activeTab === 'symptoms' ? 'active' : ''}}" 
+            data-tab="symptoms" bindtap="switchTab">
+        <text class="tab-text">症状详情</text>
+      </view>
+      <view class="tab-item {{activeTab === 'habits' ? 'active' : ''}}" 
+            data-tab="habits" bindtap="switchTab">
+        <text class="tab-text">生活习惯</text>
+      </view>
+      <view class="tab-item {{activeTab === 'history' ? 'active' : ''}}" 
+            data-tab="history" bindtap="switchTab">
+        <text class="tab-text">历史记录</text>
+      </view>
+    </view>
+
+    <!-- 概览Tab -->
+    <view class="tab-content" wx:if="{{activeTab === 'overview'}}">
+      <!-- 健康评分仪表盘 -->
+      <view class="chart-section">
+        <view class="section-header">
+          <text class="section-title">健康评分</text>
+          <text class="section-badge" 
+                style="background: {{latestRecord.healthScore >= 80 ? '#22c55e' : latestRecord.healthScore >= 60 ? '#eab308' : latestRecord.healthScore >= 40 ? '#f97316' : '#ef4444'}}">
+            {{latestRecord.healthScore >= 80 ? '优秀' : latestRecord.healthScore >= 60 ? '良好' : latestRecord.healthScore >= 40 ? '一般' : '较差'}}
+          </text>
         </view>
-        <view class="info-item">
-          <text class="info-label">性别</text>
-          <text class="info-value">{{user.gender || '未填写'}}</text>
+        <view class="chart-container">
+          <canvas type="2d" id="scoreChart" canvas-id="scoreChart" 
+                  style="width: 100%; height: 200px;"></canvas>
         </view>
-        <view class="info-item">
-          <text class="info-label">身高</text>
-          <text class="info-value">{{user.height ? user.height + 'cm' : '未填写'}}</text>
+      </view>
+
+      <!-- 健康要素雷达图 -->
+      <view class="chart-section">
+        <view class="section-header">
+          <text class="section-title">健康要素分布</text>
         </view>
-        <view class="info-item">
-          <text class="info-label">体重</text>
-          <text class="info-value">{{user.weight ? user.weight + 'kg' : '未填写'}}</text>
+        <view class="chart-container">
+          <canvas type="2d" id="radarChart" canvas-id="radarChart" 
+                  style="width: 100%; height: 250px;"></canvas>
         </view>
-        <view class="info-item">
-          <text class="info-label">BMI</text>
-          <text class="info-value">{{user.bmi || '未计算'}}</text>
+      </view>
+
+      <!-- 健康评分趋势 -->
+      <view class="chart-section" wx:if="{{records.length > 1}}">
+        <view class="section-header">
+          <text class="section-title">健康评分趋势</text>
+        </view>
+        <view class="chart-container">
+          <canvas type="2d" id="trendChart" canvas-id="trendChart" 
+                  style="width: 100%; height: 220px;"></canvas>
         </view>
       </view>
     </view>
-    
-    <!-- 健康评分 -->
-    <view class="section">
-      <text class="section-title">健康评分</text>
-      <view class="score-card">
-        <text class="score-value">{{user.healthScore || '--'}}</text>
-        <view class="score-bar">
-          <view class="score-fill" style="width: {{user.healthScore || 0}}%;"></view>
+
+    <!-- 症状详情Tab -->
+    <view class="tab-content" wx:if="{{activeTab === 'symptoms'}}">
+      <!-- 症状分布饼图 -->
+      <view class="chart-section">
+        <view class="section-header">
+          <text class="section-title">症状类别分布</text>
+        </view>
+        <view class="chart-container">
+          <canvas type="2d" id="symptomChart" canvas-id="symptomChart" 
+                  style="width: 100%; height: 250px;"></canvas>
+        </view>
+      </view>
+
+      <!-- 身体症状列表 -->
+      <view class="detail-section">
+        <view class="section-header">
+          <text class="section-title">身体症状 ({{latestRecord.symptomNames.length || 0}}个)</text>
+        </view>
+        <view class="symptom-list" wx:if="{{latestRecord.symptomNames.length > 0}}">
+          <view class="symptom-category" wx:for="{{latestRecord.symptomNames}}" wx:for-item="symptom" wx:key="id">
+            <view class="symptom-tag">
+              <text class="symptom-name">{{symptom.name}}</text>
+              <text class="symptom-category-text">{{symptom.category}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="empty-text" wx:else>暂无症状记录</view>
+      </view>
+
+      <!-- 重点症状 -->
+      <view class="detail-section" wx:if="{{latestRecord.targetSymptomNames.length > 0}}">
+        <view class="section-header">
+          <text class="section-title">重点症状 ({{latestRecord.targetSymptomNames.length}}个)</text>
+        </view>
+        <view class="target-symptom-list">
+          <view class="target-symptom-item" wx:for="{{latestRecord.targetSymptomNames}}" wx:key="id">
+            <text class="target-icon">🎯</text>
+            <text class="target-name">{{item.name}}</text>
+          </view>
         </view>
       </view>
     </view>
-    
-    <!-- 症状分析 -->
-    <view class="section">
-      <text class="section-title">症状分析</text>
-      <view class="tag-list">
-        <text class="tag" wx:for="{{user.symptoms}}" wx:key="*this">{{item}}</text>
+
+    <!-- 生活习惯Tab -->
+    <view class="tab-content" wx:if="{{activeTab === 'habits'}}">
+      <!-- 健康七问 -->
+      <view class="detail-section">
+        <view class="section-header">
+          <text class="section-title">健康七问</text>
+        </view>
+        <view class="qa-list">
+          <view class="qa-item" wx:for="{{questions}}" wx:key="id">
+            <view class="qa-header">
+              <text class="qa-icon">{{item.icon}}</text>
+              <text class="qa-question">{{item.question}}</text>
+            </view>
+            <text class="qa-answer">{{latestRecord.sevenQuestions[item.id] || '未填写'}}</text>
+          </view>
+        </view>
       </view>
-    </view>
-    
-    <!-- 健康七问 -->
-    <view class="section">
-      <text class="section-title">健康七问</text>
-      <view class="qa-list">
-        <view class="qa-item" wx:for="{{questions}}" wx:key="id">
-          <text class="qa-q">{{item.question}}</text>
-          <text class="qa-a">{{user.answers[item.id] || '未填写'}}</text>
+
+      <!-- 不良生活习惯 -->
+      <view class="detail-section">
+        <view class="section-header">
+          <text class="section-title">不良生活习惯 ({{latestRecord.badHabitNames.length || 0}}个)</text>
+        </view>
+        <view class="habit-list" wx:if="{{latestRecord.badHabitNames.length > 0}}">
+          <view class="habit-category" wx:for="{{latestRecord.badHabitNames}}" wx:key="id">
+            <text class="habit-text">• {{item.name}}</text>
+            <text class="habit-category-text">{{item.category}}</text>
+          </view>
+        </view>
+        <view class="empty-text" wx:else>暂无不良习惯记录</view>
+      </view>
+
+      <!-- 三个选择四个要求 -->
+      <view class="detail-section" wx:if="{{latestRecord.selectedChoice}}">
+        <view class="section-header">
+          <text class="section-title">调理选择</text>
+        </view>
+        <view class="choice-display">
+          <text class="choice-label">选择方案</text>
+          <text class="choice-value">
+            {{latestRecord.selectedChoice === 'choice1' ? '自我调理' : 
+              latestRecord.selectedChoice === 'choice2' ? '产品调理' : '系统调理'}}
+          </text>
         </view>
       </view>
     </view>
-    
+
+    <!-- 历史记录Tab -->
+    <view class="tab-content" wx:if="{{activeTab === 'history'}}">
+      <view class="history-list" wx:if="{{records.length > 0}}">
+        <view class="history-item" wx:for="{{records}}" wx:key="_id" 
+              data-id="{{item._id}}" bindtap="viewRecordDetail">
+          <view class="history-header">
+            <text class="history-date">{{item.dateStr}}</text>
+            <text class="history-score" 
+                  style="color: {{item.healthScore >= 60 ? '#22c55e' : '#ef4444'}}">
+              {{item.healthScore}}分
+            </text>
+          </view>
+          <view class="history-summary">
+            <text class="summary-item">{{item.summary.symptomCount}}个症状</text>
+            <text class="summary-divider">•</text>
+            <text class="summary-item">{{item.summary.badHabitCount}}个不良习惯</text>
+            <text class="summary-divider">•</text>
+            <text class="summary-item">{{item.summary.targetCount}}个重点</text>
+          </view>
+          <view class="history-elements" wx:if="{{item.healthElements.length > 0}}">
+            <text class="element-tag" wx:for="{{item.healthElements}}" wx:for-item="el" wx:key="name"
+                  style="background: {{elementColors[el.name]}}20; color: {{elementColors[el.name]}}">
+              {{el.name}}({{el.count}})
+            </text>
+          </view>
+        </view>
+      </view>
+      <view class="empty-text" wx:else>暂无历史记录</view>
+    </view>
+
     <!-- 操作按钮 -->
-    <view class="actions">
-      <button class="btn btn-secondary btn-block" bindtap="deleteUser">删除用户</button>
+    <view class="action-bar">
+      <button class="btn btn-primary" bindtap="goToCompare">
+        <text class="btn-icon">📊</text>
+        数据对比分析
+      </button>
+      <button class="btn btn-danger" bindtap="deleteUser">
+        <text class="btn-icon">🗑️</text>
+        删除用户
+      </button>
     </view>
   </view>
 </view>

@@ -1,0 +1,219 @@
+<!--pages/admin-compare/admin-compare.wxml-->
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="header">
+    <text class="header-back" bindtap="goBack">← 返回</text>
+    <text class="header-title">数据对比分析</text>
+    <text class="header-placeholder"></text>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 主内容 -->
+  <view class="content" wx:if="{{!loading}}">
+    <!-- 用户信息 -->
+    <view class="user-info-bar" wx:if="{{user}}">
+      <text class="user-name">{{user.name}}</text>
+      <text class="user-phone">{{user.phone}}</text>
+    </view>
+
+    <!-- 选择提示 -->
+    <view class="select-tip">
+      <text class="tip-icon">💡</text>
+      <text class="tip-text">请选择2-5条记录进行对比分析</text>
+    </view>
+
+    <!-- 记录选择列表 -->
+    <view class="record-select-list">
+      <view class="record-item {{selectedRecords.some(r => r._id === item._id) ? 'selected' : ''}}" 
+            wx:for="{{records}}" wx:key="_id" 
+            data-id="{{item._id}}" bindtap="toggleRecord">
+        <view class="record-checkbox">
+          <text class="checkbox-icon" wx:if="{{selectedRecords.some(r => r._id === item._id)}}">✓</text>
+        </view>
+        <view class="record-content">
+          <view class="record-header">
+            <text class="record-date">{{item.dateStr}}</text>
+            <text class="record-score">评分: {{item.healthScore}}</text>
+          </view>
+          <view class="record-summary">
+            <text class="summary-tag">{{item.summary.symptomCount}}症状</text>
+            <text class="summary-tag">{{item.summary.badHabitCount}}习惯</text>
+            <text class="summary-tag">{{item.summary.targetCount}}重点</text>
+          </view>
+        </view>
+        <view class="record-rank" wx:if="{{selectedRecords.some(r => r._id === item._id)}}">
+          <text class="rank-text">{{selectedRecords.findIndex(r => r._id === item._id) + 1}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 对比结果 -->
+    <view class="compare-result" wx:if="{{compareResult && selectedRecords.length >= 2}}">
+      <!-- 核心指标变化 -->
+      <view class="result-section">
+        <view class="section-title">核心指标变化</view>
+        <view class="metrics-grid">
+          <view class="metric-card {{compareResult.scoreChange > 0 ? 'positive' : compareResult.scoreChange < 0 ? 'negative' : 'neutral'}}">
+            <text class="metric-label">健康评分</text>
+            <view class="metric-value-row">
+              <text class="metric-value">{{compareResult.latest.healthScore}}</text>
+              <text class="metric-change" wx:if="{{compareResult.scoreChange !== 0}}">
+                {{compareResult.scoreChange > 0 ? '+' : ''}}{{compareResult.scoreChange}}
+              </text>
+            </view>
+            <text class="metric-trend">
+              {{compareResult.scoreChange > 0 ? '📈 提升' : compareResult.scoreChange < 0 ? '📉 下降' : '➡️ 持平'}}
+            </text>
+          </view>
+          
+          <view class="metric-card {{compareResult.symptomChange < 0 ? 'positive' : compareResult.symptomChange > 0 ? 'negative' : 'neutral'}}">
+            <text class="metric-label">症状数量</text>
+            <view class="metric-value-row">
+              <text class="metric-value">{{compareResult.latest.summary.symptomCount}}</text>
+              <text class="metric-change" wx:if="{{compareResult.symptomChange !== 0}}">
+                {{compareResult.symptomChange > 0 ? '+' : ''}}{{compareResult.symptomChange}}
+              </text>
+            </view>
+            <text class="metric-trend">
+              {{compareResult.symptomChange < 0 ? '✅ 减少' : compareResult.symptomChange > 0 ? '⚠️ 增加' : '➡️ 不变'}}
+            </text>
+          </view>
+          
+          <view class="metric-card {{compareResult.habitChange < 0 ? 'positive' : compareResult.habitChange > 0 ? 'negative' : 'neutral'}}">
+            <text class="metric-label">不良习惯</text>
+            <view class="metric-value-row">
+              <text class="metric-value">{{compareResult.latest.summary.badHabitCount}}</text>
+              <text class="metric-change" wx:if="{{compareResult.habitChange !== 0}}">
+                {{compareResult.habitChange > 0 ? '+' : ''}}{{compareResult.habitChange}}
+              </text>
+            </view>
+            <text class="metric-trend">
+              {{compareResult.habitChange < 0 ? '✅ 改善' : compareResult.habitChange > 0 ? '⚠️ 增加' : '➡️ 稳定'}}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 评分对比图表 -->
+      <view class="chart-section">
+        <view class="section-title">健康评分对比</view>
+        <view class="chart-container">
+          <canvas type="2d" id="scoreCompareChart" canvas-id="scoreCompareChart" 
+                  style="width: 100%; height: 250px;"></canvas>
+        </view>
+      </view>
+
+      <!-- 健康要素对比 -->
+      <view class="chart-section">
+        <view class="section-title">健康要素对比</view>
+        <view class="chart-container">
+          <canvas type="2d" id="elementCompareChart" canvas-id="elementCompareChart" 
+                  style="width: 100%; height: 280px;"></canvas>
+        </view>
+      </view>
+
+      <!-- 症状数量趋势 -->
+      <view class="chart-section">
+        <view class="section-title">症状数量趋势</view>
+        <view class="chart-container">
+          <canvas type="2d" id="symptomTrendChart" canvas-id="symptomTrendChart" 
+                  style="width: 100%; height: 220px;"></canvas>
+        </view>
+      </view>
+
+      <!-- 症状变化详情 -->
+      <view class="result-section">
+        <view class="section-title">症状变化详情</view>
+        
+        <!-- 新增症状 -->
+        <view class="change-section" wx:if="{{compareResult.symptomDetail.added.length > 0}}">
+          <view class="change-header">
+            <text class="change-icon">🔴</text>
+            <text class="change-title">新增症状 ({{compareResult.symptomDetail.added.length}})</text>
+          </view>
+          <view class="symptom-tags">
+            <text class="symptom-tag negative" wx:for="{{compareResult.symptomDetail.added}}" wx:key="id">
+              {{item.name}}
+            </text>
+          </view>
+        </view>
+        
+        <!-- 消失症状 -->
+        <view class="change-section" wx:if="{{compareResult.symptomDetail.removed.length > 0}}">
+          <view class="change-header">
+            <text class="change-icon">🟢</text>
+            <text class="change-title">消失症状 ({{compareResult.symptomDetail.removed.length}})</text>
+          </view>
+          <view class="symptom-tags">
+            <text class="symptom-tag positive" wx:for="{{compareResult.symptomDetail.removed}}" wx:key="id">
+              {{item.name}}
+            </text>
+          </view>
+        </view>
+        
+        <!-- 持续症状 -->
+        <view class="change-section" wx:if="{{compareResult.symptomDetail.continued.length > 0}}">
+          <view class="change-header">
+            <text class="change-icon">🟡</text>
+            <text class="change-title">持续症状 ({{compareResult.symptomDetail.continued.length}})</text>
+          </view>
+          <view class="symptom-tags">
+            <text class="symptom-tag warning" wx:for="{{compareResult.symptomDetail.continued}}" wx:key="id">
+              {{item.name}}
+            </text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 健康要素变化 -->
+      <view class="result-section" wx:if="{{compareResult.elementChange.length > 0}}">
+        <view class="section-title">健康要素变化</view>
+        <view class="element-change-list">
+          <view class="element-change-item" wx:for="{{compareResult.elementChange}}" wx:key="name">
+            <view class="element-info">
+              <text class="element-name">{{item.name}}</text>
+              <text class="element-change {{item.change < 0 ? 'positive' : item.change > 0 ? 'negative' : 'neutral'}}">
+                {{item.change > 0 ? '+' : ''}}{{item.change}}
+              </text>
+            </view>
+            <view class="element-bar-container">
+              <view class="element-bar previous" style="width: {{item.previous * 5}}px;"></view>
+              <view class="element-bar latest" style="width: {{item.latest * 5}}px;"></view>
+            </view>
+            <view class="element-values">
+              <text class="value-label">之前: {{item.previous}}</text>
+              <text class="value-label">现在: {{item.latest}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <!-- 健康七问对比 -->
+      <view class="result-section">
+        <view class="section-title">健康七问对比</view>
+        <view class="qa-compare-list">
+          <view class="qa-compare-item" wx:for="{{['sleep', 'exercise', 'water', 'diet', 'stress', 'emotion', 'screen']}}" wx:key="*this">
+            <text class="qa-label">{{item === 'sleep' ? '睡眠' : item === 'exercise' ? '运动' : item === 'water' ? '饮水' : item === 'diet' ? '饮食' : item === 'stress' ? '压力' : item === 'emotion' ? '情绪' : '电子设备'}}</text>
+            <view class="qa-values">
+              <text class="qa-value prev">{{compareResult.previous.sevenQuestions[item] || '未填写'}}</text>
+              <text class="qa-arrow">→</text>
+              <text class="qa-value curr">{{compareResult.latest.sevenQuestions[item] || '未填写'}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 未选择提示 -->
+    <view class="empty-result" wx:if="{{selectedRecords.length < 2}}">
+      <text class="empty-icon">📊</text>
+      <text class="empty-text">请至少选择2条记录进行对比</text>
+      <text class="empty-hint">已选择 {{selectedRecords.length}} 条</text>
+    </view>
+  </view>
+</view>

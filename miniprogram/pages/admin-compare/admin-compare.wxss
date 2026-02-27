@@ -1,0 +1,514 @@
+/* pages/admin-compare/admin-compare.wxss */
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  padding-bottom: 40rpx;
+}
+
+/* 顶部导航 */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 24rpx;
+  background: #ffffff;
+  border-bottom: 1rpx solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-back {
+  font-size: 28rpx;
+  color: #3b82f6;
+  padding: 12rpx 20rpx;
+}
+
+.header-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.header-placeholder {
+  width: 80rpx;
+}
+
+/* 加载中 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #64748b;
+}
+
+/* 用户信息栏 */
+.user-info-bar {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 16rpx 24rpx;
+  background: #ffffff;
+  margin: 16rpx 24rpx;
+  border-radius: 12rpx;
+}
+
+.user-name {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.user-phone {
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+/* 选择提示 */
+.select-tip {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  padding: 16rpx 24rpx;
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  margin: 0 24rpx 16rpx;
+  border-radius: 12rpx;
+}
+
+.tip-icon {
+  font-size: 32rpx;
+}
+
+.tip-text {
+  font-size: 26rpx;
+  color: #1e40af;
+}
+
+/* 记录选择列表 */
+.record-select-list {
+  padding: 0 24rpx;
+  margin-bottom: 24rpx;
+}
+
+.record-item {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  padding: 20rpx;
+  background: #ffffff;
+  border-radius: 12rpx;
+  margin-bottom: 16rpx;
+  border: 2rpx solid #e2e8f0;
+  transition: all 0.2s;
+}
+
+.record-item.selected {
+  border-color: #3b82f6;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+}
+
+.record-checkbox {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  border: 2rpx solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.record-item.selected .record-checkbox {
+  background: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.checkbox-icon {
+  font-size: 24rpx;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.record-content {
+  flex: 1;
+}
+
+.record-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.record-date {
+  font-size: 26rpx;
+  color: #64748b;
+}
+
+.record-score {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.record-summary {
+  display: flex;
+  gap: 12rpx;
+}
+
+.summary-tag {
+  font-size: 22rpx;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 4rpx 12rpx;
+  border-radius: 10rpx;
+}
+
+.record-rank {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rank-text {
+  font-size: 24rpx;
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* 对比结果 */
+.compare-result {
+  padding: 0 24rpx;
+}
+
+.result-section {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 20rpx;
+}
+
+/* 核心指标网格 */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16rpx;
+}
+
+.metric-card {
+  padding: 20rpx 16rpx;
+  border-radius: 12rpx;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.metric-card.positive {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+}
+
+.metric-card.negative {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+.metric-card.neutral {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+.metric-label {
+  font-size: 22rpx;
+  color: #64748b;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.metric-value-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.metric-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.metric-change {
+  font-size: 24rpx;
+  font-weight: 600;
+  padding: 2rpx 8rpx;
+  border-radius: 8rpx;
+}
+
+.metric-card.positive .metric-change {
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.metric-card.negative .metric-change {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.metric-trend {
+  font-size: 22rpx;
+  color: #475569;
+}
+
+/* 图表区块 */
+.chart-section {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.chart-container {
+  width: 100%;
+  min-height: 200rpx;
+}
+
+/* 症状变化详情 */
+.change-section {
+  margin-bottom: 24rpx;
+}
+
+.change-section:last-child {
+  margin-bottom: 0;
+}
+
+.change-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.change-icon {
+  font-size: 28rpx;
+}
+
+.change-title {
+  font-size: 26rpx;
+  font-weight: 500;
+  color: #475569;
+}
+
+.symptom-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+}
+
+.symptom-tag {
+  padding: 8rpx 16rpx;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+}
+
+.symptom-tag.positive {
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #15803d;
+}
+
+.symptom-tag.negative {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #b91c1c;
+}
+
+.symptom-tag.warning {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  color: #92400e;
+}
+
+/* 健康要素变化 */
+.element-change-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.element-change-item {
+  padding: 16rpx;
+  background: #f8fafc;
+  border-radius: 12rpx;
+}
+
+.element-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12rpx;
+}
+
+.element-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.element-change {
+  font-size: 26rpx;
+  font-weight: 600;
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.element-change.positive {
+  color: #15803d;
+  background: rgba(34, 197, 94, 0.2);
+}
+
+.element-change.negative {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.element-change.neutral {
+  color: #475569;
+  background: rgba(100, 116, 139, 0.2);
+}
+
+.element-bar-container {
+  height: 16rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.element-bar {
+  height: 6rpx;
+  border-radius: 3rpx;
+}
+
+.element-bar.previous {
+  background: #cbd5e1;
+}
+
+.element-bar.latest {
+  background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.element-values {
+  display: flex;
+  justify-content: space-between;
+}
+
+.value-label {
+  font-size: 22rpx;
+  color: #64748b;
+}
+
+/* 健康七问对比 */
+.qa-compare-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.qa-compare-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx;
+  background: #f8fafc;
+  border-radius: 12rpx;
+}
+
+.qa-label {
+  font-size: 26rpx;
+  color: #475569;
+  width: 100rpx;
+  flex-shrink: 0;
+}
+
+.qa-values {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.qa-value {
+  flex: 1;
+  font-size: 24rpx;
+  color: #1e293b;
+  padding: 8rpx 12rpx;
+  background: #ffffff;
+  border-radius: 8rpx;
+  text-align: center;
+}
+
+.qa-value.prev {
+  color: #64748b;
+}
+
+.qa-value.curr {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+}
+
+.qa-arrow {
+  font-size: 28rpx;
+  color: #3b82f6;
+}
+
+/* 空状态 */
+.empty-result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 100rpx 24rpx;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+}
+
+.empty-text {
+  font-size: 30rpx;
+  color: #64748b;
+  margin-bottom: 12rpx;
+}
+
+.empty-hint {
+  font-size: 26rpx;
+  color: #94a3b8;
+}
