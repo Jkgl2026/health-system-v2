@@ -1121,6 +1121,84 @@ const HEALTH_SEVEN_QUESTIONS = {
   ],
 };
 
+// 课程库 - 根据健康要素推荐课程
+const COURSES_DATABASE = [
+  // 气血相关课程
+  { id: 1, title: '气血基础认知', content: '了解气血对人体的重要性', duration: '20分钟', season: 1, episode: 1, element: '气血', relevance: 'high' },
+  { id: 2, title: '补气养血方法', content: '日常补气养血的实用技巧', duration: '25分钟', season: 1, episode: 2, element: '气血', relevance: 'high' },
+  { id: 3, title: '气血调理食疗', content: '通过饮食调理气血', duration: '30分钟', season: 1, episode: 3, element: '气血', relevance: 'high' },
+  
+  // 循环相关课程
+  { id: 4, title: '血液循环与健康', content: '认识血液循环的重要性', duration: '20分钟', season: 1, episode: 4, element: '循环', relevance: 'high' },
+  { id: 5, title: '改善微循环', content: '改善末梢血液循环的方法', duration: '25分钟', season: 1, episode: 5, element: '循环', relevance: 'high' },
+  { id: 6, title: '循环系统运动', content: '促进血液循环的运动方法', duration: '30分钟', season: 1, episode: 6, element: '循环', relevance: 'high' },
+  
+  // 毒素相关课程
+  { id: 7, title: '毒素来源与危害', content: '了解身体毒素的来源', duration: '20分钟', season: 1, episode: 7, element: '毒素', relevance: 'high' },
+  { id: 8, title: '排毒方法大全', content: '科学的身体排毒技巧', duration: '25分钟', season: 1, episode: 8, element: '毒素', relevance: 'high' },
+  { id: 9, title: '肝脏排毒养护', content: '肝脏排毒功能养护方法', duration: '30分钟', season: 1, episode: 9, element: '毒素', relevance: 'high' },
+  
+  // 血脂相关课程
+  { id: 10, title: '血脂健康知识', content: '认识血脂与健康的关系', duration: '20分钟', season: 2, episode: 1, element: '血脂', relevance: 'high' },
+  { id: 11, title: '降血脂饮食', content: '通过饮食调节血脂', duration: '25分钟', season: 2, episode: 2, element: '血脂', relevance: 'high' },
+  { id: 12, title: '血脂异常调理', content: '血脂异常的综合调理', duration: '30分钟', season: 2, episode: 3, element: '血脂', relevance: 'high' },
+  
+  // 寒凉相关课程
+  { id: 13, title: '体质寒热辨别', content: '如何辨别体质寒热', duration: '20分钟', season: 2, episode: 4, element: '寒凉', relevance: 'high' },
+  { id: 14, title: '温补调理方法', content: '寒凉体质的温补技巧', duration: '25分钟', season: 2, episode: 5, element: '寒凉', relevance: 'high' },
+  { id: 15, title: '驱寒保暖指南', content: '日常驱寒保暖方法', duration: '30分钟', season: 2, episode: 6, element: '寒凉', relevance: 'high' },
+  
+  // 免疫相关课程
+  { id: 16, title: '免疫系统认知', content: '了解免疫系统的工作原理', duration: '20分钟', season: 2, episode: 7, element: '免疫', relevance: 'high' },
+  { id: 17, title: '增强免疫力', content: '提升免疫力的实用方法', duration: '25分钟', season: 2, episode: 8, element: '免疫', relevance: 'high' },
+  { id: 18, title: '免疫调理食谱', content: '增强免疫力的食疗方案', duration: '30分钟', season: 2, episode: 9, element: '免疫', relevance: 'high' },
+  
+  // 情绪相关课程
+  { id: 19, title: '情绪与健康', content: '情绪对身体的影响', duration: '20分钟', season: 3, episode: 1, element: '情绪', relevance: 'high' },
+  { id: 20, title: '情绪管理技巧', content: '科学的情绪调节方法', duration: '25分钟', season: 3, episode: 2, element: '情绪', relevance: 'high' },
+  { id: 21, title: '减压放松训练', content: '日常减压放松技巧', duration: '30分钟', season: 3, episode: 3, element: '情绪', relevance: 'high' },
+  
+  // 通用必修课程
+  { id: 22, title: '健康生活方式', content: '建立健康生活习惯', duration: '30分钟', season: 1, episode: 10, element: '通用', relevance: 'medium' },
+  { id: 23, title: '科学饮水方法', content: '正确的饮水方式', duration: '20分钟', season: 1, episode: 11, element: '通用', relevance: 'medium' },
+  { id: 24, title: '睡眠质量提升', content: '改善睡眠的实用方法', duration: '25分钟', season: 1, episode: 12, element: '通用', relevance: 'medium' },
+  { id: 25, title: '科学运动指导', content: '合理的运动方式', duration: '30分钟', season: 2, episode: 10, element: '通用', relevance: 'medium' },
+];
+
+// 根据健康要素获取推荐课程
+function getCoursesByElements(elements) {
+  const recommendedCourses = [];
+  const addedIds = new Set();
+  
+  // 为每个健康要素推荐3门课程
+  elements.forEach(element => {
+    const courses = COURSES_DATABASE.filter(c => c.element === element);
+    courses.slice(0, 3).forEach(course => {
+      if (!addedIds.has(course.id)) {
+        recommendedCourses.push({
+          ...course,
+          displayTitle: `${course.title}（${course.element}）`
+        });
+        addedIds.add(course.id);
+      }
+    });
+  });
+  
+  // 添加通用必修课
+  const commonCourses = COURSES_DATABASE.filter(c => c.element === '通用');
+  commonCourses.forEach(course => {
+    if (!addedIds.has(course.id)) {
+      recommendedCourses.push({
+        ...course,
+        displayTitle: `${course.title}（必修）`
+      });
+      addedIds.add(course.id);
+    }
+  });
+  
+  return recommendedCourses;
+}
+
 module.exports = {
   // 健康要素
   HEALTH_ELEMENTS,
@@ -1157,4 +1235,8 @@ module.exports = {
   
   // 健康七问
   HEALTH_SEVEN_QUESTIONS,
+  
+  // 课程数据
+  COURSES_DATABASE,
+  getCoursesByElements,
 };

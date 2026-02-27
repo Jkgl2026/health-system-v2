@@ -100,7 +100,7 @@
           <view class="product-desc">{{item.description}}</view>
           <view class="product-reasons">
             <view class="reasons-title">调理作用：</view>
-            <view wx:for="{{item.reasons}}" wx:for-item="reason" wx:key="*this" class="reason-item">
+            <view wx:for="{{item.reasons}}" wx:for-item="reason" wx:key="*this" class="reason-item-text">
               <text class="reason-dot">•</text>
               <text>{{reason}}</text>
             </view>
@@ -115,17 +115,20 @@
         <text class="card-icon">📚</text>
         <text class="card-title">推荐学习课程</text>
       </view>
-      <view class="card-desc">根据您的情况，重点学习以下课程</view>
+      <view class="card-desc">根据您的健康要素分析，为您精准匹配以下课程</view>
       
       <view class="courses-grid">
-        <view wx:for="{{courses}}" wx:key="id" class="course-item">
+        <view wx:for="{{courses}}" wx:key="id" class="course-item {{item.relevance === 'high' ? 'course-highlight-item' : ''}}">
           <view class="course-header">
-            <view class="course-badge">第{{item.id}}课</view>
-            <view wx:if="{{item.relevance === 'high'}}" class="course-highlight">重点</view>
+            <view class="course-badge">第{{item.season}}季第{{item.episode}}课</view>
+            <view wx:if="{{item.relevance === 'high'}}" class="course-highlight">⭐重点推荐</view>
+            <view wx:elif="{{item.element === '通用'}}" class="course-common">必修</view>
           </view>
           <view class="course-title">{{item.title}}</view>
-          <view class="course-content">{{item.content}}</view>
-          <view class="course-meta">📚 {{item.duration}}</view>
+          <view class="course-meta">
+            <text class="course-duration">📖 {{item.duration}}</text>
+            <text wx:if="{{item.element !== '通用'}}" class="course-element">| 适合：{{item.element}}</text>
+          </view>
         </view>
       </view>
     </view>
@@ -145,7 +148,7 @@
       <view class="complete-title">恭喜您完成了整个健康自检流程！</view>
       <view class="complete-desc">现在请根据以上方案，开始您的健康管理之旅。如有任何疑问，请及时联系您的调理导师。</view>
       <button class="btn-courses" bindtap="goToCourses">
-        学习21堂必修课程 →
+        学习更多健康课程 →
       </button>
     </view>
   </view>

@@ -540,3 +540,41 @@
   border-radius: 16rpx;
   border: none;
 }
+
+/* 新增课程样式 */
+.course-highlight-item {
+  border-color: #fca5a5;
+  background: #fff5f5;
+}
+
+.course-common {
+  font-size: 18rpx;
+  color: white;
+  background: #6366f1;
+  padding: 2rpx 8rpx;
+  border-radius: 6rpx;
+}
+
+.course-duration {
+  color: #6b7280;
+}
+
+.course-element {
+  margin-left: 8rpx;
+  color: #22c55e;
+  font-weight: 500;
+}
+
+.reason-item-text {
+  font-size: 20rpx;
+  color: #4b5563;
+  line-height: 1.6;
+  display: flex;
+  align-items: flex-start;
+}
+
+.reason-item-text .reason-dot {
+  color: #22c55e;
+  margin-right: 4rpx;
+  flex-shrink: 0;
+}
