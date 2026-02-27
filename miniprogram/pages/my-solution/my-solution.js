@@ -2,6 +2,7 @@
 // 个性化健康管理方案页面逻辑 - 1:1复刻Web版
 
 const healthData = require('../../utils/health-data');
+const historyManager = require('../../utils/history-manager');
 
 // 课程库 - 按健康要素分类
 const COURSE_LIBRARY = {
@@ -97,6 +98,22 @@ Page({
   },
 
   onShow() {
+    // 检查是否需要保存历史记录（从恢复速度页面跳转过来时保存）
+    const shouldSave = wx.getStorageSync('shouldSaveHistory');
+    if (shouldSave) {
+      // 清除标记
+      wx.removeStorageSync('shouldSaveHistory');
+      // 保存历史记录
+      const saved = historyManager.saveHistoryRecord();
+      if (saved) {
+        wx.showToast({
+          title: '记录已保存',
+          icon: 'success',
+          duration: 1500
+        });
+      }
+    }
+    
     this.loadData();
   },
 

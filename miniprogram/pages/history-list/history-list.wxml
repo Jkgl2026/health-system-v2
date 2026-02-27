@@ -1,0 +1,137 @@
+<!--pages/history-list/history-list.wxml-->
+<view class="container">
+  <!-- 头部 -->
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回</text>
+    </view>
+    <view class="header-title">历史记录对比</view>
+    <view class="header-right"></view>
+  </view>
+
+  <!-- 统计卡片 -->
+  <view class="stats-card">
+    <view class="stats-item">
+      <text class="stats-value">{{stats.count}}</text>
+      <text class="stats-label">记录总数</text>
+    </view>
+    <view class="stats-item">
+      <text class="stats-value">{{stats.avgScore}}</text>
+      <text class="stats-label">平均评分</text>
+    </view>
+    <view class="stats-item">
+      <text class="stats-value">{{selectedIds.length}}/{{maxSelect}}</text>
+      <text class="stats-label">已选择</text>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-bar">
+    <view class="action-left">
+      <text class="select-tip">选择1-{{maxSelect}}条记录进行对比</text>
+    </view>
+    <view class="action-right">
+      <text class="action-btn" bindtap="selectAll">全选</text>
+      <text class="action-btn" bindtap="clearSelect">取消</text>
+    </view>
+  </view>
+
+  <!-- 记录列表 -->
+  <view class="list-container">
+    <block wx:if="{{!isLoading && historyList.length > 0}}">
+      <view 
+        wx:for="{{historyList}}" 
+        wx:key="id" 
+        class="record-card {{selectedIds.indexOf(item.id) > -1 ? 'selected' : ''}}"
+        bindtap="toggleSelect"
+        data-id="{{item.id}}"
+      >
+        <!-- 选择标记 -->
+        <view class="select-box">
+          <view class="checkbox {{selectedIds.indexOf(item.id) > -1 ? 'checked' : ''}}">
+            <text wx:if="{{selectedIds.indexOf(item.id) > -1}}" class="check-icon">✓</text>
+          </view>
+        </view>
+
+        <!-- 记录内容 -->
+        <view class="record-content">
+          <view class="record-header">
+            <view class="record-index">第{{item.index}}次</view>
+            <view class="record-date">{{item.dateStr}}</view>
+          </view>
+          
+          <view class="record-body">
+            <view class="record-score" style="color: {{item.scoreColor}};">
+              <text class="score-value">{{item.healthScore || item.summary.score}}</text>
+              <text class="score-label">分</text>
+            </view>
+            
+            <view class="record-stats">
+              <view class="stat-item">
+                <text class="stat-num">{{item.summary.symptomCount}}</text>
+                <text class="stat-name">症状</text>
+              </view>
+              <view class="stat-item">
+                <text class="stat-num">{{item.summary.badHabitCount}}</text>
+                <text class="stat-name">习惯</text>
+              </view>
+              <view class="stat-item">
+                <text class="stat-num">{{item.summary.symptoms300Count}}</text>
+                <text class="stat-name">300症</text>
+              </view>
+            </view>
+          </view>
+
+          <view class="record-footer">
+            <view class="elements-row">
+              <text class="elements-label">健康要素：</text>
+              <text class="elements-value">{{item.elementNames || '暂无'}}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 删除按钮 -->
+        <view class="delete-btn" catchtap="showDeleteConfirm" data-id="{{item.id}}">
+          <text class="delete-icon">✕</text>
+        </view>
+      </view>
+    </block>
+
+    <!-- 空状态 -->
+    <view wx:if="{{!isLoading && historyList.length === 0}}" class="empty-state">
+      <view class="empty-icon">📝</view>
+      <view class="empty-text">暂无历史记录</view>
+      <view class="empty-tip">完成健康自检后，记录将自动保存在这里</view>
+    </view>
+
+    <!-- 加载中 -->
+    <view wx:if="{{isLoading}}" class="loading-state">
+      <view class="loading-icon">⏳</view>
+      <view class="loading-text">加载中...</view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-bar">
+    <button 
+      class="compare-btn {{selectedIds.length >= 1 ? 'active' : 'disabled'}}" 
+      bindtap="startCompare"
+      disabled="{{selectedIds.length < 1}}"
+    >
+      开始对比 ({{selectedIds.length}}条)
+    </button>
+  </view>
+
+  <!-- 删除确认弹窗 -->
+  <view wx:if="{{showDeleteModal}}" class="modal-mask" bindtap="hideDeleteModal">
+    <view class="modal-content" catchtap="">
+      <view class="modal-title">确认删除</view>
+      <view class="modal-desc">删除后无法恢复，确定要删除这条记录吗？</view>
+      <view class="modal-btns">
+        <button class="modal-btn cancel" bindtap="hideDeleteModal">取消</button>
+        <button class="modal-btn confirm" bindtap="confirmDelete">删除</button>
+      </view>
+    </view>
+  </view>
+</view>

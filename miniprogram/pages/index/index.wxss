@@ -508,3 +508,15 @@
 .start-section {
   padding: 32rpx 20rpx;
 }
+
+/* 次要按钮 */
+.btn-secondary {
+  background: white;
+  color: #3b82f6;
+  border: 2rpx solid #3b82f6;
+  margin-top: 16rpx;
+}
+
+.btn-secondary:active {
+  background: #eff6ff;
+}

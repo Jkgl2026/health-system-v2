@@ -231,6 +231,13 @@ Page({
     });
   },
 
+  // 跳转到历史记录对比页
+  goToHistoryCompare() {
+    wx.navigateTo({
+      url: '/pages/history-list/history-list'
+    });
+  },
+
   // 跳转到安装指南页
   goToInstallGuide() {
     wx.navigateTo({

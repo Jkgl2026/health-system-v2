@@ -120,6 +120,9 @@
       <button class="btn btn-primary btn-block" bindtap="goToMySolution">
         查看完整调理方案 →
       </button>
+      <button class="btn btn-secondary btn-block" bindtap="goToHistoryCompare">
+        📊 数据对比分析 →
+      </button>
     </view>
   </view>
 

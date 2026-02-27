@@ -1,0 +1,213 @@
+<!--pages/history-compare/history-compare.wxml-->
+<view class="container">
+  <!-- 头部 -->
+  <view class="header">
+    <view class="back-btn" bindtap="goBack">
+      <text class="back-icon">←</text>
+      <text>返回</text>
+    </view>
+    <view class="header-title">数据对比分析</view>
+    <view class="header-right"></view>
+  </view>
+
+  <!-- 加载中 -->
+  <view wx:if="{{isLoading}}" class="loading-container">
+    <view class="loading-icon">⏳</view>
+    <view class="loading-text">正在生成对比分析...</view>
+  </view>
+
+  <!-- 主要内容 -->
+  <view wx:if="{{!isLoading}}" class="content">
+    <!-- 基础数据对比表格 -->
+    <view class="section-card">
+      <view class="section-header">
+        <text class="section-icon">📊</text>
+        <text class="section-title">基础数据对比</text>
+      </view>
+      
+      <view class="table-container">
+        <view class="table">
+          <!-- 表头 -->
+          <view class="table-row table-header">
+            <view class="table-cell">项目</view>
+            <view wx:for="{{compareData.basicData}}" wx:key="index" class="table-cell">第{{item.index}}次</view>
+          </view>
+          <!-- 日期 -->
+          <view class="table-row">
+            <view class="table-cell cell-label">日期</view>
+            <view wx:for="{{compareData.basicData}}" wx:key="index" class="table-cell cell-date">{{item.date}}</view>
+          </view>
+          <!-- 评分 -->
+          <view class="table-row">
+            <view class="table-cell cell-label">健康评分</view>
+            <view wx:for="{{compareData.basicData}}" wx:key="index" class="table-cell cell-score">
+              <text class="score {{item.score >= 80 ? 'score-good' : item.score >= 60 ? 'score-normal' : 'score-low'}}">{{item.score}}</text>
+            </view>
+          </view>
+          <!-- 症状数 -->
+          <view class="table-row">
+            <view class="table-cell cell-label">症状数量</view>
+            <view wx:for="{{compareData.basicData}}" wx:key="index" class="table-cell">{{item.symptomCount}}</view>
+          </view>
+          <!-- 不良习惯 -->
+          <view class="table-row">
+            <view class="table-cell cell-label">不良习惯</view>
+            <view wx:for="{{compareData.basicData}}" wx:key="index" class="table-cell">{{item.badHabitCount}}</view>
+          </view>
+          <!-- 300症状 -->
+          <view class="table-row">
+            <view class="table-cell cell-label">300症状</view>
+            <view wx:for="{{compareData.basicData}}" wx:key="index" class="table-cell">{{item.symptoms300Count}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 健康评分趋势图 -->
+    <view class="section-card">
+      <view class="section-header">
+        <text class="section-icon">📈</text>
+        <text class="section-title">健康评分趋势</text>
+      </view>
+      
+      <view class="chart-container">
+        <view class="bar-chart">
+          <view wx:for="{{compareData.chartData.scores}}" wx:key="index" class="bar-item">
+            <view class="bar-value">{{item}}</view>
+            <view class="bar-wrapper">
+              <view class="bar" style="height: {{item}}%; background: {{item >= 80 ? '#22c55e' : item >= 60 ? '#eab308' : '#ef4444'}};"></view>
+            </view>
+            <view class="bar-label">第{{index + 1}}次</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 症状数量变化 -->
+    <view class="section-card">
+      <view class="section-header">
+        <text class="section-icon">📉</text>
+        <text class="section-title">症状数量变化</text>
+      </view>
+      
+      <view class="chart-container">
+        <view class="line-chart">
+          <view class="line-values">
+            <view wx:for="{{compareData.chartData.symptomCounts}}" wx:key="index" class="line-value">
+              <text>{{item}}</text>
+            </view>
+          </view>
+          <view class="line-bars">
+            <view wx:for="{{compareData.chartData.symptomCounts}}" wx:key="index" class="line-bar-item">
+              <view class="line-bar" style="height: {{item * 2}}%;"></view>
+            </view>
+          </view>
+          <view class="line-labels">
+            <view wx:for="{{compareData.chartData.symptomCounts}}" wx:key="index" class="line-label">第{{index + 1}}次</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 健康要素变化 -->
+    <view wx:if="{{compareData.elementsChange.length > 0}}" class="section-card">
+      <view class="section-header">
+        <text class="section-icon">🎯</text>
+        <text class="section-title">健康要素变化</text>
+      </view>
+      
+      <view class="elements-list">
+        <view wx:for="{{compareData.elementsChange}}" wx:key="name" class="element-item">
+          <view class="element-header">
+            <text class="element-name">{{item.name}}</text>
+            <text class="element-trend {{item.trend}}">
+              {{item.trend === 'improved' ? '↓改善' : item.trend === 'worsened' ? '↑加重' : '→稳定'}}
+            </text>
+          </view>
+          <view class="element-compare">
+            <view class="element-count-box">
+              <text class="element-count-label">首次</text>
+              <text class="element-count-value">{{item.firstCount}}</text>
+            </view>
+            <text class="element-arrow">→</text>
+            <view class="element-count-box">
+              <text class="element-count-label">最近</text>
+              <text class="element-count-value {{item.trend === 'improved' ? 'improved' : item.trend === 'worsened' ? 'worsened' : ''}}">{{item.lastCount}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 症状变化分析 -->
+    <view wx:if="{{compareData.symptomsChange}}" class="section-card">
+      <view class="section-header">
+        <text class="section-icon">📝</text>
+        <text class="section-title">症状变化详情</text>
+      </view>
+      
+      <!-- 消失症状 -->
+      <view wx:if="{{compareData.symptomsChange.disappearedSymptoms.length > 0}}" class="change-section">
+        <view class="change-title improved">
+          <text class="change-icon">✅</text>
+          <text>已改善症状（{{compareData.symptomsChange.disappearedSymptoms.length}}项）</text>
+        </view>
+        <view class="symptom-tags">
+          <view wx:for="{{compareData.symptomsChange.disappearedSymptoms}}" wx:key="*this" class="symptom-tag improved">{{item}}</view>
+        </view>
+      </view>
+
+      <!-- 新增症状 -->
+      <view wx:if="{{compareData.symptomsChange.newSymptoms.length > 0}}" class="change-section">
+        <view class="change-title worsened">
+          <text class="change-icon">⚠️</text>
+          <text>新增症状（{{compareData.symptomsChange.newSymptoms.length}}项）</text>
+        </view>
+        <view class="symptom-tags">
+          <view wx:for="{{compareData.symptomsChange.newSymptoms}}" wx:key="*this" class="symptom-tag worsened">{{item}}</view>
+        </view>
+      </view>
+
+      <!-- 持续症状 -->
+      <view wx:if="{{compareData.symptomsChange.persistentSymptoms.length > 0}}" class="change-section">
+        <view class="change-title persistent">
+          <text class="change-icon">📌</text>
+          <text>持续存在（{{compareData.symptomsChange.persistentSymptoms.length}}项）</text>
+        </view>
+        <view class="symptom-tags">
+          <view wx:for="{{compareData.symptomsChange.persistentSymptoms}}" wx:key="*this" class="symptom-tag persistent">{{item}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- AI改善建议 -->
+    <view class="section-card ai-section">
+      <view class="section-header">
+        <text class="section-icon">🤖</text>
+        <text class="section-title">AI改善建议</text>
+      </view>
+      
+      <view wx:if="{{!aiSuggestion && !isGeneratingSuggestion}}" class="ai-empty">
+        <view class="ai-empty-icon">💡</view>
+        <view class="ai-empty-text">点击下方按钮生成个性化改善建议</view>
+        <button class="generate-btn" bindtap="generateAISuggestion">生成改善建议</button>
+      </view>
+
+      <view wx:if="{{isGeneratingSuggestion}}" class="ai-loading">
+        <view class="loading-icon-animate">🤖</view>
+        <view class="ai-loading-text">AI正在分析中...</view>
+      </view>
+
+      <view wx:if="{{aiSuggestion}}" class="ai-content">
+        <view class="ai-text">{{aiSuggestion}}</view>
+        <button class="regenerate-btn" bindtap="generateAISuggestion">重新生成</button>
+      </view>
+    </view>
+
+    <!-- 底部操作 -->
+    <view class="bottom-actions">
+      <button class="action-btn primary" bindtap="goToHome">返回首页</button>
+      <button class="action-btn secondary" bindtap="goBack">再次对比</button>
+    </view>
+  </view>
+</view>
