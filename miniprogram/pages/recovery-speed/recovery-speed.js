@@ -67,9 +67,9 @@ Page({
     wx.navigateBack();
   },
 
-  // 继续按钮 - 跳转到健康管理方案
+  // 继续按钮 - 跳转到健康管理方案（tabBar页面必须用switchTab）
   handleContinue() {
-    wx.redirectTo({
+    wx.switchTab({
       url: '/pages/my-solution/my-solution'
     });
   },

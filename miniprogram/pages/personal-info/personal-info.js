@@ -74,12 +74,11 @@ Page({
     this.autoSave();
   },
 
-  // 性别选择
-  onGenderChange(e) {
-    const index = parseInt(e.detail.value);
+  // 性别选择 - 按钮形式直接选择
+  selectGender(e) {
+    const gender = e.currentTarget.dataset.gender;
     this.setData({
-      genderIndex: index,
-      'formData.gender': this.data.genderOptions[index]
+      'formData.gender': gender
     });
     this.autoSave();
   },

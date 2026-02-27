@@ -1,110 +1,207 @@
 <!--pages/check/check.wxml-->
-<!--身体语言简表页 - 基于Web版check/page.tsx精确转换-->
+<!--身体语言简表页 - 1:1复刻Web版check/page.tsx-->
 
 <view class="container">
-  <!-- 头部导航 -->
+  <!-- 头部 -->
   <view class="header">
     <view class="back-btn" bindtap="goBack">
       <text class="back-icon">←</text>
-      <text>返回</text>
+      <text>返回首页</text>
     </view>
-    <text class="header-title">身体语言简表</text>
-    <view class="progress-info">
-      <text class="progress-text">{{selectedCount}}/100</text>
+    <view class="header-right">
+      <view class="header-info">
+        <text class="header-count">已选择 {{selectedCount}} 项症状</text>
+        <text wx:if="{{selectedCount > 0}}" class="check-icon">✓</text>
+      </view>
+      <view wx:if="{{lastSaveTime}}" class="auto-save">
+        <text>已自动保存</text>
+      </view>
     </view>
   </view>
 
-  <!-- 进度条 -->
-  <view class="progress-bar-container">
-    <view class="progress-bar">
-      <view class="progress-fill" style="width: {{progress}}%;"></view>
-    </view>
-  </view>
-
-  <!-- 搜索框 -->
-  <view class="search-section">
-    <view class="search-bar">
-      <text class="search-icon">🔍</text>
-      <input 
-        class="search-input" 
-        placeholder="搜索症状..." 
-        value="{{searchQuery}}"
-        bindinput="onSearch"
-      />
-      <text wx:if="{{searchQuery}}" class="clear-btn" bindtap="clearSearch">✕</text>
-    </view>
-  </view>
-
-  <!-- 分类标签 -->
-  <scroll-view class="category-scroll" scroll-x>
-    <view class="category-list">
-      <view 
-        class="category-item {{currentCategory === 'all' ? 'active' : ''}}"
-        bindtap="selectCategory"
-        data-category="all"
-      >
-        全部
+  <!-- 第一步：介绍页面 -->
+  <view wx:if="{{currentStep === 'intro'}}" class="intro-container">
+    <view class="intro-card">
+      <!-- 标题 -->
+      <view class="intro-header">
+        <text class="intro-title">身体语言自检表</text>
+        <text class="intro-subtitle">一张表格就是一个生命，请您认真对待！</text>
       </view>
-      <view 
-        wx:for="{{categories}}" 
-        wx:key="*this"
-        class="category-item {{currentCategory === item ? 'active' : ''}}"
-        bindtap="selectCategory"
-        data-category="{{item}}"
-      >
-        {{item}}
-      </view>
-    </view>
-  </scroll-view>
 
-  <!-- 提示信息 -->
-  <view class="tip-section">
-    <text class="tip-icon">💡</text>
-    <text class="tip-text">请勾选半年内出现过的症状</text>
-  </view>
-
-  <!-- 症状列表 -->
-  <scroll-view class="symptom-list" scroll-y>
-    <view wx:for="{{filteredSymptoms}}" wx:key="id" class="symptom-item">
-      <view 
-        class="symptom-checkbox {{isSelected(item.id) ? 'checked' : ''}}"
-        bindtap="toggleSymptom"
-        data-id="{{item.id}}"
-      >
-        <text class="checkbox-icon">{{isSelected(item.id) ? '✓' : ''}}</text>
+      <!-- 提示 -->
+      <view class="intro-notice">
+        <text class="notice-icon">⚠️</text>
+        <text class="notice-text">请仔细回忆过去半年内出现的症状，哪怕是偶尔发生也要勾选。这些症状是身体给我们的信号，早期发现问题才能更好地改善。</text>
       </view>
-      <view class="symptom-content">
-        <text class="symptom-name">{{item.name}}</text>
-        <text class="symptom-category">{{item.category}}</text>
-      </view>
-    </view>
-  </scroll-view>
 
-  <!-- 已选症状统计 -->
-  <view class="selected-summary">
-    <view class="summary-header">
-      <text class="summary-icon">📋</text>
-      <text class="summary-title">已选症状 ({{selectedCount}}项)</text>
-    </view>
-    <scroll-view wx:if="{{selectedSymptoms.length > 0}}" class="selected-tags" scroll-x>
-      <view class="tag-list">
-        <view wx:for="{{selectedSymptoms}}" wx:key="id" class="selected-tag">
-          <text class="tag-name">{{item.name}}</text>
-          <text class="tag-remove" bindtap="removeSymptom" data-id="{{item.id}}">✕</text>
+      <!-- 为什么要填写 -->
+      <view class="intro-section">
+        <text class="section-title">为什么要填写身体语言简表？</text>
+        
+        <view class="reason-item">
+          <view class="reason-num reason-blue">1</view>
+          <view class="reason-content">
+            <text class="reason-bold">早期发现：</text>
+            <text class="reason-text">很多大病早期都是通过症状表现的，早期发现问题才能更好地预防和调理。</text>
+          </view>
+        </view>
+
+        <view class="reason-item">
+          <view class="reason-num reason-green">2</view>
+          <view class="reason-content">
+            <text class="reason-bold">全面了解：</text>
+            <text class="reason-text">100项症状覆盖身体各个系统，帮助您全面了解自己的健康状况。</text>
+          </view>
+        </view>
+
+        <view class="reason-item">
+          <view class="reason-num reason-purple">3</view>
+          <view class="reason-content">
+            <text class="reason-bold">精准分析：</text>
+            <text class="reason-text">根据您的症状，分析背后的健康要素，找出问题的根本原因。</text>
+          </view>
         </view>
       </view>
-    </scroll-view>
-    <view wx:else class="empty-tip">
-      <text>请勾选您半年内出现过的症状</text>
+
+      <!-- 温馨提示 -->
+      <view class="intro-tip">
+        <text class="tip-bold">温馨提示：</text>
+        <text class="tip-text">这个简表是我们健康行业的专业工具，用于帮助老百姓找问题的。不同于西医的仪器检查和中医的望闻问切，我们通过症状来找出影响健康的要素，从而更好地恢复健康。</text>
+      </view>
+
+      <!-- 注释 -->
+      <view class="intro-note">
+        <text>*注：本表只作为参考，如果您有任何身体不适，请尽快咨询医生。紧急情况，请遵医嘱。</text>
+      </view>
+
+      <!-- 开始按钮 -->
+      <button class="btn-start" bindtap="handleContinue">
+        开始填写
+        <text class="btn-arrow">→</text>
+      </button>
     </view>
   </view>
 
-  <!-- 底部按钮 -->
-  <view class="bottom-actions">
-    <button class="btn btn-outline" bindtap="goBack">上一步</button>
-    <button class="btn btn-primary" bindtap="goNext">
-      下一步
-      <text class="btn-arrow">→</text>
-    </button>
+  <!-- 第二步：选择症状页面 -->
+  <view wx:if="{{currentStep === 'select'}}" class="select-container">
+    <!-- 进度卡片 -->
+    <view class="progress-card">
+      <view class="progress-header">
+        <text class="progress-title">请勾选您半年内出现过的症状</text>
+        <text class="progress-desc">点击复选框选择症状，可以按类别快速选择</text>
+      </view>
+      <view class="progress-bar-wrap">
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{progress}}%;"></view>
+        </view>
+        <text class="progress-label">已选择 {{selectedCount}} / {{totalSymptoms}} 项</text>
+      </view>
+    </view>
+
+    <!-- 分类症状列表 -->
+    <view wx:for="{{categories}}" wx:key="name" class="category-card">
+      <view class="category-header">
+        <view class="category-title-wrap">
+          <text class="category-title">{{item.name}}</text>
+          <view wx:if="{{item.isAllSelected}}" class="badge badge-green">已全选</view>
+          <view wx:elif="{{item.selectedCount > 0}}" class="badge badge-gray">{{item.selectedCount}} / {{item.totalCount}}</view>
+        </view>
+        <view class="category-actions">
+          <view class="action-btn action-outline" bindtap="handleSelectCategory" data-category="{{item.name}}">全选</view>
+          <view class="action-btn action-ghost" bindtap="handleDeselectCategory" data-category="{{item.name}}">清空</view>
+        </view>
+      </view>
+      <view class="symptom-grid">
+        <view 
+          wx:for="{{item.symptoms}}" 
+          wx:for-item="symptom" 
+          wx:key="id" 
+          class="symptom-item {{selectedSymptoms.indexOf(symptom.id) > -1 ? 'selected' : ''}}"
+          bindtap="handleSymptomToggle"
+          data-id="{{symptom.id}}"
+        >
+          <view class="checkbox {{selectedSymptoms.indexOf(symptom.id) > -1 ? 'checked' : ''}}">
+            <text class="checkbox-icon">{{selectedSymptoms.indexOf(symptom.id) > -1 ? '✓' : ''}}</text>
+          </view>
+          <view class="symptom-info">
+            <text class="symptom-name">{{symptom.name}}</text>
+            <text wx:if="{{symptom.description}}" class="symptom-desc">{{symptom.description}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 继续按钮 -->
+    <view class="continue-section">
+      <button class="btn-continue" bindtap="handleContinue" loading="{{isSaving}}">
+        <text wx:if="{{isSaving}}">保存中...</text>
+        <text wx:else>
+          继续下一步
+          <text class="btn-arrow">→</text>
+        </text>
+      </button>
+    </view>
+  </view>
+
+  <!-- 第三步：确认页面（选择重点改善的症状） -->
+  <view wx:if="{{currentStep === 'confirm'}}" class="confirm-container">
+    <view class="confirm-card">
+      <!-- 标题 -->
+      <view class="confirm-header">
+        <text class="confirm-title">选择重点改善的症状</text>
+        <text class="confirm-desc">症状很多，没法一个个讲。请您从已选择的症状中，选择1-3个最想改善的</text>
+      </view>
+
+      <!-- 提示 -->
+      <view class="confirm-notice">
+        <text class="notice-icon">⚠️</text>
+        <text class="notice-text">选择1-3个最困扰您的症状，我们会针对这些症状进行深入分析，找出背后的健康要素和原因，为您提供针对性的解决方案。</text>
+      </view>
+
+      <!-- 已选症状列表 -->
+      <view class="selected-section">
+        <text class="selected-title">您选择的症状（共 {{selectedCount}} 项）：</text>
+        <view class="selected-grid">
+          <view 
+            wx:for="{{selectedSymptomList}}" 
+            wx:key="id" 
+            class="selected-item {{targetSymptoms.indexOf(item.id) > -1 ? 'target-selected' : ''}} {{targetSymptoms.length >= 3 && targetSymptoms.indexOf(item.id) === -1 ? 'disabled' : ''}}"
+            bindtap="handleTargetToggle"
+            data-id="{{item.id}}"
+          >
+            <text class="selected-name">{{item.name}}</text>
+            <text wx:if="{{targetSymptoms.indexOf(item.id) > -1}}" class="selected-check">✓</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 已选择重点改善的症状 -->
+      <view wx:if="{{targetSymptoms.length > 0}}" class="target-section">
+        <text class="target-title">您选择重点改善的症状（{{targetSymptoms.length}}个）：</text>
+        <view class="target-list">
+          <text wx:for="{{targetSymptomList}}" wx:key="id" class="target-item">{{index + 1}}. {{item.name}}</text>
+        </view>
+        <text class="target-note">在接下来的步骤中，我们将针对这些症状进行深入分析，了解它们背后的健康要素，为您提供有针对性的解决方案。</text>
+      </view>
+
+      <!-- 错误提示 -->
+      <view wx:if="{{saveError}}" class="error-section">
+        <view class="error-header">
+          <text class="error-icon">⚠️</text>
+          <text class="error-title">保存症状自检失败</text>
+        </view>
+        <text class="error-message">{{saveError.message || '保存失败，请重试'}}</text>
+        <button class="btn-retry" bindtap="handleRetry">重试</button>
+      </view>
+
+      <!-- 开始分析按钮 -->
+      <button class="btn-analyze" bindtap="handleContinue" loading="{{isSaving}}">
+        <text wx:if="{{isSaving}}">保存中...</text>
+        <text wx:else>
+          开始深入分析
+          <text class="btn-arrow">→</text>
+        </text>
+      </button>
+    </view>
   </view>
 </view>

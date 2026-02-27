@@ -348,6 +348,47 @@
   margin-top: 16rpx;
 }
 
+/* 性别按钮选择 */
+.gender-buttons {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 16rpx;
+}
+
+.gender-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32rpx 24rpx;
+  border: 4rpx solid #e5e7eb;
+  border-radius: 16rpx;
+  background: #f9fafb;
+  transition: all 0.3s;
+}
+
+.gender-btn.active {
+  border-color: #10b981;
+  background: #ecfdf5;
+  box-shadow: 0 4rpx 12rpx rgba(16, 185, 129, 0.2);
+}
+
+.gender-icon {
+  font-size: 56rpx;
+  margin-bottom: 12rpx;
+}
+
+.gender-text {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #374151;
+}
+
+.gender-btn.active .gender-text {
+  color: #10b981;
+}
+
 /* 按钮样式 */
 .btn {
   display: flex;

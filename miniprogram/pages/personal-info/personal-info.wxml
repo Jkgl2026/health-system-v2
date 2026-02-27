@@ -55,17 +55,27 @@
         />
       </view>
 
-      <!-- 性别 -->
+      <!-- 性别 - 按钮选择形式 -->
       <view class="form-group">
         <text class="form-label required">性别</text>
-        <picker mode="selector" range="{{genderOptions}}" value="{{genderIndex}}" bindchange="onGenderChange">
-          <view class="picker-input">
-            <text class="{{formData.gender ? '' : 'placeholder'}}">
-              {{formData.gender || '请选择性别'}}
-            </text>
-            <text class="picker-arrow">▼</text>
+        <view class="gender-buttons">
+          <view 
+            class="gender-btn {{formData.gender === '男' ? 'active' : ''}}" 
+            bindtap="selectGender" 
+            data-gender="男"
+          >
+            <text class="gender-icon">👨</text>
+            <text class="gender-text">男</text>
           </view>
-        </picker>
+          <view 
+            class="gender-btn {{formData.gender === '女' ? 'active' : ''}}" 
+            bindtap="selectGender" 
+            data-gender="女"
+          >
+            <text class="gender-icon">👩</text>
+            <text class="gender-text">女</text>
+          </view>
+        </view>
       </view>
 
       <!-- 年龄 -->

@@ -1,28 +1,36 @@
 // pages/check/check.js
-// 身体语言简表页逻辑
+// 身体语言简表页逻辑 - 1:1复刻Web版check/page.tsx
 
 const healthData = require('../../utils/health-data');
 
 Page({
   data: {
-    // 所有症状
-    symptoms: [],
-    // 分类列表
+    // 当前步骤：intro / select / confirm
+    currentStep: 'intro',
+    
+    // 所有症状数据
+    allSymptoms: [],
+    totalSymptoms: 100,
+    
+    // 分类数据
     categories: [],
-    // 当前分类
-    currentCategory: 'all',
-    // 搜索关键词
-    searchQuery: '',
-    // 过滤后的症状
-    filteredSymptoms: [],
-    // 已选症状ID列表
-    selectedIds: [],
-    // 已选症状详情
+    
+    // 已选症状（数组形式，存储ID）
     selectedSymptoms: [],
-    // 已选数量
     selectedCount: 0,
-    // 进度
-    progress: 0
+    progress: 0,
+    
+    // 目标症状（重点改善的症状，1-3个）
+    targetSymptoms: [],
+    targetSymptomList: [],
+    
+    // 已选症状详情列表（用于confirm页面展示）
+    selectedSymptomList: [],
+    
+    // 状态
+    isSaving: false,
+    saveError: null,
+    lastSaveTime: null
   },
 
   onLoad() {
@@ -32,139 +40,232 @@ Page({
 
   // 初始化数据
   initData() {
-    const symptoms = healthData.BODY_SYMPTOMS;
-    const categories = healthData.getSymptomCategories();
+    const allSymptoms = healthData.BODY_SYMPTOMS || [];
+    
+    // 按类别分组
+    const symptomsByCategory = {};
+    allSymptoms.forEach(symptom => {
+      if (!symptomsByCategory[symptom.category]) {
+        symptomsByCategory[symptom.category] = [];
+      }
+      symptomsByCategory[symptom.category].push(symptom);
+    });
+    
+    // 构建分类数组
+    const categories = Object.keys(symptomsByCategory).map(name => ({
+      name,
+      symptoms: symptomsByCategory[name],
+      totalCount: symptomsByCategory[name].length,
+      selectedCount: 0,
+      isAllSelected: false
+    }));
     
     this.setData({
-      symptoms,
+      allSymptoms,
       categories,
-      filteredSymptoms: symptoms
+      totalSymptoms: allSymptoms.length
     });
   },
 
-  // 加载已保存的数据 - 不再自动加载历史数据
+  // 加载已保存的数据 - 清除历史数据，确保每次都是新开始
   loadSavedData() {
-    // 清除历史数据，确保每次填写都是新的开始
     try {
       wx.removeStorageSync('selectedSymptoms');
       wx.removeStorageSync('targetSymptoms');
-      console.log('已清除症状历史数据');
+      console.log('已清除症状历史数据，开始新的填写');
     } catch (error) {
       console.error('清除数据失败:', error);
     }
   },
 
-  // 搜索
-  onSearch(e) {
-    const query = e.detail.value.toLowerCase();
-    this.setData({ searchQuery: query });
-    this.filterSymptoms();
-  },
-
-  // 清除搜索
-  clearSearch() {
-    this.setData({ searchQuery: '' });
-    this.filterSymptoms();
-  },
-
-  // 选择分类
-  selectCategory(e) {
-    const category = e.currentTarget.dataset.category;
-    this.setData({ currentCategory: category });
-    this.filterSymptoms();
-  },
-
-  // 过滤症状
-  filterSymptoms() {
-    const { symptoms, currentCategory, searchQuery } = this.data;
-    let filtered = symptoms;
+  // 处理继续按钮
+  handleContinue() {
+    const { currentStep, selectedCount, targetSymptoms } = this.data;
     
-    // 按分类过滤
-    if (currentCategory !== 'all') {
-      filtered = filtered.filter(s => s.category === currentCategory);
+    if (currentStep === 'intro') {
+      // 从介绍页进入选择页
+      this.setData({ currentStep: 'select' });
+    } else if (currentStep === 'select') {
+      // 从选择页进入确认页
+      if (selectedCount === 0) {
+        wx.showToast({
+          title: '请至少选择一项症状',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      // 构建已选症状详情列表
+      const selectedSymptomList = this.data.selectedSymptoms.map(id => {
+        return this.data.allSymptoms.find(s => s.id === id);
+      }).filter(s => s);
+      
+      this.setData({ 
+        currentStep: 'confirm',
+        selectedSymptomList
+      });
+    } else if (currentStep === 'confirm') {
+      // 从确认页提交数据
+      if (targetSymptoms.length === 0) {
+        wx.showToast({
+          title: '请至少选择一个最想改善的症状',
+          icon: 'none'
+        });
+        return;
+      }
+      
+      this.saveAndNavigate();
     }
+  },
+
+  // 保存数据并跳转
+  async saveAndNavigate() {
+    this.setData({ isSaving: true, saveError: null });
     
-    // 按搜索词过滤
-    if (searchQuery) {
-      filtered = filtered.filter(s => 
-        s.name.toLowerCase().includes(searchQuery)
-      );
+    try {
+      // 保存到本地存储
+      wx.setStorageSync('selectedSymptoms', this.data.selectedSymptoms);
+      wx.setStorageSync('targetSymptoms', this.data.targetSymptoms);
+      
+      // 更新最后保存时间
+      this.setData({ 
+        lastSaveTime: Date.now(),
+        isSaving: false 
+      });
+      
+      // 跳转到健康七问页面
+      wx.navigateTo({
+        url: '/pages/seven-questions/seven-questions'
+      });
+    } catch (error) {
+      console.error('保存数据失败:', error);
+      this.setData({ 
+        isSaving: false,
+        saveError: {
+          message: error.message || '保存失败，请重试'
+        }
+      });
     }
-    
-    this.setData({ filteredSymptoms: filtered });
   },
 
-  // 判断是否选中
-  isSelected(id) {
-    return this.data.selectedIds.includes(id);
+  // 重试保存
+  handleRetry() {
+    this.handleContinue();
   },
 
-  // 切换选中状态
-  toggleSymptom(e) {
+  // 切换症状选中状态
+  handleSymptomToggle(e) {
     const id = e.currentTarget.dataset.id;
-    const { selectedIds, symptoms } = this.data;
-    const index = selectedIds.indexOf(id);
+    const selectedSymptoms = this.data.selectedSymptoms.slice();
+    const index = selectedSymptoms.indexOf(id);
     
     if (index > -1) {
-      // 取消选中
-      selectedIds.splice(index, 1);
+      selectedSymptoms.splice(index, 1);
     } else {
-      // 选中
-      selectedIds.push(id);
+      selectedSymptoms.push(id);
     }
     
-    const selectedSymptoms = selectedIds.map(id => 
-      symptoms.find(s => s.id === id)
-    ).filter(s => s);
+    this.updateSelectedData(selectedSymptoms);
+    
+    // 自动保存
+    wx.setStorageSync('selectedSymptoms', selectedSymptoms);
+    this.setData({ lastSaveTime: Date.now() });
+  },
+
+  // 全选某个分类
+  handleSelectCategory(e) {
+    const categoryName = e.currentTarget.dataset.category;
+    const category = this.data.categories.find(c => c.name === categoryName);
+    
+    if (category) {
+      const selectedSymptoms = this.data.selectedSymptoms.slice();
+      category.symptoms.forEach(symptom => {
+        if (!selectedSymptoms.includes(symptom.id)) {
+          selectedSymptoms.push(symptom.id);
+        }
+      });
+      this.updateSelectedData(selectedSymptoms);
+    }
+  },
+
+  // 清空某个分类
+  handleDeselectCategory(e) {
+    const categoryName = e.currentTarget.dataset.category;
+    const category = this.data.categories.find(c => c.name === categoryName);
+    
+    if (category) {
+      const categoryIds = category.symptoms.map(s => s.id);
+      const selectedSymptoms = this.data.selectedSymptoms.filter(id => 
+        !categoryIds.includes(id)
+      );
+      this.updateSelectedData(selectedSymptoms);
+    }
+  },
+
+  // 更新选中数据和相关统计
+  updateSelectedData(selectedSymptoms) {
+    const selectedCount = selectedSymptoms.length;
+    const progress = (selectedCount / this.data.totalSymptoms) * 100;
+    
+    // 更新分类统计
+    const categories = this.data.categories.map(category => {
+      const categoryIds = category.symptoms.map(s => s.id);
+      const selectedInCategory = selectedSymptoms.filter(id => 
+        categoryIds.includes(id)
+      ).length;
+      
+      return {
+        ...category,
+        selectedCount: selectedInCategory,
+        isAllSelected: selectedInCategory === category.totalCount
+      };
+    });
     
     this.setData({
-      selectedIds,
       selectedSymptoms,
-      selectedCount: selectedIds.length,
-      progress: (selectedIds.length / 100) * 100
+      selectedCount,
+      progress,
+      categories
+    });
+  },
+
+  // 选择重点改善的症状
+  handleTargetToggle(e) {
+    const id = e.currentTarget.dataset.id;
+    const targetSymptoms = this.data.targetSymptoms.slice();
+    const index = targetSymptoms.indexOf(id);
+    
+    // 如果已经选中，则取消选中
+    if (index > -1) {
+      targetSymptoms.splice(index, 1);
+    } else {
+      // 如果未选中且未超过3个，则选中
+      if (targetSymptoms.length >= 3) {
+        wx.showToast({
+          title: '最多只能选择3个重点改善的症状',
+          icon: 'none'
+        });
+        return;
+      }
+      targetSymptoms.push(id);
+    }
+    
+    // 构建目标症状详情列表
+    const targetSymptomList = targetSymptoms.map(id => {
+      return this.data.allSymptoms.find(s => s.id === id);
+    }).filter(s => s);
+    
+    this.setData({ 
+      targetSymptoms,
+      targetSymptomList
     });
     
     // 自动保存
-    wx.setStorageSync('selectedSymptoms', selectedIds);
+    wx.setStorageSync('targetSymptoms', targetSymptoms);
   },
 
-  // 移除症状
-  removeSymptom(e) {
-    const id = e.currentTarget.dataset.id;
-    const { selectedIds, symptoms } = this.data;
-    const index = selectedIds.indexOf(id);
-    
-    if (index > -1) {
-      selectedIds.splice(index, 1);
-      
-      const selectedSymptoms = selectedIds.map(id => 
-        symptoms.find(s => s.id === id)
-      ).filter(s => s);
-      
-      this.setData({
-        selectedIds,
-        selectedSymptoms,
-        selectedCount: selectedIds.length,
-        progress: (selectedIds.length / 100) * 100
-      });
-      
-      wx.setStorageSync('selectedSymptoms', selectedIds);
-    }
-  },
-
-  // 上一步
+  // 返回
   goBack() {
     wx.navigateBack();
-  },
-
-  // 下一步 - 跳过不良生活习惯和300症状，直接进入健康七问
-  goNext() {
-    // 保存选择的症状
-    wx.setStorageSync('selectedSymptoms', this.data.selectedIds);
-    
-    // 跳转到健康七问页面
-    wx.navigateTo({
-      url: '/pages/seven-questions/seven-questions'
-    });
   }
 });
