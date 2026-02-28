@@ -4,6 +4,9 @@
   "description": "文件上传处理",
   "main": "index.js",
   "dependencies": {
-    "wx-server-sdk": "~2.6.3"
+    "wx-server-sdk": "^2.19.4"
+  },
+  "engines": {
+    "node": "16.x"
   }
 }
