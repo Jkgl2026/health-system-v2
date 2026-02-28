@@ -231,7 +231,7 @@
         </view>
       </view>
 
-      <!-- 健康分析报告：移除白框样式，文字平铺布局 -->
+      <!-- 健康分析报告 -->
       <view class="report-section">
         <view class="report-icon">🏆</view>
         <view class="report-content">
@@ -247,7 +247,7 @@
         </view>
       </view>
 
-      <!-- 重点改善症状：移除白框样式，文字平铺布局 -->
+      <!-- 重点改善症状 -->
       <view wx:if="{{healthData.targetSymptomNames.length > 0}}" class="target-section">
         <view class="target-header">
           <text class="target-icon">🎯</text>
@@ -266,7 +266,7 @@
       </view>
     </view>
 
-    <!-- 推荐调理方向：移除白框样式，文字平铺布局 -->
+    <!-- 推荐调理方向 -->
     <view class="recommend-card">
       <view class="recommend-header">
         <view class="recommend-icon">🔥</view>
@@ -299,7 +299,7 @@
       </view>
     </view>
 
-    <!-- 分阶段调理计划：移除白框样式，文字平铺布局 -->
+    <!-- 分阶段调理计划 -->
     <view class="plan-card">
       <view class="plan-header">
         <view class="plan-icon">📈</view>
@@ -365,7 +365,7 @@
       </view>
     </view>
 
-    <!-- 欢迎区域：移除白框样式，文字平铺布局 -->
+    <!-- 欢迎区域 -->
     <view class="welcome-section">
       <view class="welcome-title">
         让老百姓
@@ -380,7 +380,7 @@
       </view>
     </view>
 
-    <!-- 三个核心问题：移除白框样式，文字平铺布局 -->
+    <!-- 三个核心问题 -->
     <view class="questions-card">
       <view class="questions-header">
         <text class="questions-title">三个核心问题</text>
@@ -402,7 +402,7 @@
       </view>
     </view>
 
-    <!-- 功能特点：移除白框样式，文字平铺布局 -->
+    <!-- 功能特点 -->
     <view class="features-section">
       <view class="section-title">功能特点</view>
       <view class="features-grid">
@@ -414,7 +414,7 @@
       </view>
     </view>
 
-    <!-- 自检流程：移除白框样式，文字平铺布局 -->
+    <!-- 自检流程 -->
     <view class="steps-section">
       <view class="section-title">自检流程</view>
       <view class="steps-list">
@@ -428,7 +428,7 @@
       </view>
     </view>
 
-    <!-- 开始按钮：移除「演示模式」按钮，仅保留开始健康自检 -->
+    <!-- 开始按钮 -->
     <view class="start-section">
       <button class="btn btn-primary btn-lg btn-block" bindtap="goToPersonalInfo">
         开始健康自检
