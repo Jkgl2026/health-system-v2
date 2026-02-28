@@ -132,6 +132,67 @@ exports.main = async (event, context) => {
       }
     })
     
+    // ========== 方案A: 同步数据到 adminUsers 集合供后台读取 ==========
+    // 后台管理页面直接从 adminUsers 读取完整数据
+    const adminUserData = {
+      // 用户基本信息
+      phone: userInfo.phone,
+      name: userInfo.name,
+      gender: userInfo.gender,
+      age: userInfo.age,
+      
+      // 完整自检数据
+      selectedSymptoms,
+      badHabits,
+      symptoms300,
+      sevenQuestions,
+      targetSymptoms,
+      selectedChoice,
+      
+      // 计算结果
+      healthScore,
+      healthElements,
+      
+      // 统计摘要
+      summary: {
+        symptomCount: selectedSymptoms.length,
+        badHabitCount: badHabits.length,
+        symptoms300Count: symptoms300.length,
+        targetCount: targetSymptoms.length,
+        score: healthScore
+      },
+      
+      // 关联信息
+      userId,
+      latestRecordId: recordResult._id,
+      
+      // 时间戳
+      lastRecordTime: db.serverDate(),
+      dateStr,
+      updatedAt: db.serverDate()
+    }
+    
+    // 检查 adminUsers 中是否已存在该用户
+    const existingAdminUser = await db.collection('adminUsers')
+      .where({ phone: userInfo.phone })
+      .get()
+    
+    if (existingAdminUser.data.length > 0) {
+      // 更新现有记录
+      await db.collection('adminUsers').doc(existingAdminUser.data[0]._id).update({
+        data: adminUserData
+      })
+    } else {
+      // 创建新记录
+      await db.collection('adminUsers').add({
+        data: {
+          ...adminUserData,
+          createdAt: db.serverDate()
+        }
+      })
+    }
+    // ========== 同步结束 ==========
+    
     return {
       success: true,
       recordId: recordResult._id,
