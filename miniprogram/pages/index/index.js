@@ -279,34 +279,34 @@ Page({
     return {
       title: '健康自我管理 - 把健康把握在自己手里',
       path: '/pages/index/index'
-    }
+    };
   },
 
   // 点击爱心图标（隐藏的后台入口）
   onLogoTap() {
     // 清除之前的计时器
     if (this.data.logoTapTimer) {
-      clearTimeout(this.data.logoTapTimer)
+      clearTimeout(this.data.logoTapTimer);
     }
     
     // 增加点击计数
-    const newCount = this.data.logoTapCount + 1
-    this.setData({ logoTapCount: newCount })
+    const newCount = this.data.logoTapCount + 1;
+    this.setData({ logoTapCount: newCount });
     
     // 点击2次进入后台
     if (newCount >= 2) {
-      this.setData({ logoTapCount: 0, logoTapTimer: null })
+      this.setData({ logoTapCount: 0, logoTapTimer: null });
       wx.navigateTo({
         url: '/pages/admin/login/login'
-      })
-      return
+      });
+      return;
     }
     
     // 2秒后重置计数
     const timer = setTimeout(() => {
-      this.setData({ logoTapCount: 0, logoTapTimer: null })
-    }, 2000)
+      this.setData({ logoTapCount: 0, logoTapTimer: null });
+    }, 2000);
     
-    this.setData({ logoTapTimer: timer })
+    this.setData({ logoTapTimer: timer });
   }
-})
+});
