@@ -57,8 +57,7 @@ Page({
   },
 
   onReady() {
-    // 初始化图表
-    this.initCharts();
+    // 图表初始化移到数据加载完成后
   },
 
   // 加载用户详情
@@ -80,8 +79,14 @@ Page({
           loading: false 
         });
         
-        // 数据加载后绘制图表
-        this.drawCharts();
+        // 数据加载完成后延迟初始化图表（确保canvas已渲染）
+        setTimeout(() => {
+          this.initCharts().then(() => {
+            this.drawCharts();
+          }).catch(e => {
+            console.error('图表初始化失败:', e);
+          });
+        }, 300);
       } else {
         wx.showToast({ title: '加载失败', icon: 'error' });
       }
@@ -95,11 +100,30 @@ Page({
   // 初始化图表
   async initCharts() {
     try {
-      // 创建图表实例
-      this.scoreChart = await chartUtil.createChart('scoreChart', this);
-      this.radarChart = await chartUtil.createChart('radarChart', this);
-      this.symptomChart = await chartUtil.createChart('symptomChart', this);
-      this.trendChart = await chartUtil.createChart('trendChart', this);
+      // 创建图表实例（逐个创建，失败不影响其他图表）
+      try {
+        this.scoreChart = await chartUtil.createChart('scoreChart', this);
+      } catch (e) {
+        console.warn('scoreChart 初始化失败:', e.message);
+      }
+      
+      try {
+        this.radarChart = await chartUtil.createChart('radarChart', this);
+      } catch (e) {
+        console.warn('radarChart 初始化失败:', e.message);
+      }
+      
+      try {
+        this.symptomChart = await chartUtil.createChart('symptomChart', this);
+      } catch (e) {
+        console.warn('symptomChart 初始化失败:', e.message);
+      }
+      
+      try {
+        this.trendChart = await chartUtil.createChart('trendChart', this);
+      } catch (e) {
+        console.warn('trendChart 初始化失败:', e.message);
+      }
     } catch (e) {
       console.error('初始化图表失败:', e);
     }
