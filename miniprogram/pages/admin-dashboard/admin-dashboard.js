@@ -1,7 +1,7 @@
 // pages/admin-dashboard/admin-dashboard.js
-// 后台管理仪表盘 - 增强版
+// 后台管理仪表盘 - 从云数据库读取数据
 
-const healthDataUtil = require('../../utils/health-data');
+const cloudFunctions = require('../../utils/cloud-functions');
 
 Page({
   data: {
@@ -56,17 +56,35 @@ Page({
   },
 
   onShow() {
+    // 每次显示页面时刷新数据
     this.loadData();
   },
 
-  // 加载数据
+  // 下拉刷新
+  onPullDownRefresh() {
+    this.loadData().then(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
+  // 加载数据 - 从云数据库读取
   async loadData() {
     wx.showLoading({ title: '加载中...' });
     this.setData({ loading: true });
     
     try {
-      // 从本地存储读取用户数据
-      const allUsers = this.getLocalUsers();
+      // 调用云函数获取用户列表
+      const result = await cloudFunctions.getUserList({
+        page: this.data.page,
+        limit: this.data.limit,
+        search: this.data.search
+      });
+      
+      if (!result.success) {
+        throw new Error(result.error || '获取数据失败');
+      }
+      
+      const allUsers = result.data || [];
       
       // 计算统计数据
       const stats = this.calculateStats(allUsers);
@@ -87,37 +105,22 @@ Page({
         users = users.filter(u => u.healthScore >= 60);
       }
       
-      // 应用搜索
-      if (this.data.search) {
-        const keyword = this.data.search.toLowerCase();
-        users = users.filter(u => 
-          (u.name && u.name.toLowerCase().includes(keyword)) ||
-          (u.phone && u.phone.includes(keyword))
-        );
-      }
-      
       this.setData({
         stats,
         healthElements,
         constitutionStats,
         users,
         loading: false,
-        hasMore: false
+        hasMore: result.pagination ? result.pagination.hasNextPage : false
       });
       
     } catch (e) {
       console.error('加载数据失败:', e);
-      wx.showToast({ title: '加载失败', icon: 'error' });
+      wx.showToast({ title: '加载失败: ' + (e.message || '未知错误'), icon: 'none' });
+      this.setData({ loading: false });
     }
     
     wx.hideLoading();
-  },
-
-  // 获取本地用户数据
-  getLocalUsers() {
-    // 从本地存储获取所有用户记录
-    const users = wx.getStorageSync('adminUsers') || [];
-    return users;
   },
 
   // 计算统计数据
@@ -126,19 +129,23 @@ Page({
     let todayUsers = 0;
     let todayRecords = 0;
     let totalScore = 0;
+    let scoreCount = 0;
     let warningUsers = 0;
     
     users.forEach(user => {
       // 今日新增
-      if (new Date(user.updatedAt).toDateString() === today) {
+      const userDate = user.createdAt || user.lastRecordTime;
+      if (userDate && new Date(userDate).toDateString() === today) {
         todayUsers++;
         todayRecords++;
       }
       
-      // 计算评分
-      if (user.healthScore !== undefined) {
-        totalScore += user.healthScore;
-        if (user.healthScore < 60) {
+      // 计算评分 - 优先从最新记录获取
+      const score = user.latestRecord?.healthScore ?? user.healthScore;
+      if (score !== undefined && score !== null) {
+        totalScore += score;
+        scoreCount++;
+        if (score < 60) {
           warningUsers++;
         }
       }
@@ -146,10 +153,10 @@ Page({
     
     return {
       totalUsers: users.length,
-      totalRecords: users.length, // 每个用户一条记录
+      totalRecords: users.length,
       todayUsers,
       todayRecords,
-      avgHealthScore: users.length > 0 ? Math.round(totalScore / users.length) : '--',
+      avgHealthScore: scoreCount > 0 ? Math.round(totalScore / scoreCount) : '--',
       warningUsers
     };
   },
@@ -158,15 +165,28 @@ Page({
   calculateHealthElements(users) {
     const elements = this.data.healthElements.map(e => ({ ...e, total: 0, count: 0 }));
     
+    const elementMapping = {
+      'qiAndBlood': '气血',
+      'circulation': '循环',
+      'toxins': '毒素',
+      'bloodLipids': '血脂',
+      'coldness': '寒凉',
+      'immunity': '免疫',
+      'emotions': '情绪'
+    };
+    
     users.forEach(user => {
-      if (user.healthAnalysis) {
-        elements.forEach(el => {
-          if (user.healthAnalysis[el.key] !== undefined) {
-            el.total += user.healthAnalysis[el.key];
-            el.count++;
+      const healthEls = user.latestRecord?.healthElements ?? user.healthElements ?? [];
+      healthEls.forEach(el => {
+        const key = Object.keys(elementMapping).find(k => elementMapping[k] === el.name);
+        if (key) {
+          const element = elements.find(e => e.key === key);
+          if (element && el.count !== undefined) {
+            element.total += el.count;
+            element.count++;
           }
-        });
-      }
+        }
+      });
     });
     
     return elements.map(el => ({
@@ -187,7 +207,8 @@ Page({
     ];
     
     users.forEach(user => {
-      const symptoms = (user.symptomCount || 0) + (user.habitCount || 0);
+      const summary = user.latestRecord?.summary ?? user.summary ?? {};
+      const symptoms = (summary.symptomCount || 0) + (summary.badHabitCount || 0);
       for (const c of constitutions) {
         if (symptoms >= c.min && symptoms <= c.max) {
           c.count++;
@@ -202,14 +223,16 @@ Page({
   // 处理用户数据
   processUsers(users) {
     return users.map(user => {
-      // 计算健康评分
-      const healthScore = user.healthScore || this.calculateUserHealthScore(user);
+      // 获取健康评分 - 优先从最新记录获取
+      const healthScore = user.latestRecord?.healthScore ?? user.healthScore ?? 50;
       
       // 获取健康状态
       const healthStatus = this.getHealthStatus(healthScore);
       
       // 格式化日期
-      const dateStr = user.updatedAt ? this.formatDate(user.updatedAt) : '未知';
+      const dateStr = (user.latestRecord?.dateStr || user.dateStr) || 
+        (user.lastRecordTime ? this.formatDate(user.lastRecordTime) : 
+         (user.createdAt ? this.formatDate(user.createdAt) : '未知'));
       
       return {
         ...user,
@@ -217,22 +240,15 @@ Page({
         healthLabel: healthStatus.label,
         healthClass: healthStatus.className,
         healthColor: healthStatus.color,
-        dateStr
+        dateStr,
+        name: user.name || '未知',
+        phone: user.phone || '--'
       };
-    }).sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
-  },
-
-  // 计算用户健康评分
-  calculateUserHealthScore(user) {
-    const bodySymptoms = user.bodySymptoms || [];
-    const habits = user.badHabits || [];
-    const symptoms300 = user.symptoms300 || [];
-    
-    const bodyScore = Math.max(0, 100 - (bodySymptoms.length / 100) * 100);
-    const habitScore = Math.max(0, 100 - (habits.length / 252) * 100);
-    const symptomScore = Math.max(0, 100 - (symptoms300.length / 300) * 100);
-    
-    return Math.round(bodyScore * 0.3 + habitScore * 0.2 + symptomScore * 0.1 + 40);
+    }).sort((a, b) => {
+      const timeA = a.lastRecordTime || a.createdAt || 0;
+      const timeB = b.lastRecordTime || b.createdAt || 0;
+      return new Date(timeB) - new Date(timeA);
+    });
   },
 
   // 获取健康状态
@@ -261,29 +277,33 @@ Page({
 
   // 搜索用户
   searchUser() {
+    this.setData({ page: 1 });
     this.loadData();
   },
 
   // 清除搜索
   clearSearch() {
-    this.setData({ search: '' });
+    this.setData({ search: '', page: 1 });
     this.loadData();
   },
 
   // 设置筛选
   setFilter(e) {
     const filter = e.currentTarget.dataset.filter;
-    this.setData({ currentFilter: filter });
+    this.setData({ currentFilter: filter, page: 1 });
     this.loadData();
   },
 
   // 加载更多
   loadMore() {
-    // 本地数据暂不需要分页
+    if (!this.data.hasMore || this.data.loading) return;
+    this.setData({ page: this.data.page + 1 });
+    this.loadData();
   },
 
   // 刷新数据
   refreshUsers() {
+    this.setData({ page: 1 });
     this.loadData();
   },
 
@@ -298,54 +318,22 @@ Page({
     wx.navigateTo({ url: '/pages/admin-compare/admin-compare?mode=select' });
   },
 
-  // 导出数据
-  exportData() {
-    wx.showToast({ title: '导出功能开发中', icon: 'none' });
-  },
-
   // 退出登录
-  handleLogout() {
+  logout() {
     wx.showModal({
-      title: '确认退出',
+      title: '退出确认',
       content: '确定要退出登录吗？',
       success: (res) => {
         if (res.confirm) {
           wx.removeStorageSync('adminLoggedIn');
-          wx.redirectTo({ url: '/pages/index/index' });
+          wx.redirectTo({ url: '/pages/admin/login/login' });
         }
       }
     });
   },
 
-  // 清空所有数据
-  async clearAllData() {
-    const res = await wx.showModal({
-      title: '⚠️ 危险操作',
-      content: '此操作将删除所有用户数据，无法恢复！确定继续吗？',
-      confirmColor: '#ef4444',
-      confirmText: '确定清空'
-    });
-    
-    if (res.confirm) {
-      wx.showLoading({ title: '清空中...' });
-      wx.removeStorageSync('adminUsers');
-      this.loadData();
-      wx.hideLoading();
-      wx.showToast({ title: '已清空', icon: 'success' });
-    }
-  },
-
-  // 下拉刷新
-  onPullDownRefresh() {
-    this.loadData();
-    wx.stopPullDownRefresh();
-  },
-
-  // 拨打电话
-  callPhone(e) {
-    const phone = e.currentTarget.dataset.phone;
-    if (phone) {
-      wx.makePhoneCall({ phoneNumber: phone });
-    }
+  // 导出数据
+  exportData() {
+    wx.showToast({ title: '功能开发中', icon: 'none' });
   }
 });
