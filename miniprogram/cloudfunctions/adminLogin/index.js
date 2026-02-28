@@ -1,4 +1,3 @@
-// 云函数入口文件
 const cloud = require('wx-server-sdk')
 
 cloud.init({
@@ -7,12 +6,10 @@ cloud.init({
 
 const db = cloud.database()
 
-// 云函数入口函数
 exports.main = async (event, context) => {
   const { password } = event
   
   try {
-    // 查询管理员配置
     const result = await db.collection('admin_config')
       .where({
         _id: 'admin_config'
@@ -20,16 +17,14 @@ exports.main = async (event, context) => {
       .get()
     
     if (result.data.length === 0) {
-      // 如果没有配置，创建默认配置
       await db.collection('admin_config').add({
         data: {
           _id: 'admin_config',
-          password: 'admin123', // 默认密码
+          password: 'admin123',
           createdAt: db.serverDate()
         }
       })
       
-      // 返回验证结果
       return {
         success: password === 'admin123',
         isFirstLogin: true
@@ -38,7 +33,6 @@ exports.main = async (event, context) => {
     
     const adminConfig = result.data[0]
     
-    // 验证密码
     if (adminConfig.password === password) {
       return {
         success: true,
