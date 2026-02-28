@@ -1,4 +1,6 @@
 <!--pages/admin-dashboard/admin-dashboard.wxml-->
+<!--后台管理仪表盘 - 增强版-->
+
 <view class="container">
   <!-- 顶部导航 -->
   <view class="header">
@@ -9,29 +11,76 @@
     </view>
   </view>
 
-  <!-- 统计概览 -->
-  <view class="stats-overview">
-    <view class="stat-card primary">
+  <!-- 统计概览 - 四宫格 -->
+  <view class="stats-grid">
+    <view class="stat-card blue">
       <view class="stat-icon">👥</view>
-      <view class="stat-info">
+      <view class="stat-content">
         <text class="stat-value">{{stats.totalUsers}}</text>
         <text class="stat-label">总用户数</text>
       </view>
-      <view class="stat-trend positive" wx:if="{{stats.todayUsers > 0}}">
-        <text class="trend-value">+{{stats.todayUsers}}</text>
-        <text class="trend-label">今日</text>
+      <view class="stat-trend" wx:if="{{stats.todayUsers > 0}}">
+        <text class="trend-badge">+{{stats.todayUsers}} 今日</text>
       </view>
     </view>
     
-    <view class="stat-card success">
+    <view class="stat-card green">
       <view class="stat-icon">📋</view>
-      <view class="stat-info">
+      <view class="stat-content">
         <text class="stat-value">{{stats.totalRecords}}</text>
         <text class="stat-label">总检测数</text>
       </view>
-      <view class="stat-trend positive" wx:if="{{stats.todayRecords > 0}}">
-        <text class="trend-value">+{{stats.todayRecords}}</text>
-        <text class="trend-label">今日</text>
+      <view class="stat-trend" wx:if="{{stats.todayRecords > 0}}">
+        <text class="trend-badge">+{{stats.todayRecords}} 今日</text>
+      </view>
+    </view>
+
+    <view class="stat-card purple">
+      <view class="stat-icon">💚</view>
+      <view class="stat-content">
+        <text class="stat-value">{{stats.avgHealthScore || '--'}}</text>
+        <text class="stat-label">平均健康分</text>
+      </view>
+    </view>
+
+    <view class="stat-card orange">
+      <view class="stat-icon">⚠️</view>
+      <view class="stat-content">
+        <text class="stat-value">{{stats.warningUsers || 0}}</text>
+        <text class="stat-label">需关注用户</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 健康要素分析 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">📊 健康要素分析</text>
+      <text class="section-subtitle">所有用户的健康要素平均值</text>
+    </view>
+    <view class="health-elements">
+      <view class="element-item" wx:for="{{healthElements}}" wx:key="key">
+        <view class="element-header">
+          <text class="element-icon">{{item.icon}}</text>
+          <text class="element-name">{{item.label}}</text>
+          <text class="element-value">{{item.value}}{{item.value !== '--' ? '%' : ''}}</text>
+        </view>
+        <view class="element-bar">
+          <view class="element-fill {{item.colorClass}}" style="width: {{item.value}}%;"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 体质分布 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">🏥 用户体质分布</text>
+    </view>
+    <view class="constitution-grid">
+      <view class="constitution-item" wx:for="{{constitutionStats}}" wx:key="type">
+        <view class="constitution-count">{{item.count}}</view>
+        <view class="constitution-name">{{item.type}}</view>
       </view>
     </view>
   </view>
@@ -39,15 +88,19 @@
   <!-- 快捷操作 -->
   <view class="quick-actions">
     <view class="action-item" bindtap="goToCompareSelect">
-      <view class="action-icon">📊</view>
+      <view class="action-icon blue">📊</view>
       <text class="action-name">数据对比</text>
     </view>
     <view class="action-item" bindtap="refreshUsers">
-      <view class="action-icon">🔄</view>
+      <view class="action-icon green">🔄</view>
       <text class="action-name">刷新数据</text>
     </view>
+    <view class="action-item" bindtap="exportData">
+      <view class="action-icon purple">📤</view>
+      <text class="action-name">导出数据</text>
+    </view>
     <view class="action-item" bindtap="clearAllData">
-      <view class="action-icon">🗑️</view>
+      <view class="action-icon red">🗑️</view>
       <text class="action-name">清空数据</text>
     </view>
   </view>
@@ -61,45 +114,53 @@
              value="{{search}}"
              bindconfirm="searchUser"
              bindinput="onSearchInput" />
+      <text class="search-clear" wx:if="{{search}}" bindtap="clearSearch">✕</text>
     </view>
+    <button class="search-btn" bindtap="searchUser">搜索</button>
+  </view>
+
+  <!-- 筛选标签 -->
+  <view class="filter-tabs">
+    <view class="filter-tab {{currentFilter === 'all' ? 'active' : ''}}" bindtap="setFilter" data-filter="all">全部</view>
+    <view class="filter-tab {{currentFilter === 'warning' ? 'active' : ''}}" bindtap="setFilter" data-filter="warning">需关注</view>
+    <view class="filter-tab {{currentFilter === 'good' ? 'active' : ''}}" bindtap="setFilter" data-filter="good">健康良好</view>
   </view>
 
   <!-- 用户列表 -->
   <view class="section">
     <view class="section-header">
-      <text class="section-title">用户列表 ({{users.length}})</text>
+      <text class="section-title">👥 用户列表 ({{users.length}})</text>
       <text class="section-action" bindtap="refreshUsers">刷新</text>
     </view>
 
     <view class="user-list">
       <view class="user-item" wx:for="{{users}}" wx:key="_id" bindtap="viewUser" data-id="{{item._id}}">
-        <view class="user-avatar">
-          <text class="avatar-text">{{item.name ? item.name[0] : '未'}}</text>
-        </view>
-        <view class="user-main">
-          <view class="user-row">
-            <text class="user-name">{{item.name || '未填写'}}</text>
-            <text class="user-phone" 
-                  bindtap="callPhone" 
-                  catchtap="callPhone"
-                  data-phone="{{item.phone}}">{{item.phone || '未填写'}}</text>
+        <view class="user-left">
+          <view class="user-avatar" style="background: {{item.healthColor}};">
+            <text class="avatar-text">{{item.name ? item.name[0] : '未'}}</text>
           </view>
-          <view class="user-meta">
-            <view class="meta-item" wx:if="{{item.latestRecord}}">
-              <text class="meta-icon">💚</text>
-              <text class="meta-label">评分:</text>
-              <text class="meta-value {{item.latestRecord.healthScore >= 60 ? 'good' : 'warning'}}">
-                {{item.latestRecord.healthScore || '--'}}
-              </text>
+          <view class="user-info">
+            <view class="user-row">
+              <text class="user-name">{{item.name || '未填写'}}</text>
+              <view class="health-badge {{item.healthClass}}">{{item.healthLabel}}</view>
             </view>
-            <view class="meta-item" wx:if="{{item.latestRecord}}">
-              <text class="meta-icon">📝</text>
-              <text class="meta-label">症状:</text>
-              <text class="meta-value">{{item.latestRecord.summary.symptomCount || 0}}</text>
+            <view class="user-meta">
+              <text class="meta-phone">📱 {{item.phone || '未填写'}}</text>
+              <text class="meta-time">🕐 {{item.dateStr || '未知'}}</text>
             </view>
-            <view class="meta-item">
-              <text class="meta-icon">🕐</text>
-              <text class="meta-value time">{{item.latestRecord ? item.latestRecord.dateStr : item.updatedAt || '未知'}}</text>
+            <view class="user-scores">
+              <view class="score-item">
+                <text class="score-label">评分</text>
+                <text class="score-value">{{item.healthScore || '--'}}</text>
+              </view>
+              <view class="score-item">
+                <text class="score-label">症状</text>
+                <text class="score-value">{{item.symptomCount || 0}}</text>
+              </view>
+              <view class="score-item">
+                <text class="score-label">习惯</text>
+                <text class="score-value">{{item.habitCount || 0}}</text>
+              </view>
             </view>
           </view>
         </view>
@@ -118,6 +179,12 @@
     <view class="empty" wx:if="{{users.length === 0 && !loading}}">
       <text class="empty-icon">📭</text>
       <text class="empty-text">暂无用户数据</text>
+      <text class="empty-hint">用户完成自检后会显示在这里</text>
     </view>
+  </view>
+
+  <!-- 底部版权 -->
+  <view class="footer">
+    <text class="footer-text">© 2024 健康自检系统 后台管理</text>
   </view>
 </view>
