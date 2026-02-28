@@ -1,0 +1,50 @@
+{
+  "envId": "cloud1-5g8sp1s7313ea0db",
+  "version": "2.0",
+  "$schema": "https://framework-1258016615.tcloudbaseapp.com/schema/latest.json",
+  "functionRoot": "./cloudfunctions",
+  "functions": [
+    {
+      "name": "adminLogin",
+      "timeout": 10,
+      "envVariables": {},
+      "runtime": "Nodejs16.13",
+      "handler": "index.main"
+    },
+    {
+      "name": "adminChangePassword",
+      "timeout": 10,
+      "envVariables": {},
+      "runtime": "Nodejs16.13",
+      "handler": "index.main"
+    },
+    {
+      "name": "saveHealthRecord",
+      "timeout": 15,
+      "envVariables": {},
+      "runtime": "Nodejs16.13",
+      "handler": "index.main"
+    },
+    {
+      "name": "getHealthRecords",
+      "timeout": 15,
+      "envVariables": {},
+      "runtime": "Nodejs16.13",
+      "handler": "index.main"
+    },
+    {
+      "name": "generateHealthPDF",
+      "timeout": 30,
+      "envVariables": {},
+      "runtime": "Nodejs16.13",
+      "handler": "index.main"
+    },
+    {
+      "name": "uploadFile",
+      "timeout": 20,
+      "envVariables": {},
+      "runtime": "Nodejs16.13",
+      "handler": "index.main"
+    }
+  ]
+}
