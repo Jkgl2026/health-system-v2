@@ -5,6 +5,13 @@
   "functionRoot": "./cloudfunctions",
   "functions": [
     {
+      "name": "adminAuth",
+      "timeout": 10,
+      "envVariables": {},
+      "runtime": "Nodejs18.15",
+      "handler": "index.main"
+    },
+    {
       "name": "adminLogin",
       "timeout": 10,
       "envVariables": {},

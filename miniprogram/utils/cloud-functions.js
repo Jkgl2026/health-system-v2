@@ -29,7 +29,7 @@ function callFunction(name, data = {}) {
  * @returns {Promise<Object>} 登录结果
  */
 async function adminLogin(password) {
-  return await callFunction('adminLogin', { password })
+  return await callFunction('adminAuth', { password })
 }
 
 /**
