@@ -6,7 +6,7 @@
   <view class="header">
     <view class="header-content">
       <view class="logo-section">
-        <view class="logo">
+        <view class="logo" bindtap="onLogoTap">
           <text class="logo-icon">❤️</text>
         </view>
         <view class="header-text">
