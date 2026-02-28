@@ -38,8 +38,10 @@ function calculateHealthElements(selectedSymptoms) {
 // 云函数入口函数
 exports.main = async (event, context) => {
   const wxContext = cloud.getWXContext()
+  const openid = wxContext.OPENID
+  
   const { 
-    userInfo,
+    userInfo = {},
     selectedSymptoms = [],
     badHabits = [],
     symptoms300 = [],
@@ -49,24 +51,19 @@ exports.main = async (event, context) => {
   } = event
   
   try {
-    // 数据校验
-    if (!userInfo || !userInfo.phone) {
-      return {
-        success: false,
-        error: '缺少用户信息'
-      }
-    }
-    
     // 计算健康评分
     const healthScore = calculateHealthScore(selectedSymptoms, badHabits, symptoms300)
     
     // 计算健康要素
     const healthElements = calculateHealthElements(selectedSymptoms)
     
-    // 查找或创建用户
+    // 用户的唯一标识：优先用手机号，没有手机号用 openid
+    const userIdentifier = userInfo.phone || openid
+    
+    // 查找或创建用户（用 openid 作为主要标识）
     let userId
     const existingUser = await db.collection('health_users')
-      .where({ phone: userInfo.phone })
+      .where({ openid: openid })
       .get()
     
     if (existingUser.data.length > 0) {
@@ -75,6 +72,7 @@ exports.main = async (event, context) => {
       await db.collection('health_users').doc(userId).update({
         data: {
           ...userInfo,
+          openid: openid,
           lastRecordTime: db.serverDate(),
           updatedAt: db.serverDate()
         }
@@ -84,6 +82,7 @@ exports.main = async (event, context) => {
       const userResult = await db.collection('health_users').add({
         data: {
           ...userInfo,
+          openid: openid,
           createdAt: db.serverDate(),
           lastRecordTime: db.serverDate(),
           updatedAt: db.serverDate()
@@ -100,9 +99,9 @@ exports.main = async (event, context) => {
     const recordResult = await db.collection('health_records').add({
       data: {
         userId,
-        openid: wxContext.OPENID,
-        phone: userInfo.phone,
-        name: userInfo.name,
+        openid: openid,
+        phone: userInfo.phone || '',
+        name: userInfo.name || '匿名用户',
         
         // 症状数据
         selectedSymptoms,
@@ -132,14 +131,14 @@ exports.main = async (event, context) => {
       }
     })
     
-    // ========== 方案A: 同步数据到 adminUsers 集合供后台读取 ==========
-    // 后台管理页面直接从 adminUsers 读取完整数据
+    // ========== 同步数据到 adminUsers 集合供后台读取 ==========
     const adminUserData = {
       // 用户基本信息
-      phone: userInfo.phone,
-      name: userInfo.name,
-      gender: userInfo.gender,
-      age: userInfo.age,
+      openid: openid,
+      phone: userInfo.phone || '',
+      name: userInfo.name || '匿名用户',
+      gender: userInfo.gender || '',
+      age: userInfo.age || '',
       
       // 完整自检数据
       selectedSymptoms,
@@ -172,9 +171,9 @@ exports.main = async (event, context) => {
       updatedAt: db.serverDate()
     }
     
-    // 检查 adminUsers 中是否已存在该用户
+    // 检查 adminUsers 中是否已存在该用户（用 openid 查询）
     const existingAdminUser = await db.collection('adminUsers')
-      .where({ phone: userInfo.phone })
+      .where({ openid: openid })
       .get()
     
     if (existingAdminUser.data.length > 0) {
@@ -197,13 +196,15 @@ exports.main = async (event, context) => {
       success: true,
       recordId: recordResult._id,
       userId,
-      healthScore
+      healthScore,
+      openid: openid
     }
+    
   } catch (error) {
     console.error('保存健康记录失败:', error)
     return {
       success: false,
-      error: error.message
+      error: error.message || '保存失败'
     }
   }
 }
