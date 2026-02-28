@@ -158,6 +158,14 @@ Page({
       wx.showToast({ title: '请输入姓名', icon: 'none' });
       return;
     }
+    if (!formData.phone) {
+      wx.showToast({ title: '请输入手机号', icon: 'none' });
+      return;
+    }
+    if (formData.phone.length !== 11) {
+      wx.showToast({ title: '请输入正确的手机号', icon: 'none' });
+      return;
+    }
     if (!formData.gender) {
       wx.showToast({ title: '请选择性别', icon: 'none' });
       return;
