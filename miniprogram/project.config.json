@@ -48,6 +48,7 @@
     "tabIndent": "insertSpaces",
     "tabSize": 2
   },
+  "cloudfunctionRoot": "cloudfunctions/",
   "cloudbaseRoot": "cloudbaserc.json",
   "cloudfunctionTemplateRoot": "cloudfunctions/"
 }
