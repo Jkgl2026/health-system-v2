@@ -3,6 +3,7 @@
 
 const healthData = require('../../utils/health-data');
 const historyManager = require('../../utils/history-manager');
+const cloudFunctions = require('../../utils/cloud-functions');
 
 // 课程库 - 按健康要素分类
 const COURSE_LIBRARY = {
@@ -338,25 +339,33 @@ Page({
     wx.navigateTo({ url: '/pages/story/story' });
   },
 
-  // 保存到云数据库
+  // 保存到云数据库（使用云函数）
   async saveToCloudDatabase() {
     try {
-      // 获取最新保存的记录
-      const history = historyManager.getAllHistory();
-      if (history.length === 0) {
-        console.log('没有历史记录需要保存到云端');
-        return;
-      }
+      // 获取所有需要保存的数据
+      const userInfo = wx.getStorageSync('userInfo') || null;
+      const selectedSymptoms = wx.getStorageSync('selectedSymptoms') || [];
+      const badHabits = wx.getStorageSync('selectedHabitsRequirements') || [];
+      const symptoms300 = wx.getStorageSync('selectedSymptoms300') || [];
+      const sevenQuestions = wx.getStorageSync('sevenQuestionsAnswers') || {};
+      const targetSymptoms = wx.getStorageSync('targetSymptoms') || [];
+      const selectedChoice = wx.getStorageSync('selectedChoice') || '';
       
-      const latestRecord = history[0];
-      
-      // 调用云数据库保存
-      const result = await historyManager.saveToCloud(latestRecord);
+      // 调用云函数保存
+      const result = await cloudFunctions.saveHealthRecord({
+        userInfo,
+        selectedSymptoms,
+        badHabits,
+        symptoms300,
+        sevenQuestions,
+        targetSymptoms,
+        selectedChoice
+      });
       
       if (result.success) {
-        console.log('云数据库同步成功');
+        console.log('云函数保存成功，记录ID:', result.recordId);
       } else {
-        console.error('云数据库同步失败:', result.error);
+        console.error('云函数保存失败:', result.error);
       }
     } catch (error) {
       console.error('保存到云数据库异常:', error);

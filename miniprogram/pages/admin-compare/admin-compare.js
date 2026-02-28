@@ -1,7 +1,7 @@
 // pages/admin-compare/admin-compare.js
-// 数据对比分析页 - 全面对比用户多次检测数据
+// 数据对比分析页 - 使用云函数
 
-const cloudDb = require('../../utils/cloud-db');
+const cloudFunctions = require('../../utils/cloud-functions');
 const chartUtil = require('../../utils/charts');
 
 Page({
@@ -49,7 +49,7 @@ Page({
   async loadRecords() {
     wx.showLoading({ title: '加载中...' });
     try {
-      const result = await cloudDb.getUserDetail(this.data.userId);
+      const result = await cloudFunctions.getUserDetail(this.data.userId);
       
       if (result.success) {
         const { user, records } = result.data;
@@ -133,10 +133,10 @@ Page({
     const scoreChange = latest.healthScore - previous.healthScore;
     
     // 症状数量变化
-    const symptomChange = (latest.summary.symptomCount || 0) - (previous.summary.symptomCount || 0);
+    const symptomChange = (latest.summary?.symptomCount || 0) - (previous.summary?.symptomCount || 0);
     
     // 不良习惯变化
-    const habitChange = (latest.summary.badHabitCount || 0) - (previous.summary.badHabitCount || 0);
+    const habitChange = (latest.summary?.badHabitCount || 0) - (previous.summary?.badHabitCount || 0);
     
     // 健康要素变化
     const elementChange = this.calculateElementChange(latest.healthElements, previous.healthElements);
@@ -190,17 +190,17 @@ Page({
 
   // 计算症状变化详情
   calculateSymptomDetail(latest, previous) {
-    const latestSymptoms = new Set((latest.symptomNames || []).map(s => s.id));
-    const previousSymptoms = new Set((previous.symptomNames || []).map(s => s.id));
+    const latestSymptoms = new Set(latest.selectedSymptoms || []);
+    const previousSymptoms = new Set(previous.selectedSymptoms || []);
     
     // 新增症状
-    const added = (latest.symptomNames || []).filter(s => !previousSymptoms.has(s.id));
+    const added = (latest.selectedSymptoms || []).filter(id => !previousSymptoms.has(id));
     
     // 消失症状
-    const removed = (previous.symptomNames || []).filter(s => !latestSymptoms.has(s.id));
+    const removed = (previous.selectedSymptoms || []).filter(id => !latestSymptoms.has(id));
     
     // 持续症状
-    const continued = (latest.symptomNames || []).filter(s => previousSymptoms.has(s.id));
+    const continued = (latest.selectedSymptoms || []).filter(id => previousSymptoms.has(id));
     
     return { added, removed, continued };
   },
@@ -287,7 +287,7 @@ Page({
     
     const trendData = selectedRecords.map((r, index) => ({
       label: `第${selectedRecords.length - index}次`,
-      value: r.summary.symptomCount || 0
+      value: r.summary?.symptomCount || 0
     })).reverse();
     
     this.symptomTrendChart.drawLineChart(trendData, {
@@ -307,18 +307,5 @@ Page({
     wx.navigateTo({
       url: `/pages/admin-record-detail/admin-record-detail?id=${recordId}`
     });
-  },
-
-  // 获取变化样式
-  getChangeStyle(change) {
-    if (change > 0) return 'positive';
-    if (change < 0) return 'negative';
-    return 'neutral';
-  },
-
-  // 格式化日期
-  formatDate(timestamp) {
-    const date = new Date(timestamp);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 });

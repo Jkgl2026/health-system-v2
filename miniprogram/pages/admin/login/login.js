@@ -1,19 +1,13 @@
 // pages/admin/login/login.js
-const { adminAPI } = require('../../../utils/api');
+// 管理员登录页面 - 使用云函数
+
+const cloudFunctions = require('../../../utils/cloud-functions');
 
 Page({
   data: {
-    username: '',
     password: '',
     showPassword: false,
     loading: false
-  },
-
-  // 输入用户名
-  onUsernameInput(e) {
-    this.setData({
-      username: e.detail.value
-    });
   },
 
   // 输入密码
@@ -32,15 +26,7 @@ Page({
 
   // 登录
   async onLogin() {
-    const { username, password } = this.data;
-
-    if (!username.trim()) {
-      wx.showToast({
-        title: '请输入用户名',
-        icon: 'none'
-      });
-      return;
-    }
+    const { password } = this.data;
 
     if (!password.trim()) {
       wx.showToast({
@@ -53,13 +39,12 @@ Page({
     this.setData({ loading: true });
 
     try {
-      // 尝试调用真实API
-      const result = await adminAPI.login(username, password);
+      // 调用云函数验证密码
+      const result = await cloudFunctions.adminLogin(password);
       
-      if (result && result.success) {
+      if (result.success) {
         // 保存登录状态
         wx.setStorageSync('adminLoggedIn', true);
-        wx.setStorageSync('adminInfo', JSON.stringify(result.admin || {}));
         
         wx.showToast({
           title: '登录成功',
@@ -69,36 +54,23 @@ Page({
 
         setTimeout(() => {
           wx.redirectTo({
-            url: '/pages/admin/dashboard/dashboard'
-          });
-        }, 1000);
-      }
-    } catch (error) {
-      console.error('登录失败:', error);
-      
-      // 离线模式：使用默认管理员账号
-      if (username === 'admin' && password === 'admin123') {
-        wx.setStorageSync('adminLoggedIn', true);
-        wx.setStorageSync('adminInfo', JSON.stringify({ username: 'admin', role: 'admin' }));
-        
-        wx.showToast({
-          title: '登录成功',
-          icon: 'success',
-          duration: 1000
-        });
-
-        setTimeout(() => {
-          wx.redirectTo({
-            url: '/pages/admin/dashboard/dashboard'
+            url: '/pages/admin-dashboard/admin-dashboard'
           });
         }, 1000);
       } else {
         wx.showToast({
-          title: error.message || '用户名或密码错误',
+          title: result.error || '密码错误',
           icon: 'none'
         });
         this.setData({ loading: false });
       }
+    } catch (error) {
+      console.error('登录失败:', error);
+      wx.showToast({
+        title: '登录失败，请重试',
+        icon: 'none'
+      });
+      this.setData({ loading: false });
     }
   },
 

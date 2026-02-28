@@ -1,7 +1,7 @@
 // pages/admin-dashboard/admin-dashboard.js
-// 后台管理仪表盘 - 使用云数据库
+// 后台管理仪表盘 - 使用云函数
 
-const cloudDb = require('../../utils/cloud-db');
+const cloudFunctions = require('../../utils/cloud-functions');
 
 Page({
   data: {
@@ -38,8 +38,8 @@ Page({
     try {
       // 并行加载统计数据和用户列表
       const [statsResult, usersResult] = await Promise.all([
-        cloudDb.getStatistics(),
-        cloudDb.getUserList({ page: 1, limit: this.data.limit })
+        cloudFunctions.getStatistics(),
+        cloudFunctions.getUserList({ page: 1, limit: this.data.limit })
       ]);
       
       if (statsResult.success && usersResult.success) {
@@ -72,7 +72,7 @@ Page({
     
     wx.showLoading({ title: '搜索中...' });
     try {
-      const result = await cloudDb.getUserList({ page: 1, limit: this.data.limit, search });
+      const result = await cloudFunctions.getUserList({ page: 1, limit: this.data.limit, search });
       if (result.success) {
         this.setData({
           users: result.data,
@@ -93,7 +93,7 @@ Page({
     this.setData({ loading: true });
     
     try {
-      const result = await cloudDb.getUserList({
+      const result = await cloudFunctions.getUserList({
         page: nextPage,
         limit: this.data.limit,
         search: this.data.search
@@ -124,9 +124,9 @@ Page({
     wx.navigateTo({ url: `/pages/admin-user-detail/admin-user-detail?id=${id}` });
   },
 
-  // 进入数据对比页面（选择用户）
+  // 进入数据对比页面
   goToCompareSelect() {
-    wx.navigateTo({ url: '/pages/admin-compare-select/admin-compare-select' });
+    wx.navigateTo({ url: '/pages/admin-compare/admin-compare?mode=select' });
   },
 
   // 退出登录
@@ -145,7 +145,6 @@ Page({
     
     if (res.confirm) {
       wx.showLoading({ title: '清空中...' });
-      // TODO: 实现清空云端数据
       wx.showToast({ title: '暂不支持', icon: 'none' });
       wx.hideLoading();
     }
@@ -184,12 +183,5 @@ Page({
         phoneNumber: phone
       });
     }
-  },
-
-  // 格式化时间
-  formatTime(timestamp) {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
   }
 });

@@ -1,7 +1,7 @@
 // pages/admin-user-detail/admin-user-detail.js
-// 用户详情页 - 全面展示用户健康数据，包含丰富图表
+// 用户详情页 - 使用云函数
 
-const cloudDb = require('../../utils/cloud-db');
+const cloudFunctions = require('../../utils/cloud-functions');
 const chartUtil = require('../../utils/charts');
 
 Page({
@@ -64,7 +64,7 @@ Page({
   async loadUserDetail() {
     wx.showLoading({ title: '加载中...' });
     try {
-      const result = await cloudDb.getUserDetail(this.data.userId);
+      const result = await cloudFunctions.getUserDetail(this.data.userId);
       
       if (result.success) {
         const { user, records } = result.data;
@@ -115,7 +115,7 @@ Page({
     this.drawHealthRadar(latestRecord.healthElements || []);
     
     // 3. 绘制症状分布饼图
-    this.drawSymptomPie(latestRecord.symptomNames || []);
+    this.drawSymptomPie(latestRecord.selectedSymptoms || []);
     
     // 4. 绘制健康评分趋势图
     this.drawScoreTrend(records);
@@ -156,21 +156,14 @@ Page({
     
     this.symptomChart.clear();
     
-    // 按类别统计症状
-    const categoryCount = {};
-    symptoms.forEach(s => {
-      const category = s.category || '其他';
-      categoryCount[category] = (categoryCount[category] || 0) + 1;
-    });
-    
-    // 转换为饼图数据
-    const pieData = Object.entries(categoryCount).map(([label, value]) => ({
-      label,
-      value
-    }));
+    // 统计症状数量
+    const pieData = [{
+      label: '身体症状',
+      value: symptoms.length
+    }];
     
     this.symptomChart.drawPieChart(pieData, {
-      title: '症状类别分布'
+      title: '症状分布'
     });
   },
 
@@ -237,7 +230,7 @@ Page({
     if (res.confirm) {
       wx.showLoading({ title: '删除中...' });
       try {
-        const result = await cloudDb.deleteUser(this.data.userId);
+        const result = await cloudFunctions.deleteUser(this.data.userId);
         if (result.success) {
           wx.showToast({ title: '删除成功', icon: 'success' });
           setTimeout(() => wx.navigateBack(), 1500);
@@ -249,29 +242,6 @@ Page({
       }
       wx.hideLoading();
     }
-  },
-
-  // 格式化时间
-  formatDate(timestamp) {
-    const date = new Date(timestamp);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-  },
-
-  // 获取健康等级
-  getHealthLevel(score) {
-    if (score >= 80) return { text: '优秀', color: '#22c55e' };
-    if (score >= 60) return { text: '良好', color: '#eab308' };
-    if (score >= 40) return { text: '一般', color: '#f97316' };
-    return { text: '较差', color: '#ef4444' };
-  },
-
-  // 预览图片（用于症状详情图片展示）
-  previewImage(e) {
-    const url = e.currentTarget.dataset.url;
-    wx.previewImage({
-      urls: [url],
-      current: url
-    });
   },
 
   // 复制手机号
