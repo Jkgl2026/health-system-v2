@@ -8,42 +8,42 @@
       "name": "adminLogin",
       "timeout": 10,
       "envVariables": {},
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs18.15",
       "handler": "index.main"
     },
     {
       "name": "adminChangePassword",
       "timeout": 10,
       "envVariables": {},
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs18.15",
       "handler": "index.main"
     },
     {
       "name": "saveHealthRecord",
       "timeout": 15,
       "envVariables": {},
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs18.15",
       "handler": "index.main"
     },
     {
       "name": "getHealthRecords",
       "timeout": 15,
       "envVariables": {},
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs18.15",
       "handler": "index.main"
     },
     {
       "name": "generateHealthPDF",
       "timeout": 30,
       "envVariables": {},
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs18.15",
       "handler": "index.main"
     },
     {
       "name": "uploadFile",
       "timeout": 20,
       "envVariables": {},
-      "runtime": "Nodejs16.13",
+      "runtime": "Nodejs18.15",
       "handler": "index.main"
     }
   ]
