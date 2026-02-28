@@ -11,6 +11,7 @@ Page({
     records: [],
     latestRecord: null,
     loading: true,
+    healthElementsCount: 0, // 健康要素数量
     
     // 图表画布ID
     scoreChartId: 'scoreChart',
@@ -69,11 +70,13 @@ Page({
       if (result.success) {
         const { user, records } = result.data;
         const latestRecord = records.length > 0 ? records[0] : null;
+        const healthElementsCount = latestRecord && latestRecord.healthElements ? latestRecord.healthElements.length : 0;
         
         this.setData({ 
           user, 
           records, 
           latestRecord,
+          healthElementsCount,
           loading: false 
         });
         

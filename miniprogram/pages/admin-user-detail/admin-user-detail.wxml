@@ -58,7 +58,7 @@
         <text class="stat-label">重点症状</text>
       </view>
       <view class="stat-item">
-        <text class="stat-value">{{(latestRecord.healthElements || []).length}}</text>
+        <text class="stat-value">{{healthElementsCount}}</text>
         <text class="stat-label">健康要素</text>
       </view>
     </view>
