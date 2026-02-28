@@ -2,6 +2,35 @@
 // 图表绘制工具类 - 微信小程序原生Canvas绘制
 
 /**
+ * 绘制圆角矩形（兼容旧版本基础库）
+ */
+function drawRoundRect(ctx, x, y, width, height, radii) {
+  // 如果 radii 是数字，转换为数组
+  if (typeof radii === 'number') {
+    radii = [radii, radii, radii, radii];
+  }
+  
+  // 确保 radii 是数组且有4个值
+  if (!Array.isArray(radii) || radii.length < 4) {
+    radii = [0, 0, 0, 0];
+  }
+  
+  const [tl, tr, br, bl] = radii;
+  
+  ctx.beginPath();
+  ctx.moveTo(x + tl, y);
+  ctx.lineTo(x + width - tr, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + tr);
+  ctx.lineTo(x + width, y + height - br);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - br, y + height);
+  ctx.lineTo(x + bl, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - bl);
+  ctx.lineTo(x, y + tl);
+  ctx.quadraticCurveTo(x, y, x + tl, y);
+  ctx.closePath();
+}
+
+/**
  * 图表绘制类
  */
 class Chart {
@@ -22,6 +51,13 @@ class Chart {
    */
   clear() {
     this.ctx.clearRect(0, 0, this.width, this.height);
+  }
+
+  /**
+   * 绘制圆角矩形（兼容方法）
+   */
+  _roundRect(x, y, width, height, radii) {
+    drawRoundRect(this.ctx, x, y, width, height, radii);
   }
 
   /**
@@ -82,8 +118,7 @@ class Chart {
       gradient.addColorStop(1, this.lightenColor(colors[index % colors.length], 30));
       
       this.ctx.setFillStyle(gradient);
-      this.ctx.beginPath();
-      this.ctx.roundRect(x, y, barWidth, barHeight, [4, 4, 0, 0]);
+      this._roundRect(x, y, barWidth, barHeight, [4, 4, 0, 0]);
       this.ctx.fill();
       
       // 绘制数值
@@ -115,7 +150,6 @@ class Chart {
     const chartHeight = this.height - this.padding.top - this.padding.bottom;
     
     const maxValue = Math.max(...data.map(d => d.value)) * 1.2 || 100;
-    const minValue = Math.min(...data.map(d => d.value));
     
     // 绘制标题
     if (title) {
@@ -272,8 +306,7 @@ class Chart {
       
       // 绘制色块
       this.ctx.setFillStyle(colors[index % colors.length]);
-      this.ctx.beginPath();
-      this.ctx.roundRect(x - 30, legendY, 12, 12, 2);
+      this._roundRect(x - 30, legendY, 12, 12, 2);
       this.ctx.fill();
       
       // 绘制文字
@@ -546,8 +579,7 @@ class Chart {
         const y = this.padding.top + chartHeight - barHeight;
         
         this.ctx.setFillStyle(colors[seriesIndex % colors.length]);
-        this.ctx.beginPath();
-        this.ctx.roundRect(x, y, barWidth, barHeight, [2, 2, 0, 0]);
+        this._roundRect(x, y, barWidth, barHeight, [2, 2, 0, 0]);
         this.ctx.fill();
       });
       
@@ -565,8 +597,7 @@ class Chart {
       const x = legendSpacing / 2 + legendSpacing * index;
       
       this.ctx.setFillStyle(colors[index % colors.length]);
-      this.ctx.beginPath();
-      this.ctx.roundRect(x - 35, legendY, 12, 12, 2);
+      this._roundRect(x - 35, legendY, 12, 12, 2);
       this.ctx.fill();
       
       this.ctx.setFontSize(10);
