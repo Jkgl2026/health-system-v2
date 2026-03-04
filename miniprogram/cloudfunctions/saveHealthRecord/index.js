@@ -57,22 +57,37 @@ exports.main = async (event, context) => {
     // 计算健康要素
     const healthElements = calculateHealthElements(selectedSymptoms)
     
-    // 用户的唯一标识：优先用手机号，没有手机号用 openid
-    const userIdentifier = userInfo.phone || openid
+    // 格式化日期
+    const now = new Date()
+    const dateStr = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
     
-    // 查找或创建用户（用 openid 作为主要标识）
+    // ========== 1. 查找或创建用户 ==========
     let userId
     const existingUser = await db.collection('health_users')
       .where({ openid: openid })
       .get()
     
     if (existingUser.data.length > 0) {
-      // 更新用户信息
       userId = existingUser.data[0]._id
+      // 更新用户信息，同时在用户表中存储最新记录摘要（用于列表查询优化）
       await db.collection('health_users').doc(userId).update({
         data: {
           ...userInfo,
           openid: openid,
+          // 存储最新记录摘要，避免列表查询时的 N+1 问题
+          latestRecord: {
+            healthScore,
+            healthElements,
+            summary: {
+              symptomCount: selectedSymptoms.length,
+              badHabitCount: badHabits.length,
+              symptoms300Count: symptoms300.length,
+              targetCount: targetSymptoms.length,
+              score: healthScore
+            },
+            dateStr,
+            timestamp: Date.now()
+          },
           lastRecordTime: db.serverDate(),
           updatedAt: db.serverDate()
         }
@@ -83,6 +98,19 @@ exports.main = async (event, context) => {
         data: {
           ...userInfo,
           openid: openid,
+          latestRecord: {
+            healthScore,
+            healthElements,
+            summary: {
+              symptomCount: selectedSymptoms.length,
+              badHabitCount: badHabits.length,
+              symptoms300Count: symptoms300.length,
+              targetCount: targetSymptoms.length,
+              score: healthScore
+            },
+            dateStr,
+            timestamp: Date.now()
+          },
           createdAt: db.serverDate(),
           lastRecordTime: db.serverDate(),
           updatedAt: db.serverDate()
@@ -91,11 +119,7 @@ exports.main = async (event, context) => {
       userId = userResult._id
     }
     
-    // 格式化日期
-    const now = new Date()
-    const dateStr = `${now.getFullYear()}年${String(now.getMonth() + 1).padStart(2, '0')}月${String(now.getDate()).padStart(2, '0')}日 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`
-    
-    // 保存健康记录
+    // ========== 2. 保存健康记录（主数据源）==========
     const recordResult = await db.collection('health_records').add({
       data: {
         userId,
@@ -131,66 +155,7 @@ exports.main = async (event, context) => {
       }
     })
     
-    // ========== 同步数据到 adminUsers 集合供后台读取 ==========
-    const adminUserData = {
-      // 用户基本信息
-      openid: openid,
-      phone: userInfo.phone || '',
-      name: userInfo.name || '匿名用户',
-      gender: userInfo.gender || '',
-      age: userInfo.age || '',
-      
-      // 完整自检数据
-      selectedSymptoms,
-      badHabits,
-      symptoms300,
-      sevenQuestions,
-      targetSymptoms,
-      selectedChoice,
-      
-      // 计算结果
-      healthScore,
-      healthElements,
-      
-      // 统计摘要
-      summary: {
-        symptomCount: selectedSymptoms.length,
-        badHabitCount: badHabits.length,
-        symptoms300Count: symptoms300.length,
-        targetCount: targetSymptoms.length,
-        score: healthScore
-      },
-      
-      // 关联信息
-      userId,
-      latestRecordId: recordResult._id,
-      
-      // 时间戳
-      lastRecordTime: db.serverDate(),
-      dateStr,
-      updatedAt: db.serverDate()
-    }
-    
-    // 检查 adminUsers 中是否已存在该用户（用 openid 查询）
-    const existingAdminUser = await db.collection('adminUsers')
-      .where({ openid: openid })
-      .get()
-    
-    if (existingAdminUser.data.length > 0) {
-      // 更新现有记录
-      await db.collection('adminUsers').doc(existingAdminUser.data[0]._id).update({
-        data: adminUserData
-      })
-    } else {
-      // 创建新记录
-      await db.collection('adminUsers').add({
-        data: {
-          ...adminUserData,
-          createdAt: db.serverDate()
-        }
-      })
-    }
-    // ========== 同步结束 ==========
+    // ========== 不再写入 adminUsers 集合，已删除冗余数据源 ==========
     
     return {
       success: true,
@@ -199,7 +164,6 @@ exports.main = async (event, context) => {
       healthScore,
       openid: openid
     }
-    
   } catch (error) {
     console.error('保存健康记录失败:', error)
     return {

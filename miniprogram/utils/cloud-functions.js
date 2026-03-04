@@ -25,11 +25,12 @@ function callFunction(name, data = {}) {
 
 /**
  * 管理员登录
+ * @param {string} username 用户名
  * @param {string} password 密码
  * @returns {Promise<Object>} 登录结果
  */
-async function adminLogin(password) {
-  return await callFunction('adminAuth', { password })
+async function adminLogin(username, password) {
+  return await callFunction('adminAuth', { username, password })
 }
 
 /**
@@ -101,12 +102,22 @@ async function getRecordDetail(recordId) {
 }
 
 /**
- * 获取统计数据
+ * 获取统计数据（简化版）
  * @returns {Promise<Object>} 统计数据
  */
 async function getStatistics() {
   return await callFunction('getHealthRecords', {
     action: 'getStatistics'
+  })
+}
+
+/**
+ * 获取仪表盘统计数据（完整版，含健康要素、平均分等）
+ * @returns {Promise<Object>} 仪表盘统计数据
+ */
+async function getDashboardStats() {
+  return await callFunction('getHealthRecords', {
+    action: 'getDashboardStats'
   })
 }
 
@@ -166,6 +177,7 @@ module.exports = {
   getUserHistory,
   getRecordDetail,
   getStatistics,
+  getDashboardStats,
   deleteUser,
   generateHealthPDF,
   getTempFileURL,

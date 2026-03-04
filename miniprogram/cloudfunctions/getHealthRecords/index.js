@@ -25,6 +25,8 @@ exports.main = async (event, context) => {
         return await getRecordDetail(data)
       case 'getStatistics':
         return await getStatistics()
+      case 'getDashboardStats':
+        return await getDashboardStats()
       case 'deleteUser':
         return await deleteUser(data)
       default:
@@ -36,7 +38,7 @@ exports.main = async (event, context) => {
   }
 }
 
-// 获取用户列表（后台管理用）
+// 获取用户列表（后台管理用）- 优化版，不再有 N+1 查询
 async function getUserList(data) {
   const { page = 1, limit = 20, search = '' } = data
   const skip = (page - 1) * limit
@@ -55,31 +57,131 @@ async function getUserList(data) {
   const countResult = await query.count()
   const total = countResult.total
   
-  // 获取数据
+  // 获取数据 - 用户表中已存储 latestRecord，无需额外查询
   const listResult = await query
     .orderBy('createdAt', 'desc')
     .skip(skip)
     .limit(limit)
+    .field({
+      _id: true,
+      name: true,
+      phone: true,
+      gender: true,
+      age: true,
+      createdAt: true,
+      lastRecordTime: true,
+      latestRecord: true
+    })
     .get()
-  
-  // 为每个用户获取最新记录
-  const users = await Promise.all(listResult.data.map(async (user) => {
-    const latestRecord = await getLatestRecordByUserId(user._id)
-    return {
-      ...user,
-      latestRecord
-    }
-  }))
   
   return {
     success: true,
-    data: users,
+    data: listResult.data,
     pagination: {
       page,
       limit,
       total,
       totalPages: Math.ceil(total / limit),
       hasNextPage: page * limit < total
+    }
+  }
+}
+
+// 获取仪表盘统计数据 - 使用聚合查询优化
+async function getDashboardStats() {
+  // 1. 基础统计
+  const usersCount = await db.collection('health_users').count()
+  const recordsCount = await db.collection('health_records').count()
+  
+  // 2. 今日数据
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  
+  const todayUsers = await db.collection('health_users')
+    .where({ createdAt: _.gte(today) })
+    .count()
+  
+  const todayRecords = await db.collection('health_records')
+    .where({ createdAt: _.gte(today) })
+    .count()
+  
+  // 3. 健康评分统计 - 使用聚合查询
+  const scoreStats = await db.collection('health_users')
+    .where({
+      'latestRecord.healthScore': _.exists(true)
+    })
+    .field({
+      'latestRecord.healthScore': true
+    })
+    .get()
+  
+  let totalScore = 0
+  let scoreCount = 0
+  let warningUsers = 0
+  
+  scoreStats.data.forEach(user => {
+    const score = user.latestRecord?.healthScore
+    if (score !== undefined && score !== null) {
+      totalScore += score
+      scoreCount++
+      if (score < 60) {
+        warningUsers++
+      }
+    }
+  })
+  
+  const avgHealthScore = scoreCount > 0 ? Math.round(totalScore / scoreCount) : 0
+  
+  // 4. 健康要素统计
+  const elementStats = await db.collection('health_users')
+    .where({
+      'latestRecord.healthElements': _.exists(true)
+    })
+    .field({
+      'latestRecord.healthElements': true
+    })
+    .get()
+  
+  const elementTotals = {}
+  const elementCounts = {}
+  
+  elementStats.data.forEach(user => {
+    const elements = user.latestRecord?.healthElements || []
+    elements.forEach(el => {
+      if (!elementTotals[el.name]) {
+        elementTotals[el.name] = 0
+        elementCounts[el.name] = 0
+      }
+      elementTotals[el.name] += el.count || 0
+      elementCounts[el.name]++
+    })
+  })
+  
+  const healthElements = [
+    { name: '气血', key: 'qiAndBlood', icon: '🔴', colorClass: 'fill-red' },
+    { name: '循环', key: 'circulation', icon: '🔵', colorClass: 'fill-blue' },
+    { name: '毒素', key: 'toxins', icon: '🟡', colorClass: 'fill-yellow' },
+    { name: '血脂', key: 'bloodLipids', icon: '🟠', colorClass: 'fill-orange' },
+    { name: '寒凉', key: 'coldness', icon: '🧊', colorClass: 'fill-cyan' },
+    { name: '免疫', key: 'immunity', icon: '🛡️', colorClass: 'fill-green' },
+    { name: '情绪', key: 'emotions', icon: '💜', colorClass: 'fill-purple' }
+  ].map(el => ({
+    ...el,
+    value: elementCounts[el.name] > 0 
+      ? Math.round(elementTotals[el.name] / elementCounts[el.name]) 
+      : 0
+  }))
+  
+  return {
+    success: true,
+    data: {
+      totalUsers: usersCount.total,
+      totalRecords: recordsCount.total,
+      todayUsers: todayUsers.total,
+      todayRecords: todayRecords.total,
+      avgHealthScore,
+      warningUsers,
+      healthElements
     }
   }
 }
@@ -132,16 +234,11 @@ async function getUserHistory(data) {
     return { success: true, users: [] }
   }
   
-  const users = await Promise.all(usersResult.data.map(async (user) => {
-    const latestRecord = await getLatestRecordByUserId(user._id)
-    return {
-      ...user,
-      latestRecord
-    }
-  }))
+  // 用户表中已有 latestRecord，无需额外查询
+  const users = usersResult.data.sort((a, b) => 
+    new Date(b.createdAt) - new Date(a.createdAt)
+  )
   
-  // 按创建时间排序
-  users.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
   if (users.length > 0) {
     users[0].isLatest = true
   }
@@ -157,15 +254,11 @@ async function getRecordDetail(data) {
   return { success: true, data: result.data }
 }
 
-// 获取统计数据
+// 获取统计数据（简化版）
 async function getStatistics() {
-  // 获取用户总数
   const usersCount = await db.collection('health_users').count()
-  
-  // 获取记录总数
   const recordsCount = await db.collection('health_records').count()
   
-  // 获取今日新增
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   
@@ -205,15 +298,4 @@ async function deleteUser(data) {
   await db.collection('health_users').doc(userId).remove()
   
   return { success: true }
-}
-
-// 获取用户最新的健康记录
-async function getLatestRecordByUserId(userId) {
-  const result = await db.collection('health_records')
-    .where({ userId })
-    .orderBy('createdAt', 'desc')
-    .limit(1)
-    .get()
-  
-  return result.data.length > 0 ? result.data[0] : null
 }
