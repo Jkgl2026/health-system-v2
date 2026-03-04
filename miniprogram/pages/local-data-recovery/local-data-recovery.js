@@ -1,5 +1,4 @@
 // pages/local-data-recovery/local-data-recovery.js
-const { userAPI } = require('../../utils/api');
 
 // 存储项配置
 const STORAGE_CONFIG = [

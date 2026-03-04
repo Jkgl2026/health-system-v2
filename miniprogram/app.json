@@ -20,12 +20,10 @@
     "pages/local-data-recovery/local-data-recovery",
     "pages/history-list/history-list",
     "pages/history-compare/history-compare",
-    "pages/admin/login/login",
-    "pages/admin/dashboard/dashboard",
-    "pages/admin/user-detail/user-detail",
+    "pages/admin-login/admin-login",
+    "pages/admin-dashboard/admin-dashboard",
     "pages/admin-user-detail/admin-user-detail",
-    "pages/admin-compare/admin-compare",
-    "pages/admin-dashboard/admin-dashboard"
+    "pages/admin-compare/admin-compare"
   ],
   "window": {
     "backgroundTextStyle": "light",
