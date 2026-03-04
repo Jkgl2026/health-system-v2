@@ -4,17 +4,28 @@
   <view class="header">
     <text class="header-icon">🔐</text>
     <text class="header-title">健康自检后台管理</text>
-    <text class="header-desc">请输入管理员密码登录</text>
+    <text class="header-desc">请输入管理员账号登录</text>
   </view>
 
   <!-- 登录表单 -->
   <view class="login-form">
+    <!-- 用户名 -->
+    <view class="form-item">
+      <view class="input-icon">👤</view>
+      <input 
+        class="input"
+        placeholder="请输入用户名"
+        value="{{username}}"
+        bindinput="onUsernameInput"
+      />
+    </view>
+
     <!-- 密码 -->
     <view class="form-item">
       <view class="input-icon">🔒</view>
       <input 
         class="input"
-        placeholder="请输入管理员密码"
+        placeholder="请输入密码"
         password="{{!showPassword}}"
         value="{{password}}"
         bindinput="onPasswordInput"
@@ -36,7 +47,7 @@
     <!-- 提示 -->
     <view class="hint">
       <text class="hint-icon">💡</text>
-      <text class="hint-text">默认密码：admin123</text>
+      <text class="hint-text">默认账号：admin / admin123</text>
     </view>
   </view>
 

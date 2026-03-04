@@ -1,11 +1,19 @@
 // pages/admin/login/login.js
-// 管理员登录页面
+// 管理员登录页面 - 安全版本
 
 Page({
   data: {
+    username: '',
     password: '',
     showPassword: false,
     loading: false
+  },
+
+  // 输入用户名
+  onUsernameInput(e) {
+    this.setData({
+      username: e.detail.value
+    });
   },
 
   // 输入密码
@@ -24,7 +32,16 @@ Page({
 
   // 登录
   async onLogin() {
-    const { password } = this.data;
+    const { username, password } = this.data;
+
+    // 参数校验
+    if (!username.trim()) {
+      wx.showToast({
+        title: '请输入用户名',
+        icon: 'none'
+      });
+      return;
+    }
 
     if (!password.trim()) {
       wx.showToast({
@@ -37,33 +54,26 @@ Page({
     this.setData({ loading: true });
 
     try {
-      // 检查云开发是否可用
-      if (wx.cloud) {
-        // 尝试调用云函数
-        const result = await this.callCloudLogin(password);
-        
-        if (result.success) {
-          this.loginSuccess();
-        } else {
-          this.loginFailed(result.error || '密码错误');
-        }
+      // 必须通过云函数验证，不提供本地降级
+      const result = await this.callCloudLogin(username, password);
+      
+      if (result.success) {
+        this.loginSuccess(result.adminInfo);
       } else {
-        // 云开发不可用，使用本地验证
-        this.localLogin(password);
+        this.loginFailed(result.error || '登录失败');
       }
     } catch (error) {
       console.error('登录失败:', error);
-      // 云函数调用失败，降级到本地验证
-      this.localLogin(password);
+      this.loginFailed('登录失败，请检查网络连接后重试');
     }
   },
 
   // 调用云函数登录
-  callCloudLogin(password) {
+  callCloudLogin(username, password) {
     return new Promise((resolve, reject) => {
       wx.cloud.callFunction({
         name: 'adminAuth',
-        data: { password },
+        data: { username, password },
         success: (res) => {
           resolve(res.result);
         },
@@ -75,20 +85,11 @@ Page({
     });
   },
 
-  // 本地验证登录（备选方案）
-  localLogin(password) {
-    // 默认密码 admin123
-    if (password === 'admin123') {
-      this.loginSuccess();
-    } else {
-      this.loginFailed('密码错误，默认密码: admin123');
-    }
-  },
-
   // 登录成功
-  loginSuccess() {
-    // 保存登录状态
+  loginSuccess(adminInfo) {
+    // 保存登录状态和管理员信息
     wx.setStorageSync('adminLoggedIn', true);
+    wx.setStorageSync('adminInfo', adminInfo);
     
     wx.showToast({
       title: '登录成功',
@@ -98,7 +99,7 @@ Page({
 
     setTimeout(() => {
       wx.redirectTo({
-        url: '/pages/admin-dashboard/admin-dashboard'
+        url: '/pages/admin/dashboard/dashboard'
       });
     }, 1000);
   },
