@@ -147,10 +147,10 @@ Page({
     this.setData({ expandedSections });
   },
 
-  // 跳转到健康七问
+  // 跳转到三个选择页面
   goToQuestions() {
     wx.navigateTo({
-      url: '/pages/requirements/requirements'
+      url: '/pages/choices/choices'
     });
   },
 
