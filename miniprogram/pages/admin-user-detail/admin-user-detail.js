@@ -234,11 +234,21 @@ Page({
     });
   },
 
-  // 进入数据对比页面
+  // 进入数据对比页面（支持同名用户合并）
   goToCompare() {
-    wx.navigateTo({
-      url: `/pages/admin-compare/admin-compare?userId=${this.data.userId}`
-    });
+    const { user } = this.data;
+    if (user && user.name && user.phone) {
+      // 使用合并模式，支持同名用户对比
+      const encodedName = encodeURIComponent(user.name);
+      wx.navigateTo({
+        url: `/pages/admin-compare/admin-compare?name=${encodedName}&phone=${user.phone}`
+      });
+    } else {
+      // 降级为单用户模式
+      wx.navigateTo({
+        url: `/pages/admin-compare/admin-compare?userId=${this.data.userId}`
+      });
+    }
   },
 
   // 返回

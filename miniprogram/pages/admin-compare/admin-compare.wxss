@@ -67,11 +67,17 @@
 .user-info-bar {
   display: flex;
   align-items: center;
-  gap: 16rpx;
+  justify-content: space-between;
   padding: 16rpx 24rpx;
   background: #ffffff;
   margin: 16rpx 24rpx;
   border-radius: 12rpx;
+}
+
+.user-info-main {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
 }
 
 .user-name {
@@ -85,6 +91,26 @@
   color: #64748b;
 }
 
+/* 合并用户标识 */
+.merged-badge {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  padding: 8rpx 16rpx;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-radius: 20rpx;
+}
+
+.merged-icon {
+  font-size: 24rpx;
+}
+
+.merged-text {
+  font-size: 22rpx;
+  color: #92400e;
+  font-weight: 500;
+}
+
 /* 选择提示 */
 .select-tip {
   display: flex;
@@ -96,6 +122,10 @@
   border-radius: 12rpx;
 }
 
+.select-tip.merged {
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
 .tip-icon {
   font-size: 32rpx;
 }
@@ -103,6 +133,10 @@
 .tip-text {
   font-size: 26rpx;
   color: #1e40af;
+}
+
+.select-tip.merged .tip-text {
+  color: #065f46;
 }
 
 /* 记录选择列表 */
@@ -159,6 +193,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 8rpx;
+  flex-wrap: wrap;
+  gap: 8rpx;
 }
 
 .record-date {
@@ -170,6 +206,15 @@
   font-size: 28rpx;
   font-weight: 600;
   color: #3b82f6;
+}
+
+/* 来源用户标识 */
+.source-user-tag {
+  font-size: 20rpx;
+  color: #6366f1;
+  background: #e0e7ff;
+  padding: 2rpx 8rpx;
+  border-radius: 8rpx;
 }
 
 .record-summary {

@@ -229,6 +229,32 @@ async function getAbnormalUsers(options = {}) {
   })
 }
 
+// ==================== 同名用户合并功能 ====================
+
+/**
+ * 获取合并同名用户后的用户列表
+ * @param {Object} options 分页和搜索参数
+ * @returns {Promise<Object>} 合并后的用户列表
+ */
+async function getMergedUsersList(options = {}) {
+  return await callFunction('getHealthRecords', {
+    action: 'getMergedUsersList',
+    data: options
+  })
+}
+
+/**
+ * 获取同名用户的所有记录
+ * @param {Object} data 包含name、phone或userIds
+ * @returns {Promise<Object>} 用户的所有记录
+ */
+async function getMergedUserRecords(data) {
+  return await callFunction('getHealthRecords', {
+    action: 'getMergedUserRecords',
+    data
+  })
+}
+
 module.exports = {
   callFunction,
   adminLogin,
@@ -249,5 +275,8 @@ module.exports = {
   getConstitutionStats,
   getPlanStats,
   getTrendData,
-  getAbnormalUsers
+  getAbnormalUsers,
+  // 同名用户合并功能
+  getMergedUsersList,
+  getMergedUserRecords
 }

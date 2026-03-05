@@ -17,14 +17,22 @@
   <view class="content" wx:if="{{!loading}}">
     <!-- 用户信息 -->
     <view class="user-info-bar" wx:if="{{user}}">
-      <text class="user-name">{{user.name}}</text>
-      <text class="user-phone">{{user.phone}}</text>
+      <view class="user-info-main">
+        <text class="user-name">{{user.name}}</text>
+        <text class="user-phone">{{user.phone}}</text>
+      </view>
+      <!-- 合并用户标识 -->
+      <view class="merged-badge" wx:if="{{isMerged}}">
+        <text class="merged-icon">🔗</text>
+        <text class="merged-text">已合并{{mergedCount}}人</text>
+      </view>
     </view>
 
     <!-- 选择提示 -->
-    <view class="select-tip">
+    <view class="select-tip {{isMerged ? 'merged' : ''}}">
       <text class="tip-icon">💡</text>
-      <text class="tip-text">请选择2-5条记录进行对比分析</text>
+      <text class="tip-text" wx:if="{{isMerged}}">同名用户已自动合并，可选择所有检测记录对比</text>
+      <text class="tip-text" wx:else>请选择2-5条记录进行对比分析</text>
     </view>
 
     <!-- 记录选择列表 -->
@@ -39,6 +47,8 @@
           <view class="record-header">
             <text class="record-date">{{item.dateStr}}</text>
             <text class="record-score">评分: {{item.healthScore}}</text>
+            <!-- 来源用户标识（合并模式下显示） -->
+            <text class="source-user-tag" wx:if="{{isMerged && item.sourceUserSuffix}}">ID·{{item.sourceUserSuffix}}</text>
           </view>
           <view class="record-summary">
             <text class="summary-tag">{{item.summary.symptomCount}}症状</text>

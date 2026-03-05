@@ -1,13 +1,25 @@
 // pages/admin-compare/admin-compare.js
-// 数据对比分析页 - 使用云函数
+// 数据对比分析页 - 使用云函数，支持同名用户合并
 
 const cloudFunctions = require('../../utils/cloud-functions');
 const chartUtil = require('../../utils/charts');
 
 Page({
   data: {
+    // 用户标识（支持单用户或合并用户）
     userId: '',
+    userName: '',
+    userPhone: '',
+    
+    // 用户信息
     user: null,
+    users: [], // 同名用户列表
+    
+    // 合并标识
+    isMerged: false, // 是否为合并用户
+    mergedCount: 0, // 合并的用户数量
+    
+    // 记录数据
     records: [],
     selectedRecords: [],
     compareMode: 'two', // two: 两条记录对比, multi: 多条记录对比
@@ -37,15 +49,29 @@ Page({
   },
 
   onLoad(options) {
-    this.setData({ userId: options.userId });
-    this.loadRecords();
+    // 支持两种模式：
+    // 1. 单用户模式：传入 userId
+    // 2. 合并用户模式：传入 name 和 phone
+    if (options.userId) {
+      this.setData({ userId: options.userId });
+      this.loadRecords();
+    } else if (options.name && options.phone) {
+      this.setData({ 
+        userName: decodeURIComponent(options.name), 
+        userPhone: options.phone 
+      });
+      this.loadMergedRecords();
+    } else {
+      wx.showToast({ title: '参数错误', icon: 'error' });
+      setTimeout(() => wx.navigateBack(), 1500);
+    }
   },
 
   onReady() {
     this.initCharts();
   },
 
-  // 加载用户所有记录
+  // 加载单个用户记录（原逻辑）
   async loadRecords() {
     wx.showLoading({ title: '加载中...' });
     try {
@@ -56,7 +82,7 @@ Page({
         
         this.setData({ 
           user, 
-          records,
+          records: this.formatRecords(records),
           loading: false 
         });
         
@@ -73,6 +99,68 @@ Page({
       wx.showToast({ title: '加载失败', icon: 'error' });
     }
     wx.hideLoading();
+  },
+
+  // 加载合并用户记录（新逻辑）
+  async loadMergedRecords() {
+    wx.showLoading({ title: '加载中...' });
+    try {
+      const result = await cloudFunctions.getMergedUserRecords({
+        name: this.data.userName,
+        phone: this.data.userPhone
+      });
+      
+      if (result.success) {
+        const { users, records, userCount, recordCount } = result.data;
+        
+        // 格式化记录，添加来源标识
+        const formattedRecords = this.formatRecords(records);
+        
+        // 获取用户信息（使用第一个用户作为显示）
+        const primaryUser = users[0] || {};
+        
+        this.setData({ 
+          user: primaryUser,
+          users: users,
+          records: formattedRecords,
+          isMerged: userCount > 1,
+          mergedCount: userCount,
+          loading: false 
+        });
+        
+        // 默认选择最近两条记录
+        if (formattedRecords.length >= 2) {
+          this.setData({ selectedRecords: [formattedRecords[0], formattedRecords[1]] });
+          this.generateCompareResult();
+        }
+      } else {
+        wx.showToast({ title: '加载失败', icon: 'error' });
+      }
+    } catch (e) {
+      console.error('加载合并记录失败:', e);
+      wx.showToast({ title: '加载失败', icon: 'error' });
+    }
+    wx.hideLoading();
+  },
+
+  // 格式化记录数据，添加显示字段
+  formatRecords(records) {
+    return records.map(record => ({
+      ...record,
+      dateStr: this.formatDate(record.createdAt || record.timestamp),
+      sourceUserSuffix: record.sourceUserId ? record.sourceUserId.slice(-4) : ''
+    })).sort((a, b) => {
+      const timeA = new Date(a.createdAt || a.timestamp).getTime();
+      const timeB = new Date(b.createdAt || b.timestamp).getTime();
+      return timeB - timeA; // 降序，最新的在前
+    });
+  },
+
+  // 格式化日期
+  formatDate(date) {
+    if (!date) return '';
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   },
 
   // 初始化图表
@@ -109,7 +197,11 @@ Page({
     }
     
     // 按时间排序
-    selectedRecords.sort((a, b) => b.timestamp - a.timestamp);
+    selectedRecords.sort((a, b) => {
+      const timeA = new Date(a.createdAt || a.timestamp).getTime();
+      const timeB = new Date(b.createdAt || b.timestamp).getTime();
+      return timeB - timeA;
+    });
     
     this.setData({ selectedRecords: [...selectedRecords] });
     
@@ -130,7 +222,7 @@ Page({
     const previous = selectedRecords[selectedRecords.length - 1];
     
     // 健康评分变化
-    const scoreChange = latest.healthScore - previous.healthScore;
+    const scoreChange = (latest.healthScore || 0) - (previous.healthScore || 0);
     
     // 症状数量变化
     const symptomChange = (latest.summary?.symptomCount || 0) - (previous.summary?.symptomCount || 0);

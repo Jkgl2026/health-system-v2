@@ -40,6 +40,11 @@ exports.main = async (event, context) => {
         return await getTrendData(data)
       case 'getAbnormalUsers':
         return await getAbnormalUsers(data)
+      // 新增：同名用户合并功能
+      case 'getMergedUsersList':
+        return await getMergedUsersList(data)
+      case 'getMergedUserRecords':
+        return await getMergedUserRecords(data)
       default:
         return { success: false, error: '未知操作' }
     }
@@ -255,6 +260,156 @@ async function getUserHistory(data) {
   }
   
   return { success: true, users }
+}
+
+// 获取合并同名用户后的用户列表
+async function getMergedUsersList(data) {
+  const { page = 1, limit = 20, search = '' } = data
+  
+  // 获取所有用户
+  let query = db.collection('health_users')
+  
+  if (search) {
+    query = query.where(_.or([
+      { name: db.RegExp({ regexp: search, options: 'i' }) },
+      { phone: db.RegExp({ regexp: search, options: 'i' }) }
+    ]))
+  }
+  
+  const allUsersResult = await query
+    .orderBy('createdAt', 'desc')
+    .limit(1000) // 获取足够多的用户用于合并
+    .field({
+      _id: true,
+      name: true,
+      phone: true,
+      gender: true,
+      age: true,
+      createdAt: true,
+      lastRecordTime: true,
+      latestRecord: true
+    })
+    .get()
+  
+  // 按姓名+手机号合并用户
+  const mergedMap = new Map()
+  
+  allUsersResult.data.forEach(user => {
+    const key = `${user.name}_${user.phone}`
+    
+    if (!mergedMap.has(key)) {
+      mergedMap.set(key, {
+        key,
+        name: user.name,
+        phone: user.phone,
+        userIds: [],
+        users: [],
+        recordCount: 0,
+        latestRecordTime: null,
+        latestRecord: null
+      })
+    }
+    
+    const merged = mergedMap.get(key)
+    merged.userIds.push(user._id)
+    merged.users.push(user)
+    
+    // 统计记录数
+    if (user.latestRecord) {
+      merged.recordCount += 1
+    }
+    
+    // 更新最新记录
+    const recordTime = user.lastRecordTime || user.createdAt
+    if (!merged.latestRecordTime || new Date(recordTime) > new Date(merged.latestRecordTime)) {
+      merged.latestRecordTime = recordTime
+      merged.latestRecord = user.latestRecord
+    }
+  })
+  
+  // 转换为数组并排序
+  let mergedUsers = Array.from(mergedMap.values())
+    .sort((a, b) => new Date(b.latestRecordTime) - new Date(a.latestRecordTime))
+  
+  // 分页
+  const total = mergedUsers.length
+  const skip = (page - 1) * limit
+  mergedUsers = mergedUsers.slice(skip, skip + limit)
+  
+  return {
+    success: true,
+    data: mergedUsers,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page * limit < total
+    }
+  }
+}
+
+// 获取同名用户的所有记录
+async function getMergedUserRecords(data) {
+  const { name, phone, userIds } = data
+  
+  // 如果传入了userIds数组，直接使用
+  let targetUserIds = userIds
+  
+  // 否则根据姓名和手机号查询
+  if (!targetUserIds || targetUserIds.length === 0) {
+    if (!name || !phone) {
+      return { success: false, error: '缺少查询条件' }
+    }
+    
+    const usersResult = await db.collection('health_users')
+      .where({
+        name: name,
+        phone: phone
+      })
+      .field({ _id: true })
+      .get()
+    
+    targetUserIds = usersResult.data.map(u => u._id)
+  }
+  
+  if (targetUserIds.length === 0) {
+    return { success: true, data: { users: [], records: [] } }
+  }
+  
+  // 获取所有用户的详细信息
+  const usersResult = await db.collection('health_users')
+    .where({
+      _id: _.in(targetUserIds)
+    })
+    .get()
+  
+  // 获取所有用户的所有记录
+  const recordsResult = await db.collection('health_records')
+    .where({
+      userId: _.in(targetUserIds)
+    })
+    .orderBy('createdAt', 'desc')
+    .get()
+  
+  // 为每条记录添加来源用户标识
+  const records = recordsResult.data.map(record => ({
+    ...record,
+    sourceUserId: record.userId,
+    sourceUserSuffix: record.userId.slice(-4) // 用户ID后4位
+  }))
+  
+  return {
+    success: true,
+    data: {
+      users: usersResult.data,
+      records,
+      name,
+      phone,
+      userCount: usersResult.data.length,
+      recordCount: records.length
+    }
+  }
 }
 
 // 获取单条记录详情
