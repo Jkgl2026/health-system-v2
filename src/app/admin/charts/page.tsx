@@ -243,6 +243,60 @@ export default function ChartsComparePage() {
     setSingleUserData(null);
   };
 
+  // 单人模式：选择合并用户（按姓名+手机号）
+  const selectMergedUser = async (mergedUser: MergedUser) => {
+    setSelectedMergedUserKey(mergedUser.key);
+    setSelectedRecords([]);
+    setMergedUserData(null);
+    setLoading(true);
+    
+    try {
+      // 并行加载所有同名用户的数据
+      const promises = mergedUser.userIds.map(userId =>
+        fetch(`/api/admin/user-detail?userId=${userId}`, {
+          credentials: 'include',
+        }).then(res => res.json())
+      );
+      
+      const results = await Promise.all(promises);
+      
+      // 合并所有检测记录
+      const allRecords: any[] = [];
+      results.forEach((data, index) => {
+        if (data.success && data.data?.healthAnalysis) {
+          data.data.healthAnalysis.forEach((analysis: any) => {
+            allRecords.push({
+              ...analysis,
+              userId: mergedUser.userIds[index],
+              userName: data.data.user?.name || mergedUser.name
+            });
+          });
+        }
+      });
+      
+      // 按时间排序（最新在前）
+      allRecords.sort((a, b) => 
+        new Date(b.analyzedAt).getTime() - new Date(a.analyzedAt).getTime()
+      );
+      
+      setMergedUserData({
+        name: mergedUser.name,
+        phone: mergedUser.phone,
+        userIds: mergedUser.userIds,
+        allRecords
+      });
+      
+      // 默认选择最近2条记录
+      if (allRecords.length >= 2) {
+        setSelectedRecords(allRecords.slice(0, 2).map(r => r.id));
+      }
+    } catch (error) {
+      console.error('获取合并用户数据失败:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 单人模式：切换记录选择
   const toggleRecordSelection = (recordId: string) => {
     setSelectedRecords(prev => {
@@ -257,9 +311,10 @@ export default function ChartsComparePage() {
 
   // 快速选择记录
   const quickSelectRecords = (type: 'all' | 'recent3' | 'recent5' | 'recent10') => {
-    if (!singleUserData?.healthAnalysis) return;
+    // 优先使用合并数据
+    const records = mergedUserData?.allRecords || singleUserData?.healthAnalysis;
+    if (!records) return;
     
-    const records = singleUserData.healthAnalysis;
     switch (type) {
       case 'all':
         setSelectedRecords(records.map((a: any) => a.id).slice(0, 10));
@@ -294,6 +349,71 @@ export default function ChartsComparePage() {
       return name.includes(searchQuery) || phone.includes(searchQuery);
     });
   }, [users, searchQuery]);
+
+  // ========== 单人模式：合并用户列表 ==========
+  // 按姓名+手机号合并，支持同一个人的多次检测记录对比
+  interface MergedUser {
+    key: string; // 姓名+手机号 作为唯一标识
+    name: string;
+    phone: string | null;
+    age: number | null;
+    gender: string | null;
+    userIds: string[]; // 所有相关的用户ID
+    totalRecords: number; // 合并后的总检测记录数
+    latestDate: string | null; // 最近检测时间
+  }
+
+  const mergedUsers = useMemo(() => {
+    const mergedMap = new Map<string, MergedUser>();
+    
+    filteredUsers.forEach(u => {
+      const name = u.user?.name || '未命名';
+      const phone = u.user?.phone || '';
+      const key = `${name}_${phone}`; // 姓名+手机号作为唯一标识
+      
+      const recordCount = u.healthAnalysis?.length || 0;
+      const latestAnalysis = u.healthAnalysis?.[0];
+      const latestDate = latestAnalysis?.analyzedAt 
+        ? new Date(latestAnalysis.analyzedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+        : null;
+      
+      if (mergedMap.has(key)) {
+        // 已存在，合并数据
+        const existing = mergedMap.get(key)!;
+        existing.userIds.push(u.user.id);
+        existing.totalRecords += recordCount;
+        // 更新年龄和性别（如果有值）
+        if (u.user.age && !existing.age) existing.age = u.user.age;
+        if (u.user.gender && !existing.gender) existing.gender = u.user.gender;
+        // 更新最近时间
+        if (latestDate && !existing.latestDate) existing.latestDate = latestDate;
+      } else {
+        // 新建合并用户
+        mergedMap.set(key, {
+          key,
+          name,
+          phone: u.user.phone,
+          age: u.user.age,
+          gender: u.user.gender,
+          userIds: [u.user.id],
+          totalRecords: recordCount,
+          latestDate
+        });
+      }
+    });
+    
+    return Array.from(mergedMap.values()).sort((a, b) => b.totalRecords - a.totalRecords);
+  }, [filteredUsers]);
+
+  // 单人模式选中的合并用户key
+  const [selectedMergedUserKey, setSelectedMergedUserKey] = useState<string | null>(null);
+  // 单人模式合并后的所有记录
+  const [mergedUserData, setMergedUserData] = useState<{
+    name: string;
+    phone: string | null;
+    userIds: string[];
+    allRecords: any[];
+  } | null>(null);
 
   // ========== 多用户模式：生成图表数据 ==========
   
@@ -375,9 +495,9 @@ export default function ChartsComparePage() {
   // ========== 单人多次模式：生成图表数据 ==========
 
   const singleTrendData = useMemo(() => {
-    if (!singleUserData?.healthAnalysis || selectedRecords.length === 0) return [];
+    if (!mergedUserData?.allRecords || selectedRecords.length === 0) return [];
 
-    const records = singleUserData.healthAnalysis
+    const records = mergedUserData.allRecords
       .filter((a: any) => selectedRecords.includes(a.id))
       .sort((a: any, b: any) => new Date(a.analyzedAt).getTime() - new Date(b.analyzedAt).getTime());
 
@@ -387,12 +507,12 @@ export default function ChartsComparePage() {
       recordId: item.id,
       index: index + 1
     }));
-  }, [singleUserData, selectedRecords]);
+  }, [mergedUserData, selectedRecords]);
 
   const singleRadarData = useMemo(() => {
-    if (!singleUserData?.healthAnalysis || selectedRecords.length === 0) return [];
+    if (!mergedUserData?.allRecords || selectedRecords.length === 0) return [];
 
-    const selectedAnalyses = singleUserData.healthAnalysis
+    const selectedAnalyses = mergedUserData.allRecords
       .filter((a: any) => selectedRecords.includes(a.id));
 
     const data: Record<string, any> = {};
@@ -405,13 +525,13 @@ export default function ChartsComparePage() {
     });
 
     return Object.values(data);
-  }, [singleUserData, selectedRecords]);
+  }, [mergedUserData, selectedRecords]);
 
   // 单人改善分析
   const singleImprovementAnalysis = useMemo(() => {
-    if (!singleUserData?.healthAnalysis || selectedRecords.length < 2) return null;
+    if (!mergedUserData?.allRecords || selectedRecords.length < 2) return null;
 
-    const records = singleUserData.healthAnalysis
+    const records = mergedUserData.allRecords
       .filter((a: any) => selectedRecords.includes(a.id))
       .sort((a: any, b: any) => new Date(a.analyzedAt).getTime() - new Date(b.analyzedAt).getTime());
 
@@ -466,7 +586,7 @@ export default function ChartsComparePage() {
         / (1000 * 60 * 60 * 24)
       )
     };
-  }, [singleUserData, selectedRecords]);
+  }, [mergedUserData, selectedRecords]);
 
   const handleLogout = () => {
     localStorage.removeItem('adminLoggedIn');
@@ -477,8 +597,12 @@ export default function ChartsComparePage() {
   const handleRefresh = () => {
     if (compareMode === 'multi') {
       fetchSelectedUsersData();
-    } else {
-      fetchSingleUserData();
+    } else if (selectedMergedUserKey) {
+      // 重新加载合并用户数据
+      const user = mergedUsers.find(u => u.key === selectedMergedUserKey);
+      if (user) {
+        selectMergedUser(user);
+      }
     }
   };
 
@@ -669,22 +793,22 @@ export default function ChartsComparePage() {
                     </CardContent>
                   </>
                 ) : (
-                  // 单人多次模式选择面板
+                  // 单人多次模式选择面板 - 使用合并用户列表
                   <>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2 text-base">
                         <User className="h-5 w-5 text-purple-500" />
-                        {selectedSingleUser ? '选择检测记录' : '选择用户'}
+                        {selectedMergedUserKey ? '选择检测记录' : '选择用户'}
                       </CardTitle>
                       <CardDescription>
-                        {selectedSingleUser 
+                        {selectedMergedUserKey 
                           ? `选择该用户的检测记录进行对比` 
-                          : '从所有用户中选择一个'}
+                          : '按姓名合并，对比同一人的多次检测'}
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      {!selectedSingleUser ? (
-                        // 选择用户
+                      {!selectedMergedUserKey ? (
+                        // 选择用户（合并列表）
                         <>
                           <div className="relative mb-4">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -695,53 +819,55 @@ export default function ChartsComparePage() {
                               className="pl-9"
                             />
                           </div>
+                          <div className="mb-2 p-2 bg-blue-50 rounded text-xs text-blue-600">
+                            💡 同名用户已自动合并，点击可查看所有检测记录
+                          </div>
                           <div className="max-h-[400px] overflow-y-auto space-y-2">
                             {loading && users.length === 0 ? (
                               <div className="flex items-center justify-center py-10">
                                 <RefreshCw className="h-6 w-6 animate-spin text-purple-500" />
                               </div>
-                            ) : filteredUsers.length === 0 ? (
+                            ) : mergedUsers.length === 0 ? (
                               <div className="text-center py-10 text-gray-500">
                                 <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                                 暂无用户数据
                               </div>
                             ) : (
-                              filteredUsers.map((u) => {
-                                // 生成用户区分标识：手机号后4位 + ID后4位
-                                const phoneSuffix = u.user.phone ? u.user.phone.slice(-4) : '无手机';
-                                const idSuffix = u.user.id.slice(-4);
-                                const recordCount = u.healthAnalysis?.length || 0;
-                                const latestAnalysis = u.healthAnalysis?.[0];
-                                const latestDate = latestAnalysis?.analyzedAt 
-                                  ? new Date(latestAnalysis.analyzedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
-                                  : null;
+                              mergedUsers.map((mu) => {
+                                const phoneSuffix = mu.phone ? mu.phone.slice(-4) : '无手机';
+                                const isMerged = mu.userIds.length > 1;
                                 
                                 return (
                                   <div
-                                    key={u.user.id}
+                                    key={mu.key}
                                     className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-purple-200 hover:bg-gray-50 cursor-pointer transition-all"
-                                    onClick={() => selectSingleUser(u.user.id)}
+                                    onClick={() => selectMergedUser(mu)}
                                   >
                                     <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-center gap-2">
-                                        <p className="font-medium truncate">{u.user.name || '未命名'}</p>
+                                        <p className="font-medium truncate">{mu.name}</p>
                                         <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">
-                                          {phoneSuffix}·{idSuffix}
+                                          {phoneSuffix}
                                         </span>
+                                        {isMerged && (
+                                          <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                                            已合并{mu.userIds.length}人
+                                          </Badge>
+                                        )}
                                       </div>
                                       <div className="flex items-center gap-2 text-xs text-gray-500">
-                                        <span>{u.user.age || '-'}岁</span>
-                                        {recordCount > 0 && (
+                                        <span>{mu.age || '-'}岁</span>
+                                        {mu.totalRecords > 0 && (
                                           <>
                                             <span className="text-gray-300">|</span>
-                                            <span className="text-purple-600 font-medium">{recordCount}次检测</span>
+                                            <span className="text-purple-600 font-medium">{mu.totalRecords}次检测</span>
                                           </>
                                         )}
-                                        {latestDate && (
+                                        {mu.latestDate && (
                                           <>
                                             <span className="text-gray-300">|</span>
-                                            <span>最近: {latestDate}</span>
+                                            <span>最近: {mu.latestDate}</span>
                                           </>
                                         )}
                                       </div>
@@ -760,31 +886,28 @@ export default function ChartsComparePage() {
                             <div className="flex items-center justify-between">
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <p className="font-medium">{getUserName(selectedSingleUser)}</p>
-                                  {(() => {
-                                    const user = users.find(u => u.user.id === selectedSingleUser)?.user;
-                                    if (user) {
-                                      const phoneSuffix = user.phone ? user.phone.slice(-4) : '无手机';
-                                      const idSuffix = user.id.slice(-4);
-                                      return (
-                                        <span className="text-xs text-gray-500 bg-white px-1.5 py-0.5 rounded">
-                                          {phoneSuffix}·{idSuffix}
-                                        </span>
-                                      );
-                                    }
-                                    return null;
-                                  })()}
+                                  <p className="font-medium">{mergedUserData?.name}</p>
+                                  {mergedUserData?.phone && (
+                                    <span className="text-xs text-gray-500 bg-white px-1.5 py-0.5 rounded">
+                                      {mergedUserData.phone.slice(-4)}
+                                    </span>
+                                  )}
+                                  {mergedUserData?.userIds && mergedUserData.userIds.length > 1 && (
+                                    <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-700">
+                                      合并{mergedUserData.userIds.length}个账号
+                                    </Badge>
+                                  )}
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">
-                                  共 {singleUserData?.healthAnalysis?.length || 0} 条检测记录 · 请选择要对比的记录
+                                  共 {mergedUserData?.allRecords?.length || 0} 条检测记录 · 请选择要对比的记录
                                 </p>
                               </div>
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
                                 onClick={() => {
-                                  setSelectedSingleUser(null);
-                                  setSingleUserData(null);
+                                  setSelectedMergedUserKey(null);
+                                  setMergedUserData(null);
                                   setSelectedRecords([]);
                                 }}
                               >
@@ -813,13 +936,13 @@ export default function ChartsComparePage() {
                               <div className="flex items-center justify-center py-10">
                                 <RefreshCw className="h-6 w-6 animate-spin text-purple-500" />
                               </div>
-                            ) : !singleUserData?.healthAnalysis?.length ? (
+                            ) : !mergedUserData?.allRecords?.length ? (
                               <div className="text-center py-10 text-gray-500">
                                 <AlertCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
                                 暂无检测记录
                               </div>
                             ) : (
-                              singleUserData.healthAnalysis.map((analysis: any, index: number) => {
+                              mergedUserData.allRecords.map((analysis: any, index: number) => {
                                 const isSelected = selectedRecords.includes(analysis.id);
                                 const selectedIndex = selectedRecords.indexOf(analysis.id);
                                 const healthScore = analysis.overallHealth ?? 0;
@@ -827,6 +950,7 @@ export default function ChartsComparePage() {
                                 const analysisDate = new Date(analysis.analyzedAt);
                                 const dateStr = analysisDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
                                 const timeStr = analysisDate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                                const idSuffix = analysis.userId?.slice(-4) || '';
                                 
                                 return (
                                   <div
@@ -857,6 +981,11 @@ export default function ChartsComparePage() {
                                         <p className="text-sm font-medium">
                                           {dateStr} {timeStr}
                                         </p>
+                                        {idSuffix && (
+                                          <span className="text-xs text-gray-400 bg-gray-100 px-1 py-0.5 rounded">
+                                            ID:{idSuffix}
+                                          </span>
+                                        )}
                                         {index === 0 && (
                                           <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">最新</Badge>
                                         )}
@@ -865,7 +994,6 @@ export default function ChartsComparePage() {
                                         <span className={`text-sm font-semibold ${scoreColor}`}>
                                           健康分: {healthScore}
                                         </span>
-                                        {/* 显示主要健康要素 */}
                                         <span className="text-xs text-gray-400">
                                           气血{analysis.qiAndBlood ?? '-'} 循环{analysis.circulation ?? '-'}
                                         </span>
@@ -1149,14 +1277,14 @@ export default function ChartsComparePage() {
                   )
                 ) : (
                   // ========== 单人多次对比图表 ==========
-                  !selectedSingleUser ? (
+                  !selectedMergedUserKey ? (
                     <Card className="border-gray-200">
                       <CardContent className="py-20 text-center">
                         <User className="h-16 w-16 mx-auto text-gray-300 mb-4" />
                         <p className="text-gray-500 text-lg">请从左侧选择一个用户</p>
                         <p className="text-gray-400 text-sm mt-2">追踪该用户的健康变化趋势</p>
-                        <div className="mt-4 text-xs text-gray-400 bg-gray-50 rounded-lg p-3 inline-block">
-                          <p>💡 提示：同名用户可通过"手机后4位·ID后4位"区分</p>
+                        <div className="mt-4 text-xs text-blue-600 bg-blue-50 rounded-lg p-3 inline-block">
+                          <p>💡 同名用户已自动合并，可选择查看所有检测记录</p>
                         </div>
                       </CardContent>
                     </Card>
@@ -1168,9 +1296,8 @@ export default function ChartsComparePage() {
                         <p className="text-gray-400 text-sm mt-2">对比不同时间的健康数据变化</p>
                         <div className="mt-4 flex justify-center gap-2">
                           <Button variant="outline" size="sm" onClick={() => {
-                            // 获取当前用户信息，设置到selectedSingleUser
-                            if (singleUserData?.healthAnalysis?.length) {
-                              setSelectedRecords(singleUserData.healthAnalysis.slice(0, 2).map((a: any) => a.id));
+                            if (mergedUserData?.allRecords?.length) {
+                              setSelectedRecords(mergedUserData.allRecords.slice(0, 2).map((a: any) => a.id));
                             }
                           }}>
                             快速选择最近2次
@@ -1208,7 +1335,7 @@ export default function ChartsComparePage() {
                               健康分变化趋势
                             </CardTitle>
                             <CardDescription>
-                              {getUserName(selectedSingleUser)} 的 {selectedRecords.length} 次检测健康分变化
+                              {mergedUserData?.name || '用户'} 的 {selectedRecords.length} 次检测健康分变化
                             </CardDescription>
                           </CardHeader>
                           <CardContent>
