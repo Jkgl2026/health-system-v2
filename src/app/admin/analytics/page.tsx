@@ -90,6 +90,11 @@ export default function AnalyticsPage() {
       const data = await response.json();
       if (data.success) {
         setOverviewData(data.data);
+      } else if (data.code === 'UNAUTHORIZED' || response.status === 401) {
+        // 认证失败，跳转登录页
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('admin');
+        router.push('/admin/login');
       }
     } catch (error) {
       console.error('获取总览数据失败:', error);
@@ -105,6 +110,10 @@ export default function AnalyticsPage() {
       const data = await response.json();
       if (data.success) {
         setSymptomData(data.data);
+      } else if (data.code === 'UNAUTHORIZED' || response.status === 401) {
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('admin');
+        router.push('/admin/login');
       }
     } catch (error) {
       console.error('获取症状数据失败:', error);
@@ -122,6 +131,10 @@ export default function AnalyticsPage() {
       const data = await response.json();
       if (data.success) {
         setConstitutionData(data.data);
+      } else if (data.code === 'UNAUTHORIZED' || response.status === 401) {
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('admin');
+        router.push('/admin/login');
       }
     } catch (error) {
       console.error('获取体质数据失败:', error);
@@ -139,6 +152,10 @@ export default function AnalyticsPage() {
       const data = await response.json();
       if (data.success) {
         setPlanData(data.data);
+      } else if (data.code === 'UNAUTHORIZED' || response.status === 401) {
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('admin');
+        router.push('/admin/login');
       }
     } catch (error) {
       console.error('获取方案数据失败:', error);
