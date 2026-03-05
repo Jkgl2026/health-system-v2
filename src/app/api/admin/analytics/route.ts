@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
-    const type = searchParams.get('type') || 'overview'; // overview, symptom, constitution, plan
+    const type = searchParams.get('type') || 'overview'; // overview, symptom, constitution, plan, trend, alert
     const startDate = searchParams.get('startDate') || '';
     const endDate = searchParams.get('endDate') || '';
     const gender = searchParams.get('gender') || '';
@@ -75,6 +75,10 @@ export async function GET(request: NextRequest) {
         return await getConstitutionAnalysis(db, userConditions);
       case 'plan':
         return await getPlanAnalysis(db, userConditions);
+      case 'trend':
+        return await getTrendAnalysis(db, userConditions);
+      case 'alert':
+        return await getAlertAnalysis(db, userConditions);
       case 'overview':
       default:
         return await getOverviewAnalysis(db, userConditions);
@@ -416,6 +420,159 @@ async function getOverviewAnalysis(db: any, userConditions: any[]) {
       users: userStats[0] || { total: 0, today: 0, male: 0, female: 0 },
       checks: checkStats[0] || { total: 0, today: 0 },
       analysis: analysisStats[0] || { total: 0, avgScore: 0, excellent: 0, good: 0, fair: 0, poor: 0 },
+    },
+  });
+}
+
+// 时间趋势分析
+async function getTrendAnalysis(db: any, userConditions: any[]) {
+  // 获取近30天的用户增长趋势
+  const userGrowth = await db
+    .select({
+      date: sql<string>`date(${users.createdAt})`,
+      newUsers: sql<number>`count(*)`,
+    })
+    .from(users)
+    .where(sql`${users.createdAt} >= current_date - interval '30 days'`)
+    .groupBy(sql`date(${users.createdAt})`)
+    .orderBy(sql`date(${users.createdAt})`);
+
+  // 计算累计用户
+  let cumulative = 0;
+  const userGrowthWithTotal = userGrowth.map((day: any) => {
+    cumulative += Number(day.newUsers);
+    return {
+      date: day.date,
+      newUsers: Number(day.newUsers),
+      totalUsers: cumulative,
+    };
+  });
+
+  // 获取近30天的检测趋势
+  const checkTrend = await db
+    .select({
+      date: sql<string>`date(${symptomChecks.checkedAt})`,
+      count: sql<number>`count(*)`,
+    })
+    .from(symptomChecks)
+    .where(sql`${symptomChecks.checkedAt} >= current_date - interval '30 days'`)
+    .groupBy(sql`date(${symptomChecks.checkedAt})`)
+    .orderBy(sql`date(${symptomChecks.checkedAt})`);
+
+  const checkTrendFormatted = checkTrend.map((day: any) => ({
+    date: day.date,
+    count: Number(day.count),
+  }));
+
+  // 获取近30天的健康分趋势
+  const scoreTrend = await db
+    .select({
+      date: sql<string>`date(${healthAnalysis.analyzedAt})`,
+      avgScore: sql<number>`avg(${healthAnalysis.overallHealth})`,
+    })
+    .from(healthAnalysis)
+    .where(sql`${healthAnalysis.analyzedAt} >= current_date - interval '30 days'`)
+    .groupBy(sql`date(${healthAnalysis.analyzedAt})`)
+    .orderBy(sql`date(${healthAnalysis.analyzedAt})`);
+
+  const scoreTrendFormatted = scoreTrend.map((day: any) => ({
+    date: day.date,
+    avgScore: Number(day.avgScore).toFixed(1),
+  }));
+
+  return NextResponse.json({
+    success: true,
+    data: {
+      userGrowth: userGrowthWithTotal,
+      checkTrend: checkTrendFormatted,
+      scoreTrend: scoreTrendFormatted,
+    },
+  });
+}
+
+// 异常预警分析
+async function getAlertAnalysis(db: any, userConditions: any[]) {
+  // 获取高风险用户（健康分<40）
+  const highRiskUsers = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      age: users.age,
+      phone: users.phone,
+      overallHealth: healthAnalysis.overallHealth,
+      analyzedAt: healthAnalysis.analyzedAt,
+      qiAndBlood: healthAnalysis.qiAndBlood,
+      circulation: healthAnalysis.circulation,
+      immunity: healthAnalysis.immunity,
+    })
+    .from(healthAnalysis)
+    .innerJoin(users, eq(healthAnalysis.userId, users.id))
+    .where(sql`${healthAnalysis.overallHealth} < 40`)
+    .orderBy(desc(healthAnalysis.analyzedAt))
+    .limit(20);
+
+  // 格式化高风险用户数据
+  const formattedHighRiskUsers = highRiskUsers.map((user: any) => {
+    const issues = [];
+    if (user.qiAndBlood < 40) issues.push('气血不足');
+    if (user.circulation < 40) issues.push('循环异常');
+    if (user.immunity < 40) issues.push('免疫低下');
+    
+    return {
+      id: user.id,
+      name: user.name,
+      age: user.age,
+      phone: user.phone,
+      score: user.overallHealth,
+      lastCheck: user.analyzedAt,
+      mainIssues: issues.join('、') || '综合评分低',
+    };
+  });
+
+  // 统计各健康维度异常人数
+  const metrics = ['qiAndBlood', 'circulation', 'toxins', 'bloodLipids', 'coldness', 'immunity', 'emotions'];
+  const metricNames = ['气血', '循环', '毒素', '血脂', '寒凉', '免疫', '情绪'];
+  
+  const metricDistribution = await Promise.all(
+    metrics.map(async (metric, index) => {
+      const result = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(healthAnalysis)
+        .where(sql`${healthAnalysis[metric as keyof typeof healthAnalysis]} < 40`);
+      
+      return {
+        name: metricNames[index],
+        count: Number(result[0]?.count || 0),
+      };
+    })
+  );
+
+  // 统计总数
+  const totalUsers = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(users);
+
+  const highRiskCount = await db
+    .select({ count: sql<number>`count(distinct ${healthAnalysis.userId})` })
+    .from(healthAnalysis)
+    .where(sql`${healthAnalysis.overallHealth} < 40`);
+
+  const needAttentionCount = await db
+    .select({ count: sql<number>`count(distinct ${healthAnalysis.userId})` })
+    .from(healthAnalysis)
+    .where(sql`${healthAnalysis.overallHealth} >= 40 and ${healthAnalysis.overallHealth} < 60`);
+
+  const abnormalMetricsCount = metricDistribution.reduce((sum, m) => sum + m.count, 0);
+
+  return NextResponse.json({
+    success: true,
+    data: {
+      totalUsers: Number(totalUsers[0]?.count || 0),
+      highRisk: Number(highRiskCount[0]?.count || 0),
+      needAttention: Number(needAttentionCount[0]?.count || 0),
+      abnormalMetrics: abnormalMetricsCount,
+      highRiskUsers: formattedHighRiskUsers,
+      metricDistribution,
     },
   });
 }
