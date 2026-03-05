@@ -353,7 +353,7 @@ export default function AnalyticsPage() {
                   <div>
                     <p className="text-sm text-gray-500">平均健康分</p>
                     <p className="text-2xl font-bold text-orange-600">
-                      {overviewData.analysis?.avgScore ? overviewData.analysis.avgScore.toFixed(1) : '--'}
+                      {overviewData.analysis?.avgScore != null ? Number(overviewData.analysis.avgScore).toFixed(1) : '--'}
                     </p>
                   </div>
                   <BarChart3 className="h-8 w-8 text-orange-200" />
