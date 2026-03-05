@@ -56,8 +56,33 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     if (mounted) {
-      checkAuth();
-      fetchOverviewData();
+      const init = async () => {
+        const isLoggedIn = localStorage.getItem('adminLoggedIn');
+        if (!isLoggedIn) {
+          router.push('/admin/login');
+          return;
+        }
+        
+        try {
+          const verifyResponse = await fetch('/api/admin/verify', {
+            method: 'GET',
+            credentials: 'include',
+          });
+          
+          if (!verifyResponse.ok) {
+            localStorage.removeItem('adminLoggedIn');
+            localStorage.removeItem('admin');
+            router.push('/admin/login');
+            return;
+          }
+          
+          await fetchOverviewData();
+        } catch (error) {
+          console.error('初始化失败:', error);
+        }
+      };
+      
+      init();
     }
   }, [mounted]);
 
@@ -70,29 +95,6 @@ export default function AnalyticsPage() {
       else if (activeTab === 'alert') fetchAlertData();
     }
   }, [mounted, activeTab, startDate, endDate, gender, ageRange]);
-
-  const checkAuth = async () => {
-    const isLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (!isLoggedIn) {
-      router.push('/admin/login');
-      return;
-    }
-    
-    try {
-      const response = await fetch('/api/admin/verify', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        localStorage.removeItem('adminLoggedIn');
-        localStorage.removeItem('admin');
-        router.push('/admin/login');
-      }
-    } catch (error) {
-      console.error('认证验证失败:', error);
-    }
-  };
 
   const buildQueryParams = () => {
     const params = new URLSearchParams();

@@ -77,37 +77,41 @@ export default function AbnormalPage() {
 
   useEffect(() => {
     setMounted(true);
-    checkAuth();
+    const init = async () => {
+      const isLoggedIn = localStorage.getItem('adminLoggedIn');
+      if (!isLoggedIn) {
+        router.push('/admin/login');
+        return;
+      }
+      
+      try {
+        const verifyResponse = await fetch('/api/admin/verify', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (!verifyResponse.ok) {
+          localStorage.removeItem('adminLoggedIn');
+          localStorage.removeItem('admin');
+          router.push('/admin/login');
+          return;
+        }
+        
+        // 认证通过后加载数据
+        fetchAbnormalUsers();
+      } catch (error) {
+        console.error('认证验证失败:', error);
+      }
+    };
+    
+    init();
   }, []);
 
   useEffect(() => {
-    fetchAbnormalUsers();
+    if (mounted) {
+      fetchAbnormalUsers();
+    }
   }, [pagination.page, thresholds]);
-
-  const checkAuth = async () => {
-    // 首先检查 localStorage 快速缓存
-    const isLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (!isLoggedIn) {
-      router.push('/admin/login');
-      return;
-    }
-    
-    // 然后验证 Cookie 是否有效
-    try {
-      const response = await fetch('/api/admin/verify', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        localStorage.removeItem('adminLoggedIn');
-        localStorage.removeItem('admin');
-        router.push('/admin/login');
-      }
-    } catch (error) {
-      console.error('认证验证失败:', error);
-    }
-  };
 
   const fetchAbnormalUsers = async () => {
     setLoading(true);

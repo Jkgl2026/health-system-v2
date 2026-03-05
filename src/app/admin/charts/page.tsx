@@ -91,8 +91,36 @@ export default function ChartsComparePage() {
 
   useEffect(() => {
     if (mounted) {
-      checkAuth();
-      fetchUsers();
+      // 先检查认证，认证通过后再加载用户数据
+      const init = async () => {
+        const isLoggedIn = localStorage.getItem('adminLoggedIn');
+        if (!isLoggedIn) {
+          router.push('/admin/login');
+          return;
+        }
+        
+        try {
+          // 验证认证状态
+          const verifyResponse = await fetch('/api/admin/verify', {
+            method: 'GET',
+            credentials: 'include',
+          });
+          
+          if (!verifyResponse.ok) {
+            localStorage.removeItem('adminLoggedIn');
+            localStorage.removeItem('admin');
+            router.push('/admin/login');
+            return;
+          }
+          
+          // 认证通过，加载用户数据
+          await fetchUsers();
+        } catch (error) {
+          console.error('初始化失败:', error);
+        }
+      };
+      
+      init();
     }
   }, [mounted]);
 
@@ -110,29 +138,6 @@ export default function ChartsComparePage() {
     }
   }, [mounted, selectedSingleUser, compareMode]);
 
-  const checkAuth = async () => {
-    const isLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (!isLoggedIn) {
-      router.push('/admin/login');
-      return;
-    }
-    
-    try {
-      const response = await fetch('/api/admin/verify', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        localStorage.removeItem('adminLoggedIn');
-        localStorage.removeItem('admin');
-        router.push('/admin/login');
-      }
-    } catch (error) {
-      console.error('认证验证失败:', error);
-    }
-  };
-
   const fetchUsers = async () => {
     setLoading(true);
     try {
@@ -141,14 +146,19 @@ export default function ChartsComparePage() {
       });
       const data = await response.json();
       if (data.success) {
-        setUsers(data.data);
+        setUsers(data.data || []);
       } else if (data.code === 'UNAUTHORIZED' || response.status === 401) {
         localStorage.removeItem('adminLoggedIn');
         localStorage.removeItem('admin');
         router.push('/admin/login');
+      } else {
+        // 其他错误，显示错误信息
+        console.error('获取用户列表失败:', data.error || '未知错误');
+        setUsers([]);
       }
     } catch (error) {
       console.error('获取用户列表失败:', error);
+      setUsers([]);
     } finally {
       setLoading(false);
     }

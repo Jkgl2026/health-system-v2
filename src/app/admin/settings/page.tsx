@@ -59,35 +59,35 @@ export default function SettingsPage() {
 
   useEffect(() => {
     setMounted(true);
-    checkAuth();
-    fetchAdmins();
-    fetchLoginLogs();
-  }, []);
-
-  const checkAuth = async () => {
-    // 首先检查 localStorage 快速缓存
-    const isLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (!isLoggedIn) {
-      router.push('/admin/login');
-      return;
-    }
-    
-    // 然后验证 Cookie 是否有效
-    try {
-      const response = await fetch('/api/admin/verify', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        localStorage.removeItem('adminLoggedIn');
-        localStorage.removeItem('admin');
+    const init = async () => {
+      const isLoggedIn = localStorage.getItem('adminLoggedIn');
+      if (!isLoggedIn) {
         router.push('/admin/login');
+        return;
       }
-    } catch (error) {
-      console.error('认证验证失败:', error);
-    }
-  };
+      
+      try {
+        const verifyResponse = await fetch('/api/admin/verify', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (!verifyResponse.ok) {
+          localStorage.removeItem('adminLoggedIn');
+          localStorage.removeItem('admin');
+          router.push('/admin/login');
+          return;
+        }
+        
+        // 认证通过后加载数据
+        await Promise.all([fetchAdmins(), fetchLoginLogs()]);
+      } catch (error) {
+        console.error('初始化失败:', error);
+      }
+    };
+    
+    init();
+  }, []);
 
   const fetchAdmins = async () => {
     setLoading(true);

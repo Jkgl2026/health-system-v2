@@ -115,37 +115,35 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     if (mounted) {
-      checkAuth();
-      fetchUsers();
+      const init = async () => {
+        const isLoggedIn = localStorage.getItem('adminLoggedIn');
+        if (!isLoggedIn) {
+          router.push('/admin/login');
+          return;
+        }
+        
+        try {
+          const verifyResponse = await fetch('/api/admin/verify', {
+            method: 'GET',
+            credentials: 'include',
+          });
+          
+          if (!verifyResponse.ok) {
+            localStorage.removeItem('adminLoggedIn');
+            localStorage.removeItem('admin');
+            router.push('/admin/login');
+            return;
+          }
+          
+          await fetchUsers();
+        } catch (error) {
+          console.error('初始化失败:', error);
+        }
+      };
+      
+      init();
     }
   }, [mounted, currentPage, itemsPerPage]);
-
-  const checkAuth = async () => {
-    // 首先检查 localStorage 快速缓存
-    const isLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (!isLoggedIn) {
-      router.push('/admin/login');
-      return;
-    }
-    
-    // 然后验证 Cookie 是否有效
-    try {
-      const response = await fetch('/api/admin/verify', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        // Cookie 无效，清除本地状态并跳转到登录页
-        localStorage.removeItem('adminLoggedIn');
-        localStorage.removeItem('admin');
-        router.push('/admin/login');
-      }
-    } catch (error) {
-      console.error('认证验证失败:', error);
-      // 网络错误时不强制登出，保持当前状态
-    }
-  };
 
   const fetchUsers = async () => {
     setLoading(true);

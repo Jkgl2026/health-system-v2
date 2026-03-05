@@ -67,32 +67,35 @@ export default function MaintenancePage() {
 
   useEffect(() => {
     setMounted(true);
-    checkAuth();
-    loadStatus();
-  }, []);
-
-  const checkAuth = async () => {
-    const isLoggedIn = localStorage.getItem('adminLoggedIn');
-    if (!isLoggedIn) {
-      router.push('/admin/login');
-      return;
-    }
-    
-    try {
-      const response = await fetch('/api/admin/verify', {
-        method: 'GET',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        localStorage.removeItem('adminLoggedIn');
-        localStorage.removeItem('admin');
+    const init = async () => {
+      const isLoggedIn = localStorage.getItem('adminLoggedIn');
+      if (!isLoggedIn) {
         router.push('/admin/login');
+        return;
       }
-    } catch (error) {
-      console.error('认证验证失败:', error);
-    }
-  };
+      
+      try {
+        const verifyResponse = await fetch('/api/admin/verify', {
+          method: 'GET',
+          credentials: 'include',
+        });
+        
+        if (!verifyResponse.ok) {
+          localStorage.removeItem('adminLoggedIn');
+          localStorage.removeItem('admin');
+          router.push('/admin/login');
+          return;
+        }
+        
+        // 认证通过后加载状态
+        await loadStatus();
+      } catch (error) {
+        console.error('初始化失败:', error);
+      }
+    };
+    
+    init();
+  }, []);
 
   const loadStatus = async () => {
     setLoading(true);
