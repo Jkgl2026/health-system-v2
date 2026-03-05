@@ -12,23 +12,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Pagination } from '@/components/admin/Pagination';
+import { PREDEFINED_TAGS_FLAT } from '@/lib/health-constants';
 import { 
   LogOut, ArrowLeft, Tags, RefreshCw, Filter, 
   User, CheckCircle, X, Search
 } from 'lucide-react';
 
-// 预定义标签
-const PREDEFINED_TAGS = [
-  { id: 'high-risk', name: '高风险用户', color: '#ef4444', category: 'health' },
-  { id: 'needs-attention', name: '需关注', color: '#f97316', category: 'health' },
-  { id: 'good-health', name: '健康良好', color: '#10b981', category: 'health' },
-  { id: 'chronic', name: '慢性问题', color: '#8b5cf6', category: 'health' },
-  { id: 'improving', name: '持续改善', color: '#06b6d4', category: 'health' },
-  { id: 'active', name: '活跃用户', color: '#3b82f6', category: 'behavior' },
-  { id: 'inactive', name: '不活跃', color: '#6b7280', category: 'behavior' },
-  { id: 'new', name: '新用户', color: '#84cc16', category: 'behavior' },
-  { id: 'vip', name: 'VIP用户', color: '#f59e0b', category: 'behavior' },
-];
+// 使用统一的预定义标签
+const PREDEFINED_TAGS = PREDEFINED_TAGS_FLAT;
 
 interface UserWithTag {
   id: string;
@@ -65,10 +56,28 @@ export default function TagsPage() {
     fetchUsers();
   }, [currentPage, selectedTag]);
 
-  const checkAuth = () => {
+  const checkAuth = async () => {
+    // 首先检查 localStorage 快速缓存
     const isLoggedIn = localStorage.getItem('adminLoggedIn');
     if (!isLoggedIn) {
       router.push('/admin/login');
+      return;
+    }
+    
+    // 然后验证 Cookie 是否有效
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('admin');
+        router.push('/admin/login');
+      }
+    } catch (error) {
+      console.error('认证验证失败:', error);
     }
   };
 

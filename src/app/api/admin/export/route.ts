@@ -1,8 +1,189 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
 import { users, symptomChecks, healthAnalysis, userChoices, requirements } from '@/storage/database/shared/schema';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, desc } from 'drizzle-orm';
 import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
+
+// GET - 导出数据（支持 URL 直接访问）
+export async function GET(request: NextRequest) {
+  try {
+    const auth = await withAuth(request);
+    if (!auth.success) {
+      return unauthorizedResponse(auth.error);
+    }
+
+    const { searchParams } = new URL(request.url);
+    const details = searchParams.get('details') === 'true';
+    const format = searchParams.get('format') || 'csv';
+    const userIdsParam = searchParams.get('userIds');
+    
+    const db = await getDb();
+    
+    // 获取用户列表
+    let usersData;
+    if (userIdsParam) {
+      const userIds = userIdsParam.split(',');
+      usersData = await db.select().from(users).where(inArray(users.id, userIds));
+    } else {
+      // 导出所有用户
+      usersData = await db.select().from(users);
+    }
+
+    if (!usersData || usersData.length === 0) {
+      return NextResponse.json(
+        { success: false, error: '没有可导出的用户数据' },
+        { status: 400 }
+      );
+    }
+
+    let exportData: any[] = [];
+
+    if (!details) {
+      // 摘要模式：只导出基本信息和最新状态
+      for (const user of usersData) {
+        // 获取最新健康分析
+        const latestAnalysis = await db
+          .select()
+          .from(healthAnalysis)
+          .where(eq(healthAnalysis.userId, user.id))
+          .orderBy(desc(healthAnalysis.analyzedAt))
+          .limit(1);
+
+        // 获取最新症状检查
+        const latestSymptom = await db
+          .select()
+          .from(symptomChecks)
+          .where(eq(symptomChecks.userId, user.id))
+          .orderBy(desc(symptomChecks.checkedAt))
+          .limit(1);
+
+        exportData.push({
+          id: user.id,
+          姓名: user.name || '-',
+          手机号: user.phone || '-',
+          邮箱: user.email || '-',
+          年龄: user.age || '-',
+          性别: user.gender || '-',
+          身高: user.height || '-',
+          体重: user.weight || '-',
+          BMI: user.bmi || '-',
+          职业: user.occupation || '-',
+          综合健康分: latestAnalysis[0]?.overallHealth || '-',
+          气血: latestAnalysis[0]?.qiAndBlood || '-',
+          循环: latestAnalysis[0]?.circulation || '-',
+          毒素: latestAnalysis[0]?.toxins || '-',
+          血脂: latestAnalysis[0]?.bloodLipids || '-',
+          寒凉: latestAnalysis[0]?.coldness || '-',
+          免疫: latestAnalysis[0]?.immunity || '-',
+          情绪: latestAnalysis[0]?.emotions || '-',
+          症状数量: Array.isArray(latestSymptom[0]?.checkedSymptoms) ? (latestSymptom[0]?.checkedSymptoms as any[]).length : 0,
+          检测时间: latestAnalysis[0]?.analyzedAt 
+            ? new Date(latestAnalysis[0].analyzedAt).toLocaleString('zh-CN') 
+            : '-',
+          注册时间: new Date(user.createdAt).toLocaleString('zh-CN'),
+        });
+      }
+    } else {
+      // 详细模式：包含所有历史记录
+      for (const user of usersData) {
+        const analyses = await db
+          .select()
+          .from(healthAnalysis)
+          .where(eq(healthAnalysis.userId, user.id));
+
+        const symptoms = await db
+          .select()
+          .from(symptomChecks)
+          .where(eq(symptomChecks.userId, user.id));
+
+        const choices = await db
+          .select()
+          .from(userChoices)
+          .where(eq(userChoices.userId, user.id));
+
+        exportData.push({
+          用户信息: {
+            id: user.id,
+            姓名: user.name || '-',
+            手机号: user.phone || '-',
+            邮箱: user.email || '-',
+            年龄: user.age || '-',
+            性别: user.gender || '-',
+            身高: user.height || '-',
+            体重: user.weight || '-',
+            BMI: user.bmi || '-',
+            职业: user.occupation || '-',
+            注册时间: new Date(user.createdAt).toLocaleString('zh-CN'),
+          },
+          健康分析记录: analyses.map(a => ({
+            时间: new Date(a.analyzedAt).toLocaleString('zh-CN'),
+            综合健康分: a.overallHealth,
+            气血: a.qiAndBlood,
+            循环: a.circulation,
+            毒素: a.toxins,
+            血脂: a.bloodLipids,
+            寒凉: a.coldness,
+            免疫: a.immunity,
+            情绪: a.emotions,
+          })),
+          症状检查记录: symptoms.map(s => ({
+            时间: new Date(s.checkedAt).toLocaleString('zh-CN'),
+            症状数量: Array.isArray(s.checkedSymptoms) ? (s.checkedSymptoms as any[]).length : 0,
+            总分: s.totalScore,
+          })),
+          方案选择记录: choices.map(c => ({
+            时间: new Date(c.selectedAt).toLocaleString('zh-CN'),
+            方案类型: c.planType,
+            方案描述: c.planDescription,
+          })),
+        });
+      }
+    }
+
+    // 根据格式返回数据
+    if (format === 'json') {
+      return NextResponse.json({
+        success: true,
+        data: exportData,
+        mode: details ? 'detailed' : 'summary',
+        generatedAt: new Date().toISOString(),
+      });
+    } else {
+      // CSV 格式导出
+      if (details) {
+        // 详细模式导出为 JSON
+        return NextResponse.json({
+          success: true,
+          data: exportData,
+          mode: 'detailed',
+          message: '详细模式仅支持 JSON 格式',
+          generatedAt: new Date().toISOString(),
+        });
+      }
+
+      const headers = Object.keys(exportData[0] || {});
+      const csvRows = [
+        headers.join(','),
+        ...exportData.map(row => 
+          headers.map(h => `"${row[h] || ''}"`).join(',')
+        )
+      ].join('\n');
+
+      return new NextResponse('\ufeff' + csvRows, {
+        headers: {
+          'Content-Type': 'text/csv;charset=utf-8;',
+          'Content-Disposition': `attachment; filename="health_export_${new Date().toISOString().split('T')[0]}.csv"`,
+        },
+      });
+    }
+  } catch (error) {
+    console.error('导出数据失败:', error);
+    return NextResponse.json(
+      { success: false, error: '导出数据失败' },
+      { status: 500 }
+    );
+  }
+}
 
 // POST - 导出数据（支持多种格式）
 export async function POST(request: NextRequest) {

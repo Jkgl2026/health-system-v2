@@ -3,24 +3,7 @@ import { getDb } from 'coze-coding-dev-sdk';
 import { users } from '@/storage/database/shared/schema';
 import { eq } from 'drizzle-orm';
 import { withAuth, unauthorizedResponse } from '@/lib/api-auth';
-
-// 预定义标签
-const PREDEFINED_TAGS = {
-  health: [
-    { id: 'high-risk', name: '高风险用户', color: '#ef4444', description: '健康评分低于40分' },
-    { id: 'needs-attention', name: '需关注', color: '#f97316', description: '健康评分40-60分' },
-    { id: 'good-health', name: '健康良好', color: '#10b981', description: '健康评分60分以上' },
-    { id: 'chronic', name: '慢性问题', color: '#8b5cf6', description: '长期存在健康问题' },
-    { id: 'improving', name: '持续改善', color: '#06b6d4', description: '健康评分持续上升' },
-  ],
-  behavior: [
-    { id: 'active', name: '活跃用户', color: '#3b82f6', description: '近7天有登录' },
-    { id: 'inactive', name: '不活跃', color: '#6b7280', description: '30天未登录' },
-    { id: 'new', name: '新用户', color: '#84cc16', description: '注册7天内' },
-    { id: 'vip', name: 'VIP用户', color: '#f59e0b', description: '付费用户' },
-  ],
-  custom: [] as any[],
-};
+import { PREDEFINED_TAGS } from '@/lib/health-constants';
 
 // GET - 获取所有标签或用户的标签
 export async function GET(request: NextRequest) {

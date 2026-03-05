@@ -258,10 +258,28 @@ export default function AdminComparePage() {
     checkAuth();
   }, []);
 
-  const checkAuth = () => {
+  const checkAuth = async () => {
+    // 首先检查 localStorage 快速缓存
     const isLoggedIn = localStorage.getItem('adminLoggedIn');
     if (!isLoggedIn) {
       router.push('/admin/login');
+      return;
+    }
+    
+    // 然后验证 Cookie 是否有效
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('admin');
+        router.push('/admin/login');
+      }
+    } catch (error) {
+      console.error('认证验证失败:', error);
     }
   };
 

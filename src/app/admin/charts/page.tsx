@@ -15,6 +15,7 @@ import {
   LogOut, ArrowLeft, TrendingUp, BarChart3, Activity, RefreshCw, 
   Calendar, Filter, AlertCircle, LineChartIcon, PieChart
 } from 'lucide-react';
+import { getSymptomCategoryStats, SYMPTOM_CATEGORIES_SIMPLE } from '@/lib/health-constants';
 
 // 健康要素配置
 const HEALTH_ELEMENTS = [
@@ -27,16 +28,12 @@ const HEALTH_ELEMENTS = [
   { key: 'emotions', label: '情绪', color: '#8b5cf6' },
 ];
 
-const SYMPTOM_CATEGORIES = [
-  { key: 'head', label: '头部', color: '#ef4444' },
-  { key: 'face', label: '面部', color: '#f97316' },
-  { key: 'chest', label: '胸部', color: '#f59e0b' },
-  { key: 'abdomen', label: '腹部', color: '#84cc16' },
-  { key: 'back', label: '背部', color: '#10b981' },
-  { key: 'limbs', label: '四肢', color: '#06b6d4' },
-  { key: 'skin', label: '皮肤', color: '#3b82f6' },
-  { key: 'systemic', label: '全身', color: '#8b5cf6' },
-];
+// 简化分类配置（用于图表）
+const SYMPTOM_CATEGORIES = Object.entries(SYMPTOM_CATEGORIES_SIMPLE).map(([key, config]) => ({
+  key,
+  label: key,
+  color: config.color,
+}));
 
 export default function ChartsComparePage() {
   const router = useRouter();
@@ -58,10 +55,28 @@ export default function ChartsComparePage() {
     }
   }, [selectedUser]);
 
-  const checkAuth = () => {
+  const checkAuth = async () => {
+    // 首先检查 localStorage 快速缓存
     const isLoggedIn = localStorage.getItem('adminLoggedIn');
     if (!isLoggedIn) {
       router.push('/admin/login');
+      return;
+    }
+    
+    // 然后验证 Cookie 是否有效
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('admin');
+        router.push('/admin/login');
+      }
+    } catch (error) {
+      console.error('认证验证失败:', error);
     }
   };
 
@@ -118,21 +133,20 @@ export default function ChartsComparePage() {
     })).reverse();
     setHealthData(healthTrend);
 
-    // 处理症状分类变化数据
+    // 处理症状分类变化数据（使用真实分类）
     const symptomTrend = data.symptomChecks.map((item: any, index: number) => {
-      const symptoms = item.checkedSymptoms || [];
-      const categories: any = {
-        date: new Date(item.checkedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+      const symptoms = (item.checkedSymptoms || []).map((id: string) => parseInt(id));
+      const date = new Date(item.checkedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+      
+      // 使用真实的分类统计
+      const categoryStats = getSymptomCategoryStats(symptoms);
+      
+      return {
+        date,
         index: index + 1,
         total: symptoms.length,
+        ...categoryStats,
       };
-      
-      // 简单分类计数
-      SYMPTOM_CATEGORIES.forEach(cat => {
-        categories[cat.key] = Math.floor(Math.random() * symptoms.length / 3); // 模拟分类数据
-      });
-      
-      return categories;
     }).reverse();
     setSymptomData(symptomTrend);
 
