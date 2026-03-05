@@ -61,6 +61,7 @@ interface PaginationData {
 
 export default function AbnormalPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [thresholds, setThresholds] = useState(DEFAULT_THRESHOLDS);
   const [abnormalUsers, setAbnormalUsers] = useState<AbnormalUser[]>([]);
@@ -75,6 +76,7 @@ export default function AbnormalPage() {
   const [summary, setSummary] = useState<any>(null);
 
   useEffect(() => {
+    setMounted(true);
     checkAuth();
   }, []);
 
@@ -204,6 +206,18 @@ export default function AbnormalPage() {
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString('zh-CN');
   };
+
+  // 等待客户端挂载
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-red-50">

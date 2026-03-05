@@ -38,6 +38,7 @@ interface LoginLog {
 
 export default function SettingsPage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loginLogs, setLoginLogs] = useState<LoginLog[]>([]);
@@ -57,6 +58,7 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   useEffect(() => {
+    setMounted(true);
     checkAuth();
     fetchAdmins();
     fetchLoginLogs();
@@ -247,6 +249,18 @@ export default function SettingsPage() {
   const formatDate = (date: Date) => {
     return new Date(date).toLocaleString('zh-CN');
   };
+
+  // 等待客户端挂载
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">

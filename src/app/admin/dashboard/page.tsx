@@ -107,11 +107,18 @@ export default function AdminDashboardPage() {
     hasPrevPage: false,
   });
   const [showSearchBar, setShowSearchBar] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-    fetchUsers();
-  }, [currentPage, itemsPerPage]);
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (mounted) {
+      checkAuth();
+      fetchUsers();
+    }
+  }, [mounted, currentPage, itemsPerPage]);
 
   const checkAuth = async () => {
     // 首先检查 localStorage 快速缓存
@@ -624,6 +631,18 @@ export default function AdminDashboardPage() {
       symptoms300Count: symptom300Ids.length
     };
   };
+
+  // 等待客户端挂载，避免服务端渲染错误
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

@@ -24,6 +24,7 @@ export default function AnalyticsPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('symptom');
+  const [mounted, setMounted] = useState(false);
   
   // 筛选条件
   const [startDate, setStartDate] = useState('');
@@ -37,16 +38,25 @@ export default function AnalyticsPage() {
   const [planData, setPlanData] = useState<any>(null);
   const [overviewData, setOverviewData] = useState<any>(null);
 
+  // 客户端挂载后才执行
   useEffect(() => {
-    checkAuth();
-    fetchOverviewData();
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (activeTab === 'symptom') fetchSymptomData();
-    else if (activeTab === 'constitution') fetchConstitutionData();
-    else if (activeTab === 'plan') fetchPlanData();
-  }, [activeTab, startDate, endDate, gender, ageRange]);
+    if (mounted) {
+      checkAuth();
+      fetchOverviewData();
+    }
+  }, [mounted]);
+
+  useEffect(() => {
+    if (mounted) {
+      if (activeTab === 'symptom') fetchSymptomData();
+      else if (activeTab === 'constitution') fetchConstitutionData();
+      else if (activeTab === 'plan') fetchPlanData();
+    }
+  }, [mounted, activeTab, startDate, endDate, gender, ageRange]);
 
   const checkAuth = async () => {
     // 首先检查 localStorage 快速缓存
@@ -200,7 +210,16 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50">
-      {/* 顶部导航 */}
+      {/* 服务端渲染时显示加载状态 */}
+      {!mounted && (
+        <div className="flex items-center justify-center min-h-screen">
+          <RefreshCw className="h-8 w-8 animate-spin text-emerald-500" />
+        </div>
+      )}
+      
+      {mounted && (
+        <>
+          {/* 顶部导航 */}
       <div className="bg-white border-b sticky top-0 z-40 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -645,6 +664,8 @@ export default function AnalyticsPage() {
           </TabsContent>
         </Tabs>
       </div>
+      </>
+      )}
     </div>
   );
 }

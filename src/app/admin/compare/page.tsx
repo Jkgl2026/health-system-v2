@@ -243,6 +243,7 @@ const analyzeSevenQuestionsChange = (answers1: Record<string, any>, answers2: Re
 
 export default function AdminComparePage() {
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [queryType, setQueryType] = useState<'phone' | 'name'>('phone');
   const [phone, setPhone] = useState('');
   const [name, setName] = useState('');
@@ -255,6 +256,7 @@ export default function AdminComparePage() {
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
   useEffect(() => {
+    setMounted(true);
     checkAuth();
   }, []);
 
@@ -485,6 +487,18 @@ export default function AdminComparePage() {
     if (trend === 'down') return <TrendingDown className="h-4 w-4 text-green-500" />;
     return <Minus className="h-4 w-4 text-gray-400" />;
   };
+
+  // 等待客户端挂载
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

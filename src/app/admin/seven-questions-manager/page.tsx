@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +20,8 @@ interface UserData {
 }
 
 export default function SevenQuestionsManagerPage() {
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [userId, setUserId] = useState('');
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +30,34 @@ export default function SevenQuestionsManagerPage() {
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    const isLoggedIn = localStorage.getItem('adminLoggedIn');
+    if (!isLoggedIn) {
+      router.push('/admin/login');
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('admin');
+        router.push('/admin/login');
+      }
+    } catch (error) {
+      console.error('认证验证失败:', error);
+    }
+  };
 
   // 加载用户数据
   const handleLoad = async () => {
@@ -176,6 +207,18 @@ export default function SevenQuestionsManagerPage() {
       setIsBatchChecking(false);
     }
   };
+
+  // 等待客户端挂载
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">

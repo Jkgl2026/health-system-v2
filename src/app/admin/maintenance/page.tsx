@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -57,14 +58,41 @@ type MaintenanceStatus = {
 };
 
 export default function MaintenancePage() {
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [status, setStatus] = useState<MaintenanceStatus | null>(null);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState<MaintenanceAction | null>(null);
   const [lastResults, setLastResults] = useState<any>(null);
 
   useEffect(() => {
+    setMounted(true);
+    checkAuth();
     loadStatus();
   }, []);
+
+  const checkAuth = async () => {
+    const isLoggedIn = localStorage.getItem('adminLoggedIn');
+    if (!isLoggedIn) {
+      router.push('/admin/login');
+      return;
+    }
+    
+    try {
+      const response = await fetch('/api/admin/verify', {
+        method: 'GET',
+        credentials: 'include',
+      });
+      
+      if (!response.ok) {
+        localStorage.removeItem('adminLoggedIn');
+        localStorage.removeItem('admin');
+        router.push('/admin/login');
+      }
+    } catch (error) {
+      console.error('认证验证失败:', error);
+    }
+  };
 
   const loadStatus = async () => {
     setLoading(true);
@@ -174,6 +202,18 @@ export default function MaintenancePage() {
       color: 'bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600',
     },
   ];
+
+  // 等待客户端挂载
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">

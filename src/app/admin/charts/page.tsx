@@ -54,22 +54,30 @@ interface UserData {
 export default function ChartsComparePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [userDataMap, setUserDataMap] = useState<Map<string, UserData>>(new Map());
   const [activeTab, setActiveTab] = useState('trend');
 
+  // 客户端挂载后才执行
   useEffect(() => {
-    checkAuth();
-    fetchUsers();
+    setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (selectedUsers.length > 0) {
+    if (mounted) {
+      checkAuth();
+      fetchUsers();
+    }
+  }, [mounted]);
+
+  useEffect(() => {
+    if (mounted && selectedUsers.length > 0) {
       fetchSelectedUsersData();
     }
-  }, [selectedUsers]);
+  }, [mounted, selectedUsers]);
 
   const checkAuth = async () => {
     const isLoggedIn = localStorage.getItem('adminLoggedIn');
@@ -225,6 +233,15 @@ export default function ChartsComparePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* 服务端渲染时显示加载状态 */}
+      {!mounted && (
+        <div className="flex items-center justify-center min-h-screen">
+          <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
+        </div>
+      )}
+      
+      {mounted && (
+        <>
       {/* 顶部导航 */}
       <div className="bg-white border-b sticky top-0 z-40 shadow-sm">
         <div className="container mx-auto px-4 py-4">
@@ -603,6 +620,8 @@ export default function ChartsComparePage() {
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 }
