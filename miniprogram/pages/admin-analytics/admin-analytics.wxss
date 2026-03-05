@@ -1,0 +1,413 @@
+/* pages/admin-analytics/admin-analytics.wxss */
+
+.container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* 顶部导航 */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 24rpx;
+  background: #ffffff;
+  border-bottom: 1rpx solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-back {
+  font-size: 28rpx;
+  color: #3b82f6;
+  padding: 12rpx 20rpx;
+}
+
+.header-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.header-action {
+  width: 100rpx;
+}
+
+/* 筛选栏 */
+.filter-bar {
+  display: flex;
+  padding: 20rpx 24rpx;
+  background: #ffffff;
+  border-bottom: 1rpx solid #e2e8f0;
+}
+
+.filter-picker {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  background: #f1f5f9;
+  border-radius: 12rpx;
+}
+
+.filter-label {
+  font-size: 26rpx;
+  color: #64748b;
+  margin-right: 12rpx;
+}
+
+.filter-value {
+  font-size: 26rpx;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.filter-arrow {
+  font-size: 20rpx;
+  color: #94a3b8;
+  margin-left: 12rpx;
+}
+
+/* Tab导航 */
+.tab-nav {
+  display: flex;
+  background: #ffffff;
+  padding: 16rpx 24rpx;
+  gap: 12rpx;
+  border-bottom: 1rpx solid #e2e8f0;
+}
+
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16rpx 8rpx;
+  border-radius: 12rpx;
+  background: #f8fafc;
+  transition: all 0.2s;
+}
+
+.tab-item.active {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.tab-icon {
+  font-size: 32rpx;
+  margin-bottom: 6rpx;
+}
+
+.tab-text {
+  font-size: 22rpx;
+  color: #64748b;
+}
+
+.tab-item.active .tab-text {
+  color: #ffffff;
+}
+
+/* 加载中 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 200rpx 0;
+}
+
+.loading-spinner {
+  width: 60rpx;
+  height: 60rpx;
+  border: 4rpx solid #e2e8f0;
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 28rpx;
+  color: #64748b;
+}
+
+/* 统计卡片 */
+.stats-cards {
+  display: flex;
+  padding: 24rpx;
+  gap: 20rpx;
+}
+
+.stats-card {
+  flex: 1;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  text-align: center;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.stats-value {
+  font-size: 44rpx;
+  font-weight: 700;
+  color: #10b981;
+  display: block;
+}
+
+.stats-label {
+  font-size: 24rpx;
+  color: #64748b;
+  margin-top: 8rpx;
+  display: block;
+}
+
+/* 图表区域 */
+.chart-section {
+  margin: 0 24rpx 24rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.chart-container {
+  width: 100%;
+}
+
+/* 列表区域 */
+.list-section {
+  margin: 0 24rpx 24rpx;
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
+}
+
+/* 症状列表 */
+.symptom-list {
+  
+}
+
+.symptom-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f1f5f9;
+}
+
+.symptom-item:last-child {
+  border-bottom: none;
+}
+
+.symptom-info {
+  display: flex;
+  align-items: center;
+}
+
+.symptom-rank {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  font-size: 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 16rpx;
+}
+
+.symptom-name {
+  font-size: 28rpx;
+  color: #1e293b;
+}
+
+.symptom-stats {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.symptom-count {
+  font-size: 26rpx;
+  color: #64748b;
+}
+
+.symptom-percent {
+  font-size: 26rpx;
+  color: #10b981;
+  font-weight: 500;
+}
+
+/* 统计行 */
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.stat-row .stat-item {
+  flex: 1;
+  min-width: 120rpx;
+  text-align: center;
+  padding: 16rpx;
+  background: #f8fafc;
+  border-radius: 12rpx;
+}
+
+.stat-row .stat-label {
+  font-size: 24rpx;
+  color: #64748b;
+  display: block;
+}
+
+.stat-row .stat-value {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1e293b;
+  display: block;
+  margin-top: 8rpx;
+}
+
+/* 体质列表 */
+.constitution-list {
+  
+}
+
+.constitution-item {
+  display: flex;
+  align-items: center;
+  padding: 12rpx 0;
+}
+
+.constitution-name {
+  width: 140rpx;
+  font-size: 26rpx;
+  color: #64748b;
+}
+
+.constitution-bar-wrap {
+  flex: 1;
+  height: 16rpx;
+  background: #f1f5f9;
+  border-radius: 8rpx;
+  margin: 0 16rpx;
+  overflow: hidden;
+}
+
+.constitution-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  border-radius: 8rpx;
+}
+
+.constitution-count {
+  width: 80rpx;
+  font-size: 26rpx;
+  color: #1e293b;
+  text-align: right;
+}
+
+/* 方案列表 */
+.plan-list {
+  
+}
+
+.plan-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f1f5f9;
+}
+
+.plan-item:last-child {
+  border-bottom: none;
+}
+
+.plan-info {
+  width: 300rpx;
+}
+
+.plan-label {
+  font-size: 28rpx;
+  color: #1e293b;
+  display: block;
+}
+
+.plan-count {
+  font-size: 24rpx;
+  color: #64748b;
+}
+
+.plan-progress {
+  flex: 1;
+  height: 12rpx;
+  background: #f1f5f9;
+  border-radius: 6rpx;
+  margin: 0 16rpx;
+  overflow: hidden;
+}
+
+.plan-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  border-radius: 6rpx;
+}
+
+.plan-percent {
+  width: 80rpx;
+  font-size: 26rpx;
+  color: #3b82f6;
+  text-align: right;
+}
+
+/* 趋势列表 */
+.trend-list {
+  max-height: 600rpx;
+  overflow-y: auto;
+}
+
+.trend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f1f5f9;
+}
+
+.trend-date {
+  font-size: 28rpx;
+  color: #1e293b;
+}
+
+.trend-stats {
+  display: flex;
+  gap: 24rpx;
+}
+
+.trend-users {
+  font-size: 26rpx;
+  color: #3b82f6;
+}
+
+.trend-records {
+  font-size: 26rpx;
+  color: #10b981;
+}

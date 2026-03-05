@@ -1,0 +1,86 @@
+<!--pages/admin-tags/admin-tags.wxml-->
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="header">
+    <text class="header-back" bindtap="goBack">← 返回</text>
+    <text class="header-title">用户标签</text>
+    <text class="header-action"></text>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 主内容 -->
+  <view class="content" wx:if="{{!loading}}">
+    <!-- 自动标签 -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">自动标签</text>
+        <text class="section-desc">系统根据用户数据自动生成</text>
+      </view>
+      <view class="tag-cloud">
+        <view class="tag-item {{selectedTag === item.name ? 'selected' : ''}}" 
+              wx:for="{{tagStats.auto}}" wx:key="name"
+              data-tag="{{item.name}}" bindtap="selectTag"
+              style="--tag-color: {{item.color}};">
+          <text class="tag-name">{{item.name}}</text>
+          <text class="tag-count">{{item.count}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 手动标签（预留） -->
+    <view class="section">
+      <view class="section-header">
+        <text class="section-title">手动标签</text>
+        <text class="section-desc">管理员手动添加的标签</text>
+      </view>
+      <view class="tag-cloud" wx:if="{{tagStats.manual.length > 0}}">
+        <view class="tag-item {{selectedTag === item.name ? 'selected' : ''}}" 
+              wx:for="{{tagStats.manual}}" wx:key="name"
+              data-tag="{{item.name}}" bindtap="selectTag"
+              style="--tag-color: {{item.color}};">
+          <text class="tag-name">{{item.name}}</text>
+          <text class="tag-count">{{item.count}}</text>
+        </view>
+      </view>
+      <view class="empty-tags" wx:else>
+        <text class="empty-text">暂无手动标签</text>
+      </view>
+    </view>
+
+    <!-- 选中标签的用户列表 -->
+    <view class="user-section" wx:if="{{selectedTag}}">
+      <view class="section-header">
+        <text class="section-title">标签「{{selectedTag}}」用户</text>
+        <text class="section-count">共{{total}}人</text>
+      </view>
+      
+      <view class="user-list">
+        <view class="user-item" wx:for="{{users}}" wx:key="id" 
+              data-id="{{item.id}}" bindtap="viewUser">
+          <view class="user-info">
+            <view class="user-avatar" style="background: {{item.scoreColor}};">
+              <text class="avatar-text">{{item.name[0] || '?'}}</text>
+            </view>
+            <view class="user-detail">
+              <text class="user-name">{{item.name}}</text>
+              <text class="user-phone">{{item.phone}}</text>
+            </view>
+          </view>
+          <view class="user-score">
+            <text class="score-value" style="color: {{item.scoreColor}};">{{item.healthScore}}分</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 空状态 -->
+      <view class="empty-state" wx:if="{{users.length === 0 && !loading}}">
+        <text class="empty-text">该标签暂无用户</text>
+      </view>
+    </view>
+  </view>
+</view>

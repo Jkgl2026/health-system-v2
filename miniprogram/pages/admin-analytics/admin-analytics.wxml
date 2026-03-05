@@ -1,0 +1,250 @@
+<!--pages/admin-analytics/admin-analytics.wxml-->
+<view class="container">
+  <!-- 顶部导航 -->
+  <view class="header">
+    <text class="header-back" bindtap="goBack">← 返回</text>
+    <text class="header-title">数据分析</text>
+    <text class="header-action"></text>
+  </view>
+
+  <!-- 时间筛选 -->
+  <view class="filter-bar">
+    <picker mode="selector" range="{{dateOptions}}" range-key="" value="{{dateOptions.indexOf(dateRange)}}" bindchange="onDateRangeChange">
+      <view class="filter-picker">
+        <text class="filter-label">时间范围:</text>
+        <text class="filter-value">近{{dateRange}}天</text>
+        <text class="filter-arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- Tab导航 -->
+  <view class="tab-nav">
+    <view class="tab-item {{activeTab === 'symptom' ? 'active' : ''}}" 
+          data-tab="symptom" bindtap="switchTab">
+      <text class="tab-icon">🩺</text>
+      <text class="tab-text">症状统计</text>
+    </view>
+    <view class="tab-item {{activeTab === 'constitution' ? 'active' : ''}}" 
+          data-tab="constitution" bindtap="switchTab">
+      <text class="tab-icon">🧘</text>
+      <text class="tab-text">体质分布</text>
+    </view>
+    <view class="tab-item {{activeTab === 'plan' ? 'active' : ''}}" 
+          data-tab="plan" bindtap="switchTab">
+      <text class="tab-icon">📋</text>
+      <text class="tab-text">方案统计</text>
+    </view>
+    <view class="tab-item {{activeTab === 'trend' ? 'active' : ''}}" 
+          data-tab="trend" bindtap="switchTab">
+      <text class="tab-icon">📈</text>
+      <text class="tab-text">趋势分析</text>
+    </view>
+  </view>
+
+  <!-- 加载中 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-spinner"></view>
+    <text class="loading-text">加载中...</text>
+  </view>
+
+  <!-- 症状统计Tab -->
+  <view class="tab-content" wx:if="{{!loading && activeTab === 'symptom' && symptomData}}">
+    <!-- 统计卡片 -->
+    <view class="stats-cards">
+      <view class="stats-card">
+        <text class="stats-value">{{symptomData.totalUsers}}</text>
+        <text class="stats-label">统计用户数</text>
+      </view>
+      <view class="stats-card">
+        <text class="stats-value">{{symptomData.topSymptoms.length}}</text>
+        <text class="stats-label">症状种类</text>
+      </view>
+    </view>
+
+    <!-- 图表 -->
+    <view class="chart-section">
+      <view class="section-header">
+        <text class="section-title">症状分布 TOP10</text>
+      </view>
+      <view class="chart-container">
+        <canvas type="2d" id="symptomChart" canvas-id="symptomChart" 
+                style="width: 100%; height: 300px;"></canvas>
+      </view>
+    </view>
+
+    <!-- 症状列表 -->
+    <view class="list-section">
+      <view class="section-header">
+        <text class="section-title">详细数据</text>
+      </view>
+      <view class="symptom-list">
+        <view class="symptom-item" wx:for="{{symptomData.topSymptoms}}" wx:key="name">
+          <view class="symptom-info">
+            <text class="symptom-rank">{{index + 1}}</text>
+            <text class="symptom-name">{{item.name}}</text>
+          </view>
+          <view class="symptom-stats">
+            <text class="symptom-count">{{item.count}}人</text>
+            <text class="symptom-percent">{{item.percentage}}%</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 体质分布Tab -->
+  <view class="tab-content" wx:if="{{!loading && activeTab === 'constitution' && constitutionData}}">
+    <!-- 统计卡片 -->
+    <view class="stats-cards">
+      <view class="stats-card">
+        <text class="stats-value">{{constitutionData.totalUsers}}</text>
+        <text class="stats-label">统计用户数</text>
+      </view>
+    </view>
+
+    <!-- 图表 -->
+    <view class="chart-section">
+      <view class="section-header">
+        <text class="section-title">体质分布</text>
+      </view>
+      <view class="chart-container">
+        <canvas type="2d" id="constitutionChart" canvas-id="constitutionChart" 
+                style="width: 100%; height: 300px;"></canvas>
+      </view>
+    </view>
+
+    <!-- 性别分布 -->
+    <view class="list-section">
+      <view class="section-header">
+        <text class="section-title">性别分布</text>
+      </view>
+      <view class="stat-row">
+        <view class="stat-item">
+          <text class="stat-label">男性</text>
+          <text class="stat-value">{{constitutionData.genderStats.male}}</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">女性</text>
+          <text class="stat-value">{{constitutionData.genderStats.female}}</text>
+        </view>
+        <view class="stat-item">
+          <text class="stat-label">未知</text>
+          <text class="stat-value">{{constitutionData.genderStats.unknown}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 年龄分布 -->
+    <view class="list-section">
+      <view class="section-header">
+        <text class="section-title">年龄分布</text>
+      </view>
+      <view class="stat-row">
+        <view class="stat-item" wx:for="{{constitutionData.ageGroups}}" wx:for-index="key" wx:for-item="value" wx:key="key">
+          <text class="stat-label">{{key}}岁</text>
+          <text class="stat-value">{{value}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 体质详情 -->
+    <view class="list-section">
+      <view class="section-header">
+        <text class="section-title">体质详情</text>
+      </view>
+      <view class="constitution-list">
+        <view class="constitution-item" wx:for="{{constitutionData.constitutionCounts}}" wx:for-index="key" wx:for-item="value" wx:key="key">
+          <text class="constitution-name">{{key}}</text>
+          <view class="constitution-bar-wrap">
+            <view class="constitution-bar" style="width: {{value / constitutionData.totalUsers * 100}}%;"></view>
+          </view>
+          <text class="constitution-count">{{value}}人</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 方案统计Tab -->
+  <view class="tab-content" wx:if="{{!loading && activeTab === 'plan' && planData}}">
+    <!-- 统计卡片 -->
+    <view class="stats-cards">
+      <view class="stats-card">
+        <text class="stats-value">{{planData.totalRecords}}</text>
+        <text class="stats-label">总记录数</text>
+      </view>
+      <view class="stats-card">
+        <text class="stats-value">{{planData.uniqueUsers}}</text>
+        <text class="stats-label">独立用户</text>
+      </view>
+    </view>
+
+    <!-- 图表 -->
+    <view class="chart-section">
+      <view class="section-header">
+        <text class="section-title">方案选择分布</text>
+      </view>
+      <view class="chart-container">
+        <canvas type="2d" id="planChart" canvas-id="planChart" 
+                style="width: 100%; height: 250px;"></canvas>
+      </view>
+    </view>
+
+    <!-- 方案列表 -->
+    <view class="list-section">
+      <view class="section-header">
+        <text class="section-title">选择详情</text>
+      </view>
+      <view class="plan-list">
+        <view class="plan-item" wx:for="{{planData.choiceDetails}}" wx:key="label">
+          <view class="plan-info">
+            <text class="plan-label">{{item.label}}</text>
+            <text class="plan-count">{{item.count}}次</text>
+          </view>
+          <view class="plan-progress">
+            <view class="plan-bar" style="width: {{item.percentage}}%;"></view>
+          </view>
+          <text class="plan-percent">{{item.percentage}}%</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 趋势分析Tab -->
+  <view class="tab-content" wx:if="{{!loading && activeTab === 'trend' && trendData}}">
+    <!-- 统计卡片 -->
+    <view class="stats-cards">
+      <view class="stats-card">
+        <text class="stats-value">{{trendData.days}}</text>
+        <text class="stats-label">统计天数</text>
+      </view>
+    </view>
+
+    <!-- 图表 -->
+    <view class="chart-section">
+      <view class="section-header">
+        <text class="section-title">用户增长趋势</text>
+      </view>
+      <view class="chart-container">
+        <canvas type="2d" id="trendChart" canvas-id="trendChart" 
+                style="width: 100%; height: 300px;"></canvas>
+      </view>
+    </view>
+
+    <!-- 趋势数据 -->
+    <view class="list-section">
+      <view class="section-header">
+        <text class="section-title">详细数据</text>
+      </view>
+      <view class="trend-list">
+        <view class="trend-item" wx:for="{{trendData.trend}}" wx:key="date">
+          <text class="trend-date">{{item.date}}</text>
+          <view class="trend-stats">
+            <text class="trend-users">新增: {{item.newUsers}}</text>
+            <text class="trend-records">检测: {{item.newRecords}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

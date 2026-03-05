@@ -167,6 +167,68 @@ async function deleteFile(fileIDs) {
   })
 }
 
+// ==================== 数据分析功能 ====================
+
+/**
+ * 获取症状分类统计
+ * @param {Object} options 查询参数
+ * @returns {Promise<Object>} 症状统计数据
+ */
+async function getSymptomStats(options = {}) {
+  return await callFunction('getHealthRecords', {
+    action: 'getSymptomStats',
+    data: options
+  })
+}
+
+/**
+ * 获取体质分布统计
+ * @param {Object} options 查询参数
+ * @returns {Promise<Object>} 体质统计数据
+ */
+async function getConstitutionStats(options = {}) {
+  return await callFunction('getHealthRecords', {
+    action: 'getConstitutionStats',
+    data: options
+  })
+}
+
+/**
+ * 获取调理方案使用统计
+ * @param {Object} options 查询参数
+ * @returns {Promise<Object>} 方案统计数据
+ */
+async function getPlanStats(options = {}) {
+  return await callFunction('getHealthRecords', {
+    action: 'getPlanStats',
+    data: options
+  })
+}
+
+/**
+ * 获取时间趋势数据
+ * @param {Object} options 查询参数
+ * @returns {Promise<Object>} 趋势数据
+ */
+async function getTrendData(options = {}) {
+  return await callFunction('getHealthRecords', {
+    action: 'getTrendData',
+    data: options
+  })
+}
+
+/**
+ * 获取异常用户列表
+ * @param {Object} options 查询参数
+ * @returns {Promise<Object>} 异常用户列表
+ */
+async function getAbnormalUsers(options = {}) {
+  return await callFunction('getHealthRecords', {
+    action: 'getAbnormalUsers',
+    data: options
+  })
+}
+
 module.exports = {
   callFunction,
   adminLogin,
@@ -181,5 +243,11 @@ module.exports = {
   deleteUser,
   generateHealthPDF,
   getTempFileURL,
-  deleteFile
+  deleteFile,
+  // 新增
+  getSymptomStats,
+  getConstitutionStats,
+  getPlanStats,
+  getTrendData,
+  getAbnormalUsers
 }

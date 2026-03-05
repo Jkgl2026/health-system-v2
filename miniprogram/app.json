@@ -23,7 +23,10 @@
     "pages/admin-login/admin-login",
     "pages/admin-dashboard/admin-dashboard",
     "pages/admin-user-detail/admin-user-detail",
-    "pages/admin-compare/admin-compare"
+    "pages/admin-compare/admin-compare",
+    "pages/admin-analytics/admin-analytics",
+    "pages/admin-abnormal/admin-abnormal",
+    "pages/admin-tags/admin-tags"
   ],
   "window": {
     "backgroundTextStyle": "light",

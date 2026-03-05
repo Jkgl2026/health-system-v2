@@ -250,5 +250,25 @@ Page({
     }
     
     this.setData({ loading: false });
+  },
+
+  // 导航到数据分析
+  goToAnalytics() {
+    wx.navigateTo({ url: '/pages/admin-analytics/admin-analytics' });
+  },
+
+  // 导航到异常用户
+  goToAbnormal() {
+    wx.navigateTo({ url: '/pages/admin-abnormal/admin-abnormal' });
+  },
+
+  // 导航到用户标签
+  goToTags() {
+    wx.navigateTo({ url: '/pages/admin-tags/admin-tags' });
+  },
+
+  // 导航到数据对比
+  goToCompareSelect() {
+    wx.navigateTo({ url: '/pages/admin-compare/admin-compare' });
   }
 });
