@@ -660,6 +660,24 @@ export default function AdminDashboardPage() {
                 数据对比
               </Button>
               <Button
+                variant="default"
+                size="sm"
+                onClick={() => router.push('/admin/analytics')}
+                className="bg-emerald-600 hover:bg-emerald-700"
+              >
+                <PieChart className="h-4 w-4 mr-2" />
+                数据分析
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/admin/settings')}
+                className="border-slate-400 text-slate-700"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                系统设置
+              </Button>
+              <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleLogout}
