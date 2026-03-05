@@ -620,6 +620,11 @@ export default function ChartsComparePage() {
                           filteredUsers.map((u) => {
                             const isSelected = selectedUsers.includes(u.user.id);
                             const selectedIndex = selectedUsers.indexOf(u.user.id);
+                            // 生成用户区分标识：手机号后4位 + ID后4位
+                            const phoneSuffix = u.user.phone ? u.user.phone.slice(-4) : '无手机';
+                            const idSuffix = u.user.id.slice(-4);
+                            const recordCount = u.healthAnalysis?.length || 0;
+                            
                             return (
                               <div
                                 key={u.user.id}
@@ -631,7 +636,7 @@ export default function ChartsComparePage() {
                                 onClick={() => toggleUserSelection(u.user.id)}
                               >
                                 <div 
-                                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                                     isSelected ? 'border-purple-500 bg-purple-500' : 'border-gray-300'
                                   }`}
                                 >
@@ -646,9 +651,14 @@ export default function ChartsComparePage() {
                                   />
                                 )}
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-medium truncate">{u.user.name || '未命名'}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-medium truncate">{u.user.name || '未命名'}</p>
+                                    <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">
+                                      {phoneSuffix}·{idSuffix}
+                                    </span>
+                                  </div>
                                   <p className="text-xs text-gray-500 truncate">
-                                    {u.user.phone || '无手机号'} · {u.user.age || '-'}岁
+                                    {u.user.age || '-'}岁{recordCount > 0 ? ` · ${recordCount}次检测` : ''}
                                   </p>
                                 </div>
                               </div>
@@ -696,22 +706,50 @@ export default function ChartsComparePage() {
                                 暂无用户数据
                               </div>
                             ) : (
-                              filteredUsers.map((u) => (
-                                <div
-                                  key={u.user.id}
-                                  className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-purple-200 hover:bg-gray-50 cursor-pointer transition-all"
-                                  onClick={() => selectSingleUser(u.user.id)}
-                                >
-                                  <User className="h-4 w-4 text-gray-400" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="font-medium truncate">{u.user.name || '未命名'}</p>
-                                    <p className="text-xs text-gray-500 truncate">
-                                      {u.user.phone || '无手机号'} · {u.user.age || '-'}岁
-                                    </p>
+                              filteredUsers.map((u) => {
+                                // 生成用户区分标识：手机号后4位 + ID后4位
+                                const phoneSuffix = u.user.phone ? u.user.phone.slice(-4) : '无手机';
+                                const idSuffix = u.user.id.slice(-4);
+                                const recordCount = u.healthAnalysis?.length || 0;
+                                const latestAnalysis = u.healthAnalysis?.[0];
+                                const latestDate = latestAnalysis?.analyzedAt 
+                                  ? new Date(latestAnalysis.analyzedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
+                                  : null;
+                                
+                                return (
+                                  <div
+                                    key={u.user.id}
+                                    className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-purple-200 hover:bg-gray-50 cursor-pointer transition-all"
+                                    onClick={() => selectSingleUser(u.user.id)}
+                                  >
+                                    <User className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <p className="font-medium truncate">{u.user.name || '未命名'}</p>
+                                        <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded flex-shrink-0">
+                                          {phoneSuffix}·{idSuffix}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                                        <span>{u.user.age || '-'}岁</span>
+                                        {recordCount > 0 && (
+                                          <>
+                                            <span className="text-gray-300">|</span>
+                                            <span className="text-purple-600 font-medium">{recordCount}次检测</span>
+                                          </>
+                                        )}
+                                        {latestDate && (
+                                          <>
+                                            <span className="text-gray-300">|</span>
+                                            <span>最近: {latestDate}</span>
+                                          </>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
                                   </div>
-                                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                                </div>
-                              ))
+                                );
+                              })
                             )}
                           </div>
                         </>
@@ -721,9 +759,24 @@ export default function ChartsComparePage() {
                           <div className="mb-4 p-3 bg-purple-50 rounded-lg">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="font-medium">{getUserName(selectedSingleUser)}</p>
-                                <p className="text-xs text-gray-500">
-                                  共 {singleUserData?.healthAnalysis?.length || 0} 条检测记录
+                                <div className="flex items-center gap-2">
+                                  <p className="font-medium">{getUserName(selectedSingleUser)}</p>
+                                  {(() => {
+                                    const user = users.find(u => u.user.id === selectedSingleUser)?.user;
+                                    if (user) {
+                                      const phoneSuffix = user.phone ? user.phone.slice(-4) : '无手机';
+                                      const idSuffix = user.id.slice(-4);
+                                      return (
+                                        <span className="text-xs text-gray-500 bg-white px-1.5 py-0.5 rounded">
+                                          {phoneSuffix}·{idSuffix}
+                                        </span>
+                                      );
+                                    }
+                                    return null;
+                                  })()}
+                                </div>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  共 {singleUserData?.healthAnalysis?.length || 0} 条检测记录 · 请选择要对比的记录
                                 </p>
                               </div>
                               <Button 
@@ -769,6 +822,12 @@ export default function ChartsComparePage() {
                               singleUserData.healthAnalysis.map((analysis: any, index: number) => {
                                 const isSelected = selectedRecords.includes(analysis.id);
                                 const selectedIndex = selectedRecords.indexOf(analysis.id);
+                                const healthScore = analysis.overallHealth ?? 0;
+                                const scoreColor = healthScore >= 80 ? 'text-green-600' : healthScore >= 60 ? 'text-yellow-600' : healthScore >= 40 ? 'text-orange-600' : 'text-red-600';
+                                const analysisDate = new Date(analysis.analyzedAt);
+                                const dateStr = analysisDate.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
+                                const timeStr = analysisDate.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+                                
                                 return (
                                   <div
                                     key={analysis.id}
@@ -780,7 +839,7 @@ export default function ChartsComparePage() {
                                     onClick={() => toggleRecordSelection(analysis.id)}
                                   >
                                     <div 
-                                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                                      className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
                                         isSelected ? 'border-purple-500 bg-purple-500' : 'border-gray-300'
                                       }`}
                                     >
@@ -793,18 +852,24 @@ export default function ChartsComparePage() {
                                       />
                                     )}
                                     <div className="flex-1 min-w-0">
-                                      <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-2 flex-wrap">
                                         <Calendar className="h-3 w-3 text-gray-400" />
                                         <p className="text-sm font-medium">
-                                          {new Date(analysis.analyzedAt).toLocaleDateString('zh-CN')}
+                                          {dateStr} {timeStr}
                                         </p>
                                         {index === 0 && (
-                                          <Badge variant="secondary" className="text-xs">最新</Badge>
+                                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">最新</Badge>
                                         )}
                                       </div>
-                                      <p className="text-xs text-gray-500">
-                                        健康分: {analysis.overallHealth ?? '-'}
-                                      </p>
+                                      <div className="flex items-center gap-3 mt-1">
+                                        <span className={`text-sm font-semibold ${scoreColor}`}>
+                                          健康分: {healthScore}
+                                        </span>
+                                        {/* 显示主要健康要素 */}
+                                        <span className="text-xs text-gray-400">
+                                          气血{analysis.qiAndBlood ?? '-'} 循环{analysis.circulation ?? '-'}
+                                        </span>
+                                      </div>
                                     </div>
                                   </div>
                                 );
@@ -1090,6 +1155,9 @@ export default function ChartsComparePage() {
                         <User className="h-16 w-16 mx-auto text-gray-300 mb-4" />
                         <p className="text-gray-500 text-lg">请从左侧选择一个用户</p>
                         <p className="text-gray-400 text-sm mt-2">追踪该用户的健康变化趋势</p>
+                        <div className="mt-4 text-xs text-gray-400 bg-gray-50 rounded-lg p-3 inline-block">
+                          <p>💡 提示：同名用户可通过"手机后4位·ID后4位"区分</p>
+                        </div>
                       </CardContent>
                     </Card>
                   ) : selectedRecords.length < 2 ? (
@@ -1098,6 +1166,16 @@ export default function ChartsComparePage() {
                         <Calendar className="h-16 w-16 mx-auto text-gray-300 mb-4" />
                         <p className="text-gray-500 text-lg">请至少选择2条检测记录</p>
                         <p className="text-gray-400 text-sm mt-2">对比不同时间的健康数据变化</p>
+                        <div className="mt-4 flex justify-center gap-2">
+                          <Button variant="outline" size="sm" onClick={() => {
+                            // 获取当前用户信息，设置到selectedSingleUser
+                            if (singleUserData?.healthAnalysis?.length) {
+                              setSelectedRecords(singleUserData.healthAnalysis.slice(0, 2).map((a: any) => a.id));
+                            }
+                          }}>
+                            快速选择最近2次
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   ) : (
