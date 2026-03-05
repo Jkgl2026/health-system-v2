@@ -92,6 +92,14 @@ export default function ChartsComparePage() {
         if (data.data.length > 0) {
           setSelectedUser(data.data[0].user.id);
         }
+      } else {
+        console.error('获取用户列表失败:', data.error);
+        // 如果认证失败，跳转到登录页
+        if (data.code === 'UNAUTHORIZED' || response.status === 401) {
+          localStorage.removeItem('adminLoggedIn');
+          localStorage.removeItem('admin');
+          router.push('/admin/login');
+        }
       }
     } catch (error) {
       console.error('获取用户列表失败:', error);
@@ -109,6 +117,14 @@ export default function ChartsComparePage() {
       const data = await response.json();
       if (data.success) {
         processChartData(data.data);
+      } else {
+        console.error('获取用户数据失败:', data.error);
+        // 如果认证失败，跳转到登录页
+        if (data.code === 'UNAUTHORIZED' || response.status === 401) {
+          localStorage.removeItem('adminLoggedIn');
+          localStorage.removeItem('admin');
+          router.push('/admin/login');
+        }
       }
     } catch (error) {
       console.error('获取用户数据失败:', error);
@@ -118,23 +134,27 @@ export default function ChartsComparePage() {
   };
 
   const processChartData = (data: any) => {
+    // 防御性检查：确保数据存在
+    const healthAnalysisList = data?.healthAnalysis || [];
+    const symptomCheckList = data?.symptomChecks || [];
+
     // 处理健康评分趋势数据
-    const healthTrend = data.healthAnalysis.map((item: any, index: number) => ({
+    const healthTrend = healthAnalysisList.map((item: any, index: number) => ({
       date: new Date(item.analyzedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
-      overallHealth: item.overallHealth || 0,
-      qiAndBlood: item.qiAndBlood || 0,
-      circulation: item.circulation || 0,
-      toxins: item.toxins || 0,
-      bloodLipids: item.bloodLipids || 0,
-      coldness: item.coldness || 0,
-      immunity: item.immunity || 0,
-      emotions: item.emotions || 0,
+      overallHealth: item.overallHealth ?? 0,
+      qiAndBlood: item.qiAndBlood ?? 0,
+      circulation: item.circulation ?? 0,
+      toxins: item.toxins ?? 0,
+      bloodLipids: item.bloodLipids ?? 0,
+      coldness: item.coldness ?? 0,
+      immunity: item.immunity ?? 0,
+      emotions: item.emotions ?? 0,
       index: index + 1,
     })).reverse();
     setHealthData(healthTrend);
 
     // 处理症状分类变化数据（使用真实分类）
-    const symptomTrend = data.symptomChecks.map((item: any, index: number) => {
+    const symptomTrend = symptomCheckList.map((item: any, index: number) => {
       const symptoms = (item.checkedSymptoms || []).map((id: string) => parseInt(id));
       const date = new Date(item.checkedAt).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' });
       
@@ -151,14 +171,21 @@ export default function ChartsComparePage() {
     setSymptomData(symptomTrend);
 
     // 处理雷达图数据（最新一次分析）
-    if (data.healthAnalysis.length > 0) {
-      const latest = data.healthAnalysis[0];
+    if (healthAnalysisList.length > 0) {
+      const latest = healthAnalysisList[0];
       const radar = HEALTH_ELEMENTS.map(elem => ({
         element: elem.label,
-        score: latest[elem.key] || 0,
+        score: latest[elem.key] ?? 0,
         fullMark: 100,
       }));
       setRadarData(radar);
+    } else {
+      // 没有数据时设置空雷达图
+      setRadarData(HEALTH_ELEMENTS.map(elem => ({
+        element: elem.label,
+        score: 0,
+        fullMark: 100,
+      })));
     }
   };
 
@@ -272,26 +299,36 @@ export default function ChartsComparePage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-[400px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={healthData}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="date" />
-                          <YAxis domain={[0, 100]} />
-                          <Tooltip />
-                          <Legend />
-                          <Line 
-                            type="monotone" 
-                            dataKey="overallHealth" 
-                            name="综合健康分"
-                            stroke="#3b82f6" 
-                            strokeWidth={3}
-                            dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
-                            activeDot={{ r: 8 }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
+                    {healthData.length === 0 ? (
+                      <div className="h-[400px] flex items-center justify-center">
+                        <div className="text-center">
+                          <AlertCircle className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                          <p className="text-gray-500">暂无健康分析数据</p>
+                          <p className="text-sm text-gray-400 mt-2">用户完成健康检测后将显示趋势图</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="h-[400px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={healthData}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="date" />
+                            <YAxis domain={[0, 100]} />
+                            <Tooltip />
+                            <Legend />
+                            <Line 
+                              type="monotone" 
+                              dataKey="overallHealth" 
+                              name="综合健康分"
+                              stroke="#3b82f6" 
+                              strokeWidth={3}
+                              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
+                              activeDot={{ r: 8 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
