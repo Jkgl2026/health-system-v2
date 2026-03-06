@@ -735,6 +735,15 @@ export default function AdminDashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => router.push('/admin/tongue-diagnosis')}
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-transparent"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                AI舌诊
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => router.push('/admin/settings')}
                 className="border-slate-400 text-slate-700"
               >
