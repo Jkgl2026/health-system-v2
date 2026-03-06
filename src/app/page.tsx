@@ -234,6 +234,15 @@ export default function Home() {
               </div>
             </div>
             <div className="flex gap-2 md:gap-3">
+              <Button
+                variant="outline"
+                onClick={() => router.push('/tongue-diagnosis')}
+                size="sm"
+                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <Sparkles className="w-4 h-4 mr-1" />
+                AI舌诊
+              </Button>
               {!hasHealthData && !isDemoMode && (
                 <Button
                   variant="outline"
