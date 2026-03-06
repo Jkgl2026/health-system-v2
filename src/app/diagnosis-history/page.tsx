@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +19,7 @@ interface DiagnosisRecord {
   type: 'face' | 'tongue';
 }
 
-export default function DiagnosisHistoryPage() {
+function DiagnosisHistoryContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [records, setRecords] = useState<DiagnosisRecord[]>([]);
@@ -255,5 +255,37 @@ export default function DiagnosisHistoryPage() {
         )}
       </main>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+              <History className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">诊断历史记录</h1>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main className="container mx-auto py-6 px-4 max-w-4xl">
+        <div className="flex justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-indigo-500" />
+        </div>
+      </main>
+    </div>
+  );
+}
+
+export default function DiagnosisHistoryPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <DiagnosisHistoryContent />
+    </Suspense>
   );
 }
