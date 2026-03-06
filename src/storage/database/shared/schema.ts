@@ -301,6 +301,146 @@ export const courses = pgTable(
   })
 );
 
+// 面诊记录表
+export const faceDiagnosisRecords = pgTable(
+  "face_diagnosis_records",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 })
+      .references(() => users.id, { onDelete: "cascade" }), // 关联用户ID（可选，匿名用户可为空）
+    imageUrl: text("image_url"), // 图片URL（对象存储）
+    
+    // 分析结果
+    score: integer("score"), // 综合评分 0-100
+    
+    // 五色分析
+    faceColor: jsonb("face_color"), // {color: "偏黄", meaning: "...", severity: "轻度"}
+    
+    // 面色光泽
+    faceLuster: jsonb("face_luster"), // {status: "明润/晦暗", meaning: "..."}
+    
+    // 五官分析
+    facialFeatures: jsonb("facial_features"), // {eyes: {...}, nose: {...}, lips: {...}, ears: {...}}
+    
+    // 面部特征
+    facialCharacteristics: jsonb("facial_characteristics"), // {spots: [...], acne: [...], wrinkles: [...]}
+    
+    // 体质判断
+    constitution: jsonb("constitution"), // {type: "气虚质", confidence: 0.8, secondary: "脾虚湿盛"}
+    
+    // 五脏状态（用于雷达图）
+    organStatus: jsonb("organ_status"), // {heart: 70, liver: 80, spleen: 60, lung: 75, kidney: 65}
+    
+    // 健康建议
+    suggestions: jsonb("suggestions"), // [{type: "饮食", content: "..."}, ...]
+    
+    // 完整分析报告
+    fullReport: text("full_report"), // AI生成的完整报告文本
+    
+    // 元数据
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("face_diagnosis_records_user_id_idx").on(table.userId),
+    createdAtIdx: index("face_diagnosis_records_created_at_idx").on(table.createdAt),
+    scoreIdx: index("face_diagnosis_records_score_idx").on(table.score),
+  })
+);
+
+// 舌诊记录表
+export const tongueDiagnosisRecords = pgTable(
+  "tongue_diagnosis_records",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 })
+      .references(() => users.id, { onDelete: "cascade" }), // 关联用户ID（可选）
+    imageUrl: text("image_url"), // 图片URL
+    
+    // 分析结果
+    score: integer("score"), // 综合评分 0-100
+    
+    // 舌质分析
+    tongueBody: jsonb("tongue_body"), // {color: "...", shape: "...", texture: "..."}
+    
+    // 舌苔分析
+    tongueCoating: jsonb("tongue_coating"), // {color: "...", thickness: "...", moisture: "..."}
+    
+    // 体质判断
+    constitution: jsonb("constitution"), // {type: "...", confidence: 0.8}
+    
+    // 五脏状态
+    organStatus: jsonb("organ_status"), // {heart: 70, liver: 80, ...}
+    
+    // 健康建议
+    suggestions: jsonb("suggestions"), // [...]
+    
+    // 完整分析报告
+    fullReport: text("full_report"), // AI生成的完整报告文本
+    
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("tongue_diagnosis_records_user_id_idx").on(table.userId),
+    createdAtIdx: index("tongue_diagnosis_records_created_at_idx").on(table.createdAt),
+    scoreIdx: index("tongue_diagnosis_records_score_idx").on(table.score),
+  })
+);
+
+// 用户健康档案表（综合）
+export const healthProfiles = pgTable(
+  "health_profiles",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 })
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull()
+      .unique(), // 每个用户只有一条档案
+    
+    // 最新综合评分
+    latestScore: integer("latest_score"), // 综合评分
+    
+    // 最新体质判断
+    constitution: varchar("constitution", { length: 50 }), // 主体质
+    constitutionConfidence: integer("constitution_confidence"), // 置信度 0-100
+    
+    // 面诊数据摘要
+    latestFaceScore: integer("latest_face_score"),
+    faceDiagnosisCount: integer("face_diagnosis_count").default(0),
+    lastFaceDiagnosisAt: timestamp("last_face_diagnosis_at", { withTimezone: true }),
+    
+    // 舌诊数据摘要
+    latestTongueScore: integer("latest_tongue_score"),
+    tongueDiagnosisCount: integer("tongue_diagnosis_count").default(0),
+    lastTongueDiagnosisAt: timestamp("last_tongue_diagnosis_at", { withTimezone: true }),
+    
+    // 五脏状态趋势
+    organStatusTrend: jsonb("organ_status_trend"), // 历次五脏状态数据
+    
+    // 综合结论
+    comprehensiveConclusion: jsonb("comprehensive_conclusion"), // 综合分析结论
+    
+    // 更新时间
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("health_profiles_user_id_idx").on(table.userId),
+    latestScoreIdx: index("health_profiles_latest_score_idx").on(table.latestScore),
+    updatedAtIdx: index("health_profiles_updated_at_idx").on(table.updatedAt),
+  })
+);
+
 // 使用 createSchemaFactory 配置 date coercion（处理前端 string → Date 转换）
 const { createInsertSchema: createCoercedInsertSchema } = createSchemaFactory({
   coerce: { date: true },
@@ -396,6 +536,47 @@ export const insertCourseSchema = createCoercedInsertSchema(courses).pick({
   season: true,
 });
 
+export const insertFaceDiagnosisSchema = createCoercedInsertSchema(faceDiagnosisRecords).pick({
+  userId: true,
+  imageUrl: true,
+  score: true,
+  faceColor: true,
+  faceLuster: true,
+  facialFeatures: true,
+  facialCharacteristics: true,
+  constitution: true,
+  organStatus: true,
+  suggestions: true,
+  fullReport: true,
+});
+
+export const insertTongueDiagnosisSchema = createCoercedInsertSchema(tongueDiagnosisRecords).pick({
+  userId: true,
+  imageUrl: true,
+  score: true,
+  tongueBody: true,
+  tongueCoating: true,
+  constitution: true,
+  organStatus: true,
+  suggestions: true,
+  fullReport: true,
+});
+
+export const insertHealthProfileSchema = createCoercedInsertSchema(healthProfiles).pick({
+  userId: true,
+  latestScore: true,
+  constitution: true,
+  constitutionConfidence: true,
+  latestFaceScore: true,
+  faceDiagnosisCount: true,
+  lastFaceDiagnosisAt: true,
+  latestTongueScore: true,
+  tongueDiagnosisCount: true,
+  lastTongueDiagnosisAt: true,
+  organStatusTrend: true,
+  comprehensiveConclusion: true,
+});
+
 // TypeScript types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -420,6 +601,15 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 
 export type Course = typeof courses.$inferSelect;
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
+
+export type FaceDiagnosisRecord = typeof faceDiagnosisRecords.$inferSelect;
+export type InsertFaceDiagnosisRecord = z.infer<typeof insertFaceDiagnosisSchema>;
+
+export type TongueDiagnosisRecord = typeof tongueDiagnosisRecords.$inferSelect;
+export type InsertTongueDiagnosisRecord = z.infer<typeof insertTongueDiagnosisSchema>;
+
+export type HealthProfile = typeof healthProfiles.$inferSelect;
+export type InsertHealthProfile = z.infer<typeof insertHealthProfileSchema>;
 
 
 

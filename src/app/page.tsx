@@ -233,7 +233,16 @@ export default function Home() {
                 </p>
               </div>
             </div>
-            <div className="flex gap-2 md:gap-3">
+            <div className="flex gap-2 md:gap-3 flex-wrap">
+              <Button
+                variant="outline"
+                onClick={() => router.push('/face-diagnosis')}
+                size="sm"
+                className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                AI面诊
+              </Button>
               <Button
                 variant="outline"
                 onClick={() => router.push('/tongue-diagnosis')}
@@ -242,6 +251,24 @@ export default function Home() {
               >
                 <Sparkles className="w-4 h-4 mr-1" />
                 AI舌诊
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/health-progress')}
+                size="sm"
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <TrendingUp className="w-4 h-4 mr-1" />
+                健康进度
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/comprehensive-report')}
+                size="sm"
+                className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <Award className="w-4 h-4 mr-1" />
+                综合报告
               </Button>
               {!hasHealthData && !isDemoMode && (
                 <Button
