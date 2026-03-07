@@ -441,6 +441,241 @@ export const healthProfiles = pgTable(
   })
 );
 
+// 体态诊断记录表
+export const postureDiagnosisRecords = pgTable(
+  "posture_diagnosis_records",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 })
+      .references(() => users.id, { onDelete: "cascade" }),
+    
+    // 四角度图片
+    frontImageUrl: text("front_image_url"),
+    leftSideImageUrl: text("left_side_image_url"),
+    rightSideImageUrl: text("right_side_image_url"),
+    backImageUrl: text("back_image_url"),
+    
+    // 综合评估结果
+    score: integer("score"),
+    grade: varchar("grade", { length: 2 }),
+    
+    // 身体结构分析
+    bodyStructure: jsonb("body_structure"), // 各部位检测结果
+    
+    // 筋膜链评估
+    fasciaChainAnalysis: jsonb("fascia_chain_analysis"),
+    
+    // 肌肉分析
+    muscleAnalysis: jsonb("muscle_analysis"),
+    
+    // 呼吸模式评估
+    breathingAssessment: jsonb("breathing_assessment"),
+    
+    // 重心与力线评估
+    alignmentAssessment: jsonb("alignment_assessment"),
+    
+    // 代偿模式识别
+    compensationPatterns: jsonb("compensation_patterns"),
+    
+    // 健康影响评估
+    healthImpact: jsonb("health_impact"),
+    
+    // 健康预测
+    healthPrediction: jsonb("health_prediction"),
+    
+    // 综合调理方案
+    treatmentPlan: jsonb("treatment_plan"),
+    
+    // 完整报告
+    fullReport: text("full_report"),
+    
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("posture_diagnosis_records_user_id_idx").on(table.userId),
+    createdAtIdx: index("posture_diagnosis_records_created_at_idx").on(table.createdAt),
+    scoreIdx: index("posture_diagnosis_records_score_idx").on(table.score),
+  })
+);
+
+// 训练动作库表
+export const exerciseLibrary = pgTable(
+  "exercise_library",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    
+    // 基本信息
+    name: varchar("name", { length: 100 }).notNull(),
+    category: varchar("category", { length: 20 }).notNull(), // 整复训练/本源训练
+    subCategory: varchar("sub_category", { length: 50 }),
+    description: text("description"),
+    
+    // 适用问题
+    targetIssues: jsonb("target_issues"),
+    
+    // 禁忌症
+    contraindications: jsonb("contraindications"),
+    
+    // 多媒体资源
+    videoUrl: text("video_url"),
+    gifUrl: text("gif_url"),
+    imageUrl: text("image_url"),
+    steps: jsonb("steps"),
+    tips: jsonb("tips"),
+    commonMistakes: jsonb("common_mistakes"),
+    
+    // 训练参数
+    duration: varchar("duration", { length: 50 }),
+    reps: integer("reps"),
+    sets: integer("sets"),
+    frequency: varchar("frequency", { length: 50 }),
+    restTime: varchar("rest_time", { length: 50 }),
+    
+    // 进阶退阶
+    easierVersion: varchar("easier_version", { length: 100 }),
+    harderVersion: varchar("harder_version", { length: 100 }),
+    
+    // 肌肉参与
+    primaryMuscles: jsonb("primary_muscles"),
+    secondaryMuscles: jsonb("secondary_muscles"),
+    stabilizerMuscles: jsonb("stabilizer_muscles"),
+    
+    // 中医关联
+    relatedMeridians: jsonb("related_meridians"),
+    relatedAcupoints: jsonb("related_acupoints"),
+    
+    // 排序和状态
+    sortOrder: integer("sort_order").default(0),
+    isActive: boolean("is_active").default(true),
+    
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+  },
+  (table) => ({
+    categoryIdx: index("exercise_library_category_idx").on(table.category),
+    targetIssuesIdx: index("exercise_library_target_issues_idx").on(table.targetIssues),
+    isActiveIdx: index("exercise_library_is_active_idx").on(table.isActive),
+  })
+);
+
+// 体态历史对比表
+export const postureComparisons = pgTable(
+  "posture_comparisons",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 })
+      .references(() => users.id, { onDelete: "cascade" }),
+    
+    // 对比记录
+    currentRecordId: varchar("current_record_id", { length: 36 })
+      .references(() => postureDiagnosisRecords.id, { onDelete: "cascade" }),
+    previousRecordId: varchar("previous_record_id", { length: 36 })
+      .references(() => postureDiagnosisRecords.id, { onDelete: "cascade" }),
+    
+    // 对比结果
+    scoreChange: integer("score_change"),
+    improvements: jsonb("improvements"),
+    deteriorations: jsonb("deteriorations"),
+    stableItems: jsonb("stable_items"),
+    
+    // AI差异标注图
+    comparisonImages: jsonb("comparison_images"),
+    
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("posture_comparisons_user_id_idx").on(table.userId),
+    currentRecordIdx: index("posture_comparisons_current_record_idx").on(table.currentRecordId),
+    previousRecordIdx: index("posture_comparisons_previous_record_idx").on(table.previousRecordId),
+  })
+);
+
+// 打卡记录表
+export const checkInRecords = pgTable(
+  "check_in_records",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 })
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    
+    // 打卡类型
+    type: varchar("type", { length: 20 }).notNull(), // training/diet/symptom
+    
+    // 打卡内容
+    content: jsonb("content"),
+    notes: text("notes"),
+    
+    // 关联的训练动作
+    exerciseIds: jsonb("exercise_ids"),
+    
+    // 完成情况
+    completed: boolean("completed").default(true),
+    duration: integer("duration"), // 分钟
+    
+    checkInDate: timestamp("check_in_date", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("check_in_records_user_id_idx").on(table.userId),
+    typeIdx: index("check_in_records_type_idx").on(table.type),
+    checkInDateIdx: index("check_in_records_check_in_date_idx").on(table.checkInDate),
+  })
+);
+
+// 提醒设置表
+export const reminders = pgTable(
+  "reminders",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 })
+      .references(() => users.id, { onDelete: "cascade" })
+      .notNull(),
+    
+    // 提醒类型
+    type: varchar("type", { length: 20 }).notNull(), // training/rediagnosis/diet
+    
+    // 提醒配置
+    title: varchar("title", { length: 100 }).notNull(),
+    message: text("message"),
+    reminderTime: varchar("reminder_time", { length: 10 }), // HH:mm
+    frequency: varchar("frequency", { length: 20 }), // daily/weekly/custom
+    daysOfWeek: jsonb("days_of_week"), // [0,1,2,3,4,5,6]
+    
+    // 状态
+    isActive: boolean("is_active").default(true),
+    lastTriggeredAt: timestamp("last_triggered_at", { withTimezone: true }),
+    
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+  },
+  (table) => ({
+    userIdIdx: index("reminders_user_id_idx").on(table.userId),
+    typeIdx: index("reminders_type_idx").on(table.type),
+    isActiveIdx: index("reminders_is_active_idx").on(table.isActive),
+  })
+);
+
 // 使用 createSchemaFactory 配置 date coercion（处理前端 string → Date 转换）
 const { createInsertSchema: createCoercedInsertSchema } = createSchemaFactory({
   coerce: { date: true },
@@ -577,6 +812,89 @@ export const insertHealthProfileSchema = createCoercedInsertSchema(healthProfile
   comprehensiveConclusion: true,
 });
 
+export const insertPostureDiagnosisSchema = createCoercedInsertSchema(postureDiagnosisRecords).pick({
+  userId: true,
+  frontImageUrl: true,
+  leftSideImageUrl: true,
+  rightSideImageUrl: true,
+  backImageUrl: true,
+  score: true,
+  grade: true,
+  bodyStructure: true,
+  fasciaChainAnalysis: true,
+  muscleAnalysis: true,
+  breathingAssessment: true,
+  alignmentAssessment: true,
+  compensationPatterns: true,
+  healthImpact: true,
+  healthPrediction: true,
+  treatmentPlan: true,
+  fullReport: true,
+});
+
+export const insertExerciseSchema = createCoercedInsertSchema(exerciseLibrary).pick({
+  name: true,
+  category: true,
+  subCategory: true,
+  description: true,
+  targetIssues: true,
+  contraindications: true,
+  videoUrl: true,
+  gifUrl: true,
+  imageUrl: true,
+  steps: true,
+  tips: true,
+  commonMistakes: true,
+  duration: true,
+  reps: true,
+  sets: true,
+  frequency: true,
+  restTime: true,
+  easierVersion: true,
+  harderVersion: true,
+  primaryMuscles: true,
+  secondaryMuscles: true,
+  stabilizerMuscles: true,
+  relatedMeridians: true,
+  relatedAcupoints: true,
+  sortOrder: true,
+  isActive: true,
+});
+
+export const insertPostureComparisonSchema = createCoercedInsertSchema(postureComparisons).pick({
+  userId: true,
+  currentRecordId: true,
+  previousRecordId: true,
+  scoreChange: true,
+  improvements: true,
+  deteriorations: true,
+  stableItems: true,
+  comparisonImages: true,
+});
+
+export const insertCheckInSchema = createCoercedInsertSchema(checkInRecords).pick({
+  userId: true,
+  type: true,
+  content: true,
+  notes: true,
+  exerciseIds: true,
+  completed: true,
+  duration: true,
+  checkInDate: true,
+});
+
+export const insertReminderSchema = createCoercedInsertSchema(reminders).pick({
+  userId: true,
+  type: true,
+  title: true,
+  message: true,
+  reminderTime: true,
+  frequency: true,
+  daysOfWeek: true,
+  isActive: true,
+  lastTriggeredAt: true,
+});
+
 // TypeScript types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -611,5 +929,19 @@ export type InsertTongueDiagnosisRecord = z.infer<typeof insertTongueDiagnosisSc
 export type HealthProfile = typeof healthProfiles.$inferSelect;
 export type InsertHealthProfile = z.infer<typeof insertHealthProfileSchema>;
 
+export type PostureDiagnosisRecord = typeof postureDiagnosisRecords.$inferSelect;
+export type InsertPostureDiagnosisRecord = z.infer<typeof insertPostureDiagnosisSchema>;
+
+export type Exercise = typeof exerciseLibrary.$inferSelect;
+export type InsertExercise = z.infer<typeof insertExerciseSchema>;
+
+export type PostureComparison = typeof postureComparisons.$inferSelect;
+export type InsertPostureComparison = z.infer<typeof insertPostureComparisonSchema>;
+
+export type CheckInRecord = typeof checkInRecords.$inferSelect;
+export type InsertCheckInRecord = z.infer<typeof insertCheckInSchema>;
+
+export type Reminder = typeof reminders.$inferSelect;
+export type InsertReminder = z.infer<typeof insertReminderSchema>;
 
 
