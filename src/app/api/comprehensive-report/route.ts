@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
-import { faceDiagnosisRecords, tongueDiagnosisRecords, healthProfiles } from '@/storage/database/shared/schema';
+import { faceDiagnosisRecords, tongueDiagnosisRecords, healthProfiles, postureDiagnosisRecords } from '@/storage/database/shared/schema';
 import { desc, eq, sql } from 'drizzle-orm';
 
 // GET /api/comprehensive-report - 获取综合健康报告
@@ -31,10 +31,20 @@ export async function GET(request: NextRequest) {
 
     const tongueRecord = tongueResult[0] || null;
 
-    if (!faceRecord && !tongueRecord) {
+    // 获取最新的体态评估记录
+    const postureResult = await db
+      .select()
+      .from(postureDiagnosisRecords)
+      .where(userId ? eq(postureDiagnosisRecords.userId, userId) : sql`1=1`)
+      .orderBy(desc(postureDiagnosisRecords.createdAt))
+      .limit(1);
+
+    const postureRecord = postureResult[0] || null;
+
+    if (!faceRecord && !tongueRecord && !postureRecord) {
       return NextResponse.json({
         success: false,
-        error: '暂无诊断记录，请先进行面诊或舌诊',
+        error: '暂无诊断记录，请先进行面诊、舌诊或体态评估',
       });
     }
 
@@ -62,12 +72,28 @@ export async function GET(request: NextRequest) {
       full_report: tongueRecord.fullReport,
     } : null;
 
-    // 计算综合评分
+    const postureData = postureRecord ? {
+      ...postureRecord,
+      bodyStructure: parseJson(postureRecord.bodyStructure),
+      fasciaChainAnalysis: parseJson(postureRecord.fasciaChainAnalysis),
+      muscleAnalysis: parseJson(postureRecord.muscleAnalysis),
+      breathingAssessment: parseJson(postureRecord.breathingAssessment),
+      alignmentAssessment: parseJson(postureRecord.alignmentAssessment),
+      compensationPatterns: parseJson(postureRecord.compensationPatterns),
+      healthImpact: parseJson(postureRecord.healthImpact),
+      healthPrediction: parseJson(postureRecord.healthPrediction),
+      treatmentPlan: parseJson(postureRecord.treatmentPlan),
+    } : null;
+
+    // 计算综合评分（包含面诊、舌诊、体态）
     let overallScore = null;
-    if (faceData?.score && tongueData?.score) {
-      overallScore = Math.round((Number(faceData.score) + Number(tongueData.score)) / 2);
-    } else {
-      overallScore = faceData?.score || tongueData?.score || null;
+    const scores: number[] = [];
+    if (faceData?.score) scores.push(Number(faceData.score));
+    if (tongueData?.score) scores.push(Number(tongueData.score));
+    if (postureData?.score) scores.push(Number(postureData.score));
+    
+    if (scores.length > 0) {
+      overallScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
     }
 
     // 合并五脏状态
@@ -125,6 +151,16 @@ export async function GET(request: NextRequest) {
     addRecommendations(faceData?.recommendations || []);
     addRecommendations(tongueData?.recommendations || []);
 
+    // 添加体态评估建议
+    if (postureData?.treatmentPlan?.lifestyle) {
+      postureData.treatmentPlan.lifestyle.forEach((item: any) => {
+        if (item.content && !seenTexts.has(item.content)) {
+          seenTexts.add(item.content);
+          mergedRecommendations.push({ text: item.content, type: '体态', category: item.type });
+        }
+      });
+    }
+
     // 获取健康档案
     const profileResult = await db
       .select()
@@ -138,10 +174,13 @@ export async function GET(request: NextRequest) {
       data: {
         faceDiagnosis: faceData,
         tongueDiagnosis: tongueData,
+        postureDiagnosis: postureData,
         comprehensiveAnalysis: {
           overallScore,
           organStatus: mergedOrganStatus,
           constitution: mergedConstitution,
+          postureGrade: postureData?.grade || null,
+          postureScore: postureData?.score || null,
           recommendations: mergedRecommendations.slice(0, 10), // 最多10条建议
         },
         healthProfile: profileResult[0] || null,

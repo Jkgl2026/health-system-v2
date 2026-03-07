@@ -5,18 +5,24 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
 import { 
   ArrowLeft, FileText, Activity, Heart, AlertCircle, Loader2,
-  Calendar, TrendingUp, Lightbulb
+  Calendar, TrendingUp, Lightbulb, User, Target, Zap
 } from 'lucide-react';
 
 interface ComprehensiveData {
   faceDiagnosis: any;
   tongueDiagnosis: any;
+  postureDiagnosis: any;
   comprehensiveAnalysis: {
     overallScore: number | null;
     organStatus: Record<string, { face: number | null; tongue: number | null }>;
     constitution: { type: string; description?: string } | null;
+    postureGrade: string | null;
+    postureScore: number | null;
     recommendations: Array<{ text: string }>;
   };
   healthProfile: any;
@@ -99,10 +105,11 @@ export default function ComprehensiveReportPage() {
             <CardContent className="py-12 text-center text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
               <p>暂无数据</p>
-              <p className="text-sm mt-2">请先进行面诊或舌诊</p>
-              <div className="flex justify-center gap-4 mt-4">
+              <p className="text-sm mt-2">请先进行面诊、舌诊或体态评估</p>
+              <div className="flex justify-center gap-2 mt-4 flex-wrap">
                 <Button onClick={() => router.push('/tongue-diagnosis')}>开始舌诊</Button>
                 <Button variant="outline" onClick={() => router.push('/face-diagnosis')}>开始面诊</Button>
+                <Button variant="outline" onClick={() => router.push('/posture-diagnosis')}>开始体态评估</Button>
               </div>
             </CardContent>
           </Card>
@@ -137,42 +144,129 @@ export default function ComprehensiveReportPage() {
             </Card>
 
             {/* 诊断来源 */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               <Card className={data.faceDiagnosis ? '' : 'opacity-50'}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-lg flex items-center justify-center text-white font-bold">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 bg-gradient-to-br from-cyan-500 to-teal-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                       面
                     </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">面诊分析</div>
-                      <div className="text-xs text-muted-foreground">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium">面诊分析</div>
+                      <div className="text-xs text-muted-foreground truncate">
                         {data.faceDiagnosis 
-                          ? `评分: ${data.faceDiagnosis.score || '-'} | ${formatDate(data.faceDiagnosis.created_at)}`
-                          : '暂无数据'}
+                          ? `${data.faceDiagnosis.score || '-'}分`
+                          : '暂无'}
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               <Card className={data.tongueDiagnosis ? '' : 'opacity-50'}>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold">
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
                       舌
                     </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">舌诊分析</div>
-                      <div className="text-xs text-muted-foreground">
+                    <div className="flex-1 min-width-0">
+                      <div className="text-xs font-medium">舌诊分析</div>
+                      <div className="text-xs text-muted-foreground truncate">
                         {data.tongueDiagnosis 
-                          ? `评分: ${data.tongueDiagnosis.score || '-'} | ${formatDate(data.tongueDiagnosis.created_at)}`
-                          : '暂无数据'}
+                          ? `${data.tongueDiagnosis.score || '-'}分`
+                          : '暂无'}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className={data.postureDiagnosis ? '' : 'opacity-50'}>
+                <CardContent className="p-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+                      体
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-medium">体态评估</div>
+                      <div className="text-xs text-muted-foreground truncate">
+                        {data.postureDiagnosis 
+                          ? `${data.postureDiagnosis.score || '-'}分 (${data.postureDiagnosis.grade || '-'}级)`
+                          : '暂无'}
                       </div>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             </div>
+
+            {/* 体态评估详情 */}
+            {data.postureDiagnosis && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <User className="h-5 w-5 text-blue-500" />
+                    体态评估结果
+                  </CardTitle>
+                  <CardDescription>
+                    评估时间: {formatDate(data.postureDiagnosis.createdAt)}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                    <div className="text-center p-3 bg-blue-50 rounded-lg">
+                      <div className="text-3xl font-bold text-blue-600">
+                        {data.postureDiagnosis.score || '-'}
+                      </div>
+                      <div className="text-xs text-gray-500">体态评分</div>
+                    </div>
+                    <div className="text-center p-3 bg-cyan-50 rounded-lg">
+                      <Badge className={`text-lg ${
+                        data.postureDiagnosis.grade === 'A' ? 'bg-green-500' :
+                        data.postureDiagnosis.grade === 'B' ? 'bg-blue-500' :
+                        data.postureDiagnosis.grade === 'C' ? 'bg-yellow-500' :
+                        data.postureDiagnosis.grade === 'D' ? 'bg-orange-500' :
+                        'bg-red-500'
+                      }`}>
+                        {data.postureDiagnosis.grade || '-'}级
+                      </Badge>
+                      <div className="text-xs text-gray-500 mt-1">体态等级</div>
+                    </div>
+                    <div className="text-center p-3 bg-purple-50 rounded-lg">
+                      <Target className="h-6 w-6 mx-auto text-purple-500 mb-1" />
+                      <div className="text-xs text-gray-500">
+                        {data.postureDiagnosis.bodyStructure ? 
+                          Object.keys(data.postureDiagnosis.bodyStructure).length + '个部位' : 
+                          '-'}
+                      </div>
+                      <div className="text-xs text-gray-500">结构评估</div>
+                    </div>
+                    <div className="text-center p-3 bg-green-50 rounded-lg">
+                      <Zap className="h-6 w-6 mx-auto text-green-500 mb-1" />
+                      <div className="text-xs text-gray-500">
+                        {data.postureDiagnosis.treatmentPlan ? '已生成' : '-'}
+                      </div>
+                      <div className="text-xs text-gray-500">调理方案</div>
+                    </div>
+                  </div>
+                  
+                  {/* 主要问题 */}
+                  {data.postureDiagnosis.bodyStructure && (
+                    <div>
+                      <div className="text-sm font-medium mb-2">主要体态问题</div>
+                      <div className="flex flex-wrap gap-2">
+                        {Object.entries(data.postureDiagnosis.bodyStructure)
+                          .filter(([, value]: [string, any]) => value.severity && value.severity !== '无')
+                          .slice(0, 5)
+                          .map(([key, value]: [string, any]) => (
+                            <Badge key={key} variant="outline" className="bg-red-50 text-red-700">
+                              {key}: {value.severity}
+                            </Badge>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* 五脏健康状态 */}
             <Card>
@@ -318,12 +412,18 @@ export default function ComprehensiveReportPage() {
             )}
 
             {/* 底部操作 */}
-            <div className="flex justify-center gap-4">
+            <div className="flex justify-center gap-3 flex-wrap">
               <Button variant="outline" onClick={() => router.push('/health-progress')}>
-                <TrendingUp className="h-4 w-4 mr-2" />查看改善进度
+                <TrendingUp className="h-4 w-4 mr-2" />改善进度
               </Button>
               <Button variant="outline" onClick={() => router.push('/diagnosis-history')}>
-                查看历史记录
+                历史记录
+              </Button>
+              <Button variant="outline" onClick={() => router.push('/posture-comparison')}>
+                体态对比
+              </Button>
+              <Button variant="outline" onClick={() => router.push('/training-center')}>
+                训练中心
               </Button>
             </div>
           </div>

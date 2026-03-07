@@ -744,6 +744,24 @@ export default function AdminDashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
+                onClick={() => router.push('/admin/posture-records')}
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-transparent"
+              >
+                <Activity className="h-4 w-4 mr-2" />
+                体态评估
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push('/admin/exercises')}
+                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-transparent"
+              >
+                <Target className="h-4 w-4 mr-2" />
+                训练管理
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => router.push('/admin/settings')}
                 className="border-slate-400 text-slate-700"
               >

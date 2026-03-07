@@ -288,6 +288,24 @@ export default function Home() {
                 <Zap className="w-4 h-4 mr-1" />
                 训练中心
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/check-ins')}
+                size="sm"
+                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <Activity className="w-4 h-4 mr-1" />
+                打卡记录
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/reminders')}
+                size="sm"
+                className="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <Shield className="w-4 h-4 mr-1" />
+                提醒设置
+              </Button>
               {!hasHealthData && !isDemoMode && (
                 <Button
                   variant="outline"
