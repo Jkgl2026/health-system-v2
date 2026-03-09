@@ -8,9 +8,11 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Separator } from '@/components/ui/separator';
 import { 
   ArrowLeft, FileText, Activity, Heart, AlertCircle, Loader2,
-  Calendar, TrendingUp, Lightbulb, User, Target, Zap
+  Calendar, TrendingUp, Lightbulb, User, Target, Zap, RefreshCw,
+  Wind, GitBranch, Brain, ClipboardList, Timer, Dumbbell
 } from 'lucide-react';
 
 interface ComprehensiveData {
@@ -29,11 +31,59 @@ interface ComprehensiveData {
   generatedAt: string;
 }
 
+interface TreatmentPlan {
+  diagnosis?: {
+    summary: string;
+    constitution: { type: string; description: string; evidence: string[] };
+    primaryIssues: Array<{ issue: string; severity: string; source: string; interconnections: string[] }>;
+    rootCauses: Array<{ cause: string; evidence: string; impact: string }>;
+    interconnectedFactors: Array<{ factor1: string; factor2: string; relationship: string; mechanism: string }>;
+  };
+  phases: Array<{
+    phase: number;
+    name: string;
+    duration: string;
+    goals: string[];
+    zhengfu?: any;
+    benyuan?: any;
+    tcm?: {
+      acupressure?: { points: string[]; method: string; frequency: string; duration: string };
+      moxibustion?: { points: string[]; duration: string; frequency: string; cautions: string[] };
+      herbalTea?: string[];
+      dietaryTherapy?: string[];
+    };
+    lifestyle?: {
+      posture?: string[];
+      habits?: string[];
+      environment?: string[];
+    };
+    expectedOutcome?: string;
+  }>;
+  dailyRoutine?: {
+    morning?: Array<{ time: string; activity: string; duration: string; purpose: string }>;
+    daytime?: Array<{ time: string; activity: string; duration: string; purpose: string }>;
+    evening?: Array<{ time: string; activity: string; duration: string; purpose: string }>;
+    anytime?: Array<{ activity: string; duration: string; purpose: string }>;
+  };
+  dietaryGuidelines?: {
+    principles?: string[];
+    recommended?: string[];
+    avoid?: string[];
+  };
+  contraindications?: string[];
+  medicalAdvice?: Array<{ condition: string; department: string; urgency: string }>;
+}
+
 export default function ComprehensiveReportPage() {
   const router = useRouter();
   const [data, setData] = useState<ComprehensiveData | null>(null);
+  const [treatmentPlan, setTreatmentPlan] = useState<TreatmentPlan | null>(null);
+  const [trainingRecommendation, setTrainingRecommendation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [loadingTreatment, setLoadingTreatment] = useState(false);
+  const [loadingTraining, setLoadingTraining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('overview');
 
   useEffect(() => {
     fetchReport();
@@ -54,6 +104,63 @@ export default function ComprehensiveReportPage() {
       setError('网络错误');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTreatmentPlan = async () => {
+    if (!data?.postureDiagnosis && !data?.faceDiagnosis && !data?.tongueDiagnosis) {
+      alert('请先完成至少一项诊断');
+      return;
+    }
+    
+    setLoadingTreatment(true);
+    try {
+      const response = await fetch('/api/comprehensive-treatment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: 'current' }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setTreatmentPlan(result.data.treatmentPlan);
+        setActiveTab('treatment');
+      } else {
+        alert(result.error || '生成调理方案失败');
+      }
+    } catch {
+      alert('网络错误');
+    } finally {
+      setLoadingTreatment(false);
+    }
+  };
+
+  const fetchTrainingRecommendation = async () => {
+    if (!data?.postureDiagnosis?.id) {
+      alert('请先完成体态评估');
+      return;
+    }
+    
+    setLoadingTraining(true);
+    try {
+      const response = await fetch('/api/training-recommendation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          userId: 'current',
+          diagnosisRecordId: data.postureDiagnosis.id,
+          phase: 'all',
+        }),
+      });
+      const result = await response.json();
+      if (result.success) {
+        setTrainingRecommendation(result.data);
+      } else {
+        alert(result.error || '生成训练推荐失败');
+      }
+    } catch {
+      alert('网络错误');
+    } finally {
+      setLoadingTraining(false);
     }
   };
 
@@ -264,6 +371,660 @@ export default function ComprehensiveReportPage() {
                       </div>
                     </div>
                   )}
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 深度评估分析 */}
+            {data.postureDiagnosis && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Brain className="h-5 w-5 text-purple-500" />
+                    深度评估分析
+                  </CardTitle>
+                  <CardDescription>筋膜链、呼吸模式、代偿识别、健康预测</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="fascia" className="w-full">
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="fascia">筋膜链</TabsTrigger>
+                      <TabsTrigger value="breathing">呼吸模式</TabsTrigger>
+                      <TabsTrigger value="compensation">代偿模式</TabsTrigger>
+                      <TabsTrigger value="prediction">健康预测</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="fascia" className="mt-4">
+                      {data.postureDiagnosis.fasciaChainAnalysis ? (
+                        <div className="space-y-3">
+                          {[
+                            { key: 'frontLine', name: '前表链', icon: '⬆️' },
+                            { key: 'backLine', name: '后表链', icon: '⬇️' },
+                            { key: 'lateralLine', name: '体侧链', icon: '↔️' },
+                            { key: 'spiralLine', name: '螺旋链', icon: '🌀' },
+                            { key: 'armLine', name: '手臂链', icon: '💪' },
+                            { key: 'deepFrontLine', name: '深前线', icon: '🔬' },
+                          ].map((chain) => {
+                            const data2 = (data.postureDiagnosis.fasciaChainAnalysis as any)?.[chain.key];
+                            if (!data2) return null;
+                            return (
+                              <div key={chain.key} className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className="text-lg">{chain.icon}</span>
+                                  <span className="font-medium">{chain.name}</span>
+                                  {data2.tension && (
+                                    <Badge variant={data2.tension.includes('紧张') ? 'destructive' : 'secondary'}>
+                                      {data2.tension}
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-sm text-muted-foreground">{data2.status || '-'}</div>
+                                {data2.issues && data2.issues.length > 0 && (
+                                  <div className="mt-2 text-xs text-red-600">
+                                    问题: {data2.issues.join(', ')}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <GitBranch className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>暂无筋膜链评估数据</p>
+                        </div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="breathing" className="mt-4">
+                      {data.postureDiagnosis.breathingAssessment ? (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-center">
+                              <Wind className="h-8 w-8 mx-auto text-blue-500 mb-2" />
+                              <div className="text-sm text-muted-foreground">呼吸模式</div>
+                              <div className="font-medium">{(data.postureDiagnosis.breathingAssessment as any).pattern || '-'}</div>
+                            </div>
+                            <div className="p-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg text-center">
+                              <Activity className="h-8 w-8 mx-auto text-cyan-500 mb-2" />
+                              <div className="text-sm text-muted-foreground">膈肌功能</div>
+                              <div className="font-medium">{(data.postureDiagnosis.breathingAssessment as any).diaphragm || '-'}</div>
+                            </div>
+                          </div>
+                          {(data.postureDiagnosis.breathingAssessment as any).issues && (
+                            <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                              <div className="text-sm font-medium text-orange-700 mb-1">识别问题</div>
+                              <ul className="text-sm text-orange-600 list-disc list-inside">
+                                {((data.postureDiagnosis.breathingAssessment as any).issues || []).map((issue: string, i: number) => (
+                                  <li key={i}>{issue}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          {(data.postureDiagnosis.breathingAssessment as any).impact && (
+                            <div className="text-sm text-muted-foreground p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                              <strong>对体态影响:</strong> {(data.postureDiagnosis.breathingAssessment as any).impact}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Wind className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>暂无呼吸模式评估数据</p>
+                        </div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="compensation" className="mt-4">
+                      {data.postureDiagnosis.compensationPatterns && (data.postureDiagnosis.compensationPatterns as any[]).length > 0 ? (
+                        <div className="space-y-3">
+                          {((data.postureDiagnosis.compensationPatterns as any[]) || []).map((pattern: any, index: number) => (
+                            <div key={index} className="p-4 border rounded-lg">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium">{pattern.name}</span>
+                                <Badge variant={pattern.severity === '高' ? 'destructive' : pattern.severity === '中' ? 'default' : 'secondary'}>
+                                  {pattern.severity}风险
+                                </Badge>
+                              </div>
+                              <div className="text-sm text-muted-foreground mb-1">{pattern.description}</div>
+                              <div className="text-xs"><strong>原因:</strong> {pattern.cause}</div>
+                              <div className="text-xs"><strong>影响区域:</strong> {pattern.affectedArea}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <GitBranch className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>暂无代偿模式识别数据</p>
+                        </div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="prediction" className="mt-4">
+                      {data.postureDiagnosis.healthPrediction ? (
+                        <div className="space-y-4">
+                          <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Timer className="h-5 w-5 text-red-500" />
+                              <span className="font-medium text-red-700">短期预测 (3个月内)</span>
+                            </div>
+                            <p className="text-sm text-red-600">{(data.postureDiagnosis.healthPrediction as any).shortTerm || '-'}</p>
+                          </div>
+                          <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Timer className="h-5 w-5 text-orange-500" />
+                              <span className="font-medium text-orange-700">中期预测 (1年内)</span>
+                            </div>
+                            <p className="text-sm text-orange-600">{(data.postureDiagnosis.healthPrediction as any).midTerm || '-'}</p>
+                          </div>
+                          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Timer className="h-5 w-5 text-yellow-500" />
+                              <span className="font-medium text-yellow-700">长期预测 (3年以上)</span>
+                            </div>
+                            <p className="text-sm text-yellow-600">{(data.postureDiagnosis.healthPrediction as any).longTerm || '-'}</p>
+                          </div>
+                          {(data.postureDiagnosis.healthPrediction as any).preventiveMeasures && (
+                            <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                              <div className="text-sm font-medium text-green-700 mb-1">预防措施</div>
+                              <ul className="text-sm text-green-600 list-disc list-inside">
+                                {((data.postureDiagnosis.healthPrediction as any).preventiveMeasures || []).map((item: string, i: number) => (
+                                  <li key={i}>{item}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Timer className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                          <p>暂无健康预测数据</p>
+                        </div>
+                      )}
+                    </TabsContent>
+                  </Tabs>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 训练推荐按钮 */}
+            {data?.postureDiagnosis && (
+              <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-blue-200 dark:border-blue-800">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Dumbbell className="h-5 w-5 text-blue-600" />
+                        <span className="font-medium text-blue-700 dark:text-blue-300">个性化训练推荐</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        基于体态评估结果，智能推荐整复训练和本源训练动作
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={fetchTrainingRecommendation}
+                      disabled={loadingTraining}
+                      className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
+                    >
+                      {loadingTraining ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          生成中...
+                        </>
+                      ) : (
+                        <>
+                          <Target className="h-4 w-4 mr-2" />
+                          生成训练
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 训练推荐展示 */}
+            {trainingRecommendation && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Dumbbell className="h-5 w-5 text-blue-500" />
+                    个性化训练推荐
+                  </CardTitle>
+                  <CardDescription>基于体态评估的定制化训练方案</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {/* 优先问题 */}
+                    {trainingRecommendation.priorityIssues && trainingRecommendation.priorityIssues.length > 0 && (
+                      <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <div className="text-sm font-medium text-red-700 mb-2">优先解决问题</div>
+                        <div className="flex flex-wrap gap-2">
+                          {trainingRecommendation.priorityIssues.map((issue: string, i: number) => (
+                            <Badge key={i} variant="destructive">{issue}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* 推荐训练 */}
+                    {trainingRecommendation.recommendedSessions && trainingRecommendation.recommendedSessions.length > 0 && (
+                      <div className="space-y-4">
+                        {trainingRecommendation.recommendedSessions.map((session: any, idx: number) => (
+                          <Card key={idx}>
+                            <CardHeader className="pb-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant={session.type === '整复训练' ? 'default' : 'secondary'}>
+                                    {session.type}
+                                  </Badge>
+                                  <span className="font-medium">{session.name}</span>
+                                </div>
+                                <span className="text-sm text-muted-foreground">{session.duration}</span>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="text-xs text-muted-foreground mb-3">建议频率: {session.frequency}</div>
+                              
+                              {session.goals && session.goals.length > 0 && (
+                                <div className="mb-3">
+                                  <div className="text-xs font-medium mb-1">训练目标</div>
+                                  <div className="flex flex-wrap gap-1">
+                                    {session.goals.map((goal: string, i: number) => (
+                                      <Badge key={i} variant="outline" className="text-xs">{goal}</Badge>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                              
+                              <div className="space-y-2">
+                                <div className="text-xs font-medium">训练动作</div>
+                                {session.exercises && session.exercises.map((ex: any, i: number) => (
+                                  <div key={i} className="p-2 bg-gray-50 dark:bg-gray-900 rounded text-sm">
+                                    <div className="flex justify-between items-start">
+                                      <span className="font-medium">{ex.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {ex.sets}组 × {ex.reps}
+                                      </span>
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mt-1">
+                                      休息: {ex.restTime} | {ex.notes}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                    
+                    {/* 预计时间线和关键要点 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {trainingRecommendation.estimatedTimeline && (
+                        <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                          <div className="text-xs font-medium text-blue-700 mb-1">预计改善时间</div>
+                          <div className="text-sm text-blue-600">{trainingRecommendation.estimatedTimeline}</div>
+                        </div>
+                      )}
+                      {trainingRecommendation.keyPoints && trainingRecommendation.keyPoints.length > 0 && (
+                        <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                          <div className="text-xs font-medium text-green-700 mb-1">关键要点</div>
+                          <ul className="text-xs text-green-600 list-disc list-inside">
+                            {trainingRecommendation.keyPoints.map((point: string, i: number) => (
+                              <li key={i}>{point}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* 注意事项 */}
+                    {trainingRecommendation.cautions && trainingRecommendation.cautions.length > 0 && (
+                      <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                        <div className="text-xs font-medium text-orange-700 mb-1">注意事项</div>
+                        <ul className="text-xs text-orange-600 list-disc list-inside">
+                          {trainingRecommendation.cautions.map((caution: string, i: number) => (
+                            <li key={i}>{caution}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 综合调理方案按钮 */}
+            {(data?.faceDiagnosis || data?.tongueDiagnosis || data?.postureDiagnosis) && (
+              <Card className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Dumbbell className="h-5 w-5 text-green-600" />
+                        <span className="font-medium text-green-700 dark:text-green-300">综合调理方案</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        基于面诊、舌诊、体态综合分析，生成中西医结合的个性化调理方案
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={fetchTreatmentPlan}
+                      disabled={loadingTreatment}
+                      className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600"
+                    >
+                      {loadingTreatment ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          生成中...
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          生成方案
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* 综合调理方案展示 */}
+            {treatmentPlan && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <ClipboardList className="h-5 w-5 text-green-500" />
+                    综合调理方案
+                  </CardTitle>
+                  <CardDescription>中西医结合个性化调理建议</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Tabs value={activeTab} onValueChange={setActiveTab}>
+                    <TabsList className="grid w-full grid-cols-4">
+                      <TabsTrigger value="treatment">调理方案</TabsTrigger>
+                      <TabsTrigger value="daily">每日清单</TabsTrigger>
+                      <TabsTrigger value="diet">饮食建议</TabsTrigger>
+                      <TabsTrigger value="cautions">注意事项</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="treatment" className="mt-4">
+                      {treatmentPlan.phases && treatmentPlan.phases.length > 0 ? (
+                        <div className="space-y-4">
+                          {treatmentPlan.phases.map((phase, index) => (
+                            <Card key={index}>
+                              <CardHeader className="pb-2">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline">第{phase.phase}阶段</Badge>
+                                    <span className="font-medium">{phase.name}</span>
+                                  </div>
+                                  <span className="text-sm text-muted-foreground">{phase.duration}</span>
+                                </div>
+                              </CardHeader>
+                              <CardContent>
+                                <div className="space-y-4">
+                                  {/* 阶段目标 */}
+                                  {phase.goals && phase.goals.length > 0 && (
+                                    <div>
+                                      <div className="text-sm font-medium mb-1">阶段目标</div>
+                                      <ul className="text-sm text-muted-foreground list-disc list-inside">
+                                        {phase.goals.map((goal, i) => <li key={i}>{goal}</li>)}
+                                      </ul>
+                                    </div>
+                                  )}
+                                  
+                                  {/* 整复训练 */}
+                                  {phase.zhengfu && (
+                                    <div>
+                                      <div className="text-sm font-medium mb-1 flex items-center gap-1">
+                                        <Target className="h-4 w-4 text-blue-500" />
+                                        整复训练
+                                      </div>
+                                      <div className="text-xs text-muted-foreground mb-2">频率: {phase.zhengfu.frequency}</div>
+                                      {phase.zhengfu.sessions && phase.zhengfu.sessions.map((session: any, i: number) => (
+                                        <div key={i} className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded mb-2">
+                                          <div className="font-medium text-sm">{session.name}</div>
+                                          {session.exercises && session.exercises.map((ex: any, j: number) => (
+                                            <div key={j} className="text-xs text-muted-foreground mt-1">
+                                              • {ex.name}: {ex.method?.substring(0, 50)}...
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                  
+                                  {/* 本源训练 */}
+                                  {phase.benyuan && (
+                                    <div>
+                                      <div className="text-sm font-medium mb-1 flex items-center gap-1">
+                                        <Zap className="h-4 w-4 text-green-500" />
+                                        本源训练
+                                      </div>
+                                      <div className="text-xs text-muted-foreground mb-2">频率: {phase.benyuan.frequency}</div>
+                                      {phase.benyuan.sessions && phase.benyuan.sessions.map((session: any, i: number) => (
+                                        <div key={i} className="p-2 bg-green-50 dark:bg-green-900/20 rounded mb-2">
+                                          <div className="font-medium text-sm">{session.name}</div>
+                                          {session.exercises && session.exercises.map((ex: any, j: number) => (
+                                            <div key={j} className="text-xs text-muted-foreground mt-1">
+                                              • {ex.name}: {ex.method?.substring(0, 50)}...
+                                            </div>
+                                          ))}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                  
+                                  {/* 中医调理 */}
+                                  {phase.tcm && (
+                                    <div>
+                                      <div className="text-sm font-medium mb-1 flex items-center gap-1">
+                                        <Heart className="h-4 w-4 text-red-500" />
+                                        中医调理
+                                      </div>
+                                      {phase.tcm.acupressure && (
+                                        <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded mb-2">
+                                          <div className="text-xs font-medium">穴位按摩</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            穴位: {phase.tcm.acupressure.points?.join(', ')}
+                                          </div>
+                                          <div className="text-xs text-muted-foreground">
+                                            方法: {phase.tcm.acupressure.method}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {phase.tcm.herbalTea && phase.tcm.herbalTea.length > 0 && (
+                                        <div className="p-2 bg-orange-50 dark:bg-orange-900/20 rounded mb-2">
+                                          <div className="text-xs font-medium">代茶饮</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {phase.tcm.herbalTea.join('、')}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {phase.tcm.dietaryTherapy && phase.tcm.dietaryTherapy.length > 0 && (
+                                        <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
+                                          <div className="text-xs font-medium">食疗建议</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {phase.tcm.dietaryTherapy.join('、')}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {/* 生活方式 */}
+                                  {phase.lifestyle && (
+                                    <div>
+                                      <div className="text-sm font-medium mb-1">生活方式调整</div>
+                                      {phase.lifestyle.posture && phase.lifestyle.posture.length > 0 && (
+                                        <div className="text-xs text-muted-foreground mb-1">
+                                          姿势: {phase.lifestyle.posture.join('; ')}
+                                        </div>
+                                      )}
+                                      {phase.lifestyle.habits && phase.lifestyle.habits.length > 0 && (
+                                        <div className="text-xs text-muted-foreground">
+                                          习惯: {phase.lifestyle.habits.join('; ')}
+                                        </div>
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {/* 预期效果 */}
+                                  {phase.expectedOutcome && (
+                                    <div className="p-2 bg-emerald-50 dark:bg-emerald-900/20 rounded">
+                                      <div className="text-xs font-medium text-emerald-700">预期效果</div>
+                                      <div className="text-xs text-emerald-600">{phase.expectedOutcome}</div>
+                                    </div>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">暂无分阶段方案</div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="daily" className="mt-4">
+                      {treatmentPlan.dailyRoutine ? (
+                        <div className="space-y-4">
+                          {treatmentPlan.dailyRoutine.morning && treatmentPlan.dailyRoutine.morning.length > 0 && (
+                            <div>
+                              <div className="text-sm font-medium mb-2 flex items-center gap-1">
+                                <span className="text-lg">🌅</span> 早晨
+                              </div>
+                              {treatmentPlan.dailyRoutine.morning.map((item, i) => (
+                                <div key={i} className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded mb-2">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="font-medium">{item.activity}</span>
+                                    <span className="text-muted-foreground">{item.time}</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">{item.purpose}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {treatmentPlan.dailyRoutine.daytime && treatmentPlan.dailyRoutine.daytime.length > 0 && (
+                            <div>
+                              <div className="text-sm font-medium mb-2 flex items-center gap-1">
+                                <span className="text-lg">☀️</span> 白天
+                              </div>
+                              {treatmentPlan.dailyRoutine.daytime.map((item, i) => (
+                                <div key={i} className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded mb-2">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="font-medium">{item.activity}</span>
+                                    <span className="text-muted-foreground">{item.time}</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">{item.purpose}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {treatmentPlan.dailyRoutine.evening && treatmentPlan.dailyRoutine.evening.length > 0 && (
+                            <div>
+                              <div className="text-sm font-medium mb-2 flex items-center gap-1">
+                                <span className="text-lg">🌙</span> 晚上
+                              </div>
+                              {treatmentPlan.dailyRoutine.evening.map((item, i) => (
+                                <div key={i} className="p-2 bg-indigo-50 dark:bg-indigo-900/20 rounded mb-2">
+                                  <div className="flex justify-between text-sm">
+                                    <span className="font-medium">{item.activity}</span>
+                                    <span className="text-muted-foreground">{item.time}</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">{item.purpose}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          {treatmentPlan.dailyRoutine.anytime && treatmentPlan.dailyRoutine.anytime.length > 0 && (
+                            <div>
+                              <div className="text-sm font-medium mb-2 flex items-center gap-1">
+                                <span className="text-lg">⏰</span> 随时可行
+                              </div>
+                              {treatmentPlan.dailyRoutine.anytime.map((item, i) => (
+                                <div key={i} className="p-2 bg-gray-50 dark:bg-gray-900/20 rounded mb-2">
+                                  <div className="text-sm font-medium">{item.activity}</div>
+                                  <div className="text-xs text-muted-foreground">{item.purpose}</div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">暂无每日清单</div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="diet" className="mt-4">
+                      {treatmentPlan.dietaryGuidelines ? (
+                        <div className="space-y-4">
+                          {treatmentPlan.dietaryGuidelines.principles && treatmentPlan.dietaryGuidelines.principles.length > 0 && (
+                            <div>
+                              <div className="text-sm font-medium mb-2">饮食原则</div>
+                              <ul className="text-sm text-muted-foreground list-disc list-inside">
+                                {treatmentPlan.dietaryGuidelines.principles.map((p, i) => <li key={i}>{p}</li>)}
+                              </ul>
+                            </div>
+                          )}
+                          {treatmentPlan.dietaryGuidelines.recommended && treatmentPlan.dietaryGuidelines.recommended.length > 0 && (
+                            <div>
+                              <div className="text-sm font-medium mb-2 text-green-600">推荐食物</div>
+                              <div className="flex flex-wrap gap-2">
+                                {treatmentPlan.dietaryGuidelines.recommended.map((food, i) => (
+                                  <Badge key={i} variant="outline" className="bg-green-50 text-green-700">{food}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                          {treatmentPlan.dietaryGuidelines.avoid && treatmentPlan.dietaryGuidelines.avoid.length > 0 && (
+                            <div>
+                              <div className="text-sm font-medium mb-2 text-red-600">避免食物</div>
+                              <div className="flex flex-wrap gap-2">
+                                {treatmentPlan.dietaryGuidelines.avoid.map((food, i) => (
+                                  <Badge key={i} variant="outline" className="bg-red-50 text-red-700">{food}</Badge>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8 text-muted-foreground">暂无饮食建议</div>
+                      )}
+                    </TabsContent>
+                    
+                    <TabsContent value="cautions" className="mt-4">
+                      <div className="space-y-4">
+                        {treatmentPlan.contraindications && treatmentPlan.contraindications.length > 0 && (
+                          <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                            <div className="text-sm font-medium text-red-700 mb-2">禁忌事项</div>
+                            <ul className="text-sm text-red-600 list-disc list-inside">
+                              {treatmentPlan.contraindications.map((item, i) => <li key={i}>{item}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                        {treatmentPlan.medicalAdvice && treatmentPlan.medicalAdvice.length > 0 && (
+                          <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                            <div className="text-sm font-medium text-orange-700 mb-2">就医建议</div>
+                            {treatmentPlan.medicalAdvice.map((advice, i) => (
+                              <div key={i} className="mb-2 p-2 bg-white dark:bg-gray-800 rounded">
+                                <div className="flex justify-between text-sm">
+                                  <span>{advice.condition}</span>
+                                  <Badge variant={advice.urgency === '立即' ? 'destructive' : 'secondary'}>
+                                    {advice.urgency}
+                                  </Badge>
+                                </div>
+                                <div className="text-xs text-muted-foreground">建议科室: {advice.department}</div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
             )}

@@ -6,10 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ArrowLeft, Calendar, TrendingUp, TrendingDown, Minus,
-  Activity, Award, Clock, ChevronRight, Eye, GitCompare
+  Activity, Award, Clock, ChevronRight, Eye, GitCompare,
+  Download, Maximize2, Image as ImageIcon
 } from 'lucide-react';
+import PostureAnnotationCanvas from '@/components/PostureAnnotationCanvas';
 
 interface PostureRecord {
   id: string;
@@ -226,6 +229,61 @@ export default function PostureComparisonPage() {
             <div className="space-y-4">
               {comparisonResult ? (
                 <>
+                  {/* AI差异标注图 */}
+                  {comparisonResult.currentRecord && comparisonResult.previousRecord && (
+                    <Card className="mb-4">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <ImageIcon className="h-5 w-5 text-purple-500" />
+                          AI差异标注图
+                        </CardTitle>
+                        <CardDescription>自动生成的体态对比可视化分析</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Tabs defaultValue="front">
+                          <TabsList className="grid w-full grid-cols-4">
+                            <TabsTrigger value="front">正面</TabsTrigger>
+                            <TabsTrigger value="leftSide">左侧</TabsTrigger>
+                            <TabsTrigger value="rightSide">右侧</TabsTrigger>
+                            <TabsTrigger value="back">背面</TabsTrigger>
+                          </TabsList>
+                          
+                          {['front', 'leftSide', 'rightSide', 'back'].map((angle) => (
+                            <TabsContent key={angle} value={angle} className="mt-4">
+                              <PostureAnnotationCanvas
+                                comparison={{
+                                  beforeImage: comparisonResult.previousRecord[`${angle}ImageUrl`],
+                                  afterImage: comparisonResult.currentRecord[`${angle}ImageUrl`],
+                                  beforeData: {
+                                    score: comparisonResult.previousRecord.score,
+                                    grade: comparisonResult.previousRecord.grade,
+                                    bodyStructure: comparisonResult.previousRecord.bodyStructure,
+                                  },
+                                  afterData: {
+                                    score: comparisonResult.currentRecord.score,
+                                    grade: comparisonResult.currentRecord.grade,
+                                    bodyStructure: comparisonResult.currentRecord.bodyStructure,
+                                  },
+                                  improvements: comparisonResult.improvements?.map((item: any) => ({
+                                    area: item.item,
+                                    change: item.change,
+                                  })) || [],
+                                  deteriorations: comparisonResult.deteriorations?.map((item: any) => ({
+                                    area: item.item,
+                                    change: item.change,
+                                  })) || [],
+                                  angle: angle as 'front' | 'leftSide' | 'rightSide' | 'back',
+                                }}
+                                width={600}
+                                height={450}
+                              />
+                            </TabsContent>
+                          ))}
+                        </Tabs>
+                      </CardContent>
+                    </Card>
+                  )}
+                  
                   {/* 评分变化 */}
                   <Card className="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
                     <CardHeader>

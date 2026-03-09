@@ -196,6 +196,8 @@ ${JSON.stringify(comparisonData.previous, null, 2)}
       data: {
         id: insertResult[0]?.id,
         ...comparisonResult,
+        currentRecord: currentRecord,
+        previousRecord: previousRecord,
         currentRecordDate: currentRecord.createdAt,
         previousRecordDate: previousRecord.createdAt,
       }
