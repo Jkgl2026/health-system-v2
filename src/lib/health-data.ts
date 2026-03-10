@@ -506,135 +506,292 @@ export const EIGHT_HEALTH_ELEMENTS = {
   },
 };
 
-// 客户必修的21个堂课
-export const TWENTY_ONE_COURSES = [
-  {
-    id: 1,
-    title: '第1课：为什么得病不容易',
-    duration: '10分钟',
-    content: '得病需要十几年甚至几十年的时间累积，所以去病也需要时间，不要急于求成。',
+// 课程类型定义
+interface CourseItem {
+  id: number;
+  title: string;
+  duration: string;
+  season: number;
+  isCase?: boolean;
+}
+
+interface CourseTheme {
+  theme: string;
+  description: string;
+  relatedElements: string[];
+  courses: CourseItem[];
+}
+
+// 推荐课程分类（根据健康主题分类）
+export const RECOMMENDED_COURSES: Record<string, CourseTheme> = {
+  // 因果主题
+  因果: {
+    theme: '因果',
+    description: '理解疾病的因果规律，找到疾病的根本原因',
+    relatedElements: ['气血', '情绪'],
+    courses: [
+      { id: 1, title: '第2课《疾病为什么会反复》', duration: '10分钟', season: 1 },
+      { id: 2, title: '第3课《如何用两个字解读疾病》', duration: '10分钟', season: 1 },
+      { id: 3, title: '第4课《如何用因果解决疾病》', duration: '10分钟', season: 1 },
+      { id: 4, title: '第2季第18课《找到病因就能去根》', duration: '10分钟', season: 2 },
+      { id: 5, title: '案例第1季智疗课5课《不懂因果，错上加错》', duration: '15分钟', season: 1, isCase: true },
+    ],
   },
-  {
-    id: 2,
-    title: '第2课：医院和健康行业的区别',
-    duration: '10分钟',
-    content: '医院负责抢救生命，健康行业负责预防和康复，两者互补。',
+  // 寒湿主题
+  寒湿: {
+    theme: '寒湿',
+    description: '寒湿是百病之源，学会祛寒除湿的方法',
+    relatedElements: ['寒凉', '循环', '气血'],
+    courses: [
+      { id: 6, title: '第25课《预防流感的五个要素》', duration: '10分钟', season: 1 },
+      { id: 7, title: '第46课《温度解百病》', duration: '10分钟', season: 1 },
+      { id: 8, title: '第39课《气血平衡，让你的生活变得"更"》', duration: '10分钟', season: 1 },
+      { id: 9, title: '第2季第25课《会坐"月子"能去病》', duration: '10分钟', season: 2 },
+      { id: 10, title: '案例第3季智疗课7《找到"病因"，才能躲过灾难》', duration: '15分钟', season: 3, isCase: true },
+    ],
   },
-  {
-    id: 3,
-    title: '第3课：什么是病因',
-    duration: '10分钟',
-    content: '真正的病因都在生活里，只有找到病因才能从根本上解决问题。',
+  // 排毒主题
+  排毒: {
+    theme: '排毒',
+    description: '了解身体的排毒机制，清理体内毒素',
+    relatedElements: ['毒素', '循环'],
+    courses: [
+      { id: 11, title: '第18课《如何解读排毒反应》', duration: '10分钟', season: 1 },
+      { id: 12, title: '第26课《你知道身体有哪八个救命的排毒口吗》', duration: '10分钟', season: 1 },
+      { id: 13, title: '第27-28课《排毒的四大好处》上、下', duration: '20分钟', season: 1 },
+      { id: 14, title: '第23课《让家人远离大病的秘密》', duration: '10分钟', season: 1 },
+      { id: 15, title: '案例第3季智疗课37《你欠身体的账还的越早，风险越小》', duration: '15分钟', season: 3, isCase: true },
+    ],
   },
-  {
-    id: 4,
-    title: '第4课：健康七要素',
-    duration: '15分钟',
-    content: '详细讲解影响健康的七个核心要素：气血、循环、毒素、血脂、寒凉、免疫、情绪。',
+  // 微循环主题
+  微循环: {
+    theme: '微循环',
+    description: '微循环是健康的关键，改善微循环预防大病',
+    relatedElements: ['循环', '气血'],
+    courses: [
+      { id: 16, title: '第9课《大病查出来为什么到晚期？》上', duration: '10分钟', season: 1 },
+      { id: 17, title: '第10课《大病查出来为什么到晚期？》下', duration: '10分钟', season: 1 },
+    ],
   },
-  {
-    id: 5,
-    title: '第5课：系统战役故事',
-    duration: '10分钟',
-    content: '通过军事战役的比喻，理解健康系统的运作原理。',
+  // 免疫力主题
+  免疫力: {
+    theme: '免疫力',
+    description: '提升免疫力是健康的根本保障',
+    relatedElements: ['免疫', '气血'],
+    courses: [
+      { id: 18, title: '第1季第11-13课《这个世界上没有治百病的药，但是有调百病的方法》', duration: '30分钟', season: 1 },
+      { id: 19, title: '第4季《我们的免疫力，为什么比十年前下降了？》', duration: '10分钟', season: 4 },
+      { id: 20, title: '案例第3季智疗课52《孩子对不起，我们知道的太晚了》', duration: '15分钟', season: 3, isCase: true },
+      { id: 21, title: '案例第2季智疗课35《父母体质好，孩子生病少》', duration: '15分钟', season: 2, isCase: true },
+    ],
   },
-  {
-    id: 6,
-    title: '第6课：大扫除的故事',
-    duration: '10分钟',
-    content: '理解排毒过程中的好转反应，不要轻易放弃。',
+  // 恢复健康七要素主题
+  七要素: {
+    theme: '恢复健康七要素',
+    description: '掌握恢复健康的七个关键要素',
+    relatedElements: ['气血', '循环', '毒素', '血脂', '寒凉', '免疫', '情绪'],
+    courses: [
+      { id: 22, title: '第1季第40课《恢复健康的速度，由你自己的七个要素决定！》', duration: '10分钟', season: 1 },
+      { id: 23, title: '第1季第41课《为什么坚持一辈子容易，坚持几个月却很难》', duration: '10分钟', season: 1 },
+    ],
   },
-  {
-    id: 7,
-    title: '第7课：身体语言简表的意义',
-    duration: '10分钟',
-    content: '学会读懂身体的信号，早期发现健康问题。',
+  // 生活习惯主题
+  生活习惯: {
+    theme: '生活习惯',
+    description: '改变不良生活习惯是健康的基础',
+    relatedElements: ['气血', '毒素', '免疫'],
+    courses: [
+      { id: 24, title: '第2季第31课《错误的睡眠会让你提前衰老》', duration: '10分钟', season: 2 },
+      { id: 25, title: '第1季第33课《改变坏习惯容易半途而废，是因为误读身体的两个信号》', duration: '10分钟', season: 1 },
+      { id: 26, title: '第2季第1课《不是疾病年轻化，而是不良生活习惯年轻化》', duration: '10分钟', season: 2 },
+      { id: 27, title: '第3季第2课《要想活得好，运动不能少》', duration: '10分钟', season: 3 },
+      { id: 28, title: '第3季第4课《对生活习惯的放纵，就是对健康的放弃》', duration: '10分钟', season: 3 },
+      { id: 29, title: '第3季第30课《坏习惯不改掉，可以换掉》', duration: '10分钟', season: 3 },
+      { id: 30, title: '案例第3季智疗课43《熬夜是坏习惯之首》', duration: '15分钟', season: 3, isCase: true },
+    ],
   },
-  {
-    id: 8,
-    title: '第8课：七问法',
-    duration: '10分钟',
-    content: '通过七个问题深入了解症状，找出根本原因。',
+  // 饮食习惯主题
+  饮食习惯: {
+    theme: '饮食习惯',
+    description: '正确的饮食习惯是健康的基石',
+    relatedElements: ['毒素', '血脂'],
+    courses: [
+      { id: 31, title: '第1季第22课《吃的越好，死的越早》', duration: '10分钟', season: 1 },
+      { id: 32, title: '第1季第44课《身体垃圾越多，越喜欢垃圾食品》', duration: '10分钟', season: 1 },
+      { id: 33, title: '第3季第12课《你误解了营养》', duration: '10分钟', season: 3 },
+      { id: 34, title: '第2季第23课《三种"剩饭"不能吃》', duration: '10分钟', season: 2 },
+      { id: 35, title: '第2季第49课《餐桌上的六个常识》', duration: '10分钟', season: 2 },
+      { id: 36, title: '案例智疗12课《别把好吃的当营养》', duration: '15分钟', season: 1, isCase: true },
+    ],
   },
-  {
-    id: 9,
-    title: '第9课：气血的重要性',
-    duration: '10分钟',
-    content: '气血是健康的根本，如何补充和养护气血。',
+  // 身心灵健康主题
+  身心灵健康: {
+    theme: '身心灵健康',
+    description: '身心健康是整体健康的重要组成部分',
+    relatedElements: ['情绪'],
+    courses: [
+      { id: 37, title: '第2季第26课《如何快速放下痛苦》', duration: '10分钟', season: 2 },
+      { id: 38, title: '第2季第22课《让身心灵健康，只需要一杆"秤"》', duration: '10分钟', season: 2 },
+      { id: 39, title: '第2季第50课《幸福也是一种"能力"，需要训练》', duration: '10分钟', season: 2 },
+      { id: 40, title: '第3季第20课《是谁在折磨你，就是自己的性格》', duration: '10分钟', season: 3 },
+      { id: 41, title: '第2季智疗9《自私是对家人最大的伤害》', duration: '15分钟', season: 2, isCase: true },
+      { id: 42, title: '第3季智疗9《让心灵健康弥补身体的"残缺"》', duration: '15分钟', season: 3, isCase: true },
+      { id: 43, title: '第3季智疗23《亲情可救人，冷漠可杀人》', duration: '15分钟', season: 3, isCase: true },
+      { id: 44, title: '第3季智疗29《我们的身体需要一个家，叫做"善良"》', duration: '15分钟', season: 3, isCase: true },
+    ],
   },
-  {
-    id: 10,
-    title: '第10课：循环系统的奥秘',
-    duration: '10分钟',
-    content: '微循环如何影响健康，如何改善循环。',
+  // 心脑血管疾病主题
+  心脑血管: {
+    theme: '心脑血管疾病',
+    description: '预防和改善心脑血管疾病',
+    relatedElements: ['循环', '血脂', '气血'],
+    courses: [
+      { id: 45, title: '第1季第6课《一个成语拯救2.5亿个家庭》', duration: '10分钟', season: 1 },
+      { id: 46, title: '第1季第7课《如何让你家人远离心脑血管疾病》', duration: '10分钟', season: 1 },
+      { id: 47, title: '第1季第8课《如何让家人远离心脑血管疾病》', duration: '10分钟', season: 1 },
+    ],
   },
-  {
-    id: 11,
-    title: '第11课：毒素的来源与排毒',
-    duration: '10分钟',
-    content: '体内毒素的来源，如何有效排毒。',
+  // 睡眠主题
+  睡眠: {
+    theme: '睡眠',
+    description: '良好的睡眠是健康的重要保障',
+    relatedElements: ['气血', '免疫'],
+    courses: [
+      { id: 48, title: '第2季第31课《错误的睡眠让你提前衰老》', duration: '10分钟', season: 2 },
+      { id: 49, title: '第3季智疗40《最好的"营养"是睡眠》', duration: '15分钟', season: 3, isCase: true },
+      { id: 50, title: '第3季智疗43《熬夜是坏习惯之首》', duration: '15分钟', season: 3, isCase: true },
+    ],
   },
-  {
-    id: 12,
-    title: '第12课：血脂与心血管健康',
-    duration: '10分钟',
-    content: '高血脂的危害，如何预防和改善。',
+  // 肥胖主题
+  肥胖: {
+    theme: '肥胖',
+    description: '科学减肥，健康瘦身',
+    relatedElements: ['血脂', '毒素'],
+    courses: [
+      { id: 51, title: '第1季智疗1《减肥为什么如此简单》', duration: '15分钟', season: 1, isCase: true },
+      { id: 52, title: '第1季第28课《你知道排毒的四大好处》', duration: '10分钟', season: 1 },
+      { id: 53, title: '第2季第46课《胖人的烦恼》', duration: '10分钟', season: 2 },
+    ],
   },
-  {
-    id: 13,
-    title: '第13课：寒湿对健康的影响',
-    duration: '10分钟',
-    content: '寒湿的来源，如何祛除寒湿。',
+  // 健康观念主题
+  健康观念: {
+    theme: '健康观念',
+    description: '树立正确的健康观念',
+    relatedElements: ['气血', '循环', '毒素', '血脂', '寒凉', '免疫', '情绪'],
+    courses: [
+      { id: 54, title: '第1季第1课《人不是死于疾病，而是死于无知》', duration: '10分钟', season: 1 },
+      { id: 55, title: '第1季第2课《疾病为什么会反复》', duration: '10分钟', season: 1 },
+      { id: 56, title: '第1季第5课《一个害了四代人的矛盾理论，却无人解读》', duration: '10分钟', season: 1 },
+      { id: 57, title: '第1季第15课《为什么治疗疑难杂症的全是中医》', duration: '10分钟', season: 1 },
+      { id: 58, title: '第1季第20课《人民健康，还医于民》', duration: '10分钟', season: 1 },
+      { id: 59, title: '第2季第9课《你听说过"健商"吗？》', duration: '10分钟', season: 2 },
+    ],
   },
-  {
-    id: 14,
-    title: '第14课：免疫力的建立',
-    duration: '10分钟',
-    content: '免疫力低下的原因，如何提升免疫力。',
+  // 中医养生主题
+  中医养生: {
+    theme: '中医养生',
+    description: '中医智慧与健康养生',
+    relatedElements: ['气血', '寒凉', '循环'],
+    courses: [
+      { id: 60, title: '第1季第15课《为什么治疗疑难杂症的全是中医》', duration: '10分钟', season: 1 },
+      { id: 61, title: '第1季第29课《如果误读中西医的区别，小心留下终身遗憾》', duration: '10分钟', season: 1 },
+      { id: 62, title: '第1季第30课《为什么健康离不开中医》', duration: '10分钟', season: 1 },
+      { id: 63, title: '第1季第37课《只图一时之快，都让健康与你无缘》', duration: '10分钟', season: 1 },
+      { id: 64, title: '第1季第47课《解读中西文化的差异，别走入温度的误区》', duration: '10分钟', season: 1 },
+    ],
   },
-  {
-    id: 15,
-    title: '第15课：情绪与健康的关系',
-    duration: '10分钟',
-    content: '负面情绪对身体的伤害，如何管理情绪。',
+  // 身体语言主题
+  身体语言: {
+    theme: '身体语言',
+    description: '读懂身体的信号，早期发现健康问题',
+    relatedElements: ['气血', '循环', '毒素'],
+    courses: [
+      { id: 65, title: '第1季第31课《你读过人体使用说明书吗》', duration: '10分钟', season: 1 },
+      { id: 66, title: '第2季第10课《你能听懂身体喊救命的语言吗》', duration: '10分钟', season: 2 },
+      { id: 67, title: '第2季第38课《自检就是自救》', duration: '10分钟', season: 2 },
+      { id: 68, title: '第2季第34课《六问"良性"，让你清醒》', duration: '10分钟', season: 2 },
+      { id: 69, title: '案例第1季智疗6《指标正常，不等于健康预防》', duration: '15分钟', season: 1, isCase: true },
+    ],
   },
-  {
-    id: 16,
-    title: '第16课：健康生活习惯的养成',
-    duration: '10分钟',
-    content: '如何养成健康的饮食、作息、运动习惯。',
+  // 健康价值主题
+  健康价值: {
+    theme: '健康价值',
+    description: '认识健康的真正价值',
+    relatedElements: ['气血', '循环'],
+    courses: [
+      { id: 70, title: '第1季第51课《我帮你算算你的健康值多少钱》', duration: '10分钟', season: 1 },
+      { id: 71, title: '第1季第45课《亚健康是个筐，找不到病因往里装》', duration: '10分钟', season: 1 },
+      { id: 72, title: '第1季第19课《把好健康一道门，双念能救一代人》', duration: '10分钟', season: 1 },
+    ],
   },
-  {
-    id: 17,
-    title: '第17课：如何配合调理',
-    duration: '10分钟',
-    content: '调理期间如何配合，提高调理效果。',
+  // 过劳主题
+  过劳: {
+    theme: '过劳',
+    description: '避免过劳，保护健康',
+    relatedElements: ['气血', '免疫'],
+    courses: [
+      { id: 73, title: '第2季第17课《身体与信用卡一样，一旦透支就叫过劳死》', duration: '10分钟', season: 2 },
+      { id: 74, title: '第2季第28课《决定健康的三个要素》', duration: '10分钟', season: 2 },
+      { id: 75, title: '第2季智疗9《健康观念拯救家族》', duration: '15分钟', season: 2, isCase: true },
+      { id: 76, title: '第2季智疗11《一场病，救了全家人的命》', duration: '15分钟', season: 2, isCase: true },
+    ],
   },
-  {
-    id: 18,
-    title: '第18课：好转反应的理解',
-    duration: '10分钟',
-    content: '什么是好转反应，如何正确应对。',
+  // 糖尿病主题
+  糖尿病: {
+    theme: '糖尿病',
+    description: '正确认识和管理糖尿病',
+    relatedElements: ['血脂', '循环'],
+    courses: [
+      { id: 77, title: '第1季第52课《解读糖尿病的七个误区，你有可能救人一命》', duration: '10分钟', season: 1 },
+      { id: 78, title: '第2季第16课《别把"并"发症当成"病"发症》', duration: '10分钟', season: 2 },
+    ],
   },
-  {
-    id: 19,
-    title: '第19课：健康自我管理',
-    duration: '10分钟',
-    content: '学会管理自己和家人的健康。',
+  // 过敏主题
+  过敏: {
+    theme: '过敏',
+    description: '了解过敏，改善体质',
+    relatedElements: ['免疫', '毒素'],
+    courses: [
+      { id: 79, title: '第1季第12课《这个世界上没有治百病的药，但有调百病的方法》', duration: '10分钟', season: 1 },
+      { id: 80, title: '第1季第24课《比流感更可怕的误区》', duration: '10分钟', season: 1 },
+      { id: 81, title: '第1季第35课《方向一换，奇迹出现》', duration: '10分钟', season: 1 },
+    ],
   },
-  {
-    id: 20,
-    title: '第20课：家庭健康管理',
-    duration: '10分钟',
-    content: '如何成为家庭的健康守护者。',
+  // 感冒主题
+  感冒: {
+    theme: '感冒',
+    description: '正确认识感冒，提升抵抗力',
+    relatedElements: ['免疫', '寒凉'],
+    courses: [
+      { id: 82, title: '第1季第4课《如何用因果解决疾病》', duration: '10分钟', season: 1 },
+      { id: 83, title: '第1季第25课《预防流感的五个要素》', duration: '10分钟', season: 1 },
+      { id: 84, title: '第1季第24课《比流感更可怕的误区》', duration: '10分钟', season: 1 },
+    ],
   },
-  {
-    id: 21,
-    title: '第21课：健康观念总结',
-    duration: '10分钟',
-    content: '总结健康的核心观念，长期维持健康。',
-  },
-];
+};
+
+// 健康元素与课程主题映射
+export const ELEMENT_TO_COURSE_THEME: Record<string, string[]> = {
+  '气血': ['因果', '寒湿', '微循环', '免疫力', '七要素', '生活习惯', '心脑血管', '睡眠', '健康观念', '中医养生', '身体语言', '健康价值', '过劳'],
+  '循环': ['寒湿', '排毒', '微循环', '七要素', '心脑血管', '健康观念', '中医养生', '身体语言', '健康价值'],
+  '毒素': ['排毒', '七要素', '生活习惯', '饮食习惯', '肥胖', '健康观念', '身体语言', '过敏'],
+  '血脂': ['七要素', '饮食习惯', '心脑血管', '肥胖', '糖尿病', '健康观念'],
+  '寒凉': ['寒湿', '七要素', '健康观念', '中医养生', '感冒'],
+  '免疫': ['免疫力', '七要素', '生活习惯', '睡眠', '健康观念', '过劳', '过敏', '感冒'],
+  '情绪': ['因果', '七要素', '身心灵健康', '健康观念'],
+};
+
+// 导出所有课程的扁平列表（兼容旧代码）
+export const TWENTY_ONE_COURSES = Object.values(RECOMMENDED_COURSES)
+  .flatMap(theme => theme.courses)
+  .map((course, index) => ({
+    id: course.id,
+    title: course.title,
+    duration: course.duration,
+    content: `${course.isCase ? '案例课' : '课程'} - 第${course.season}季`,
+    module: course.isCase ? '案例课' : `第${course.season}季`,
+    theme: Object.values(RECOMMENDED_COURSES).find(t => t.courses.some(c => c.id === course.id))?.theme || '',
+  }));
 
 // 不良生活习惯自检表（完整版 - 根据文档）
 export const BAD_HABITS_CHECKLIST = {

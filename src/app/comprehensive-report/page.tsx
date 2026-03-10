@@ -18,7 +18,7 @@ import {
   Phone, Utensils, Bike, Moon, Sun, Apple, Coffee, Salad,
   BookOpen, ShoppingBag, Package, CalendarDays, ListChecks
 } from 'lucide-react';
-import { BODY_SYMPTOMS, HEALTH_ELEMENTS, TWENTY_ONE_COURSES, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
+import { BODY_SYMPTOMS, HEALTH_ELEMENTS, RECOMMENDED_COURSES, ELEMENT_TO_COURSE_THEME, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
 import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
 
 interface ComprehensiveData {
@@ -418,22 +418,66 @@ export default function ComprehensiveReportPage() {
     return matches.sort((a, b) => b.matchScore - a.matchScore);
   };
 
-  // 获取课程推荐
-  const getCourseMatches = (): CourseMatch[] => {
+  // 获取课程推荐（根据健康元素匹配课程主题）
+  const getCourseMatches = () => {
     const primaryElements = getPrimaryElements();
-    return TWENTY_ONE_COURSES.map(course => {
-      let relevance: 'high' | 'medium' | 'low' = 'medium';
-      
-      const primaryElementNames = primaryElements.map(el => el.name);
-      if (primaryElementNames.some(e => course.title.includes(e))) {
-        relevance = 'high';
+    const primaryElementNames = primaryElements.map(el => el.name);
+    
+    // 根据健康元素找到相关的课程主题
+    const relatedThemes = new Set<string>();
+    primaryElementNames.forEach(element => {
+      const themes = ELEMENT_TO_COURSE_THEME[element];
+      if (themes) {
+        themes.forEach(theme => relatedThemes.add(theme));
       }
-      
-      return { ...course, relevance };
-    }).sort((a, b) => {
-      const order = { high: 3, medium: 2, low: 1 };
-      return order[b.relevance] - order[a.relevance];
     });
+
+    // 收集相关主题的课程
+    const courseList: Array<{
+      id: number;
+      title: string;
+      duration: string;
+      module?: string;
+      theme: string;
+      relevance: 'high' | 'medium' | 'low';
+      themeDescription: string;
+    }> = [];
+
+    relatedThemes.forEach(themeName => {
+      const themeData = RECOMMENDED_COURSES[themeName as keyof typeof RECOMMENDED_COURSES];
+      if (themeData) {
+        // 检查主题的相关元素是否与用户匹配
+        const matchCount = themeData.relatedElements.filter(el => primaryElementNames.includes(el)).length;
+        const relevance: 'high' | 'medium' | 'low' = matchCount >= 2 ? 'high' : matchCount >= 1 ? 'medium' : 'low';
+        
+        themeData.courses.forEach(course => {
+          courseList.push({
+            id: course.id,
+            title: course.title,
+            duration: course.duration,
+            module: course.isCase ? '案例课' : `第${course.season}季`,
+            theme: themeName,
+            relevance,
+            themeDescription: themeData.description,
+          });
+        });
+      }
+    });
+
+    // 按相关度排序，并去重
+    const sortedCourses = courseList
+      .sort((a, b) => {
+        const order = { high: 3, medium: 2, low: 1 };
+        if (order[b.relevance] !== order[a.relevance]) {
+          return order[b.relevance] - order[a.relevance];
+        }
+        return a.id - b.id;
+      })
+      .filter((course, index, self) => 
+        index === self.findIndex(c => c.id === course.id)
+      );
+
+    return sortedCourses;
   };
 
   // 生成分阶段调理计划
@@ -1411,53 +1455,67 @@ export default function ComprehensiveReportPage() {
                       <BookOpen className="h-5 w-5 text-blue-500" />
                       课程推荐
                     </CardTitle>
-                    <CardDescription>21门健康课程，助您改善健康状况</CardDescription>
+                    <CardDescription>根据您的健康状况，为您推荐以下课程</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-80">
-                      <div className="space-y-2">
-                        {courseMatches.slice(0, 15).map((course, idx) => (
-                          <div 
-                            key={idx} 
-                            className={`p-3 rounded-lg border ${
-                              course.relevance === 'high' ? 'border-green-500 bg-green-50 dark:bg-green-900/20' :
-                              course.relevance === 'medium' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' :
-                              'border-gray-200'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <BookOpen className="h-4 w-4 text-muted-foreground" />
-                                <span className="font-medium">{course.title}</span>
-                              </div>
-                              <Badge variant={
-                                course.relevance === 'high' ? 'default' : 
-                                course.relevance === 'medium' ? 'secondary' : 'outline'
-                              }>
-                                {course.relevance === 'high' ? '强烈推荐' : 
-                                 course.relevance === 'medium' ? '推荐' : '可选'}
+                    <ScrollArea className="h-96">
+                      {/* 按主题分组显示 */}
+                      {Array.from(new Set(courseMatches.map(c => c.theme))).slice(0, 6).map((themeName) => {
+                        const themeCourses = courseMatches.filter(c => c.theme === themeName);
+                        const themeData = RECOMMENDED_COURSES[themeName as keyof typeof RECOMMENDED_COURSES];
+                        const highRelevanceCount = themeCourses.filter(c => c.relevance === 'high').length;
+                        
+                        return (
+                          <div key={themeName} className="mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant={highRelevanceCount > 0 ? 'default' : 'secondary'}>
+                                {themeName}
                               </Badge>
-                            </div>
-                            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
-                              <span className="flex items-center gap-1">
-                                <Timer className="h-3 w-3" />
-                                {course.duration}
+                              <span className="text-sm text-muted-foreground">
+                                {themeData?.description}
                               </span>
-                              {course.module && (
-                                <span className="flex items-center gap-1">
-                                  <GitBranch className="h-3 w-3" />
-                                  {course.module}
-                                </span>
-                              )}
                             </div>
-                            {course.content && (
-                              <div className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                                {course.content}
-                              </div>
-                            )}
+                            <div className="space-y-2">
+                              {themeCourses.slice(0, 5).map((course, idx) => (
+                                <div 
+                                  key={idx} 
+                                  className={`p-3 rounded-lg border ${
+                                    course.relevance === 'high' ? 'border-green-500 bg-green-50 dark:bg-green-900/20' :
+                                    course.relevance === 'medium' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' :
+                                    'border-gray-200'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <BookOpen className="h-4 w-4 text-muted-foreground" />
+                                      <span className="font-medium text-sm">{course.title}</span>
+                                    </div>
+                                    <Badge variant={
+                                      course.relevance === 'high' ? 'default' : 
+                                      course.relevance === 'medium' ? 'secondary' : 'outline'
+                                    } className="text-xs">
+                                      {course.relevance === 'high' ? '强烈推荐' : 
+                                       course.relevance === 'medium' ? '推荐' : '可选'}
+                                    </Badge>
+                                  </div>
+                                  <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                                    <span className="flex items-center gap-1">
+                                      <Timer className="h-3 w-3" />
+                                      {course.duration}
+                                    </span>
+                                    {course.module && (
+                                      <span className="flex items-center gap-1">
+                                        <GitBranch className="h-3 w-3" />
+                                        {course.module}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
                           </div>
-                        ))}
-                      </div>
+                        );
+                      })}
                     </ScrollArea>
                   </CardContent>
                 </Card>
