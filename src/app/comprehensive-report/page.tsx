@@ -14,7 +14,9 @@ import {
   ArrowLeft, FileText, Activity, Heart, AlertCircle, Loader2,
   Calendar, TrendingUp, Lightbulb, User, Target, Zap, RefreshCw,
   Wind, GitBranch, Brain, ClipboardList, Timer, Dumbbell,
-  Flame, Droplets, Sparkles, Eye, ChevronRight, CheckCircle2
+  Flame, Droplets, Sparkles, Eye, ChevronRight, CheckCircle2,
+  Phone, Utensils, Bike, Moon, Sun, Apple, Coffee, Salad,
+  BookOpen, ShoppingBag, Package, CalendarDays, ListChecks
 } from 'lucide-react';
 import { BODY_SYMPTOMS, HEALTH_ELEMENTS, TWENTY_ONE_COURSES, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
 import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator';
@@ -40,6 +42,8 @@ interface TreatmentPlan {
   phases: any[];
   dailyRoutine?: any;
   dietaryGuidelines?: any;
+  exercisePlan?: any[];
+  lifestyleAdvice?: any[];
   contraindications?: string[];
   medicalAdvice?: any[];
 }
@@ -75,6 +79,15 @@ interface SymptomCheckData {
   selectedChoice: string;
   healthScore: number;
   totalSymptoms: number;
+}
+
+// 症状分类统计
+interface CategoryStats {
+  [key: string]: {
+    count: number;
+    total: number;
+    symptoms: string[];
+  };
 }
 
 export default function ComprehensiveReportPage() {
@@ -178,7 +191,6 @@ export default function ComprehensiveReportPage() {
       if (result.success) {
         setData(result.data);
       }
-      // 不设置错误，因为症状自检数据可能独立存在
     } catch {
       console.error('获取AI诊断报告失败');
     }
@@ -239,6 +251,63 @@ export default function ComprehensiveReportPage() {
     } finally {
       setLoadingTraining(false);
     }
+  };
+
+  // 获取症状分类统计
+  const getSymptomCategoryStats = (): CategoryStats => {
+    const stats: CategoryStats = {};
+    
+    symptomData?.bodySymptomIds.forEach(id => {
+      const symptom = BODY_SYMPTOMS.find(s => s.id === id);
+      if (symptom) {
+        const category = symptom.category || '其他';
+        if (!stats[category]) {
+          stats[category] = { count: 0, total: 0, symptoms: [] };
+        }
+        stats[category].count++;
+        stats[category].symptoms.push(symptom.name);
+      }
+    });
+
+    // 计算每个类别的总数
+    BODY_SYMPTOMS.forEach(symptom => {
+      const category = symptom.category || '其他';
+      if (!stats[category]) {
+        stats[category] = { count: 0, total: 0, symptoms: [] };
+      }
+      stats[category].total++;
+    });
+
+    return stats;
+  };
+
+  // 获取习惯分类统计
+  const getHabitCategoryStats = (): CategoryStats => {
+    const stats: CategoryStats = {};
+    
+    symptomData?.badHabitIds.forEach(id => {
+      for (const [category, habits] of Object.entries(BAD_HABITS_CHECKLIST)) {
+        const habit = (habits as { id: number; habit: string }[]).find(h => h.id === id);
+        if (habit) {
+          if (!stats[category]) {
+            stats[category] = { count: 0, total: 0, symptoms: [] };
+          }
+          stats[category].count++;
+          stats[category].symptoms.push(habit.habit);
+          break;
+        }
+      }
+    });
+
+    // 计算每个类别的总数
+    for (const [category, habits] of Object.entries(BAD_HABITS_CHECKLIST)) {
+      if (!stats[category]) {
+        stats[category] = { count: 0, total: 0, symptoms: [] };
+      }
+      stats[category].total = (habits as any[]).length;
+    }
+
+    return stats;
   };
 
   // 获取五行分析
@@ -367,6 +436,39 @@ export default function ComprehensiveReportPage() {
     });
   };
 
+  // 生成分阶段调理计划
+  const getPhasedTreatmentPlan = () => {
+    const primaryElements = getPrimaryElements();
+    const mainElement = primaryElements[0]?.name || '气血';
+    
+    return [
+      {
+        phase: 1,
+        name: '调理期',
+        duration: '1-2周',
+        goals: ['疏通经络', '缓解主要症状', '调整作息'],
+        activities: ['基础经络疏通', '温和运动', '饮食调整'],
+        products: ['艾灸调理', '经络调理'],
+      },
+      {
+        phase: 2,
+        name: '恢复期',
+        duration: '2-4周',
+        goals: ['修复受损组织', '增强体质', '巩固效果'],
+        activities: ['针对性运动', '营养补充', '心理调适'],
+        products: ['火灸调理', '药王产品'],
+      },
+      {
+        phase: 3,
+        name: '巩固期',
+        duration: '1-2周',
+        goals: ['稳定健康状态', '建立良好习惯', '预防复发'],
+        activities: ['长期运动计划', '健康饮食', '定期复查'],
+        products: ['空腹禅调理', '正骨调理'],
+      },
+    ];
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleString('zh-CN');
   };
@@ -382,6 +484,9 @@ export default function ComprehensiveReportPage() {
   const primaryElements = getPrimaryElements();
   const productMatches = getProductMatches();
   const courseMatches = getCourseMatches();
+  const symptomCategoryStats = getSymptomCategoryStats();
+  const habitCategoryStats = getHabitCategoryStats();
+  const phasedPlan = getPhasedTreatmentPlan();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -430,9 +535,9 @@ export default function ComprehensiveReportPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                       <div className="text-center p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                        <div className="text-2xl font-bold text-blue-600">{symptomData.userInfo.name || '未填写'}</div>
+                        <div className="text-xl font-bold text-blue-600 truncate">{symptomData.userInfo.name || '未填写'}</div>
                         <div className="text-sm text-muted-foreground">姓名</div>
                       </div>
                       <div className="text-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
@@ -446,6 +551,10 @@ export default function ComprehensiveReportPage() {
                       <div className="text-center p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
                         <div className="text-2xl font-bold text-orange-600">{symptomData.userInfo.bmi || '--'}</div>
                         <div className="text-sm text-muted-foreground">BMI</div>
+                      </div>
+                      <div className="text-center p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
+                        <div className="text-lg font-bold text-pink-600 truncate">{symptomData.userInfo.phone || '未填写'}</div>
+                        <div className="text-sm text-muted-foreground">电话</div>
                       </div>
                     </div>
                     {symptomData.userInfo.height && symptomData.userInfo.weight && (
@@ -482,6 +591,36 @@ export default function ComprehensiveReportPage() {
                 </Card>
               )}
 
+              {/* 核心健康指标 */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-blue-500" />
+                    核心健康指标
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{symptomData?.bodySymptomNames.length || 0}</div>
+                      <div className="text-sm text-muted-foreground">身体症状</div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-orange-600">{symptomData?.badHabitNames.length || 0}</div>
+                      <div className="text-sm text-muted-foreground">不良习惯</div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-purple-600">{symptomData?.symptoms300Names.length || 0}</div>
+                      <div className="text-sm text-muted-foreground">详细症状</div>
+                    </div>
+                    <div className="p-3 border rounded-lg">
+                      <div className="text-2xl font-bold text-red-600">{symptomData?.targetSymptomNames.length || 0}</div>
+                      <div className="text-sm text-muted-foreground">重点关注</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* 重点症状 */}
               {symptomData?.targetSymptomNames && symptomData.targetSymptomNames.length > 0 && (
                 <Card>
@@ -507,7 +646,7 @@ export default function ComprehensiveReportPage() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
                       <Sparkles className="h-5 w-5 text-yellow-500" />
-                      主要健康元素分析
+                      五行健康分析
                     </CardTitle>
                     <CardDescription>根据症状分布分析您的健康元素倾向</CardDescription>
                   </CardHeader>
@@ -579,6 +718,65 @@ export default function ComprehensiveReportPage() {
 
             {/* 症状自检Tab */}
             <TabsContent value="symptoms" className="space-y-4">
+              {/* 分类统计 */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-blue-500" />
+                    症状分类统计
+                  </CardTitle>
+                  <CardDescription>按身体系统分类的症状分布情况</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {Object.entries(symptomCategoryStats)
+                      .filter(([, stats]) => stats.count > 0)
+                      .sort((a, b) => b[1].count - a[1].count)
+                      .slice(0, 8)
+                      .map(([category, stats]) => (
+                      <div key={category} className="p-3 border rounded-lg">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium">{category}</span>
+                          <Badge variant={stats.count > 3 ? 'destructive' : 'secondary'}>
+                            {stats.count}/{stats.total}
+                          </Badge>
+                        </div>
+                        <Progress value={(stats.count / stats.total) * 100} className="h-2" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 习惯分类统计 */}
+              {Object.keys(habitCategoryStats).filter(k => habitCategoryStats[k].count > 0).length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5 text-orange-500" />
+                      不良习惯分类
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {Object.entries(habitCategoryStats)
+                        .filter(([, stats]) => stats.count > 0)
+                        .sort((a, b) => b[1].count - a[1].count)
+                        .map(([category, stats]) => (
+                        <div key={category} className="p-3 border rounded-lg bg-orange-50 dark:bg-orange-900/20">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium">{category}</span>
+                            <Badge variant="outline" className="bg-orange-100 text-orange-700">
+                              {stats.count}项
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* 100项身体语言简表 */}
               {symptomData?.bodySymptomNames && symptomData.bodySymptomNames.length > 0 && (
                 <Card>
@@ -587,16 +785,27 @@ export default function ComprehensiveReportPage() {
                       <Activity className="h-5 w-5 text-blue-500" />
                       身体语言简表（100项）
                     </CardTitle>
-                    <CardDescription>已选择 {symptomData.bodySymptomNames.length} 项</CardDescription>
+                    <CardDescription>
+                      已选择 <Badge variant="secondary">{symptomData.bodySymptomNames.length}</Badge> 项
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ScrollArea className="h-48">
                       <div className="flex flex-wrap gap-2">
-                        {symptomData.bodySymptomNames.map((name, i) => (
-                          <Badge key={i} variant="outline" className="bg-blue-50 text-blue-700">
-                            {name}
-                          </Badge>
-                        ))}
+                        {symptomData.bodySymptomNames.map((name, i) => {
+                          const symptom = BODY_SYMPTOMS.find(s => s.name === name);
+                          const isTarget = symptomData.targetSymptomIds.includes(symptom?.id || 0);
+                          return (
+                            <Badge 
+                              key={i} 
+                              variant={isTarget ? 'destructive' : 'outline'} 
+                              className={isTarget ? '' : 'bg-blue-50 text-blue-700'}
+                            >
+                              {isTarget && <Target className="h-3 w-3 mr-1" />}
+                              {name}
+                            </Badge>
+                          );
+                        })}
                       </div>
                     </ScrollArea>
                   </CardContent>
@@ -611,7 +820,9 @@ export default function ComprehensiveReportPage() {
                       <AlertCircle className="h-5 w-5 text-orange-500" />
                       不良生活习惯（252项）
                     </CardTitle>
-                    <CardDescription>已选择 {symptomData.badHabitNames.length} 项</CardDescription>
+                    <CardDescription>
+                      已选择 <Badge variant="secondary">{symptomData.badHabitNames.length}</Badge> 项
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ScrollArea className="h-48">
@@ -635,7 +846,9 @@ export default function ComprehensiveReportPage() {
                       <FileText className="h-5 w-5 text-purple-500" />
                       详细症状表（300项）
                     </CardTitle>
-                    <CardDescription>已选择 {symptomData.symptoms300Names.length} 项</CardDescription>
+                    <CardDescription>
+                      已选择 <Badge variant="secondary">{symptomData.symptoms300Names.length}</Badge> 项
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <ScrollArea className="h-48">
@@ -783,6 +996,40 @@ export default function ComprehensiveReportPage() {
                 </Card>
               )}
 
+              {/* AI差异标注图 */}
+              {data?.postureDiagnosis?.imageUrl && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Eye className="h-5 w-5 text-purple-500" />
+                      AI差异标注图
+                    </CardTitle>
+                    <CardDescription>体态问题可视化分析</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <img 
+                      src={data.postureDiagnosis.imageUrl} 
+                      alt="体态标注图" 
+                      className="w-full max-w-md mx-auto rounded-lg shadow-lg"
+                    />
+                    {data.postureDiagnosis.compensationPatterns && (
+                      <div className="mt-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="text-sm font-medium mb-2">补偿模式分析:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {Object.entries(data.postureDiagnosis.compensationPatterns)
+                            .filter(([, value]: [string, any]) => value?.present)
+                            .map(([key, value]: [string, any]) => (
+                              <Badge key={key} variant="outline">
+                                {value?.description || key}
+                              </Badge>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {(!data?.faceDiagnosis && !data?.tongueDiagnosis && !data?.postureDiagnosis) && (
                 <Card>
                   <CardContent className="py-12 text-center">
@@ -813,31 +1060,197 @@ export default function ComprehensiveReportPage() {
                 </Card>
               )}
 
-              {/* 调理方案展示 */}
+              {/* 综合调理建议 */}
               {treatmentPlan && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <ClipboardList className="h-5 w-5 text-green-500" />
-                      综合调理方案
+                      综合调理建议
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {treatmentPlan.phases?.map((phase: any, idx: number) => (
-                        <div key={idx} className="p-4 border rounded-lg">
+                        <div key={idx} className="p-4 border rounded-lg bg-green-50 dark:bg-green-900/20">
                           <div className="flex items-center justify-between mb-2">
-                            <Badge>第{phase.phase}阶段</Badge>
+                            <Badge className="bg-green-600">第{phase.phase}阶段</Badge>
                             <span className="text-sm text-muted-foreground">{phase.duration}</span>
                           </div>
                           <div className="font-medium mb-1">{phase.name}</div>
-                          {phase.goals && <div className="text-sm text-muted-foreground">目标: {phase.goals.join(', ')}</div>}
+                          {phase.goals && (
+                            <div className="text-sm text-muted-foreground">
+                              <span className="font-medium">目标: </span>{phase.goals.join(', ')}
+                            </div>
+                          )}
+                          {phase.activities && (
+                            <div className="text-sm text-muted-foreground mt-1">
+                              <span className="font-medium">活动: </span>{phase.activities.join(', ')}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
               )}
+
+              {/* 饮食调理方案 */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Utensils className="h-5 w-5 text-orange-500" />
+                    饮食调理方案
+                  </CardTitle>
+                  <CardDescription>根据您的体质和症状推荐饮食建议</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          <span className="font-medium">推荐食物</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-green-50 text-green-700"><Salad className="h-3 w-3 mr-1" />新鲜蔬菜</Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700"><Apple className="h-3 w-3 mr-1" />水果</Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700">粗粮</Badge>
+                          <Badge variant="outline" className="bg-green-50 text-green-700">优质蛋白</Badge>
+                        </div>
+                      </div>
+                      <div className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                          <AlertCircle className="h-5 w-5 text-red-500" />
+                          <span className="font-medium">忌口食物</span>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant="outline" className="bg-red-50 text-red-700"><Coffee className="h-3 w-3 mr-1" />咖啡浓茶</Badge>
+                          <Badge variant="outline" className="bg-red-50 text-red-700">辛辣刺激</Badge>
+                          <Badge variant="outline" className="bg-red-50 text-red-700">油腻食物</Badge>
+                          <Badge variant="outline" className="bg-red-50 text-red-700">生冷食物</Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                      <div className="font-medium mb-2">饮食原则</div>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• 三餐规律，细嚼慢咽</li>
+                        <li>• 清淡为主，少盐少油</li>
+                        <li>• 多喝温水，促进代谢</li>
+                        <li>• 晚餐七分饱，避免夜宵</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 运动调理方案 */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Bike className="h-5 w-5 text-blue-500" />
+                    运动调理方案
+                  </CardTitle>
+                  <CardDescription>适合您当前体质的运动建议</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="p-4 border rounded-lg text-center">
+                        <Sun className="h-8 w-8 mx-auto text-yellow-500 mb-2" />
+                        <div className="font-medium">有氧运动</div>
+                        <div className="text-sm text-muted-foreground mt-1">快走、慢跑、游泳</div>
+                        <div className="text-sm text-blue-600 mt-1">每周3-5次，30分钟/次</div>
+                      </div>
+                      <div className="p-4 border rounded-lg text-center">
+                        <Dumbbell className="h-8 w-8 mx-auto text-purple-500 mb-2" />
+                        <div className="font-medium">力量训练</div>
+                        <div className="text-sm text-muted-foreground mt-1">核心训练、体态矫正</div>
+                        <div className="text-sm text-blue-600 mt-1">每周2-3次，20分钟/次</div>
+                      </div>
+                      <div className="p-4 border rounded-lg text-center">
+                        <Wind className="h-8 w-8 mx-auto text-green-500 mb-2" />
+                        <div className="font-medium">放松拉伸</div>
+                        <div className="text-sm text-muted-foreground mt-1">瑜伽、太极、拉伸</div>
+                        <div className="text-sm text-blue-600 mt-1">每天10-15分钟</div>
+                      </div>
+                    </div>
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="font-medium mb-2">运动注意事项</div>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• 循序渐进，避免过度劳累</li>
+                        <li>• 运动前热身，运动后拉伸</li>
+                        <li>• 保持呼吸顺畅，不要憋气</li>
+                        <li>• 如有不适立即停止</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 生活习惯建议 */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Moon className="h-5 w-5 text-indigo-500" />
+                    生活习惯建议
+                  </CardTitle>
+                  <CardDescription>改善日常习惯，促进健康恢复</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Moon className="h-5 w-5 text-indigo-500" />
+                        <span className="font-medium">睡眠管理</span>
+                      </div>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• 晚上11点前入睡</li>
+                        <li>• 保证7-8小时睡眠</li>
+                        <li>• 睡前避免使用电子设备</li>
+                        <li>• 保持卧室安静、黑暗</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sun className="h-5 w-5 text-yellow-500" />
+                        <span className="font-medium">作息规律</span>
+                      </div>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• 定时起床，不赖床</li>
+                        <li>• 午休不超过30分钟</li>
+                        <li>• 避免长时间久坐</li>
+                        <li>• 每小时起身活动5分钟</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Droplets className="h-5 w-5 text-blue-500" />
+                        <span className="font-medium">饮水建议</span>
+                      </div>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• 每天饮水1500-2000ml</li>
+                        <li>• 早起一杯温水</li>
+                        <li>• 少量多次饮用</li>
+                        <li>• 避免饭后立即大量饮水</li>
+                      </ul>
+                    </div>
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Heart className="h-5 w-5 text-red-500" />
+                        <span className="font-medium">情绪管理</span>
+                      </div>
+                      <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• 保持心情愉悦</li>
+                        <li>• 学会压力释放</li>
+                        <li>• 适当参加社交活动</li>
+                        <li>• 培养兴趣爱好</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {(!data?.faceDiagnosis && !data?.tongueDiagnosis && !data?.postureDiagnosis) && (
                 <Card>
@@ -851,24 +1264,128 @@ export default function ComprehensiveReportPage() {
 
             {/* 推荐Tab */}
             <TabsContent value="recommendations" className="space-y-4">
+              {/* 个性化推荐说明 */}
+              <Card className="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 border-violet-200">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-violet-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <Sparkles className="h-6 w-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium mb-2">个性化推荐说明</h3>
+                      <p className="text-sm text-muted-foreground">
+                        以下推荐基于您的症状自检数据和AI诊断结果综合分析得出。我们根据您的五行体质倾向、
+                        主要健康问题以及生活习惯，为您精选了最适合的调理产品和健康课程。
+                        推荐按匹配度排序，匹配度越高表示越适合您当前的健康状况。
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* 您的选择方案 */}
+              {symptomData?.selectedChoice && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <ListChecks className="h-5 w-5 text-green-500" />
+                      您的选择方案
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
+                        <span className="font-medium text-lg">{symptomData.selectedChoice}</span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        这是您在自检过程中选择的调理方案方向，我们已据此为您优化了推荐内容。
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* 分阶段调理计划 */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <CalendarDays className="h-5 w-5 text-blue-500" />
+                    分阶段调理计划
+                  </CardTitle>
+                  <CardDescription>系统化的健康调理路线图</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {phasedPlan.map((phase, idx) => (
+                      <div key={idx} className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-2">
+                            <Badge className={`${
+                              phase.phase === 1 ? 'bg-blue-500' : 
+                              phase.phase === 2 ? 'bg-green-500' : 'bg-purple-500'
+                            }`}>
+                              第{phase.phase}阶段
+                            </Badge>
+                            <span className="font-medium">{phase.name}</span>
+                          </div>
+                          <span className="text-sm text-muted-foreground">{phase.duration}</span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <div className="text-sm font-medium text-muted-foreground mb-1">目标</div>
+                            <div className="flex flex-wrap gap-1">
+                              {phase.goals.map((goal, i) => (
+                                <Badge key={i} variant="outline" className="text-xs">{goal}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-muted-foreground mb-1">活动</div>
+                            <div className="flex flex-wrap gap-1">
+                              {phase.activities.map((activity, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs">{activity}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-muted-foreground mb-1">推荐产品</div>
+                            <div className="flex flex-wrap gap-1">
+                              {phase.products.map((product, i) => (
+                                <Badge key={i} variant="outline" className="text-xs bg-green-50 text-green-700">{product}</Badge>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* 产品推荐 */}
               {productMatches.length > 0 && (
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Sparkles className="h-5 w-5 text-yellow-500" />
+                      <Package className="h-5 w-5 text-yellow-500" />
                       产品推荐
                     </CardTitle>
                     <CardDescription>根据您的症状分析，为您推荐以下调理方案</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-4">
-                      {productMatches.slice(0, 4).map((product, idx) => (
+                      {productMatches.slice(0, 6).map((product, idx) => (
                         <div key={idx} className={`p-4 rounded-lg bg-gradient-to-r ${product.color} text-white`}>
                           <div className="flex items-start gap-3">
                             <product.icon className="h-8 w-8 flex-shrink-0" />
                             <div className="flex-1">
-                              <div className="font-medium">{product.name}</div>
+                              <div className="flex items-center justify-between">
+                                <div className="font-medium">{product.name}</div>
+                                <Badge className="bg-white/20 text-white">
+                                  匹配度 {Math.min(95, product.matchScore * 10)}%
+                                </Badge>
+                              </div>
                               <div className="text-sm opacity-90 mt-1">{product.description}</div>
                               <div className="flex flex-wrap gap-2 mt-2">
                                 {product.reasons.slice(0, 3).map((reason, i) => (
@@ -891,27 +1408,53 @@ export default function ComprehensiveReportPage() {
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Lightbulb className="h-5 w-5 text-blue-500" />
+                      <BookOpen className="h-5 w-5 text-blue-500" />
                       课程推荐
                     </CardTitle>
                     <CardDescription>21门健康课程，助您改善健康状况</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-64">
+                    <ScrollArea className="h-80">
                       <div className="space-y-2">
-                        {courseMatches.slice(0, 10).map((course, idx) => (
-                          <div key={idx} className={`p-3 rounded-lg border ${
-                            course.relevance === 'high' ? 'border-green-500 bg-green-50 dark:bg-green-900/20' :
-                            course.relevance === 'medium' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' :
-                            'border-gray-200'
-                          }`}>
+                        {courseMatches.slice(0, 15).map((course, idx) => (
+                          <div 
+                            key={idx} 
+                            className={`p-3 rounded-lg border ${
+                              course.relevance === 'high' ? 'border-green-500 bg-green-50 dark:bg-green-900/20' :
+                              course.relevance === 'medium' ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' :
+                              'border-gray-200'
+                            }`}
+                          >
                             <div className="flex items-center justify-between">
-                              <div className="font-medium">{course.title}</div>
-                              <Badge variant={course.relevance === 'high' ? 'default' : 'secondary'}>
-                                {course.relevance === 'high' ? '高度相关' : course.relevance === 'medium' ? '相关' : '推荐'}
+                              <div className="flex items-center gap-2">
+                                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                                <span className="font-medium">{course.title}</span>
+                              </div>
+                              <Badge variant={
+                                course.relevance === 'high' ? 'default' : 
+                                course.relevance === 'medium' ? 'secondary' : 'outline'
+                              }>
+                                {course.relevance === 'high' ? '强烈推荐' : 
+                                 course.relevance === 'medium' ? '推荐' : '可选'}
                               </Badge>
                             </div>
-                            <div className="text-sm text-muted-foreground mt-1">{course.duration}</div>
+                            <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Timer className="h-3 w-3" />
+                                {course.duration}
+                              </span>
+                              {course.module && (
+                                <span className="flex items-center gap-1">
+                                  <GitBranch className="h-3 w-3" />
+                                  {course.module}
+                                </span>
+                              )}
+                            </div>
+                            {course.content && (
+                              <div className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                {course.content}
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -933,5 +1476,17 @@ export default function ComprehensiveReportPage() {
         )}
       </main>
     </div>
+  );
+}
+
+// 添加缺失的图标导入
+function BarChart3({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M3 3v18h18"/>
+      <path d="M18 17V9"/>
+      <path d="M13 17V5"/>
+      <path d="M8 17v-3"/>
+    </svg>
   );
 }
