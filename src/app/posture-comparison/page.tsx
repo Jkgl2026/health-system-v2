@@ -237,7 +237,7 @@ export default function PostureComparisonPage() {
                           <ImageIcon className="h-5 w-5 text-purple-500" />
                           AI差异标注图
                         </CardTitle>
-                        <CardDescription>自动生成的体态对比可视化分析</CardDescription>
+                        <CardDescription>MediaPipe骨骼检测 + Vision语义分析</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <Tabs defaultValue="front">
@@ -251,31 +251,31 @@ export default function PostureComparisonPage() {
                           {['front', 'leftSide', 'rightSide', 'back'].map((angle) => (
                             <TabsContent key={angle} value={angle} className="mt-4">
                               <PostureAnnotationCanvas
-                                comparison={{
-                                  beforeImage: comparisonResult.previousRecord[`${angle}ImageUrl`],
-                                  afterImage: comparisonResult.currentRecord[`${angle}ImageUrl`],
-                                  beforeData: {
-                                    score: comparisonResult.previousRecord.score,
-                                    grade: comparisonResult.previousRecord.grade,
-                                    bodyStructure: comparisonResult.previousRecord.bodyStructure,
-                                  },
-                                  afterData: {
-                                    score: comparisonResult.currentRecord.score,
-                                    grade: comparisonResult.currentRecord.grade,
-                                    bodyStructure: comparisonResult.currentRecord.bodyStructure,
-                                  },
-                                  improvements: comparisonResult.improvements?.map((item: any) => ({
-                                    area: item.item,
-                                    change: item.change,
-                                  })) || [],
-                                  deteriorations: comparisonResult.deteriorations?.map((item: any) => ({
-                                    area: item.item,
-                                    change: item.change,
-                                  })) || [],
-                                  angle: angle as 'front' | 'leftSide' | 'rightSide' | 'back',
+                                mode="comparison"
+                                beforeImage={comparisonResult.previousRecord[`${angle}ImageUrl`]}
+                                afterImage={comparisonResult.currentRecord[`${angle}ImageUrl`]}
+                                beforeData={{
+                                  score: comparisonResult.previousRecord.score,
+                                  grade: comparisonResult.previousRecord.grade,
+                                  bodyStructure: comparisonResult.previousRecord.bodyStructure,
                                 }}
+                                afterData={{
+                                  score: comparisonResult.currentRecord.score,
+                                  grade: comparisonResult.currentRecord.grade,
+                                  bodyStructure: comparisonResult.currentRecord.bodyStructure,
+                                }}
+                                improvements={comparisonResult.improvements?.map((item: any) => ({
+                                  area: item.item,
+                                  change: item.change,
+                                })) || []}
+                                deteriorations={comparisonResult.deteriorations?.map((item: any) => ({
+                                  area: item.item,
+                                  change: item.change,
+                                })) || []}
+                                angle={angle as 'front' | 'leftSide' | 'rightSide' | 'back'}
                                 width={600}
                                 height={450}
+                                showAnalysis={true}
                               />
                             </TabsContent>
                           ))}
