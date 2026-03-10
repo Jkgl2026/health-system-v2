@@ -574,10 +574,6 @@ export default function PostureDiagnosisPage() {
                     <RotateCcw className="h-4 w-4 mr-2" />
                     重新评估
                   </Button>
-                  <Button onClick={() => router.push('/training-center')}>
-                    前往训练中心
-                    <ChevronRight className="h-4 w-4 ml-2" />
-                  </Button>
                 </div>
               </>
             )}

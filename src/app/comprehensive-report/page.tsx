@@ -1183,9 +1183,6 @@ export default function ComprehensiveReportPage() {
               <Button variant="outline" onClick={() => router.push('/posture-comparison')}>
                 体态对比
               </Button>
-              <Button variant="outline" onClick={() => router.push('/training-center')}>
-                训练中心
-              </Button>
             </div>
           </div>
         )}

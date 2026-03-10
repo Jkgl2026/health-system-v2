@@ -279,15 +279,6 @@ export default function Home() {
                 <Activity className="w-4 h-4 mr-1" />
                 AI体态
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/training-center')}
-                size="sm"
-                className="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <Zap className="w-4 h-4 mr-1" />
-                训练中心
-              </Button>
               {!hasHealthData && !isDemoMode && (
                 <Button
                   variant="outline"
