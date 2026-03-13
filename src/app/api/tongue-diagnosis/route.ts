@@ -3,6 +3,106 @@ import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
 import { tongueDiagnosisRecords, healthProfiles } from '@/storage/database/shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
+// LLM调用重试配置
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000;
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// 安全的LLM调用，带重试机制
+async function safeLLMInvoke(
+  client: LLMClient,
+  messages: any[],
+  options: any,
+  retries = MAX_RETRIES
+): Promise<{ success: boolean; content?: string; error?: string }> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      console.log(`[TongueDiagnosis] LLM调用尝试 ${attempt + 1}/${retries + 1}`);
+      
+      const response = await client.invoke(messages, options);
+      
+      if (!response || !response.content) {
+        throw new Error('LLM返回空响应');
+      }
+      
+      console.log(`[TongueDiagnosis] LLM调用成功，响应长度: ${response.content.length}`);
+      return { success: true, content: response.content };
+    } catch (error: any) {
+      lastError = error;
+      const errorType = error?.constructor?.name || 'UnknownError';
+      const errorMessage = error?.message || String(error);
+      
+      console.error(`[TongueDiagnosis] LLM调用失败 (尝试 ${attempt + 1}/${retries + 1}):`, {
+        errorType,
+        errorMessage,
+        stack: error?.stack?.split('\n').slice(0, 3)
+      });
+      
+      if (attempt === retries) break;
+      if (errorMessage.includes('invalid') || errorMessage.includes('格式') || errorMessage.includes('参数')) {
+        console.log('[TongueDiagnosis] 错误类型不适合重试，直接返回失败');
+        break;
+      }
+      
+      console.log(`[TongueDiagnosis] 等待 ${RETRY_DELAY}ms 后重试...`);
+      await delay(RETRY_DELAY);
+    }
+  }
+  
+  return { success: false, error: lastError?.message || 'LLM调用失败' };
+}
+
+// 健壮的JSON解析函数
+function parseJSONResponse(content: string): { success: boolean; data?: any; error?: string } {
+  try {
+    // 方法1: 直接解析
+    try {
+      const data = JSON.parse(content);
+      return { success: true, data };
+    } catch { /* 继续 */ }
+    
+    // 方法2: 提取markdown代码块中的JSON
+    const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) {
+      try {
+        const data = JSON.parse(codeBlockMatch[1].trim());
+        return { success: true, data };
+      } catch { /* 继续 */ }
+    }
+    
+    // 方法3: 提取第一个完整的JSON对象
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        let jsonStr = jsonMatch[0];
+        jsonStr = jsonStr.replace(/,\s*}/g, '}');
+        jsonStr = jsonStr.replace(/,\s*]/g, ']');
+        jsonStr = jsonStr.replace(/\n/g, '\\n');
+        const data = JSON.parse(jsonStr);
+        return { success: true, data };
+      } catch { /* 继续 */ }
+    }
+    
+    // 方法4: 尝试修复并解析
+    try {
+      let cleaned = content.replace(/\/\*[\s\S]*?\*\//g, '');
+      cleaned = cleaned.replace(/\/\/.*$/gm, '');
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) {
+        const data = JSON.parse(match[0]);
+        return { success: true, data };
+      }
+    } catch { /* 所有方法都失败 */ }
+    
+    return { success: false, error: '无法解析JSON响应' };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'JSON解析异常' };
+  }
+}
+
 // 舌诊系统提示词
 const TONGUE_DIAGNOSIS_SYSTEM_PROMPT = `你是一位专业的中医舌诊专家，拥有丰富的舌象分析经验。请根据用户提供的舌苔照片进行专业的舌诊分析。
 
@@ -126,19 +226,47 @@ export async function POST(request: NextRequest) {
       },
     ];
 
-    const response = await client.invoke(messages, {
-      model: 'doubao-seed-1-6-vision-250815',
-      temperature: 0.3,
-    });
+    // 调用Vision模型分析（带重试机制）
+    const llmResult = await safeLLMInvoke(
+      client,
+      messages,
+      {
+        model: 'doubao-seed-1-6-vision-250815',
+        temperature: 0.3,
+      }
+    );
 
+    // 检查LLM调用是否成功
+    if (!llmResult.success) {
+      console.error('[TongueDiagnosis] LLM调用失败:', llmResult.error);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `AI分析失败: ${llmResult.error}`,
+          errorType: 'LLM_ERROR'
+        },
+        { status: 500 }
+      );
+    }
+
+    // 解析JSON响应（使用健壮的解析方法）
+    const parseResult = parseJSONResponse(llmResult.content!);
+    
     let analysisResult;
-    try {
-      let jsonStr = response.content;
-      const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-      if (jsonMatch) jsonStr = jsonMatch[0];
-      analysisResult = JSON.parse(jsonStr);
-    } catch {
-      analysisResult = { score: 0, fullReport: response.content, parseError: true };
+    if (!parseResult.success) {
+      console.error('[TongueDiagnosis] JSON解析失败:', {
+        error: parseResult.error,
+        contentPreview: llmResult.content?.substring(0, 500)
+      });
+      analysisResult = {
+        score: 0,
+        fullReport: llmResult.content,
+        parseError: true,
+        parseErrorDetail: parseResult.error
+      };
+    } else {
+      analysisResult = parseResult.data;
+      console.log('[TongueDiagnosis] JSON解析成功');
     }
 
     const fullReport = generateFullReport(analysisResult);

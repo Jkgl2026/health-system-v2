@@ -3,6 +3,139 @@ import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
 import { faceDiagnosisRecords, healthProfiles } from '@/storage/database/shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
+// LLM调用重试配置
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000; // 1秒
+
+// 延迟函数
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// 安全的LLM调用，带重试机制
+async function safeLLMInvoke(
+  client: LLMClient,
+  messages: any[],
+  options: any,
+  retries = MAX_RETRIES
+): Promise<{ success: boolean; content?: string; error?: string }> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      console.log(`[FaceDiagnosis] LLM调用尝试 ${attempt + 1}/${retries + 1}`);
+      
+      const response = await client.invoke(messages, options);
+      
+      if (!response || !response.content) {
+        throw new Error('LLM返回空响应');
+      }
+      
+      console.log(`[FaceDiagnosis] LLM调用成功，响应长度: ${response.content.length}`);
+      return { success: true, content: response.content };
+    } catch (error: any) {
+      lastError = error;
+      const errorType = error?.constructor?.name || 'UnknownError';
+      const errorMessage = error?.message || String(error);
+      
+      console.error(`[FaceDiagnosis] LLM调用失败 (尝试 ${attempt + 1}/${retries + 1}):`, {
+        errorType,
+        errorMessage,
+        stack: error?.stack?.split('\n').slice(0, 3)
+      });
+      
+      // 如果是最后一次尝试，不再重试
+      if (attempt === retries) {
+        break;
+      }
+      
+      // 某些错误不需要重试
+      if (errorMessage.includes('invalid') || errorMessage.includes('格式') || errorMessage.includes('参数')) {
+        console.log('[FaceDiagnosis] 错误类型不适合重试，直接返回失败');
+        break;
+      }
+      
+      // 等待后重试
+      console.log(`[FaceDiagnosis] 等待 ${RETRY_DELAY}ms 后重试...`);
+      await delay(RETRY_DELAY);
+    }
+  }
+  
+  return { 
+    success: false, 
+    error: lastError?.message || 'LLM调用失败' 
+  };
+}
+
+// 健壮的JSON解析函数
+function parseJSONResponse(content: string): { success: boolean; data?: any; error?: string } {
+  try {
+    // 方法1: 直接解析
+    try {
+      const data = JSON.parse(content);
+      return { success: true, data };
+    } catch {
+      // 继续尝试其他方法
+    }
+    
+    // 方法2: 提取markdown代码块中的JSON
+    const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) {
+      try {
+        const data = JSON.parse(codeBlockMatch[1].trim());
+        return { success: true, data };
+      } catch {
+        // 继续尝试其他方法
+      }
+    }
+    
+    // 方法3: 提取第一个完整的JSON对象
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        // 尝试修复常见的JSON问题
+        let jsonStr = jsonMatch[0];
+        
+        // 移除尾部逗号
+        jsonStr = jsonStr.replace(/,\s*}/g, '}');
+        jsonStr = jsonStr.replace(/,\s*]/g, ']');
+        
+        // 修复未转义的换行符
+        jsonStr = jsonStr.replace(/\n/g, '\\n');
+        
+        const data = JSON.parse(jsonStr);
+        return { success: true, data };
+      } catch {
+        // 继续尝试其他方法
+      }
+    }
+    
+    // 方法4: 尝试修复并解析
+    try {
+      // 移除可能的注释
+      let cleaned = content.replace(/\/\*[\s\S]*?\*\//g, '');
+      cleaned = cleaned.replace(/\/\/.*$/gm, '');
+      
+      // 查找JSON对象
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) {
+        const data = JSON.parse(match[0]);
+        return { success: true, data };
+      }
+    } catch {
+      // 所有方法都失败
+    }
+    
+    return { 
+      success: false, 
+      error: '无法解析JSON响应' 
+    };
+  } catch (error: any) {
+    return { 
+      success: false, 
+      error: error.message || 'JSON解析异常' 
+    };
+  }
+}
+
 // 面诊系统提示词
 const FACE_DIAGNOSIS_SYSTEM_PROMPT = `你是一位专业的中医面诊专家，拥有丰富的面相诊断经验。请根据用户提供的面部照片进行全面的面诊分析。
 
@@ -161,30 +294,48 @@ export async function POST(request: NextRequest) {
       },
     ];
 
-    // 调用Vision模型分析
-    const response = await client.invoke(messages, {
-      model: 'doubao-seed-1-6-vision-250815',
-      temperature: 0.3, // 降低温度以获得更稳定的JSON输出
-    });
-
-    // 解析JSON响应
-    let analysisResult;
-    try {
-      // 提取JSON部分（可能被markdown包裹）
-      let jsonStr = response.content;
-      const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        jsonStr = jsonMatch[0];
+    // 调用Vision模型分析（带重试机制）
+    const llmResult = await safeLLMInvoke(
+      client,
+      messages,
+      {
+        model: 'doubao-seed-1-6-vision-250815',
+        temperature: 0.3,
       }
-      analysisResult = JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error('Failed to parse JSON:', response.content);
-      // 如果JSON解析失败，返回原始文本
+    );
+
+    // 检查LLM调用是否成功
+    if (!llmResult.success) {
+      console.error('[FaceDiagnosis] LLM调用失败:', llmResult.error);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `AI分析失败: ${llmResult.error}`,
+          errorType: 'LLM_ERROR'
+        },
+        { status: 500 }
+      );
+    }
+
+    // 解析JSON响应（使用健壮的解析方法）
+    const parseResult = parseJSONResponse(llmResult.content!);
+    
+    let analysisResult;
+    if (!parseResult.success) {
+      console.error('[FaceDiagnosis] JSON解析失败:', {
+        error: parseResult.error,
+        contentPreview: llmResult.content?.substring(0, 500)
+      });
+      // 如果JSON解析失败，返回原始文本作为报告
       analysisResult = {
         score: 0,
-        fullReport: response.content,
-        parseError: true
+        fullReport: llmResult.content,
+        parseError: true,
+        parseErrorDetail: parseResult.error
       };
+    } else {
+      analysisResult = parseResult.data;
+      console.log('[FaceDiagnosis] JSON解析成功');
     }
 
     // 生成完整报告文本

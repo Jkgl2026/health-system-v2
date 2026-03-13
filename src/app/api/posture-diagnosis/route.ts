@@ -3,6 +3,106 @@ import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
 import { postureDiagnosisRecords } from '@/storage/database/shared/schema';
 import { eq, desc, sql } from 'drizzle-orm';
 
+// LLM调用重试配置
+const MAX_RETRIES = 2;
+const RETRY_DELAY = 1000;
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// 安全的LLM调用，带重试机制
+async function safeLLMInvoke(
+  client: LLMClient,
+  messages: any[],
+  options: any,
+  retries = MAX_RETRIES
+): Promise<{ success: boolean; content?: string; error?: string }> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      console.log(`[PostureDiagnosis] LLM调用尝试 ${attempt + 1}/${retries + 1}`);
+      
+      const response = await client.invoke(messages, options);
+      
+      if (!response || !response.content) {
+        throw new Error('LLM返回空响应');
+      }
+      
+      console.log(`[PostureDiagnosis] LLM调用成功，响应长度: ${response.content.length}`);
+      return { success: true, content: response.content };
+    } catch (error: any) {
+      lastError = error;
+      const errorType = error?.constructor?.name || 'UnknownError';
+      const errorMessage = error?.message || String(error);
+      
+      console.error(`[PostureDiagnosis] LLM调用失败 (尝试 ${attempt + 1}/${retries + 1}):`, {
+        errorType,
+        errorMessage,
+        stack: error?.stack?.split('\n').slice(0, 3)
+      });
+      
+      if (attempt === retries) break;
+      if (errorMessage.includes('invalid') || errorMessage.includes('格式') || errorMessage.includes('参数')) {
+        console.log('[PostureDiagnosis] 错误类型不适合重试，直接返回失败');
+        break;
+      }
+      
+      console.log(`[PostureDiagnosis] 等待 ${RETRY_DELAY}ms 后重试...`);
+      await delay(RETRY_DELAY);
+    }
+  }
+  
+  return { success: false, error: lastError?.message || 'LLM调用失败' };
+}
+
+// 健壮的JSON解析函数
+function parseJSONResponse(content: string): { success: boolean; data?: any; error?: string } {
+  try {
+    // 方法1: 直接解析
+    try {
+      const data = JSON.parse(content);
+      return { success: true, data };
+    } catch { /* 继续 */ }
+    
+    // 方法2: 提取markdown代码块中的JSON
+    const codeBlockMatch = content.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) {
+      try {
+        const data = JSON.parse(codeBlockMatch[1].trim());
+        return { success: true, data };
+      } catch { /* 继续 */ }
+    }
+    
+    // 方法3: 提取第一个完整的JSON对象
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        let jsonStr = jsonMatch[0];
+        jsonStr = jsonStr.replace(/,\s*}/g, '}');
+        jsonStr = jsonStr.replace(/,\s*]/g, ']');
+        jsonStr = jsonStr.replace(/\n/g, '\\n');
+        const data = JSON.parse(jsonStr);
+        return { success: true, data };
+      } catch { /* 继续 */ }
+    }
+    
+    // 方法4: 尝试修复并解析
+    try {
+      let cleaned = content.replace(/\/\*[\s\S]*?\*\//g, '');
+      cleaned = cleaned.replace(/\/\/.*$/gm, '');
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if (match) {
+        const data = JSON.parse(match[0]);
+        return { success: true, data };
+      }
+    } catch { /* 所有方法都失败 */ }
+    
+    return { success: false, error: '无法解析JSON响应' };
+  } catch (error: any) {
+    return { success: false, error: error.message || 'JSON解析异常' };
+  }
+}
+
 // 体态评估系统提示词
 const POSTURE_DIAGNOSIS_SYSTEM_PROMPT = `你是一位专业的体态评估专家，拥有丰富的运动医学、解剖学和中医推拿经验。请根据用户提供的四角度体态照片（正面、左侧、右侧、背面）进行全面的体态分析。
 
@@ -356,29 +456,47 @@ export async function POST(request: NextRequest) {
       },
     ];
 
-    // 调用Vision模型分析
-    const response = await client.invoke(messages, {
-      model: 'doubao-seed-1-6-vision-250815',
-      temperature: 0.3,
-    });
-
-    // 解析JSON响应
-    let analysisResult;
-    try {
-      // 提取JSON部分（可能被markdown包裹）
-      let jsonStr = response.content;
-      const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        jsonStr = jsonMatch[0];
+    // 调用Vision模型分析（带重试机制）
+    const llmResult = await safeLLMInvoke(
+      client,
+      messages,
+      {
+        model: 'doubao-seed-1-6-vision-250815',
+        temperature: 0.3,
       }
-      analysisResult = JSON.parse(jsonStr);
-    } catch (parseError) {
-      console.error('Failed to parse JSON:', response.content);
+    );
+
+    // 检查LLM调用是否成功
+    if (!llmResult.success) {
+      console.error('[PostureDiagnosis] LLM调用失败:', llmResult.error);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: `AI分析失败: ${llmResult.error}`,
+          errorType: 'LLM_ERROR'
+        },
+        { status: 500 }
+      );
+    }
+
+    // 解析JSON响应（使用健壮的解析方法）
+    const parseResult = parseJSONResponse(llmResult.content!);
+    
+    let analysisResult;
+    if (!parseResult.success) {
+      console.error('[PostureDiagnosis] JSON解析失败:', {
+        error: parseResult.error,
+        contentPreview: llmResult.content?.substring(0, 500)
+      });
       analysisResult = {
         score: 0,
-        fullReport: response.content,
-        parseError: true
+        fullReport: llmResult.content,
+        parseError: true,
+        parseErrorDetail: parseResult.error
       };
+    } else {
+      analysisResult = parseResult.data;
+      console.log('[PostureDiagnosis] JSON解析成功');
     }
 
     // 保存到数据库
@@ -405,7 +523,7 @@ export async function POST(request: NextRequest) {
           healthImpact: analysisResult.healthImpact || null,
           healthPrediction: analysisResult.healthPrediction || null,
           treatmentPlan: analysisResult.treatmentPlan || null,
-          fullReport: response.content,
+          fullReport: llmResult.content,
         }).returning({ id: postureDiagnosisRecords.id });
 
         recordId = insertResult[0]?.id;
@@ -420,7 +538,7 @@ export async function POST(request: NextRequest) {
       data: {
         ...analysisResult,
         recordId,
-        fullReport: response.content,
+        fullReport: llmResult.content,
       }
     });
 
