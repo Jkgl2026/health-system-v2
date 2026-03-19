@@ -1,0 +1,54 @@
+<svg viewBox="0 0 200 400" xmlns="http://www.w3.org/2000/svg">
+  <!-- 人体轮廓图 - 用于体态标注 -->
+  <defs>
+    <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#e0e7ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#c7d2fe;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 头部 -->
+  <ellipse cx="100" cy="30" rx="25" ry="30" fill="url(#bodyGradient)" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 颈部 -->
+  <path d="M90 58 Q100 65 110 58 L110 75 Q100 80 90 75 Z" fill="url(#bodyGradient)" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 躯干 -->
+  <path d="M70 75 Q60 80 55 100 L55 180 Q60 185 70 180 L130 180 Q140 185 145 180 L145 100 Q140 80 130 75 Z" fill="url(#bodyGradient)" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 左臂 -->
+  <path d="M55 85 Q40 90 35 110 L30 160 Q32 165 38 165 L45 165 Q50 160 48 155 L53 110 Q55 95 55 85" fill="url(#bodyGradient)" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 右臂 -->
+  <path d="M145 85 Q160 90 165 110 L170 160 Q168 165 162 165 L155 165 Q150 160 152 155 L147 110 Q145 95 145 85" fill="url(#bodyGradient)" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 左腿 -->
+  <path d="M70 180 Q65 185 63 200 L60 280 Q62 285 68 285 L78 285 Q83 280 82 275 L85 200 Q85 185 80 180" fill="url(#bodyGradient)" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 右腿 -->
+  <path d="M120 180 Q135 185 137 200 L140 280 Q138 285 132 285 L122 285 Q117 280 118 275 L115 200 Q115 185 120 180" fill="url(#bodyGradient)" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 左脚 -->
+  <ellipse cx="70" cy="300" rx="15" ry="8" fill="url(#bodyGradient)" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 右脚 -->
+  <ellipse cx="130" cy="300" rx="15" ry="8" fill="url(#bodyGradient)" stroke="#6366f1" stroke-width="2"/>
+  
+  <!-- 关键点标记 -->
+  <circle cx="100" cy="30" r="3" fill="#ef4444"/> <!-- 头顶 -->
+  <circle cx="100" cy="45" r="3" fill="#ef4444"/> <!-- 鼻子 -->
+  <circle cx="80" cy="30" r="2" fill="#ef4444"/> <!-- 左耳 -->
+  <circle cx="120" cy="30" r="2" fill="#ef4444"/> <!-- 右耳 -->
+  <circle cx="60" cy="85" r="3" fill="#3b82f6"/> <!-- 左肩 -->
+  <circle cx="140" cy="85" r="3" fill="#3b82f6"/> <!-- 右肩 -->
+  <circle cx="40" cy="110" r="2" fill="#22c55e"/> <!-- 左肘 -->
+  <circle cx="160" cy="110" r="2" fill="#22c55e"/> <!-- 右肘 -->
+  <circle cx="35" cy="160" r="2" fill="#eab308"/> <!-- 左腕 -->
+  <circle cx="165" cy="160" r="2" fill="#eab308"/> <!-- 右腕 -->
+  <circle cx="75" cy="180" r="3" fill="#a855f7"/> <!-- 左髋 -->
+  <circle cx="125" cy="180" r="3" fill="#a855f7"/> <!-- 右髋 -->
+  <circle cx="68" cy="230" r="2" fill="#f97316"/> <!-- 左膝 -->
+  <circle cx="132" cy="230" r="2" fill="#f97316"/> <!-- 右膝 -->
+  <circle cx="70" cy="285" r="2" fill="#06b6d4"/> <!-- 左踝 -->
+  <circle cx="130" cy="285" r="2" fill="#06b6d4"/> <!-- 右踝 -->
+</svg>

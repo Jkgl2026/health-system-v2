@@ -1,0 +1,109 @@
+<svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- 筋膜链综合图 - 显示6条主要筋膜链 -->
+  <defs>
+    <linearGradient id="frontLine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fca5a5;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="backLine" x1="0%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#93c5fd;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="lateralLine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#22c55e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#86efac;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="spiralLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#a855f7;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d8b4fe;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="deepLine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f97316;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fdba74;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="armLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#67e8f9;stop-opacity:0.5" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景人体轮廓 -->
+  <g opacity="0.3">
+    <ellipse cx="200" cy="50" rx="40" ry="50" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+    <rect x="150" y="100" width="100" height="140" rx="12" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+    <rect x="100" y="105" width="30" height="120" rx="10" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+    <rect x="270" y="105" width="30" height="120" rx="10" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+    <rect x="160" y="240" width="35" height="180" rx="10" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+    <rect x="205" y="240" width="35" height="180" rx="10" fill="#f5f5f5" stroke="#ccc" stroke-width="1"/>
+  </g>
+  
+  <!-- 前表链 (Front Line) - 正面中心 -->
+  <path d="M200 45 L200 100 L200 180 L200 240 L200 420 L200 450" 
+        stroke="url(#frontLine)" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <circle cx="200" cy="45" r="6" fill="#ef4444"/>
+  <circle cx="200" cy="100" r="5" fill="#ef4444"/>
+  <circle cx="200" cy="180" r="5" fill="#ef4444"/>
+  <circle cx="200" cy="240" r="5" fill="#ef4444"/>
+  <circle cx="200" cy="350" r="5" fill="#ef4444"/>
+  <circle cx="200" cy="420" r="5" fill="#ef4444"/>
+  <text x="220" y="48" font-size="10" fill="#ef4444" font-weight="bold">前表链</text>
+  <text x="220" y="60" font-size="8" fill="#666">足背筋膜→胫骨前肌</text>
+  <text x="220" y="70" font-size="8" fill="#666">→股直肌→腹直肌</text>
+  <text x="220" y="80" font-size="8" fill="#666">→胸骨筋膜→胸锁乳突肌</text>
+  
+  <!-- 后表链 (Back Line) - 背面中心 -->
+  <path d="M200 450 L200 420 L200 350 L200 240 L200 180 L200 100 L200 45" 
+        stroke="url(#backLine)" stroke-width="8" fill="none" stroke-linecap="round" stroke-dasharray="15,5"/>
+  <text x="80" y="350" font-size="10" fill="#3b82f6" font-weight="bold">后表链</text>
+  <text x="80" y="362" font-size="8" fill="#666">足底筋膜→腓肠肌</text>
+  <text x="80" y="372" font-size="8" fill="#666">→腘绳肌→竖脊肌</text>
+  <text x="80" y="382" font-size="8" fill="#666">→帽状腱膜</text>
+  
+  <!-- 体侧链 (Lateral Line) - 左侧 -->
+  <path d="M160 45 L155 80 L145 120 L140 180 L145 240 L150 350 L155 420 L160 450" 
+        stroke="url(#lateralLine)" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <circle cx="160" cy="45" r="5" fill="#22c55e"/>
+  <circle cx="145" cy="120" r="4" fill="#22c55e"/>
+  <circle cx="145" cy="240" r="4" fill="#22c55e"/>
+  <circle cx="155" cy="350" r="4" fill="#22c55e"/>
+  <text x="50" y="200" font-size="10" fill="#22c55e" font-weight="bold">体侧链</text>
+  <text x="50" y="212" font-size="8" fill="#666">腓骨肌→髂胫束</text>
+  <text x="50" y="222" font-size="8" fill="#666">→腹外斜肌→斜方肌</text>
+  
+  <!-- 体侧链 - 右侧 -->
+  <path d="M240 45 L245 80 L255 120 L260 180 L255 240 L250 350 L245 420 L240 450" 
+        stroke="url(#lateralLine)" stroke-width="6" fill="none" stroke-linecap="round"/>
+  
+  <!-- 螺旋链 (Spiral Line) - 螺旋走向 -->
+  <path d="M115 100 Q100 130 115 160 Q140 200 175 210 Q210 220 260 200 Q280 180 285 150 Q285 120 270 105" 
+        stroke="url(#spiralLine)" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <text x="280" y="140" font-size="10" fill="#a855f7" font-weight="bold">螺旋链</text>
+  <text x="280" y="152" font-size="8" fill="#666">菱形肌→前锯肌</text>
+  <text x="280" y="162" font-size="8" fill="#666">→腹外斜肌→髂胫束</text>
+  
+  <!-- 深前线 (Deep Front Line) - 中心深部 -->
+  <path d="M200 420 L200 350 L195 280 L190 220 L195 180 L200 140 L205 100" 
+        stroke="url(#deepLine)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="5,3"/>
+  <text x="80" y="280" font-size="10" fill="#f97316" font-weight="bold">深前线</text>
+  <text x="80" y="292" font-size="8" fill="#666">足底深层→胫骨后肌</text>
+  <text x="80" y="302" font-size="8" fill="#666">→盆底肌→膈肌</text>
+  <text x="80" y="312" font-size="8" fill="#666">→心包→斜角肌</text>
+  
+  <!-- 手臂链 (Arm Lines) -->
+  <path d="M150 105 L115 130 L100 160 L95 200 L90 240" 
+        stroke="url(#armLine)" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <path d="M250 105 L285 130 L300 160 L305 200 L310 240" 
+        stroke="url(#armLine)" stroke-width="5" fill="none" stroke-linecap="round"/>
+  <text x="85" y="130" font-size="10" fill="#06b6d4" font-weight="bold">手臂链</text>
+  <text x="310" y="130" font-size="8" fill="#666">胸小肌→肱二头肌</text>
+  <text x="310" y="140" font-size="8" fill="#666">→前臂屈/伸肌</text>
+  
+  <!-- 图例 -->
+  <rect x="10" y="460" width="380" height="35" fill="#f9fafb" stroke="#e5e7eb" rx="5"/>
+  <circle cx="25" cy="477" r="5" fill="#ef4444"/><text x="35" y="480" font-size="8" fill="#666">前表链</text>
+  <circle cx="85" cy="477" r="5" fill="#3b82f6"/><text x="95" y="480" font-size="8" fill="#666">后表链</text>
+  <circle cx="145" cy="477" r="5" fill="#22c55e"/><text x="155" y="480" font-size="8" fill="#666">体侧链</text>
+  <circle cx="205" cy="477" r="5" fill="#a855f7"/><text x="215" y="480" font-size="8" fill="#666">螺旋链</text>
+  <circle cx="265" cy="477" r="5" fill="#f97316"/><text x="275" y="480" font-size="8" fill="#666">深前线</text>
+  <circle cx="325" cy="477" r="5" fill="#06b6d4"/><text x="335" y="480" font-size="8" fill="#666">手臂链</text>
+</svg>

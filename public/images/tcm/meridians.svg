@@ -1,0 +1,126 @@
+<svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- 经络分布图 - 显示主要经络走向 -->
+  <defs>
+    <linearGradient id="duMai" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#dc2626;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#fca5a5;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="renMai" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#93c5fd;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="bladderMeridian" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#16a34a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#86efac;stop-opacity:0.5" />
+    </linearGradient>
+    <linearGradient id="gallbladderMeridian" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#9333ea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d8b4fe;stop-opacity:0.5" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景人体轮廓 -->
+  <g opacity="0.2">
+    <ellipse cx="200" cy="50" rx="40" ry="50" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+    <rect x="150" y="100" width="100" height="140" rx="12" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+    <rect x="100" y="105" width="30" height="120" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+    <rect x="270" y="105" width="30" height="120" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+    <rect x="160" y="240" width="35" height="180" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+    <rect x="205" y="240" width="35" height="180" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+  </g>
+  
+  <!-- 督脉 (背部正中) - 阳脉之海 -->
+  <path d="M200 5 L200 50 L200 100 L200 170 L200 240" 
+        stroke="url(#duMai)" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <circle cx="200" cy="50" r="6" fill="#dc2626"/>
+  <circle cx="200" cy="100" r="6" fill="#dc2626"/>
+  <circle cx="200" cy="140" r="5" fill="#dc2626"/>
+  <circle cx="200" cy="180" r="5" fill="#dc2626"/>
+  <circle cx="200" cy="220" r="5" fill="#dc2626"/>
+  <text x="210" y="75" font-size="11" fill="#dc2626" font-weight="bold">督脉</text>
+  <text x="210" y="88" font-size="8" fill="#666">阳脉之海</text>
+  <text x="210" y="100" font-size="8" fill="#666">总督一身之阳</text>
+  
+  <!-- 任脉 (腹部正中) -->
+  <path d="M205 100 L205 140 L205 180 L205 220 L205 240" 
+        stroke="url(#renMai)" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="8,3"/>
+  <circle cx="205" cy="120" r="5" fill="#2563eb"/>
+  <circle cx="205" cy="160" r="5" fill="#2563eb"/>
+  <circle cx="205" cy="200" r="5" fill="#2563eb"/>
+  <text x="220" y="155" font-size="10" fill="#2563eb" font-weight="bold">任脉</text>
+  <text x="220" y="167" font-size="8" fill="#666">阴脉之海</text>
+  
+  <!-- 足太阳膀胱经 (背部两侧) - 第一侧线 -->
+  <path d="M180 80 L175 100 L170 130 L165 165 L160 200 L158 240 L160 300 L165 350 L170 400" 
+        stroke="url(#bladderMeridian)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M220 80 L225 100 L230 130 L235 165 L240 200 L242 240 L240 300 L235 350 L230 400" 
+        stroke="url(#bladderMeridian)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- 穴位点 -->
+  <circle cx="175" cy="110" r="4" fill="#16a34a"/>
+  <circle cx="170" cy="140" r="4" fill="#16a34a"/>
+  <circle cx="165" cy="175" r="4" fill="#16a34a"/>
+  <circle cx="160" cy="210" r="4" fill="#16a34a"/>
+  <text x="130" y="150" font-size="10" fill="#16a34a" font-weight="bold">足太阳膀胱经</text>
+  <text x="130" y="162" font-size="8" fill="#666">主一身之表</text>
+  <text x="130" y="174" font-size="8" fill="#666">背俞穴所在</text>
+  
+  <!-- 足少阳胆经 (体侧) -->
+  <path d="M160 60 L155 90 L150 120 L145 160 L150 200 L155 240 L160 280 L165 330 L170 380 L175 420" 
+        stroke="url(#gallbladderMeridian)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M240 60 L245 90 L250 120 L255 160 L250 200 L245 240 L240 280 L235 330 L230 380 L225 420" 
+        stroke="url(#gallbladderMeridian)" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <circle cx="150" cy="100" r="4" fill="#9333ea"/>
+  <circle cx="145" cy="150" r="4" fill="#9333ea"/>
+  <circle cx="150" cy="200" r="4" fill="#9333ea"/>
+  <text x="50" y="100" font-size="10" fill="#9333ea" font-weight="bold">足少阳胆经</text>
+  <text x="50" y="112" font-size="8" fill="#666">主决断</text>
+  <text x="50" y="124" font-size="8" fill="#666">循行体侧</text>
+  
+  <!-- 手太阴肺经 (上肢内侧前缘) -->
+  <path d="M150 120 L140 150 L130 180 L120 210" 
+        stroke="#0891b2" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <text x="90" y="170" font-size="9" fill="#0891b2" font-weight="bold">手太阴肺经</text>
+  
+  <!-- 手阳明大肠经 (上肢外侧前缘) -->
+  <path d="M270 120 L280 150 L290 180 L300 210" 
+        stroke="#ea580c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <text x="305" y="170" font-size="9" fill="#ea580c" font-weight="bold">手阳明大肠经</text>
+  
+  <!-- 足阳明胃经 (下肢外侧前缘) -->
+  <path d="M175 250 L170 300 L168 350 L172 400" 
+        stroke="#ca8a04" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <text x="50" y="320" font-size="9" fill="#ca8a04" font-weight="bold">足阳明胃经</text>
+  <text x="50" y="332" font-size="8" fill="#666">多气多血</text>
+  
+  <!-- 足太阴脾经 (下肢内侧前缘) -->
+  <path d="M200 250 L205 300 L208 350 L205 400" 
+        stroke="#be185d" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <text x="220" y="320" font-size="9" fill="#be185d" font-weight="bold">足太阴脾经</text>
+  <text x="220" y="332" font-size="8" fill="#666">主运化</text>
+  
+  <!-- 肾俞穴标记 -->
+  <circle cx="165" cy="195" r="6" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+  <text x="130" y="198" font-size="8" fill="#ef4444">肾俞</text>
+  
+  <!-- 大椎穴标记 -->
+  <circle cx="200" cy="100" r="7" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+  <text x="185" y="115" font-size="8" fill="#ef4444">大椎</text>
+  
+  <!-- 命门穴标记 -->
+  <circle cx="200" cy="180" r="6" fill="#ef4444" stroke="#fff" stroke-width="2"/>
+  <text x="212" y="185" font-size="8" fill="#ef4444">命门</text>
+  
+  <!-- 图例 -->
+  <rect x="10" y="440" width="380" height="55" fill="#f9fafb" stroke="#e5e7eb" rx="5"/>
+  <text x="20" y="458" font-size="10" fill="#333" font-weight="bold">主要经络：</text>
+  <line x1="20" y1="470" x2="40" y2="470" stroke="#dc2626" stroke-width="4"/>
+  <text x="45" y="473" font-size="8" fill="#666">督脉</text>
+  <line x1="75" y1="470" x2="95" y2="470" stroke="#2563eb" stroke-width="4" stroke-dasharray="5,2"/>
+  <text x="100" y="473" font-size="8" fill="#666">任脉</text>
+  <line x1="130" y1="470" x2="150" y2="470" stroke="#16a34a" stroke-width="4"/>
+  <text x="155" y="473" font-size="8" fill="#666">膀胱经</text>
+  <line x1="195" y1="470" x2="215" y2="470" stroke="#9333ea" stroke-width="4"/>
+  <text x="220" y="473" font-size="8" fill="#666">胆经</text>
+  <circle cx="260" cy="470" r="5" fill="#ef4444"/>
+  <text x="270" y="473" font-size="8" fill="#666">重要穴位</text>
+</svg>

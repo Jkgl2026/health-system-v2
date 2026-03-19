@@ -1,6 +1,286 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk';
 
+// ==================== 中医分析数据生成 ====================
+
+interface PostureIssue {
+  type: string;
+  name: string;
+  severity: string;
+  [key: string]: any;
+}
+
+interface TCMPerspective {
+  meridians: Array<{ name: string; status: string; reason: string }>;
+  acupoints: Array<{ name: string; location: string; benefit: string; method: string }>;
+  constitution: string;
+  constitutionReason: string;
+  daoyinSuggestions?: string[];
+}
+
+// 根据体态问题生成中医分析数据
+function generateTCMPerspective(issues: PostureIssue[]): TCMPerspective {
+  const meridians: Array<{ name: string; status: string; reason: string }> = [];
+  const acupoints: Array<{ name: string; location: string; benefit: string; method: string }> = [];
+  const daoyinSuggestions: string[] = [];
+  let constitution = '平和质';
+  let constitutionReason = '体态基本正常，继续保持良好习惯';
+
+  // 经络与体态问题对应关系
+  const meridianMapping: Record<string, Array<{ name: string; reason: string }>> = {
+    forward_head: [
+      { name: '足太阳膀胱经', reason: '头前伸可能影响颈部经络气血运行' },
+      { name: '足少阳胆经', reason: '颈部侧方经络可能受阻' },
+    ],
+    cervical_straightening: [
+      { name: '督脉', reason: '颈椎变直可能影响督脉阳气运行' },
+      { name: '足太阳膀胱经', reason: '颈后经络可能气血不畅' },
+    ],
+    cervicothoracic_hump: [
+      { name: '督脉', reason: '颈胸交界处可能有淤阻' },
+      { name: '足太阳膀胱经', reason: '大椎穴附近可能气血运行不畅' },
+    ],
+    elevated_shoulder: [
+      { name: '足少阳胆经', reason: '高低肩可能导致经络不平衡' },
+      { name: '手少阳三焦经', reason: '肩部经络可能受阻' },
+    ],
+    rounded_shoulder: [
+      { name: '手太阴肺经', reason: '圆肩可能影响胸部经络气血' },
+      { name: '足阳明胃经', reason: '胸部经络可能受阻' },
+    ],
+    winging_scapula: [
+      { name: '手太阳小肠经', reason: '肩胛区经络可能气血不畅' },
+    ],
+    thoracic_hyperkyphosis: [
+      { name: '督脉', reason: '驼背严重影响督脉阳气运行' },
+      { name: '足太阳膀胱经', reason: '背部经络可能受阻' },
+    ],
+    scoliosis: [
+      { name: '督脉', reason: '脊柱侧弯影响督脉走向' },
+      { name: '足太阳膀胱经', reason: '侧弯可能导致经络气血不畅' },
+      { name: '足少阳胆经', reason: '体侧经络可能受影响' },
+    ],
+    anterior_pelvic_tilt: [
+      { name: '足阳明胃经', reason: '骨盆前倾可能影响腹部经络' },
+      { name: '足少阴肾经', reason: '腰部经络可能气血不畅' },
+    ],
+    posterior_pelvic_tilt: [
+      { name: '足太阳膀胱经', reason: '骨盆后倾可能影响腰骶经络' },
+    ],
+    pelvic_obliquity: [
+      { name: '足少阳胆经', reason: '骨盆侧倾影响体侧经络' },
+      { name: '足厥阴肝经', reason: '肝经可能气血不畅' },
+    ],
+    genu_recuvatum: [
+      { name: '足阳明胃经', reason: '膝超伸可能影响膝关节经络' },
+      { name: '足太阳膀胱经', reason: '膝后经络可能受影响' },
+    ],
+    genu_varum: [
+      { name: '足阳明胃经', reason: 'O型腿影响腿部经络走向' },
+      { name: '足少阳胆经', reason: '腿外侧经络可能气血不畅' },
+    ],
+    genu_valgum: [
+      { name: '足太阴脾经', reason: 'X型腿影响腿内侧经络' },
+      { name: '足厥阴肝经', reason: '腿内侧经络可能受影响' },
+    ],
+    flat_foot: [
+      { name: '足少阴肾经', reason: '扁平足可能影响足部经络' },
+      { name: '足太阳膀胱经', reason: '足底经络可能气血不畅' },
+    ],
+    upper_crossed: [
+      { name: '督脉', reason: '上交叉综合征影响头颈胸经络' },
+      { name: '足太阳膀胱经', reason: '背部经络整体可能受阻' },
+    ],
+    lower_crossed: [
+      { name: '足阳明胃经', reason: '下交叉综合征影响腰腹经络' },
+      { name: '足少阴肾经', reason: '腰部经络可能气血不畅' },
+    ],
+  };
+
+  // 穴位与体态问题对应关系
+  const acupointMapping: Record<string, Array<{ name: string; location: string; benefit: string; method: string }>> = {
+    forward_head: [
+      { name: '风池穴', location: '颈后两侧，枕骨下方凹陷处', benefit: '缓解颈肩疼痛，改善头部供血', method: '拇指按揉3-5分钟，力度适中' },
+      { name: '天柱穴', location: '颈后发际正中旁开1.3寸', benefit: '缓解颈部僵硬，改善颈椎问题', method: '拇指点按2-3分钟' },
+      { name: '肩井穴', location: '肩部最高点', benefit: '缓解肩颈紧张，促进气血运行', method: '适度按压或拍打' },
+    ],
+    cervical_straightening: [
+      { name: '大椎穴', location: '第七颈椎棘突下方', benefit: '调节阳气，改善颈部问题', method: '温灸或按揉5-10分钟' },
+      { name: '后溪穴', location: '手掌尺侧，第五掌骨小头后方', benefit: '通调督脉，缓解颈肩不适', method: '拇指点按3分钟' },
+    ],
+    cervicothoracic_hump: [
+      { name: '大椎穴', location: '第七颈椎棘突下方', benefit: '改善颈胸交界问题，疏通督脉', method: '温灸或按揉10-15分钟' },
+      { name: '肩中俞', location: '第七颈椎棘突下旁开2寸', benefit: '缓解肩背僵硬', method: '按揉5分钟' },
+    ],
+    elevated_shoulder: [
+      { name: '肩髃穴', location: '肩峰端下缘', benefit: '缓解肩部疼痛，调节肩部平衡', method: '按揉或温灸5分钟' },
+      { name: '肩贞穴', location: '肩关节后下方', benefit: '改善肩部活动度', method: '按揉3-5分钟' },
+      { name: '天宗穴', location: '肩胛骨中央', benefit: '缓解肩背疼痛，促进气血运行', method: '点按或刮痧' },
+    ],
+    rounded_shoulder: [
+      { name: '膻中穴', location: '两乳头连线中点', benefit: '宽胸理气，改善胸部气血', method: '顺时针按揉5分钟' },
+      { name: '中府穴', location: '胸前壁外上方', benefit: '调理肺气，改善胸廓活动', method: '轻柔按揉3分钟' },
+    ],
+    thoracic_hyperkyphosis: [
+      { name: '至阳穴', location: '第七胸椎棘突下', benefit: '疏通督脉，改善背部气血', method: '按揉或温灸' },
+      { name: '身柱穴', location: '第三胸椎棘突下', benefit: '增强脊柱功能，改善体态', method: '温灸10分钟' },
+      { name: '肺俞穴', location: '第三胸椎棘突下旁开1.5寸', benefit: '调理肺气，改善背部', method: '按揉或拔罐' },
+    ],
+    scoliosis: [
+      { name: '华佗夹脊穴', location: '脊柱两侧', benefit: '调节脊柱功能，改善侧弯', method: '沿脊柱两侧按揉或推拿' },
+      { name: '肾俞穴', location: '第二腰椎棘突下旁开1.5寸', benefit: '补肾强腰，稳固脊柱', method: '按揉或温灸' },
+    ],
+    anterior_pelvic_tilt: [
+      { name: '关元穴', location: '脐下3寸', benefit: '培补元气，调节下焦', method: '温灸或按揉' },
+      { name: '气海穴', location: '脐下1.5寸', benefit: '益气助阳，改善腹部', method: '温灸10分钟' },
+      { name: '环跳穴', location: '股骨大转子最凸点与骶管裂孔连线外1/3处', benefit: '缓解腰腿不适，调节骨盆', method: '点按或艾灸' },
+    ],
+    posterior_pelvic_tilt: [
+      { name: '命门穴', location: '第二腰椎棘突下', benefit: '温补肾阳，强腰健骨', method: '温灸或按揉' },
+      { name: '肾俞穴', location: '第二腰椎棘突下旁开1.5寸', benefit: '补肾强腰，改善腰骶', method: '按揉或温灸' },
+    ],
+    genu_recuvatum: [
+      { name: '犊鼻穴', location: '髌骨下缘，髌韧带外侧凹陷', benefit: '调理膝关节，改善功能', method: '按揉5分钟' },
+      { name: '委中穴', location: '膝盖后正中', benefit: '舒筋活络，调理腰腿', method: '按揉或拔罐' },
+    ],
+    flat_foot: [
+      { name: '涌泉穴', location: '足底前1/3处', benefit: '滋阴降火，强健足部', method: '按揉或温灸10分钟' },
+      { name: '太溪穴', location: '内踝后方与脚跟骨筋腱之间', benefit: '补肾强骨，改善足部', method: '按揉5分钟' },
+    ],
+    upper_crossed: [
+      { name: '风池穴', location: '颈后两侧', benefit: '缓解头颈不适', method: '按揉5分钟' },
+      { name: '大椎穴', location: '第七颈椎棘突下', benefit: '疏通督脉', method: '温灸10分钟' },
+      { name: '肩井穴', location: '肩部最高点', benefit: '缓解肩颈紧张', method: '按揉或拍打' },
+    ],
+    lower_crossed: [
+      { name: '肾俞穴', location: '第二腰椎棘突下旁开1.5寸', benefit: '补肾强腰', method: '按揉或温灸' },
+      { name: '环跳穴', location: '臀部外侧', benefit: '调节骨盆', method: '点按5分钟' },
+      { name: '关元穴', location: '脐下3寸', benefit: '培补元气', method: '温灸' },
+    ],
+  };
+
+  // 导引功法建议
+  const daoyinMapping: Record<string, string[]> = {
+    head_related: [
+      '八段锦 - 双手托天理三焦',
+      '五禽戏 - 鹿戏（伸展颈部）',
+      '易筋经 - 韦驮献杵',
+    ],
+    shoulder_related: [
+      '八段锦 - 左右开弓似射雕',
+      '易筋经 - 摘星换斗',
+      '五禽戏 - 鹤戏（展翅）',
+    ],
+    spine_related: [
+      '八段锦 - 摇头摆尾去心火',
+      '易筋经 - 九鬼拔马刀',
+      '五禽戏 - 虎戏（伸展脊柱）',
+    ],
+    pelvis_related: [
+      '八段锦 - 双手攀足固肾腰',
+      '五禽戏 - 熊戏（调理脾胃）',
+      '站桩 - 无极桩',
+    ],
+    leg_related: [
+      '八段锦 - 攒拳怒目增气力',
+      '五禽戏 - 猿戏（灵活肢体）',
+      '站桩 - 三体式',
+    ],
+  };
+
+  // 根据检测到的问题生成经络和穴位建议
+  const hasHeadIssue = issues.some(i => ['forward_head', 'cervical_straightening', 'cervicothoracic_hump', 'head_tilt', 'head_rotation'].includes(i.type));
+  const hasShoulderIssue = issues.some(i => ['elevated_shoulder', 'rounded_shoulder', 'winging_scapula', 'scapular_elevation'].includes(i.type));
+  const hasSpineIssue = issues.some(i => ['thoracic_hyperkyphosis', 'scoliosis', 'spinal_rotation', 'lumbar_hyperlordosis'].includes(i.type));
+  const hasPelvisIssue = issues.some(i => ['anterior_pelvic_tilt', 'posterior_pelvic_tilt', 'pelvic_obliquity', 'pelvic_rotation'].includes(i.type));
+  const hasLegIssue = issues.some(i => ['genu_recuvatum', 'genu_varum', 'genu_valgum', 'flat_foot', 'high_arch'].includes(i.type));
+
+  // 添加经络
+  const addedMeridians = new Set<string>();
+  issues.forEach(issue => {
+    const mapped = meridianMapping[issue.type];
+    if (mapped) {
+      mapped.forEach(m => {
+        if (!addedMeridians.has(m.name)) {
+          meridians.push({ name: m.name, status: issue.severity === 'severe' ? '受阻' : '不畅', reason: m.reason });
+          addedMeridians.add(m.name);
+        }
+      });
+    }
+  });
+
+  // 添加穴位
+  const addedAcupoints = new Set<string>();
+  issues.forEach(issue => {
+    const mapped = acupointMapping[issue.type];
+    if (mapped) {
+      mapped.forEach(a => {
+        if (!addedAcupoints.has(a.name)) {
+          acupoints.push(a);
+          addedAcupoints.add(a.name);
+        }
+      });
+    }
+  });
+
+  // 添加导引建议
+  if (hasHeadIssue) daoyinSuggestions.push(...daoyinMapping.head_related);
+  if (hasShoulderIssue) daoyinSuggestions.push(...daoyinMapping.shoulder_related);
+  if (hasSpineIssue) daoyinSuggestions.push(...daoyinMapping.spine_related);
+  if (hasPelvisIssue) daoyinSuggestions.push(...daoyinMapping.pelvis_related);
+  if (hasLegIssue) daoyinSuggestions.push(...daoyinMapping.leg_related);
+
+  // 去重导引建议
+  const uniqueDaoyin = [...new Set(daoyinSuggestions)];
+
+  // 根据问题数量和严重程度判断体质
+  const severeCount = issues.filter(i => i.severity === 'severe').length;
+  const moderateCount = issues.filter(i => i.severity === 'moderate').length;
+
+  if (severeCount >= 3 || moderateCount >= 5) {
+    constitution = '血瘀质';
+    constitutionReason = '体态问题较多，可能导致气血运行不畅，形成瘀滞';
+  } else if (severeCount >= 1 || moderateCount >= 3) {
+    constitution = '气虚质';
+    constitutionReason = '体态问题可能导致肌肉无力，气血运行不畅，容易出现疲劳';
+  } else if (moderateCount >= 1) {
+    constitution = '阳虚质';
+    constitutionReason = '体态问题可能影响阳气运行，导致身体偏寒、代谢缓慢';
+  } else if (issues.length > 0) {
+    constitution = '气郁质';
+    constitutionReason = '轻微体态问题可能影响气机调畅';
+  }
+
+  // 确保至少有基础建议
+  if (meridians.length === 0) {
+    meridians.push(
+      { name: '督脉', status: '通畅', reason: '脊柱状态良好' },
+      { name: '足太阳膀胱经', status: '通畅', reason: '背部经络正常' }
+    );
+  }
+
+  if (acupoints.length === 0) {
+    acupoints.push(
+      { name: '足三里', location: '小腿外侧，膝下3寸', benefit: '健脾益胃，强身健体', method: '按揉5分钟，每日2次' },
+      { name: '三阴交', location: '内踝上3寸', benefit: '调理肝脾肾', method: '按揉3分钟' }
+    );
+  }
+
+  if (uniqueDaoyin.length === 0) {
+    uniqueDaoyin.push('八段锦 - 双手托天理三焦', '五禽戏 - 鹿戏', '站桩 - 无极桩');
+  }
+
+  return {
+    meridians: meridians.slice(0, 8),
+    acupoints: acupoints.slice(0, 10),
+    constitution,
+    constitutionReason,
+    daoyinSuggestions: uniqueDaoyin.slice(0, 6),
+  };
+}
+
+// ==================== API Prompt ====================
+
 // Vision语义分析系统提示词 - 增强版
 const POSTURE_SEMANTIC_ANALYSIS_PROMPT = `你是一位专业的体态评估专家，精通运动医学、解剖学、中医推拿和康复训练。请根据MediaPipe检测到的骨骼关键点数据和计算出的角度，进行全面深入的体态分析。
 
@@ -430,12 +710,7 @@ ${analysisContext}
           exercises: [],
           lifestyle: []
         },
-        tcmPerspective: {
-          meridians: [],
-          acupoints: [],
-          constitution: '需专业中医师评估',
-          constitutionReason: '基于体态观察的初步判断'
-        },
+        tcmPerspective: generateTCMPerspective(issues || []),
         healthPrediction: {
           shortTerm: '建议定期复查',
           midTerm: '持续关注体态变化',

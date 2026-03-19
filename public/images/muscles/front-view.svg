@@ -1,0 +1,81 @@
+<svg viewBox="0 0 300 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- 肌肉分布图 - 正面视图 -->
+  <defs>
+    <linearGradient id="muscleRed" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#fecaca;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ef4444;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="muscleBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#bfdbfe;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 背景人体轮廓 -->
+  <ellipse cx="150" cy="40" rx="35" ry="40" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+  <rect x="110" y="80" width="80" height="120" rx="10" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+  <rect x="70" y="85" width="25" height="100" rx="8" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+  <rect x="205" y="85" width="25" height="100" rx="8" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+  <rect x="120" y="200" width="30" height="150" rx="8" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+  <rect x="150" y="200" width="30" height="150" rx="8" fill="#f5f5f5" stroke="#999" stroke-width="1"/>
+  
+  <!-- 胸锁乳突肌（颈部两侧） -->
+  <path d="M130 60 Q125 70 120 80 L135 80 Q140 70 135 60 Z" fill="url(#muscleRed)" opacity="0.8"/>
+  <path d="M165 60 Q175 70 180 80 L165 80 Q160 70 165 60 Z" fill="url(#muscleRed)" opacity="0.8"/>
+  <text x="105" y="75" font-size="8" fill="#666">胸锁乳突肌</text>
+  
+  <!-- 胸大肌 -->
+  <path d="M115 100 Q110 130 115 150 L150 140 L150 100 Z" fill="url(#muscleRed)" opacity="0.8"/>
+  <path d="M185 100 Q190 130 185 150 L150 140 L150 100 Z" fill="url(#muscleRed)" opacity="0.8"/>
+  <text x="150" y="125" font-size="10" fill="#fff" text-anchor="middle">胸大肌</text>
+  
+  <!-- 胸小肌（胸大肌下方） -->
+  <path d="M120 130 L130 145 L145 145 L140 130 Z" fill="url(#muscleBlue)" opacity="0.6"/>
+  <path d="M160 130 L170 145 L155 145 L160 130 Z" fill="url(#muscleBlue)" opacity="0.6"/>
+  <text x="150" y="155" font-size="8" fill="#666" text-anchor="middle">胸小肌</text>
+  
+  <!-- 腹直肌 -->
+  <rect x="130" y="150" width="15" height="50" rx="3" fill="url(#muscleBlue)" opacity="0.8"/>
+  <rect x="155" y="150" width="15" height="50" rx="3" fill="url(#muscleBlue)" opacity="0.8"/>
+  <text x="150" y="180" font-size="8" fill="#fff" text-anchor="middle">腹直肌</text>
+  
+  <!-- 腹外斜肌 -->
+  <path d="M115 150 L125 200 L130 200 L130 150 Z" fill="url(#muscleRed)" opacity="0.7"/>
+  <path d="M170 150 L185 200 L170 200 L170 150 Z" fill="url(#muscleRed)" opacity="0.7"/>
+  <text x="110" y="180" font-size="7" fill="#666">腹外斜肌</text>
+  
+  <!-- 三角肌（肩部） -->
+  <ellipse cx="82" cy="100" rx="15" ry="25" fill="url(#muscleRed)" opacity="0.8"/>
+  <ellipse cx="218" cy="100" rx="15" ry="25" fill="url(#muscleRed)" opacity="0.8"/>
+  <text x="82" y="105" font-size="7" fill="#fff" text-anchor="middle">三角肌</text>
+  <text x="218" y="105" font-size="7" fill="#fff" text-anchor="middle">三角肌</text>
+  
+  <!-- 肱二头肌 -->
+  <ellipse cx="75" cy="140" rx="10" ry="25" fill="url(#muscleRed)" opacity="0.8"/>
+  <ellipse cx="225" cy="140" rx="10" ry="25" fill="url(#muscleRed)" opacity="0.8"/>
+  <text x="75" y="145" font-size="6" fill="#fff" text-anchor="middle">肱二头肌</text>
+  <text x="225" y="145" font-size="6" fill="#fff" text-anchor="middle">肱二头肌</text>
+  
+  <!-- 髂腰肌 -->
+  <path d="M130 200 L135 220 L145 220 L150 200 Z" fill="url(#muscleRed)" opacity="0.7"/>
+  <path d="M150 200 L155 220 L165 220 L170 200 Z" fill="url(#muscleRed)" opacity="0.7"/>
+  <text x="150" y="215" font-size="7" fill="#666" text-anchor="middle">髂腰肌</text>
+  
+  <!-- 股四头肌 -->
+  <path d="M120 220 L125 320 L145 320 L150 220 Z" fill="url(#muscleRed)" opacity="0.8"/>
+  <path d="M150 220 L155 320 L175 320 L180 220 Z" fill="url(#muscleRed)" opacity="0.8"/>
+  <text x="135" y="280" font-size="8" fill="#fff" text-anchor="middle">股四头肌</text>
+  <text x="165" y="280" font-size="8" fill="#fff" text-anchor="middle">股四头肌</text>
+  
+  <!-- 胫骨前肌 -->
+  <rect x="125" y="330" width="12" height="60" rx="4" fill="url(#muscleBlue)" opacity="0.7"/>
+  <rect x="163" y="330" width="12" height="60" rx="4" fill="url(#muscleBlue)" opacity="0.7"/>
+  <text x="131" y="365" font-size="6" fill="#fff" text-anchor="middle">胫骨前肌</text>
+  
+  <!-- 图例 -->
+  <rect x="10" y="450" width="280" height="40" fill="#f9fafb" stroke="#e5e7eb" rx="5"/>
+  <rect x="20" y="465" width="20" height="10" fill="url(#muscleRed)" rx="2"/>
+  <text x="45" y="473" font-size="10" fill="#666">紧张肌肉</text>
+  <rect x="120" y="465" width="20" height="10" fill="url(#muscleBlue)" rx="2"/>
+  <text x="145" y="473" font-size="10" fill="#666">无力肌肉</text>
+</svg>

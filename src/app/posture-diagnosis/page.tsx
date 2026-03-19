@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +10,14 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { 
   Camera, Loader2, FileText, AlertCircle, CheckCircle2, RotateCcw,
   Download, Copy, Sparkles, ArrowLeft, Activity, Shield,
   ChevronRight, Info, Target, Zap, TrendingUp, TrendingDown,
   Bone, Heart, Brain, Timer, AlertTriangle, CheckCircle,
-  XCircle, ChevronDown, ChevronUp, Eye, RotateCw
+  XCircle, ChevronDown, ChevronUp, Eye, RotateCw, MessageCircle,
+  History, BarChart3, Dumbbell, CalendarDays, FileDown, BoxIcon
 } from 'lucide-react';
 import {
   createPoseDetector,
@@ -35,6 +37,17 @@ import {
   downloadAnnotatedImage,
   DEFAULT_ENHANCED_DRAW_CONFIG,
 } from '@/lib/pose-drawing-enhanced';
+import { EXERCISE_DATABASE, SuitableIssue } from '@/lib/exercise-database';
+import { generateTrainingPlan } from '@/lib/training-planner';
+import { saveRecord, getAllRecords, AssessmentRecord, getStatistics } from '@/lib/progress-tracker';
+import { generatePDFReport, downloadPDF, generateReportFilename, ReportData } from '@/lib/pdf-generator';
+
+// 动态导入重型组件
+import dynamic from 'next/dynamic';
+const BodyModel3D = dynamic(() => import('@/components/BodyModel3D'), { ssr: false });
+const ProgressChart = dynamic(() => import('@/components/ProgressChart'), { ssr: false });
+const ComparisonView = dynamic(() => import('@/components/ComparisonView'), { ssr: false });
+const ChatPanel = dynamic(() => import('@/components/ChatPanel'), { ssr: false });
 
 // ==================== 类型定义 ====================
 
@@ -173,6 +186,15 @@ export default function PostureDiagnosisPageV2() {
   const [activeTab, setActiveTab] = useState('upload');
   const [activeResultTab, setActiveResultTab] = useState('overview');
   
+  // 新增状态
+  const [showChat, setShowChat] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [showComparison, setShowComparison] = useState(false);
+  const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
+  const [showTrainingPlan, setShowTrainingPlan] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
+  const [assessmentHistory, setAssessmentHistory] = useState<AssessmentRecord[]>([]);
+  
   // MediaPipe实例
   const [poseInstance, setPoseInstance] = useState<any>(null);
   const [poseReady, setPoseReady] = useState(false);
@@ -234,6 +256,94 @@ export default function PostureDiagnosisPageV2() {
       }
     };
   }, []);
+
+  // 加载历史记录
+  useEffect(() => {
+    const records = getAllRecords();
+    setAssessmentHistory(records);
+  }, [result]); // result变化时重新加载
+
+  // 保存评估结果
+  const saveAssessmentResult = useCallback(() => {
+    if (!result) return;
+    
+      const record = saveRecord({
+      overallScore: result.overallScore,
+      grade: result.grade,
+      issues: result.allIssues.map(i => ({
+        type: i.type,
+        name: i.name,
+        severity: i.severity,
+        angle: i.angle,
+      })),
+      angles: result.mediaPipeResults.front?.extendedAngles ? 
+        Object.fromEntries(Object.entries(result.mediaPipeResults.front.extendedAngles)) : {},
+      muscles: {
+        tight: result.allMuscles.filter(m => m.status === 'tight').map(m => m.name),
+        weak: result.allMuscles.filter(m => m.status === 'weak').map(m => m.name),
+      },
+      imageThumbnail: images.front || undefined,
+    });
+    
+    // 更新历史记录
+    setAssessmentHistory(prev => [record, ...prev]);
+  }, [result, images]);
+
+  // 导出PDF报告
+  const handleExportPDF = async () => {
+    if (!result) return;
+    
+    setExportingPDF(true);
+    
+    try {
+      const reportData: ReportData = {
+        assessmentDate: new Date().toLocaleDateString('zh-CN'),
+        overallScore: result.overallScore,
+        grade: result.grade,
+        issues: result.allIssues.map(i => ({
+          name: i.name,
+          severity: i.severity,
+          angle: i.angle,
+          description: i.description,
+        })),
+        angles: result.mediaPipeResults.front?.extendedAngles ? 
+          Object.fromEntries(Object.entries(result.mediaPipeResults.front.extendedAngles)) : {},
+        muscles: {
+          tight: result.allMuscles.filter(m => m.status === 'tight').map(m => m.name),
+          weak: result.allMuscles.filter(m => m.status === 'weak').map(m => m.name),
+        },
+        risks: result.allHealthRisks.map(r => ({
+          category: r.category,
+          risk: r.risk,
+          condition: r.condition,
+        })),
+        recommendations: {
+          immediate: result.allIssues.filter(i => i.severity === 'severe').map(i => `纠正${i.name}`),
+          shortTerm: result.allIssues.filter(i => i.severity === 'moderate').map(i => `改善${i.name}`),
+          longTerm: ['坚持规律训练', '保持良好姿势习惯', '定期复查评估'],
+        },
+        tcmAnalysis: result.semanticAnalysis?.tcmPerspective ? {
+          constitution: result.semanticAnalysis.tcmPerspective.constitution || '',
+          meridians: result.semanticAnalysis.tcmPerspective.meridians?.map((m: any) => m.name) || [],
+          acupoints: result.semanticAnalysis.tcmPerspective.acupoints?.map((a: any) => a.name) || [],
+        } : undefined,
+        images: {
+          front: images.front || undefined,
+          left: images.left || undefined,
+          right: images.right || undefined,
+          back: images.back || undefined,
+        },
+      };
+      
+      const blob = await generatePDFReport(reportData);
+      downloadPDF(blob, generateReportFilename(result.overallScore));
+    } catch (error) {
+      console.error('PDF导出失败:', error);
+      setError('PDF导出失败，请稍后重试');
+    } finally {
+      setExportingPDF(false);
+    }
+  };
 
   // ==================== Canvas绘制 ====================
   
@@ -1417,17 +1527,441 @@ export default function PostureDiagnosisPageV2() {
                 </Tabs>
 
                 {/* 底部操作 */}
-                <div className="flex justify-center gap-4 pt-4">
-                  <Button variant="outline" onClick={handleReset}>
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    重新评估
-                  </Button>
+                <div className="space-y-4">
+                  {/* 主要操作按钮 */}
+                  <div className="flex flex-wrap justify-center gap-3">
+                    <Button variant="outline" onClick={handleReset}>
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      重新评估
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={saveAssessmentResult}
+                      disabled={!result}
+                    >
+                      <History className="h-4 w-4 mr-2" />
+                      保存记录
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={handleExportPDF}
+                      disabled={exportingPDF}
+                    >
+                      {exportingPDF ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileDown className="h-4 w-4 mr-2" />
+                      )}
+                      导出报告
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowChat(true)}
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      AI咨询
+                    </Button>
+                  </div>
+                  
+                  {/* 功能入口 */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <Card 
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setShowExerciseLibrary(true)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <Dumbbell className="h-8 w-8 mx-auto mb-2 text-blue-500" />
+                        <div className="font-medium text-sm">动作库</div>
+                        <div className="text-xs text-gray-500">50+康复动作</div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setShowTrainingPlan(true)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <CalendarDays className="h-8 w-8 mx-auto mb-2 text-green-500" />
+                        <div className="font-medium text-sm">训练方案</div>
+                        <div className="text-xs text-gray-500">五阶段计划</div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setShowHistory(true)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <BarChart3 className="h-8 w-8 mx-auto mb-2 text-purple-500" />
+                        <div className="font-medium text-sm">进度追踪</div>
+                        <div className="text-xs text-gray-500">{assessmentHistory.length}次记录</div>
+                      </CardContent>
+                    </Card>
+                    
+                    <Card 
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                      onClick={() => setShowComparison(true)}
+                    >
+                      <CardContent className="p-4 text-center">
+                        <History className="h-8 w-8 mx-auto mb-2 text-orange-500" />
+                        <div className="font-medium text-sm">历史对比</div>
+                        <div className="text-xs text-gray-500">评估对比</div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
               </>
             )}
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* 3D骨骼模型对话框 */}
+      <Dialog open={false} onOpenChange={() => {}}>
+        <DialogContent className="max-w-4xl h-[600px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BoxIcon className="h-5 w-5" />
+              3D骨骼模型
+            </DialogTitle>
+          </DialogHeader>
+          <div className="relative h-[500px]">
+            <BodyModel3D 
+              issues={result?.allIssues.map(i => ({ type: i.type, severity: i.severity })) || []}
+              className="w-full h-full"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* AI问答对话框 */}
+      <Dialog open={showChat} onOpenChange={setShowChat}>
+        <DialogContent className="max-w-2xl h-[650px] p-0">
+          <ChatPanel 
+            assessmentResult={result}
+            onClose={() => setShowChat(false)}
+          />
+        </DialogContent>
+      </Dialog>
+      
+      {/* 进度追踪对话框 */}
+      <Dialog open={showHistory} onOpenChange={setShowHistory}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5" />
+              进度追踪
+            </DialogTitle>
+          </DialogHeader>
+          <ProgressChart days={30} />
+        </DialogContent>
+      </Dialog>
+      
+      {/* 历史对比对话框 */}
+      <Dialog open={showComparison} onOpenChange={setShowComparison}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              历史对比
+            </DialogTitle>
+          </DialogHeader>
+          <ComparisonView />
+        </DialogContent>
+      </Dialog>
+      
+      {/* 动作库对话框 */}
+      <Dialog open={showExerciseLibrary} onOpenChange={setShowExerciseLibrary}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Dumbbell className="h-5 w-5" />
+              康复动作库
+            </DialogTitle>
+          </DialogHeader>
+          <ExerciseLibraryView issues={result?.allIssues || []} />
+        </DialogContent>
+      </Dialog>
+      
+      {/* 训练方案对话框 */}
+      <Dialog open={showTrainingPlan} onOpenChange={setShowTrainingPlan}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarDays className="h-5 w-5" />
+              五阶段训练方案
+            </DialogTitle>
+          </DialogHeader>
+          <TrainingPlanView 
+            issues={result?.allIssues || []}
+            muscles={result?.allMuscles || []}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+// ==================== 动作库视图组件 ====================
+function ExerciseLibraryView({ issues }: { issues: PostureIssue[] }) {
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // 根据问题推荐动作
+  const recommendedExercises = useMemo(() => {
+    const exerciseIds = new Set<string>();
+    // 根据问题类型推荐动作
+    issues.forEach(issue => {
+      // 根据问题类型添加推荐动作
+      const issueToExerciseMap: Record<string, string[]> = {
+        forward_head: ['neck-chin-tuck', 'neck-stretch', 'scapular-retraction'],
+        rounded_shoulder: ['scapular-retraction', 'chest-stretch', 'wall-angels'],
+        elevated_shoulder: ['upper-trap-stretch', 'levator-scapulae-stretch'],
+        thoracic_hyperkyphosis: ['thoracic-extension', 'wall-angels', 'cat-cow'],
+        anterior_pelvic_tilt: ['hip-flexor-stretch', 'glute-bridge', 'dead-bug'],
+        posterior_pelvic_tilt: ['hip-flexor-activation', 'hamstring-stretch'],
+        flat_foot: ['foot-arch-activation', 'calf-stretch', 'towel-curl'],
+        genu_recuvatum: ['quad-activation', 'hamstring-activation'],
+        genu_valgum: ['hip-abductor-activation', 'clam-shell'],
+        genu_varum: ['hip-adductor-stretch', 'itb-stretch'],
+      };
+      
+      const recommended = issueToExerciseMap[issue.type] || [];
+      recommended.forEach(id => exerciseIds.add(id));
+    });
+    return Array.from(exerciseIds);
+  }, [issues]);
+  
+  // 过滤动作
+  const filteredExercises = useMemo(() => {
+    return EXERCISE_DATABASE.filter(ex => {
+      const matchCategory = selectedCategory === 'all' || ex.category === selectedCategory;
+      const matchSearch = !searchTerm || 
+        ex.name.includes(searchTerm) || 
+        ex.targetMuscles.some(m => m.includes(searchTerm));
+      return matchCategory && matchSearch;
+    });
+  }, [selectedCategory, searchTerm]);
+  
+  return (
+    <div className="space-y-4">
+      {/* 推荐动作 */}
+      {recommendedExercises.length > 0 && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base text-blue-800">针对您的问题推荐</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-2">
+              {EXERCISE_DATABASE.filter(ex => recommendedExercises.includes(ex.id)).slice(0, 6).map(ex => (
+                <div key={ex.id} className="bg-white p-3 rounded-lg border">
+                  <div className="font-medium text-sm">{ex.name}</div>
+                  <div className="text-xs text-gray-500">{ex.duration}</div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {/* 筛选 */}
+      <div className="flex gap-2">
+        <select 
+          className="border rounded px-3 py-1.5 text-sm"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="all">全部类别</option>
+          <option value="stretch">拉伸类</option>
+          <option value="activation">激活类</option>
+          <option value="strengthen">强化类</option>
+          <option value="functional">功能训练</option>
+        </select>
+        
+        <input
+          type="text"
+          className="border rounded px-3 py-1.5 text-sm flex-1"
+          placeholder="搜索动作..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
+      
+      {/* 动作列表 */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {filteredExercises.map(exercise => (
+          <ExerciseCard key={exercise.id} exercise={exercise} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// 动作卡片组件
+function ExerciseCard({ exercise }: { exercise: any }) {
+  const [expanded, setExpanded] = useState(false);
+  
+  const categoryColors: Record<string, string> = {
+    stretch: 'bg-purple-100 text-purple-800',
+    activation: 'bg-blue-100 text-blue-800',
+    strengthen: 'bg-green-100 text-green-800',
+    functional: 'bg-orange-100 text-orange-800',
+  };
+  
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="p-3">
+        <div 
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <div className="flex items-center gap-2">
+            <Badge className={categoryColors[exercise.category]}>
+              {exercise.category === 'stretch' ? '拉伸' :
+               exercise.category === 'activation' ? '激活' :
+               exercise.category === 'strengthen' ? '强化' : '功能'}
+            </Badge>
+            <div>
+              <div className="font-medium text-sm">{exercise.name}</div>
+              <div className="text-xs text-gray-500">{exercise.duration}</div>
+            </div>
+          </div>
+          {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+        </div>
+        
+        {expanded && (
+          <div className="mt-3 pt-3 border-t space-y-2 text-sm">
+            <div>
+              <strong className="text-gray-600">目标肌肉：</strong>
+              {exercise.targetMuscles.join('、')}
+            </div>
+            <div>
+              <strong className="text-gray-600">动作要领：</strong>
+              {exercise.instructions}
+            </div>
+            {exercise.tips && (
+              <div className="text-blue-600">
+                <strong>注意事项：</strong>{exercise.tips}
+              </div>
+            )}
+            <div className="flex gap-4 text-xs text-gray-500">
+              <span>次数：{exercise.reps}</span>
+              <span>组数：{exercise.sets}组</span>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+// ==================== 训练方案视图组件 ====================
+function TrainingPlanView({ issues, muscles }: { issues: PostureIssue[]; muscles: MuscleStatus[] }) {
+  const [activePhase, setActivePhase] = useState(0);
+  
+  // 转换问题类型
+  const suitableIssues: SuitableIssue[] = useMemo(() => {
+    const issueTypeMap: Record<string, SuitableIssue> = {
+      forward_head: 'forward_head',
+      rounded_shoulder: 'rounded_shoulder',
+      elevated_shoulder: 'elevated_shoulder',
+      thoracic_hyperkyphosis: 'thoracic_hyperkyphosis',
+      anterior_pelvic_tilt: 'anterior_pelvic_tilt',
+      posterior_pelvic_tilt: 'posterior_pelvic_tilt',
+      genu_recuvatum: 'genu_recuvatum',
+      genu_valgum: 'genu_valgum',
+      genu_varum: 'genu_varum',
+      flat_foot: 'flat_foot',
+    };
+    
+    return issues
+      .map(i => issueTypeMap[i.type])
+      .filter(Boolean) as SuitableIssue[];
+  }, [issues]);
+  
+  const plan = useMemo(() => generateTrainingPlan(suitableIssues), [suitableIssues]);
+  
+  const phaseNames = ['姿势纠正', '肌肉激活', '力量强化', '功能整合', '维持巩固'];
+  const phaseDurations = ['1-2周', '2-4周', '4-8周', '8-12周', '长期'];
+  
+  // 获取当前周的练习
+  const currentWeekExercises = useMemo(() => {
+    if (plan.weeklyPlans.length > activePhase) {
+      return plan.weeklyPlans[activePhase].sessions.flatMap(s => s.exercises);
+    }
+    return [];
+  }, [plan, activePhase]);
+  
+  return (
+    <div className="space-y-4">
+      {/* 阶段选择 */}
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {phaseNames.map((name, i) => (
+          <Button
+            key={i}
+            variant={activePhase === i ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActivePhase(i)}
+            className="flex-shrink-0"
+          >
+            {i + 1}. {name}
+          </Button>
+        ))}
+      </div>
+      
+      {/* 当前阶段详情 */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-base">
+              第{activePhase + 1}阶段：{phaseNames[activePhase]}
+            </CardTitle>
+            <Badge variant="outline">{phaseDurations[activePhase]}</Badge>
+          </div>
+          <CardDescription>
+            {plan.weeklyPlans[activePhase]?.objective || '根据您的评估结果定制的训练计划'}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {currentWeekExercises.length > 0 ? (
+            <div className="space-y-3">
+              {currentWeekExercises.slice(0, 10).map((ex: any, i: number) => (
+                <div key={i} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                  <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-medium">
+                    {i + 1}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-medium text-sm">{ex.name}</div>
+                    <div className="text-xs text-gray-500">{ex.frequency || ''} · {ex.duration || ''}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <CalendarDays className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p>暂无训练内容</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
+      {/* 注意事项 */}
+      <Alert>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>训练提示</AlertTitle>
+        <AlertDescription className="text-sm">
+          <ul className="list-disc list-inside space-y-1">
+            <li>每个阶段建议完成后再进入下一阶段</li>
+            <li>如出现疼痛请立即停止并咨询专业人士</li>
+            <li>建议每周进行2-3次训练</li>
+            <li>配合日常姿势调整效果更佳</li>
+          </ul>
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
