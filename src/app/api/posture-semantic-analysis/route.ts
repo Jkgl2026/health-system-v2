@@ -284,16 +284,20 @@ export async function POST(request: NextRequest) {
         const angleName = angleNameMap[String(angleData.angle)] || String(angleData.angle);
         
         analysisContext += `\n### ${angleName}视角\n`;
-        analysisContext += `- 左肩角度: ${angleData.angles.leftShoulderAngle?.toFixed(1)}°\n`;
-        analysisContext += `- 右肩角度: ${angleData.angles.rightShoulderAngle?.toFixed(1)}°\n`;
-        analysisContext += `- 左髋角度: ${angleData.angles.leftHipAngle?.toFixed(1)}°\n`;
-        analysisContext += `- 右髋角度: ${angleData.angles.rightHipAngle?.toFixed(1)}°\n`;
-        analysisContext += `- 左膝角度: ${angleData.angles.leftKneeAngle?.toFixed(1)}°\n`;
-        analysisContext += `- 右膝角度: ${angleData.angles.rightKneeAngle?.toFixed(1)}°\n`;
-        analysisContext += `- 肩部倾斜: ${angleData.angles.shoulderTilt?.toFixed(2)}°\n`;
-        analysisContext += `- 骨盆倾斜: ${angleData.angles.hipTilt?.toFixed(2)}°\n`;
-        analysisContext += `- 头部倾斜: ${angleData.angles.headTilt?.toFixed(2)}°\n`;
-        analysisContext += `- 脊柱对齐度: ${angleData.angles.spinalAlignment?.toFixed(1)}%\n`;
+        if (angleData.angles) {
+          analysisContext += `- 左肩角度: ${angleData.angles.leftShoulderAngle?.toFixed(1) || 'N/A'}°\n`;
+          analysisContext += `- 右肩角度: ${angleData.angles.rightShoulderAngle?.toFixed(1) || 'N/A'}°\n`;
+          analysisContext += `- 左髋角度: ${angleData.angles.leftHipAngle?.toFixed(1) || 'N/A'}°\n`;
+          analysisContext += `- 右髋角度: ${angleData.angles.rightHipAngle?.toFixed(1) || 'N/A'}°\n`;
+          analysisContext += `- 左膝角度: ${angleData.angles.leftKneeAngle?.toFixed(1) || 'N/A'}°\n`;
+          analysisContext += `- 右膝角度: ${angleData.angles.rightKneeAngle?.toFixed(1) || 'N/A'}°\n`;
+          analysisContext += `- 肩部倾斜: ${angleData.angles.shoulderTilt?.toFixed(2) || 'N/A'}°\n`;
+          analysisContext += `- 骨盆倾斜: ${angleData.angles.hipTilt?.toFixed(2) || 'N/A'}°\n`;
+          analysisContext += `- 头部倾斜: ${angleData.angles.headTilt?.toFixed(2) || 'N/A'}°\n`;
+          analysisContext += `- 脊柱对齐度: ${angleData.angles.spinalAlignment?.toFixed(1) || 'N/A'}%\n`;
+          analysisContext += `- 头前伸距离: ${angleData.angles.forwardHeadProtrusion?.toFixed(1) || 'N/A'}cm\n`;
+          analysisContext += `- 骨盆前倾角: ${angleData.angles.pelvicTilt?.toFixed(1) || 'N/A'}°\n`;
+        }
       });
     }
     
@@ -301,7 +305,13 @@ export async function POST(request: NextRequest) {
     if (allIssues && allIssues.length > 0) {
       analysisContext += `\n## 检测到的体态问题\n`;
       allIssues.forEach((issue: any) => {
-        analysisContext += `- ${issue.name}: ${issue.severity} (${issue.angle?.toFixed(1)}°) - ${issue.description}\n`;
+        analysisContext += `- ${issue.name}: ${issue.severity} - ${issue.description || ''}\n`;
+        if (issue.anatomicalInfo) {
+          if (issue.anatomicalInfo.relatedMuscles) {
+            analysisContext += `  - 紧张肌肉: ${issue.anatomicalInfo.relatedMuscles.tight?.join('、') || '无'}\n`;
+            analysisContext += `  - 无力肌肉: ${issue.anatomicalInfo.relatedMuscles.weak?.join('、') || '无'}\n`;
+          }
+        }
       });
     }
     
@@ -340,6 +350,7 @@ ${analysisContext}
         content: `请根据以下MediaPipe检测数据进行全面深入的体态分析：
 
 **关键点数据**（主要关节坐标%）：
+${landmarks ? `
 - 鼻子: (${(landmarks[0]?.x * 100).toFixed(1)}%, ${(landmarks[0]?.y * 100).toFixed(1)}%)
 - 左肩: (${(landmarks[11]?.x * 100).toFixed(1)}%, ${(landmarks[11]?.y * 100).toFixed(1)}%)
 - 右肩: (${(landmarks[12]?.x * 100).toFixed(1)}%, ${(landmarks[12]?.y * 100).toFixed(1)}%)
@@ -347,6 +358,7 @@ ${analysisContext}
 - 右髋: (${(landmarks[24]?.x * 100).toFixed(1)}%, ${(landmarks[24]?.y * 100).toFixed(1)}%)
 - 左膝: (${(landmarks[25]?.x * 100).toFixed(1)}%, ${(landmarks[25]?.y * 100).toFixed(1)}%)
 - 右膝: (${(landmarks[26]?.x * 100).toFixed(1)}%, ${(landmarks[26]?.y * 100).toFixed(1)}%)
+` : '未提供'}
 ${analysisContext}
 
 **置信度**: ${(confidence * 100).toFixed(1)}%
@@ -381,38 +393,66 @@ ${analysisContext}
       }
     } catch (parseError) {
       console.error('[SemanticAnalysis] JSON解析失败:', parseError);
-      console.error('[SemanticAnalysis] 原始内容:', response.content?.substring(0, 500));
       
       // 如果解析失败，构建基本结构
       analysisResult = {
-        summary: '分析完成，但结果格式需要整理',
-        detailedAnalysis: {},
+        summary: response.content?.substring(0, 200) || '分析完成',
+        detailedAnalysis: {
+          head: { status: '需要进一步评估', description: '' },
+          shoulders: { status: '需要进一步评估', description: '' },
+          spine: { status: '需要进一步评估', description: '' },
+          pelvis: { status: '需要进一步评估', description: '' },
+          knees: { status: '需要进一步评估', description: '' },
+          ankles: { status: '需要进一步评估', description: '' }
+        },
         primaryIssues: issues || [],
         muscleAnalysis: { tight: [], weak: [] },
-        fasciaChainAnalysis: {},
-        breathingAssessment: {},
-        riskAssessment: { overallRisk: '未知', painRisk: [] },
+        fasciaChainAnalysis: {
+          frontLine: { status: '需评估' },
+          backLine: { status: '需评估' },
+          lateralLine: { status: '需评估' },
+          spiralLine: { status: '需评估' },
+          deepFrontLine: { status: '需评估' }
+        },
+        breathingAssessment: {
+          pattern: '需评估',
+          diaphragm: '需评估'
+        },
+        riskAssessment: { 
+          overallRisk: '需评估', 
+          painRisk: [],
+          progressionRisk: ''
+        },
         recommendations: {
-          immediate: [],
-          shortTerm: [],
-          longTerm: [],
+          immediate: ['建议进行专业体态评估'],
+          shortTerm: ['建立正确的姿势意识'],
+          longTerm: ['制定系统的训练计划'],
           exercises: [],
           lifestyle: []
         },
         tcmPerspective: {
           meridians: [],
           acupoints: [],
-          constitution: '未知'
+          constitution: '需专业中医师评估',
+          constitutionReason: '基于体态观察的初步判断'
         },
         healthPrediction: {
-          shortTerm: '',
-          midTerm: '',
-          longTerm: '',
-          preventiveMeasures: []
+          shortTerm: '建议定期复查',
+          midTerm: '持续关注体态变化',
+          longTerm: '预防慢性疼痛发生',
+          preventiveMeasures: ['保持良好姿势', '规律运动', '定期休息']
         },
         treatmentPlan: {
-          zhengfu: { name: '整复训练方案', description: '', sessions: [] },
-          benyuan: { name: '本源训练方案', description: '', sessions: [] }
+          zhengfu: { 
+            name: '整复训练方案', 
+            description: '需专业康复师制定', 
+            sessions: [] 
+          },
+          benyuan: { 
+            name: '本源训练方案', 
+            description: '需专业康复师制定', 
+            sessions: [] 
+          }
         },
         rawContent: response.content,
       };
