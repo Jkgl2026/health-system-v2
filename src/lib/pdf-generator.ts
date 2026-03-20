@@ -1,5 +1,6 @@
 /**
  * PDF报告生成器 - 中文版
+ * 使用Canvas渲染中文内容为图片，解决jsPDF不支持中文的问题
  */
 
 import { jsPDF } from 'jspdf';
@@ -87,20 +88,123 @@ export interface ReportData {
 
 // 颜色配置
 const COLORS = {
-  primary: [99, 102, 241] as [number, number, number], // indigo
-  secondary: [34, 197, 94] as [number, number, number], // green
-  warning: [234, 179, 8] as [number, number, number], // yellow
-  danger: [239, 68, 68] as [number, number, number], // red
-  text: [31, 41, 55] as [number, number, number], // gray-800
-  lightText: [107, 114, 128] as [number, number, number], // gray-500
-  background: [249, 250, 251] as [number, number, number], // gray-50
-  tcm: [139, 69, 19] as [number, number, number], // saddlebrown
+  primary: '#6366f1', // indigo
+  secondary: '#22c55e', // green
+  warning: '#eab308', // yellow
+  danger: '#ef4444', // red
+  text: '#1f2937', // gray-800
+  lightText: '#6b7280', // gray-500
+  background: '#f9fafb', // gray-50
+  tcm: '#8b4513', // saddlebrown
 };
 
-// 中文字体映射
-const CHINESE_FONT = 'helvetica'; // jsPDF默认不支持中文，使用helvetica作为基础
+/**
+ * 创建Canvas并渲染文本
+ */
+function createTextCanvas(
+  text: string,
+  options: {
+    fontSize?: number;
+    fontFamily?: string;
+    color?: string;
+    backgroundColor?: string;
+    bold?: boolean;
+    width?: number;
+    lineHeight?: number;
+    align?: 'left' | 'center' | 'right';
+  } = {}
+): HTMLCanvasElement {
+  const {
+    fontSize = 14,
+    fontFamily = 'Noto Sans SC, Microsoft YaHei, PingFang SC, sans-serif',
+    color = '#1f2937',
+    backgroundColor = 'transparent',
+    bold = false,
+    width = 500,
+    lineHeight = 1.4,
+    align = 'left',
+  } = options;
 
-// 生成PDF报告
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return canvas;
+
+  // 设置字体
+  const fontWeight = bold ? 'bold' : 'normal';
+  ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+
+  // 计算文本高度
+  const lines = wrapText(ctx, text, width - 20);
+  const height = lines.length * fontSize * lineHeight + 20;
+
+  // 设置canvas尺寸 (2x for retina)
+  canvas.width = width * 2;
+  canvas.height = height * 2;
+  ctx.scale(2, 2);
+
+  // 绘制背景
+  if (backgroundColor !== 'transparent') {
+    ctx.fillStyle = backgroundColor;
+    ctx.fillRect(0, 0, width, height);
+  }
+
+  // 绘制文字
+  ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+  ctx.fillStyle = color;
+  ctx.textBaseline = 'top';
+  
+  lines.forEach((line, index) => {
+    const x = align === 'center' ? width / 2 : align === 'right' ? width - 10 : 10;
+    ctx.textAlign = align;
+    ctx.fillText(line, x, 10 + index * fontSize * lineHeight);
+  });
+
+  return canvas;
+}
+
+/**
+ * 文本换行处理
+ */
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+  const lines: string[] = [];
+  const paragraphs = text.split('\n');
+  
+  paragraphs.forEach(paragraph => {
+    if (paragraph === '') {
+      lines.push('');
+      return;
+    }
+    
+    let currentLine = '';
+    for (const char of paragraph) {
+      const testLine = currentLine + char;
+      const metrics = ctx.measureText(testLine);
+      
+      if (metrics.width > maxWidth && currentLine !== '') {
+        lines.push(currentLine);
+        currentLine = char;
+      } else {
+        currentLine = testLine;
+      }
+    }
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+  });
+  
+  return lines;
+}
+
+/**
+ * Canvas转Base64
+ */
+function canvasToBase64(canvas: HTMLCanvasElement): string {
+  return canvas.toDataURL('image/png');
+}
+
+/**
+ * 生成PDF报告
+ */
 export async function generatePDFReport(data: ReportData): Promise<Blob> {
   const doc = new jsPDF({
     orientation: 'portrait',
@@ -118,115 +222,160 @@ export async function generatePDFReport(data: ReportData): Promise<Blob> {
   
   // ==================== 封面 ====================
   // 标题背景
-  doc.setFillColor(...COLORS.primary);
+  doc.setFillColor(99, 102, 241);
   doc.rect(0, 0, pageWidth, 70, 'F');
   
-  // 标题
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(26);
-  doc.setFont(CHINESE_FONT, 'bold');
-  doc.text('AI 体态评估报告', pageWidth / 2, 28, { align: 'center' });
+  // 标题（使用Canvas渲染中文）
+  const titleCanvas = createTextCanvas('AI 体态评估报告', {
+    fontSize: 26,
+    color: '#ffffff',
+    bold: true,
+    width: 400,
+    align: 'center',
+  });
+  const titleImg = canvasToBase64(titleCanvas);
+  doc.addImage(titleImg, 'PNG', 0, 15, pageWidth, 20);
   
-  doc.setFontSize(14);
-  doc.setFont(CHINESE_FONT, 'normal');
-  doc.text('专业体态分析与改善方案', pageWidth / 2, 42, { align: 'center' });
+  const subtitleCanvas = createTextCanvas('专业体态分析与改善方案', {
+    fontSize: 14,
+    color: '#e0e7ff',
+    width: 400,
+    align: 'center',
+  });
+  const subtitleImg = canvasToBase64(subtitleCanvas);
+  doc.addImage(subtitleImg, 'PNG', 0, 38, pageWidth, 12);
   
-  // 日期和用户名
-  doc.setFontSize(12);
-  doc.text(`评估日期: ${data.assessmentDate}`, pageWidth / 2, 58, { align: 'center' });
+  // 日期
+  const dateCanvas = createTextCanvas(`评估日期: ${data.assessmentDate}`, {
+    fontSize: 12,
+    color: '#c7d2fe',
+    width: 400,
+    align: 'center',
+  });
+  const dateImg = canvasToBase64(dateCanvas);
+  doc.addImage(dateImg, 'PNG', 0, 52, pageWidth, 10);
   
   if (data.userName) {
-    doc.text(`用户: ${data.userName}`, pageWidth / 2, 68, { align: 'center' });
+    const userCanvas = createTextCanvas(`用户: ${data.userName}`, {
+      fontSize: 12,
+      color: '#c7d2fe',
+      width: 400,
+      align: 'center',
+    });
+    const userImg = canvasToBase64(userCanvas);
+    doc.addImage(userImg, 'PNG', 0, 62, pageWidth, 10);
   }
   
   y = 85;
   
   // ==================== 评分区域 ====================
-  // 评分卡片
-  doc.setFillColor(...COLORS.background);
+  // 评分卡片背景
+  doc.setFillColor(249, 250, 251);
   doc.roundedRect(margin, y, contentWidth / 2 - 5, 45, 3, 3);
   
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(12);
-  doc.setFont(CHINESE_FONT, 'bold');
-  doc.text('综合评分', margin + 10, y + 12);
+  // 综合评分标签
+  const scoreLabelCanvas = createTextCanvas('综合评分', {
+    fontSize: 12,
+    bold: true,
+    width: 100,
+  });
+  doc.addImage(canvasToBase64(scoreLabelCanvas), 'PNG', margin + 5, y + 5, 30, 8);
   
   // 评分数字
   const scoreColor = data.overallScore >= 80 ? COLORS.secondary : 
                      data.overallScore >= 60 ? COLORS.warning : COLORS.danger;
-  doc.setTextColor(...scoreColor);
-  doc.setFontSize(32);
-  doc.text(`${data.overallScore}`, margin + 25, y + 36);
+  const scoreCanvas = createTextCanvas(`${data.overallScore}`, {
+    fontSize: 32,
+    bold: true,
+    color: scoreColor,
+    width: 80,
+  });
+  doc.addImage(canvasToBase64(scoreCanvas), 'PNG', margin + 15, y + 18, 25, 20);
   
-  doc.setTextColor(...COLORS.lightText);
-  doc.setFontSize(12);
-  doc.text('/ 100', margin + 50, y + 36);
+  const scoreUnitCanvas = createTextCanvas('/ 100', {
+    fontSize: 12,
+    color: COLORS.lightText,
+    width: 50,
+  });
+  doc.addImage(canvasToBase64(scoreUnitCanvas), 'PNG', margin + 45, y + 30, 20, 8);
   
   // 等级卡片
-  doc.setFillColor(...COLORS.background);
+  doc.setFillColor(249, 250, 251);
   doc.roundedRect(margin + contentWidth / 2 + 5, y, contentWidth / 2 - 5, 45, 3, 3);
   
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(12);
-  doc.setFont(CHINESE_FONT, 'bold');
-  doc.text('评估等级', margin + contentWidth / 2 + 15, y + 12);
+  const gradeLabelCanvas = createTextCanvas('评估等级', {
+    fontSize: 12,
+    bold: true,
+    width: 100,
+  });
+  doc.addImage(canvasToBase64(gradeLabelCanvas), 'PNG', margin + contentWidth / 2 + 10, y + 5, 30, 8);
   
-  doc.setTextColor(...scoreColor);
-  doc.setFontSize(26);
-  doc.text(data.grade, margin + contentWidth / 2 + 20, y + 36);
+  const gradeCanvas = createTextCanvas(data.grade, {
+    fontSize: 26,
+    bold: true,
+    color: scoreColor,
+    width: 50,
+  });
+  doc.addImage(canvasToBase64(gradeCanvas), 'PNG', margin + contentWidth / 2 + 15, y + 18, 20, 18);
   
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(10);
-  doc.text(`(${getGradeText(data.grade)})`, margin + contentWidth / 2 + 35, y + 36);
+  const gradeTextCanvas = createTextCanvas(`(${getGradeText(data.grade)})`, {
+    fontSize: 10,
+    color: COLORS.text,
+    width: 60,
+  });
+  doc.addImage(canvasToBase64(gradeTextCanvas), 'PNG', margin + contentWidth / 2 + 40, y + 28, 25, 8);
   
   y += 60;
   
   // ==================== 检测到的问题 ====================
-  addSection(doc, '检测到的体态问题', y, COLORS.text);
-  y += 10;
+  addSection(doc, '检测到的体态问题', y);
+  y += 12;
   
   if (data.issues.length > 0) {
     data.issues.forEach((issue, index) => {
-      if (y > pageHeight - 40) {
+      if (y > pageHeight - 45) {
         addPageFooter(doc, pageNum);
         doc.addPage();
         pageNum++;
         y = margin;
       }
       
-      // 问题卡片
+      // 问题卡片背景
       const severityColor = issue.severity === 'severe' ? COLORS.danger :
                            issue.severity === 'moderate' ? COLORS.warning : COLORS.secondary;
       
       doc.setFillColor(255, 255, 255);
       doc.setDrawColor(220, 220, 220);
-      doc.roundedRect(margin, y, contentWidth, 15, 2, 2);
+      doc.roundedRect(margin, y, contentWidth, 18, 2, 2);
       
       // 严重程度指示条
-      doc.setFillColor(...severityColor);
-      doc.roundedRect(margin, y, 4, 15, 2, 2);
+      doc.setFillColor(severityColor);
+      doc.roundedRect(margin, y, 4, 18, 2, 2);
       
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text(`${index + 1}. ${issue.name}`, margin + 8, y + 6);
+      // 问题名称
+      const issueNameCanvas = createTextCanvas(`${index + 1}. ${issue.name}`, {
+        fontSize: 10,
+        bold: true,
+        width: 300,
+      });
+      doc.addImage(canvasToBase64(issueNameCanvas), 'PNG', margin + 6, y + 3, 60, 7);
       
-      doc.setTextColor(...COLORS.lightText);
-      doc.setFont(CHINESE_FONT, 'normal');
-      doc.text(`严重程度: ${getSeverityText(issue.severity)} | 角度: ${issue.angle.toFixed(1)}deg`, margin + 8, y + 12);
+      // 严重程度和角度
+      const issueDetailCanvas = createTextCanvas(
+        `严重程度: ${getSeverityText(issue.severity)} | 角度: ${issue.angle.toFixed(1)}°`,
+        { fontSize: 9, color: COLORS.lightText, width: 300 }
+      );
+      doc.addImage(canvasToBase64(issueDetailCanvas), 'PNG', margin + 6, y + 10, 80, 6);
       
-      if (issue.description) {
-        doc.setFontSize(8);
-        doc.setTextColor(...COLORS.lightText);
-        doc.text(issue.description.substring(0, 80), margin + 8, y + 16);
-      }
-      
-      y += 18;
+      y += 22;
     });
   } else {
-    doc.setTextColor(...COLORS.secondary);
-    doc.setFontSize(11);
-    doc.text('未检测到明显的体态问题！', margin + 5, y + 5);
+    const noIssueCanvas = createTextCanvas('未检测到明显的体态问题！', {
+      fontSize: 11,
+      color: COLORS.secondary,
+      width: 300,
+    });
+    doc.addImage(canvasToBase64(noIssueCanvas), 'PNG', margin + 5, y, 100, 8);
     y += 15;
   }
   
@@ -241,32 +390,30 @@ export async function generatePDFReport(data: ReportData): Promise<Blob> {
       y = margin;
     }
     
-    addSection(doc, '关节角度测量数据', y, COLORS.text);
-    y += 10;
+    addSection(doc, '关节角度测量数据', y);
+    y += 12;
     
-    const angleEntries = Object.entries(data.angles).slice(0, 15);
+    const angleEntries = Object.entries(data.angles).slice(0, 12);
     const colWidth = contentWidth / 2;
     
     angleEntries.forEach(([key, value], index) => {
       const col = index % 2;
       const row = Math.floor(index / 2);
       const x = margin + col * colWidth;
-      const currentY = y + row * 8;
+      const currentY = y + row * 10;
       
-      if (currentY > pageHeight - 20) return;
+      if (currentY > pageHeight - 25) return;
       
-      // 使用中文名称
       const angleName = ANGLE_NAMES_CN[key] || key;
-      
-      doc.setFontSize(9);
-      doc.setTextColor(...COLORS.text);
-      doc.text(`${angleName}: ${value.toFixed(1)}deg`, x + 5, currentY);
+      const angleCanvas = createTextCanvas(`${angleName}: ${value.toFixed(1)}°`, {
+        fontSize: 9,
+        width: 150,
+      });
+      doc.addImage(canvasToBase64(angleCanvas), 'PNG', x + 2, currentY, 80, 7);
     });
     
-    y += Math.ceil(angleEntries.length / 2) * 8 + 10;
+    y += Math.ceil(angleEntries.length / 2) * 10 + 15;
   }
-  
-  y += 10;
   
   // ==================== 肌肉分析 ====================
   if (data.muscles && (data.muscles.tight.length > 0 || data.muscles.weak.length > 0)) {
@@ -277,47 +424,55 @@ export async function generatePDFReport(data: ReportData): Promise<Blob> {
       y = margin;
     }
     
-    addSection(doc, '肌肉功能分析', y, COLORS.text);
-    y += 10;
+    addSection(doc, '肌肉功能分析', y);
+    y += 12;
     
-    const tightHeight = 10 + data.muscles.tight.length * 6;
-    const weakHeight = 10 + data.muscles.weak.length * 6;
-    const cardHeight = Math.max(tightHeight, weakHeight);
+    const tightCount = data.muscles.tight.length;
+    const weakCount = data.muscles.weak.length;
+    const cardHeight = 15 + Math.max(tightCount, weakCount) * 7;
     
-    // 紧张肌肉
-    doc.setFillColor(254, 226, 226); // red-100
+    // 紧张肌肉卡片
+    doc.setFillColor(254, 226, 226);
     doc.roundedRect(margin, y, contentWidth / 2 - 5, cardHeight, 2, 2);
     
-    doc.setTextColor(185, 28, 28); // red-700
-    doc.setFontSize(11);
-    doc.setFont(CHINESE_FONT, 'bold');
-    doc.text('紧张肌肉', margin + 5, y + 8);
+    const tightLabelCanvas = createTextCanvas('紧张肌肉', {
+      fontSize: 11,
+      bold: true,
+      color: '#b91c1c',
+      width: 80,
+    });
+    doc.addImage(canvasToBase64(tightLabelCanvas), 'PNG', margin + 3, y + 3, 25, 8);
     
-    doc.setFontSize(9);
-    doc.setFont(CHINESE_FONT, 'normal');
-    data.muscles.tight.slice(0, 6).forEach((m, i) => {
-      doc.text(`• ${m}`, margin + 5, y + 15 + i * 6);
+    data.muscles.tight.slice(0, 5).forEach((m, i) => {
+      const muscleCanvas = createTextCanvas(`• ${m}`, {
+        fontSize: 9,
+        width: 150,
+      });
+      doc.addImage(canvasToBase64(muscleCanvas), 'PNG', margin + 3, y + 12 + i * 7, 75, 6);
     });
     
-    // 无力肌肉
-    doc.setFillColor(219, 234, 254); // blue-100
+    // 无力肌肉卡片
+    doc.setFillColor(219, 234, 254);
     doc.roundedRect(margin + contentWidth / 2 + 5, y, contentWidth / 2 - 5, cardHeight, 2, 2);
     
-    doc.setTextColor(30, 64, 175); // blue-700
-    doc.setFontSize(11);
-    doc.setFont(CHINESE_FONT, 'bold');
-    doc.text('无力肌肉', margin + contentWidth / 2 + 10, y + 8);
+    const weakLabelCanvas = createTextCanvas('无力肌肉', {
+      fontSize: 11,
+      bold: true,
+      color: '#1e40af',
+      width: 80,
+    });
+    doc.addImage(canvasToBase64(weakLabelCanvas), 'PNG', margin + contentWidth / 2 + 8, y + 3, 25, 8);
     
-    doc.setFontSize(9);
-    doc.setFont(CHINESE_FONT, 'normal');
-    data.muscles.weak.slice(0, 6).forEach((m, i) => {
-      doc.text(`• ${m}`, margin + contentWidth / 2 + 10, y + 15 + i * 6);
+    data.muscles.weak.slice(0, 5).forEach((m, i) => {
+      const muscleCanvas = createTextCanvas(`• ${m}`, {
+        fontSize: 9,
+        width: 150,
+      });
+      doc.addImage(canvasToBase64(muscleCanvas), 'PNG', margin + contentWidth / 2 + 8, y + 12 + i * 7, 75, 6);
     });
     
     y += cardHeight + 15;
   }
-  
-  y += 10;
   
   // ==================== 健康风险 ====================
   if (data.risks && data.risks.length > 0) {
@@ -328,10 +483,10 @@ export async function generatePDFReport(data: ReportData): Promise<Blob> {
       y = margin;
     }
     
-    addSection(doc, '健康风险评估', y, COLORS.text);
-    y += 10;
+    addSection(doc, '健康风险评估', y);
+    y += 12;
     
-    data.risks.slice(0, 6).forEach((risk) => {
+    data.risks.slice(0, 5).forEach((risk) => {
       if (y > pageHeight - 25) {
         addPageFooter(doc, pageNum);
         doc.addPage();
@@ -342,228 +497,27 @@ export async function generatePDFReport(data: ReportData): Promise<Blob> {
       const riskColor = risk.risk === 'high' ? COLORS.danger :
                        risk.risk === 'medium' ? COLORS.warning : COLORS.secondary;
       
-      const bgColor = riskColor.map(c => Math.round(c * 0.1 + 245)) as [number, number, number];
-      doc.setFillColor(...bgColor);
-      doc.roundedRect(margin, y, contentWidth, 12, 2, 2);
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(margin, y, contentWidth, 14, 2, 2);
       
-      doc.setFillColor(...riskColor);
-      doc.roundedRect(margin, y, 3, 12, 2, 2);
+      doc.setFillColor(riskColor);
+      doc.roundedRect(margin, y, 3, 14, 2, 2);
       
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(9);
-      doc.text(`${getCategoryText(risk.category)}: ${risk.condition}`, margin + 6, y + 7);
+      const riskTextCanvas = createTextCanvas(
+        `${getCategoryText(risk.category)}: ${risk.condition}`,
+        { fontSize: 9, width: 250 }
+      );
+      doc.addImage(canvasToBase64(riskTextCanvas), 'PNG', margin + 5, y + 3, 80, 7);
       
-      doc.setTextColor(...riskColor);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text(getRiskText(risk.risk), margin + contentWidth - 25, y + 7);
-      
-      y += 15;
-    });
-  }
-  
-  y += 15;
-  
-  // ==================== 中医分析 ====================
-  if (data.tcmAnalysis) {
-    if (y > pageHeight - 100) {
-      addPageFooter(doc, pageNum);
-      doc.addPage();
-      pageNum++;
-      y = margin;
-    }
-    
-    // 新页面专门用于中医分析
-    addPageFooter(doc, pageNum);
-    doc.addPage();
-    pageNum++;
-    y = margin;
-    
-    addSection(doc, '中医体质分析', y, COLORS.tcm);
-    y += 10;
-    
-    // 体质类型
-    if (data.tcmAnalysis.constitution) {
-      doc.setFillColor(255, 248, 220); // cornsilk
-      doc.roundedRect(margin, y, contentWidth, 20, 3, 3);
-      
-      doc.setTextColor(...COLORS.tcm);
-      doc.setFontSize(11);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text('体质类型:', margin + 5, y + 8);
-      
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(10);
-      doc.text(data.tcmAnalysis.constitution, margin + 35, y + 8);
-      
-      if (data.tcmAnalysis.constitutionType) {
-        doc.setFontSize(9);
-        doc.setTextColor(...COLORS.lightText);
-        doc.text(data.tcmAnalysis.constitutionType.substring(0, 100), margin + 5, y + 16);
-      }
-      
-      y += 25;
-    }
-    
-    // 经络症状
-    if (data.tcmAnalysis.meridianSymptoms && data.tcmAnalysis.meridianSymptoms.length > 0) {
-      doc.setTextColor(...COLORS.tcm);
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text('经络症状表现:', margin, y);
-      y += 6;
-      
-      doc.setFontSize(9);
-      doc.setTextColor(...COLORS.text);
-      doc.setFont(CHINESE_FONT, 'normal');
-      data.tcmAnalysis.meridianSymptoms.slice(0, 4).forEach(symptom => {
-        doc.text(`• ${symptom.substring(0, 70)}`, margin + 5, y);
-        y += 5;
+      const riskLevelCanvas = createTextCanvas(getRiskText(risk.risk), {
+        fontSize: 9,
+        bold: true,
+        color: riskColor,
+        width: 50,
       });
-      y += 5;
-    }
-    
-    // 穴位禁忌
-    if (data.tcmAnalysis.acupointContraindications && data.tcmAnalysis.acupointContraindications.length > 0) {
-      doc.setTextColor(...COLORS.danger);
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text('穴位禁忌:', margin, y);
-      y += 6;
+      doc.addImage(canvasToBase64(riskLevelCanvas), 'PNG', margin + contentWidth - 30, y + 3, 25, 7);
       
-      doc.setFontSize(9);
-      doc.setTextColor(...COLORS.text);
-      doc.setFont(CHINESE_FONT, 'normal');
-      data.tcmAnalysis.acupointContraindications.slice(0, 3).forEach(contra => {
-        doc.text(`• ${contra.substring(0, 70)}`, margin + 5, y);
-        y += 5;
-      });
-      y += 5;
-    }
-    
-    // 导引建议
-    if (data.tcmAnalysis.daoyinSuggestions && data.tcmAnalysis.daoyinSuggestions.length > 0) {
-      doc.setTextColor(...COLORS.secondary);
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text('导引养生建议:', margin, y);
-      y += 6;
-      
-      doc.setFontSize(9);
-      doc.setTextColor(...COLORS.text);
-      doc.setFont(CHINESE_FONT, 'normal');
-      data.tcmAnalysis.daoyinSuggestions.slice(0, 3).forEach(sug => {
-        doc.text(`• ${sug.substring(0, 70)}`, margin + 5, y);
-        y += 5;
-      });
-      y += 5;
-    }
-    
-    // 食疗建议
-    if (data.tcmAnalysis.dietSuggestions && data.tcmAnalysis.dietSuggestions.length > 0) {
-      doc.setTextColor(...COLORS.warning);
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text('食疗调理建议:', margin, y);
-      y += 6;
-      
-      doc.setFontSize(9);
-      doc.setTextColor(...COLORS.text);
-      doc.setFont(CHINESE_FONT, 'normal');
-      data.tcmAnalysis.dietSuggestions.slice(0, 3).forEach(sug => {
-        doc.text(`• ${sug.substring(0, 70)}`, margin + 5, y);
-        y += 5;
-      });
-      y += 5;
-    }
-    
-    // 四季养生
-    if (data.tcmAnalysis.seasonalAdvice && data.tcmAnalysis.seasonalAdvice.length > 0) {
-      doc.setTextColor(0, 128, 128); // teal
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text('四季养生要点:', margin, y);
-      y += 6;
-      
-      doc.setFontSize(9);
-      doc.setTextColor(...COLORS.text);
-      doc.setFont(CHINESE_FONT, 'normal');
-      data.tcmAnalysis.seasonalAdvice.slice(0, 2).forEach(advice => {
-        doc.text(`• ${advice.substring(0, 70)}`, margin + 5, y);
-        y += 5;
-      });
-      y += 5;
-    }
-    
-    // 日常时辰
-    if (data.tcmAnalysis.dailySchedule && data.tcmAnalysis.dailySchedule.length > 0) {
-      doc.setTextColor(128, 0, 128); // purple
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text('日常时辰养生:', margin, y);
-      y += 6;
-      
-      doc.setFontSize(9);
-      doc.setTextColor(...COLORS.text);
-      doc.setFont(CHINESE_FONT, 'normal');
-      data.tcmAnalysis.dailySchedule.slice(0, 2).forEach(schedule => {
-        doc.text(`• ${schedule.substring(0, 70)}`, margin + 5, y);
-        y += 5;
-      });
-      y += 10;
-    }
-  }
-  
-  // ==================== 训练方案 ====================
-  if (data.trainingPlan && data.trainingPlan.phases.length > 0) {
-    addPageFooter(doc, pageNum);
-    doc.addPage();
-    pageNum++;
-    y = margin;
-    
-    addSection(doc, '五阶段训练改善方案', y, COLORS.primary);
-    y += 10;
-    
-    data.trainingPlan.phases.forEach((phase, phaseIndex) => {
-      if (y > pageHeight - 60) {
-        addPageFooter(doc, pageNum);
-        doc.addPage();
-        pageNum++;
-        y = margin;
-      }
-      
-      // 阶段标题
-      doc.setFillColor(...COLORS.primary);
-      doc.roundedRect(margin, y, contentWidth, 10, 2, 2);
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(11);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.text(`阶段${phaseIndex + 1}: ${phase.name} (${phase.duration})`, margin + 5, y + 7);
-      y += 12;
-      
-      // 重点
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(9);
-      doc.text(`训练重点: ${phase.focus}`, margin + 5, y);
-      y += 8;
-      
-      // 周计划
-      if (phase.weeklyPlan && phase.weeklyPlan.length > 0) {
-        phase.weeklyPlan.slice(0, 1).forEach(week => {
-          doc.setFontSize(8);
-          doc.setTextColor(...COLORS.lightText);
-          doc.text(`第${week.week}周计划:`, margin + 5, y);
-          y += 5;
-          
-          week.sessions.slice(0, 3).forEach(session => {
-            doc.setTextColor(...COLORS.text);
-            doc.text(`${session.day}: ${session.exercises.slice(0, 2).join(', ')}`, margin + 10, y);
-            y += 5;
-          });
-        });
-      }
-      
-      y += 10;
+      y += 17;
     });
   }
   
@@ -576,59 +530,71 @@ export async function generatePDFReport(data: ReportData): Promise<Blob> {
       y = margin;
     }
     
-    addSection(doc, '改善建议', y, COLORS.text);
-    y += 10;
+    addSection(doc, '改善建议', y);
+    y += 12;
     
     // 立即建议
     if (data.recommendations.immediate && data.recommendations.immediate.length > 0) {
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.setTextColor(...COLORS.danger);
-      doc.text('立即行动:', margin, y);
-      y += 6;
+      const immediateLabelCanvas = createTextCanvas('立即行动:', {
+        fontSize: 10,
+        bold: true,
+        color: COLORS.danger,
+        width: 100,
+      });
+      doc.addImage(canvasToBase64(immediateLabelCanvas), 'PNG', margin, y, 25, 7);
+      y += 8;
       
-      doc.setFont(CHINESE_FONT, 'normal');
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(9);
-      data.recommendations.immediate.slice(0, 4).forEach((rec) => {
-        doc.text(`• ${rec.substring(0, 80)}`, margin + 5, y);
-        y += 5;
+      data.recommendations.immediate.slice(0, 3).forEach((rec) => {
+        const recCanvas = createTextCanvas(`• ${rec.substring(0, 50)}`, {
+          fontSize: 9,
+          width: 300,
+        });
+        doc.addImage(canvasToBase64(recCanvas), 'PNG', margin + 3, y, 150, 6);
+        y += 7;
       });
       y += 5;
     }
     
     // 短期建议
     if (data.recommendations.shortTerm && data.recommendations.shortTerm.length > 0) {
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.setTextColor(...COLORS.warning);
-      doc.text('短期计划 (1-4周):', margin, y);
-      y += 6;
+      const shortLabelCanvas = createTextCanvas('短期计划 (1-4周):', {
+        fontSize: 10,
+        bold: true,
+        color: COLORS.warning,
+        width: 120,
+      });
+      doc.addImage(canvasToBase64(shortLabelCanvas), 'PNG', margin, y, 40, 7);
+      y += 8;
       
-      doc.setFont(CHINESE_FONT, 'normal');
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(9);
-      data.recommendations.shortTerm.slice(0, 4).forEach((rec) => {
-        doc.text(`• ${rec.substring(0, 80)}`, margin + 5, y);
-        y += 5;
+      data.recommendations.shortTerm.slice(0, 3).forEach((rec) => {
+        const recCanvas = createTextCanvas(`• ${rec.substring(0, 50)}`, {
+          fontSize: 9,
+          width: 300,
+        });
+        doc.addImage(canvasToBase64(recCanvas), 'PNG', margin + 3, y, 150, 6);
+        y += 7;
       });
       y += 5;
     }
     
     // 长期建议
     if (data.recommendations.longTerm && data.recommendations.longTerm.length > 0) {
-      doc.setFontSize(10);
-      doc.setFont(CHINESE_FONT, 'bold');
-      doc.setTextColor(...COLORS.secondary);
-      doc.text('长期策略 (1-3个月):', margin, y);
-      y += 6;
+      const longLabelCanvas = createTextCanvas('长期策略 (1-3个月):', {
+        fontSize: 10,
+        bold: true,
+        color: COLORS.secondary,
+        width: 130,
+      });
+      doc.addImage(canvasToBase64(longLabelCanvas), 'PNG', margin, y, 50, 7);
+      y += 8;
       
-      doc.setFont(CHINESE_FONT, 'normal');
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(9);
-      data.recommendations.longTerm.slice(0, 4).forEach((rec) => {
-        doc.text(`• ${rec.substring(0, 80)}`, margin + 5, y);
-        y += 5;
+      data.recommendations.longTerm.slice(0, 3).forEach((rec) => {
+        const recCanvas = createTextCanvas(`• ${rec.substring(0, 50)}`, {
+          fontSize: 9,
+          width: 300,
+        });
+        doc.addImage(canvasToBase64(recCanvas), 'PNG', margin + 3, y, 150, 6);
+        y += 7;
       });
     }
   }
@@ -641,16 +607,19 @@ export async function generatePDFReport(data: ReportData): Promise<Blob> {
 }
 
 // 添加章节标题
-function addSection(doc: jsPDF, title: string, y: number, color: [number, number, number]) {
-  doc.setTextColor(...color);
-  doc.setFontSize(14);
-  doc.setFont(CHINESE_FONT, 'bold');
-  doc.text(title, 15, y);
+function addSection(doc: jsPDF, title: string, y: number) {
+  // 标题背景
+  doc.setFillColor(99, 102, 241);
+  doc.roundedRect(15, y, 180, 8, 2, 2);
   
-  // 分隔线
-  doc.setDrawColor(200, 200, 200);
-  doc.setLineWidth(0.5);
-  doc.line(15, y + 3, 195, y + 3);
+  // 标题文字
+  const titleCanvas = createTextCanvas(title, {
+    fontSize: 12,
+    bold: true,
+    color: '#ffffff',
+    width: 300,
+  });
+  doc.addImage(canvasToBase64(titleCanvas), 'PNG', 18, y + 1, 80, 6);
 }
 
 // 添加页脚
@@ -658,14 +627,13 @@ function addPageFooter(doc: jsPDF, pageNum: number) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const pageWidth = doc.internal.pageSize.getWidth();
   
-  doc.setFontSize(8);
-  doc.setTextColor(150, 150, 150);
-  doc.text(
-    `AI 体态评估系统生成 | 第 ${pageNum} 页`,
-    pageWidth / 2,
-    pageHeight - 10,
-    { align: 'center' }
-  );
+  const footerCanvas = createTextCanvas(`AI 体态评估系统生成 | 第 ${pageNum} 页`, {
+    fontSize: 8,
+    color: '#9ca3af',
+    width: 200,
+    align: 'center',
+  });
+  doc.addImage(canvasToBase64(footerCanvas), 'PNG', 0, pageHeight - 12, pageWidth, 6);
 }
 
 // 辅助函数

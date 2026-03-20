@@ -11,13 +11,14 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { 
   Camera, Loader2, FileText, AlertCircle, CheckCircle2, RotateCcw,
   Download, Copy, Sparkles, ArrowLeft, Activity, Shield,
   ChevronRight, Info, Target, Zap, TrendingUp, TrendingDown,
   Bone, Heart, Brain, Timer, AlertTriangle, CheckCircle,
   XCircle, ChevronDown, ChevronUp, Eye, RotateCw, MessageCircle,
-  History, BarChart3, Dumbbell, CalendarDays, FileDown, BoxIcon
+  History, BarChart3, Dumbbell, CalendarDays, FileDown, BoxIcon, User
 } from 'lucide-react';
 import {
   createPoseDetector,
@@ -199,6 +200,9 @@ export default function PostureDiagnosisPageV2() {
   const [showTrainingPlan, setShowTrainingPlan] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
   const [assessmentHistory, setAssessmentHistory] = useState<AssessmentRecord[]>([]);
+  
+  // 用户信息
+  const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   
   // MediaPipe实例
   const [poseInstance, setPoseInstance] = useState<any>(null);
@@ -681,6 +685,11 @@ export default function PostureDiagnosisPageV2() {
   // ==================== 主分析流程 ====================
   
   const handleSubmit = async () => {
+    if (!userInfo.name.trim()) {
+      setError('请填写用户姓名');
+      return;
+    }
+    
     if (!hasAnyImage) {
       setError('请至少上传一张体态照片');
       return;
@@ -828,7 +837,69 @@ export default function PostureDiagnosisPageV2() {
       setResult(finalResult);
       setActiveTab('result');
       
-      // 自动保存评估结果
+      // 自动保存评估结果到数据库
+      if (userInfo.name.trim()) {
+        try {
+          // 先创建或查找用户
+          const userRes = await fetch('/api/posture-records', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'createUser',
+              name: userInfo.name.trim(),
+              phone: userInfo.phone.trim() || null,
+            }),
+          });
+          const userData = await userRes.json();
+          
+          if (userData.success && userData.data?.id) {
+            const userId = userData.data.id;
+            
+            // 保存评估记录
+            await fetch('/api/posture-records', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                action: 'saveAssessment',
+                userId: userId,
+                assessmentData: {
+                  overallScore: finalResult.overallScore,
+                  grade: finalResult.grade,
+                  issues: finalResult.allIssues.map(i => ({
+                    type: i.type,
+                    name: i.name,
+                    severity: i.severity,
+                    angle: i.angle,
+                  })),
+                  angles: finalResult.mediaPipeResults.front?.extendedAngles ? 
+                    Object.fromEntries(Object.entries(finalResult.mediaPipeResults.front.extendedAngles)) : {},
+                  muscles: {
+                    tight: finalResult.allMuscles.filter(m => m.status === 'tight').map(m => m.name),
+                    weak: finalResult.allMuscles.filter(m => m.status === 'weak').map(m => m.name),
+                  },
+                  healthRisks: finalResult.allHealthRisks,
+                  aiSummary: finalResult.semanticAnalysis?.summary || '',
+                  aiDetailedAnalysis: finalResult.semanticAnalysis?.detailedAnalysis || {},
+                  tcmAnalysis: finalResult.semanticAnalysis?.tcmPerspective || {},
+                  trainingPlan: finalResult.semanticAnalysis?.trainingPlan || {},
+                  images: {
+                    front: images.front || null,
+                    left: images.left || null,
+                    right: images.right || null,
+                    back: images.back || null,
+                  },
+                },
+              }),
+            });
+            
+            console.log('[PostureDiagnosis] 评估结果已保存到数据库');
+          }
+        } catch (saveErr) {
+          console.error('[PostureDiagnosis] 保存评估结果失败:', saveErr);
+        }
+      }
+      
+      // 同时保存到localStorage作为备份
       try {
         const record = saveRecord({
           overallScore: finalResult.overallScore,
@@ -850,9 +921,8 @@ export default function PostureDiagnosisPageV2() {
         
         // 更新历史记录
         setAssessmentHistory(prev => [record, ...prev]);
-        console.log('[PostureDiagnosis] 评估结果已自动保存');
       } catch (saveErr) {
-        console.error('[PostureDiagnosis] 保存评估结果失败:', saveErr);
+        console.error('[PostureDiagnosis] 保存到localStorage失败:', saveErr);
       }
       
     } catch (err) {
@@ -1357,6 +1427,37 @@ export default function PostureDiagnosisPageV2() {
                 </CardContent>
               </Card>
             )}
+
+            {/* 用户信息输入 */}
+            <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <User className="h-5 w-5 text-green-600" />
+                  用户信息
+                </CardTitle>
+                <CardDescription>请填写基本信息以便保存评估记录</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">姓名 *</label>
+                    <Input
+                      placeholder="请输入姓名"
+                      value={userInfo.name}
+                      onChange={(e) => setUserInfo(prev => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">电话（选填）</label>
+                    <Input
+                      placeholder="请输入电话号码"
+                      value={userInfo.phone}
+                      onChange={(e) => setUserInfo(prev => ({ ...prev, phone: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
             {/* 图片上传区域 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
