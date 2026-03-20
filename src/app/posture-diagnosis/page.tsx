@@ -41,6 +41,7 @@ import { EXERCISE_DATABASE, SuitableIssue } from '@/lib/exercise-database';
 import { generateTrainingPlan, getPhaseWeeklyPlans, PHASE_DETAILS, TrainingPhase, TrainingPlan } from '@/lib/training-planner';
 import { saveRecord, getAllRecords, AssessmentRecord, getStatistics } from '@/lib/progress-tracker';
 import { generatePDFReport, downloadPDF, generateReportFilename, ReportData } from '@/lib/pdf-generator';
+import { compressImage, getImageInfo } from '@/lib/image-compress';
 
 // 动态导入重型组件
 import dynamic from 'next/dynamic';
@@ -258,11 +259,21 @@ export default function PostureDiagnosisPageV2() {
     };
   }, []);
 
-  // 加载历史记录
+  // 加载历史记录 - 初始加载和result变化时都加载
   useEffect(() => {
     const records = getAllRecords();
     setAssessmentHistory(records);
-  }, [result]); // result变化时重新加载
+    console.log('[PostureDiagnosis] 加载历史记录:', records.length, '条');
+  }, []); // 初始加载
+
+  // result变化时也重新加载
+  useEffect(() => {
+    if (result) {
+      const records = getAllRecords();
+      setAssessmentHistory(records);
+      console.log('[PostureDiagnosis] 评估完成，刷新历史记录');
+    }
+  }, [result]);
 
   // 保存评估结果
   const saveAssessmentResult = useCallback(() => {
@@ -447,24 +458,75 @@ export default function PostureDiagnosisPageV2() {
 
   // ==================== 文件处理 ====================
   
-  const handleFileSelect = useCallback((angle: keyof ImageState, file: File) => {
+  const handleFileSelect = useCallback(async (angle: keyof ImageState, file: File) => {
     if (!file) return;
     if (!file.type.startsWith('image/')) {
       setError('请上传图片文件');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      setError('图片大小不能超过 10MB');
+    if (file.size > 20 * 1024 * 1024) {
+      setError('图片大小不能超过 20MB');
       return;
     }
     setError(null);
     
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const dataUrl = e.target?.result as string;
-      setImages(prev => ({ ...prev, [angle]: dataUrl }));
-    };
-    reader.readAsDataURL(file);
+    // 显示加载状态
+    setLoading(true);
+    setLoadingStep('正在压缩图片...');
+    setLoadingProgress(5);
+    
+    try {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const dataUrl = e.target?.result as string;
+        
+        try {
+          // 获取图片信息
+          const info = await getImageInfo(dataUrl);
+          console.log(`[FileSelect] 原始图片: ${info.width}x${info.height}, ${info.sizeKB.toFixed(0)}KB`);
+          
+          // 如果图片过大，进行压缩
+          let finalDataUrl = dataUrl;
+          if (info.width > 1280 || info.height > 1280 || info.sizeKB > 800) {
+            setLoadingStep('正在优化图片...');
+            finalDataUrl = await compressImage(dataUrl, {
+              maxWidth: 1280,
+              maxHeight: 1280,
+              quality: 0.85,
+              maxSizeKB: 500,
+            });
+            
+            const newInfo = await getImageInfo(finalDataUrl);
+            console.log(`[FileSelect] 压缩后: ${newInfo.width}x${newInfo.height}, ${newInfo.sizeKB.toFixed(0)}KB`);
+          }
+          
+          setImages(prev => ({ ...prev, [angle]: finalDataUrl }));
+          setLoading(false);
+          setLoadingStep('');
+          setLoadingProgress(0);
+        } catch (compressError) {
+          console.error('[FileSelect] 图片压缩失败:', compressError);
+          // 压缩失败时使用原图
+          setImages(prev => ({ ...prev, [angle]: dataUrl }));
+          setLoading(false);
+          setLoadingStep('');
+          setLoadingProgress(0);
+        }
+      };
+      reader.onerror = () => {
+        setError('图片读取失败');
+        setLoading(false);
+        setLoadingStep('');
+        setLoadingProgress(0);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('[FileSelect] 处理失败:', error);
+      setError('图片处理失败，请重试');
+      setLoading(false);
+      setLoadingStep('');
+      setLoadingProgress(0);
+    }
   }, []);
 
   const handleFileChange = (angle: keyof ImageState, e: React.ChangeEvent<HTMLInputElement>) => {
@@ -491,27 +553,56 @@ export default function PostureDiagnosisPageV2() {
       const img = new Image();
       img.crossOrigin = 'anonymous';
       
+      // 设置图片加载超时
+      const timeout = setTimeout(() => {
+        console.error(`[PostureDiagnosis] ${angle} 图片加载超时`);
+        resolve(null);
+      }, 30000);
+      
       img.onload = async () => {
+        clearTimeout(timeout);
+        
         // 保存图片引用
         if (imageRefs[angle].current) {
           imageRefs[angle].current.src = imageData;
         }
         
         if (!poseInstance) {
+          console.log(`[PostureDiagnosis] ${angle} poseInstance 不存在`);
           resolve(null);
           return;
         }
         
         try {
+          console.log(`[PostureDiagnosis] ${angle} 开始骨骼检测...`);
           const result = await detectPoseFromImageEnhanced(img, poseInstance, angle);
+          console.log(`[PostureDiagnosis] ${angle} 检测完成，发现问题:`, result?.issues?.length || 0);
           resolve(result);
-        } catch (err) {
+        } catch (err: any) {
           console.error(`[PostureDiagnosis] ${angle} 检测失败:`, err);
-          resolve(null);
+          // 捕获 WASM 崩溃错误
+          if (err?.message?.includes('abort') || err?.name === 'RuntimeError') {
+            console.error(`[PostureDiagnosis] ${angle} WASM 崩溃，可能是图片尺寸过大`);
+            // 返回一个空结果而不是 null，这样后续流程可以继续
+            resolve({
+              landmarks: [],
+              issues: [],
+              overallScore: 50,
+              muscleAnalysis: [],
+              fasciaChainAnalysis: [],
+              healthRisks: [],
+              extendedAngles: {},
+              confidence: 0,
+              viewAngle: angle,
+            } as unknown as EnhancedPostureAnalysisResult);
+          } else {
+            resolve(null);
+          }
         }
       };
       
       img.onerror = () => {
+        clearTimeout(timeout);
         console.error(`[PostureDiagnosis] ${angle} 图片加载失败`);
         resolve(null);
       };
@@ -1181,6 +1272,70 @@ export default function PostureDiagnosisPageV2() {
                 检测30+种体态问题，并结合 <strong>Vision AI</strong> 进行深度语义分析。
               </AlertDescription>
             </Alert>
+
+            {/* 历史记录面板 */}
+            {assessmentHistory.length > 0 && (
+              <Card className="bg-gradient-to-r from-purple-50 to-blue-50 border-purple-200">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center justify-between">
+                    <span className="flex items-center gap-2">
+                      <History className="h-5 w-5 text-purple-600" />
+                      历史评估记录
+                    </span>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-700">
+                      {assessmentHistory.length} 次评估
+                    </Badge>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {assessmentHistory.slice(0, 3).map((record) => (
+                      <Card 
+                        key={record.id} 
+                        className="cursor-pointer hover:shadow-md transition-shadow bg-white"
+                        onClick={() => {
+                          // 显示历史记录详情
+                          setShowHistory(true);
+                        }}
+                      >
+                        <CardContent className="p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs text-gray-500">
+                              {new Date(record.timestamp).toLocaleDateString('zh-CN')}
+                            </span>
+                            <Badge className={`
+                              ${record.overallScore >= 80 ? 'bg-green-500' : 
+                                record.overallScore >= 60 ? 'bg-yellow-500' : 'bg-red-500'}
+                              text-white text-xs
+                            `}>
+                              {record.grade}级
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-2xl font-bold">{record.overallScore}</span>
+                            <span className="text-xs text-gray-500">分</span>
+                          </div>
+                          <div className="mt-2 text-xs text-gray-600">
+                            检测到 {record.issues.length} 个问题
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                  {assessmentHistory.length > 3 && (
+                    <div className="mt-3 text-center">
+                      <Button 
+                        variant="link" 
+                        className="text-purple-600"
+                        onClick={() => setShowHistory(true)}
+                      >
+                        查看全部 {assessmentHistory.length} 条记录
+                      </Button>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
             {/* 图片上传区域 */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

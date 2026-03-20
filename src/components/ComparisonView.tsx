@@ -20,7 +20,10 @@ import {
   TrendingDown,
   CheckCircle2,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  BarChart3,
+  Target,
+  Activity
 } from 'lucide-react';
 
 interface ComparisonViewProps {
@@ -136,10 +139,11 @@ export default function ComparisonView({ onCompare }: ComparisonViewProps) {
       {comparison && comparison.record1 && comparison.record2 && (
         <div className="space-y-4">
           {/* 评分对比 */}
-          <Card>
+          <Card className="bg-gradient-to-r from-blue-50 to-purple-50">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                综合评分变化
+                <Target className="h-5 w-5 text-blue-600" />
+                综合评分对比
                 {comparison.comparison.scoreChange > 0 ? (
                   <TrendingUp className="h-5 w-5 text-green-500" />
                 ) : comparison.comparison.scoreChange < 0 ? (
@@ -151,34 +155,34 @@ export default function ComparisonView({ onCompare }: ComparisonViewProps) {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-4 items-center">
-                <div className="text-center">
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                   <div className="text-sm text-muted-foreground mb-1">历史记录</div>
-                  <div className="text-3xl font-bold">{comparison.record2.overallScore}</div>
+                  <div className="text-4xl font-bold text-gray-700">{comparison.record2.overallScore}</div>
                   <div className="text-xs text-muted-foreground mt-1">
                     {formatDate(comparison.record2.timestamp).split(' ')[0]}
                   </div>
                 </div>
                 
                 <div className="flex flex-col items-center justify-center">
-                  <div className={`text-4xl font-bold flex items-center gap-1 ${
+                  <div className={`text-5xl font-bold flex items-center gap-1 ${
                     comparison.comparison.scoreChange > 0 ? 'text-green-500' :
                     comparison.comparison.scoreChange < 0 ? 'text-red-500' : 'text-gray-500'
                   }`}>
                     {comparison.comparison.scoreChange > 0 ? (
-                      <ArrowUp className="h-6 w-6" />
+                      <ArrowUp className="h-8 w-8" />
                     ) : comparison.comparison.scoreChange < 0 ? (
-                      <ArrowDown className="h-6 w-6" />
+                      <ArrowDown className="h-8 w-8" />
                     ) : (
-                      <Minus className="h-6 w-6" />
+                      <Minus className="h-8 w-8" />
                     )}
                     {Math.abs(comparison.comparison.scoreChange)}
                   </div>
-                  <div className="text-sm text-muted-foreground">变化</div>
+                  <div className="text-sm text-muted-foreground mt-1">评分变化</div>
                 </div>
                 
-                <div className="text-center">
+                <div className="text-center p-4 bg-white rounded-lg shadow-sm">
                   <div className="text-sm text-muted-foreground mb-1">最新记录</div>
-                  <div className="text-3xl font-bold">{comparison.record1.overallScore}</div>
+                  <div className="text-4xl font-bold text-blue-600">{comparison.record1.overallScore}</div>
                   <div className="text-xs text-muted-foreground mt-1">
                     {formatDate(comparison.record1.timestamp).split(' ')[0]}
                   </div>
@@ -187,7 +191,31 @@ export default function ComparisonView({ onCompare }: ComparisonViewProps) {
             </CardContent>
           </Card>
           
-          {/* 问题变化 */}
+          {/* 问题变化汇总 */}
+          <div className="grid grid-cols-4 gap-3">
+            <Card className="text-center p-4">
+              <CheckCircle2 className="h-8 w-8 mx-auto mb-2 text-green-500" />
+              <div className="text-2xl font-bold text-green-600">{comparison.comparison.issuesImproved.length}</div>
+              <div className="text-xs text-muted-foreground">改善的问题</div>
+            </Card>
+            <Card className="text-center p-4">
+              <TrendingUp className="h-8 w-8 mx-auto mb-2 text-green-500" />
+              <div className="text-2xl font-bold text-green-600">{comparison.comparison.issuesResolved.length}</div>
+              <div className="text-xs text-muted-foreground">已解决</div>
+            </Card>
+            <Card className="text-center p-4">
+              <AlertCircle className="h-8 w-8 mx-auto mb-2 text-orange-500" />
+              <div className="text-2xl font-bold text-orange-600">{comparison.comparison.issuesNew.length}</div>
+              <div className="text-xs text-muted-foreground">新发现</div>
+            </Card>
+            <Card className="text-center p-4">
+              <TrendingDown className="h-8 w-8 mx-auto mb-2 text-red-500" />
+              <div className="text-2xl font-bold text-red-600">{comparison.comparison.issuesWorsened.length}</div>
+              <div className="text-xs text-muted-foreground">恶化</div>
+            </Card>
+          </div>
+          
+          {/* 问题变化详情 */}
           <div className="grid grid-cols-2 gap-4">
             {/* 改善的问题 */}
             <Card>
@@ -287,24 +315,26 @@ export default function ComparisonView({ onCompare }: ComparisonViewProps) {
             </Card>
           </div>
           
-          {/* 详细问题对比 */}
+          {/* 详细问题对比表格 */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">详细问题对比</CardTitle>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Activity className="h-5 w-5 text-blue-600" />
+                全部问题对比
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2">问题类型</th>
-                      <th className="text-center py-2">历史</th>
-                      <th className="text-center py-2">最新</th>
-                      <th className="text-center py-2">变化</th>
+                    <tr className="border-b bg-gray-50">
+                      <th className="text-left py-3 px-2">问题类型</th>
+                      <th className="text-center py-3 px-2">历史状态</th>
+                      <th className="text-center py-3 px-2">最新状态</th>
+                      <th className="text-center py-3 px-2">变化</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {/* 合并所有问题类型 */}
                     {Array.from(new Set([
                       ...comparison.record1.issues.map(i => i.type),
                       ...comparison.record2.issues.map(i => i.type)
@@ -318,28 +348,36 @@ export default function ComparisonView({ onCompare }: ComparisonViewProps) {
                       const change = s2 - s1;
                       
                       return (
-                        <tr key={type} className="border-b">
-                          <td className="py-2">{issue1?.name || issue2?.name}</td>
-                          <td className="text-center py-2">
+                        <tr key={type} className="border-b hover:bg-gray-50">
+                          <td className="py-2 px-2">{issue1?.name || issue2?.name}</td>
+                          <td className="text-center py-2 px-2">
                             {issue2 ? (
                               <Badge className={`${getSeverityColor(issue2.severity)} text-white`}>
                                 {getSeverityText(issue2.severity)}
                               </Badge>
                             ) : (
-                              <span className="text-muted-foreground">-</span>
+                              <span className="text-green-600">无问题</span>
                             )}
                           </td>
-                          <td className="text-center py-2">
+                          <td className="text-center py-2 px-2">
                             {issue1 ? (
                               <Badge className={`${getSeverityColor(issue1.severity)} text-white`}>
                                 {getSeverityText(issue1.severity)}
                               </Badge>
                             ) : (
-                              <span className="text-muted-foreground">-</span>
+                              <span className="text-green-600">无问题</span>
                             )}
                           </td>
-                          <td className="text-center py-2">
-                            {change < 0 ? (
+                          <td className="text-center py-2 px-2">
+                            {!issue2 && issue1 ? (
+                              <span className="text-red-500 flex items-center justify-center gap-1">
+                                <AlertCircle className="h-4 w-4" /> 新增
+                              </span>
+                            ) : issue2 && !issue1 ? (
+                              <span className="text-green-500 flex items-center justify-center gap-1">
+                                <CheckCircle2 className="h-4 w-4" /> 已解决
+                              </span>
+                            ) : change < 0 ? (
                               <span className="text-green-500 flex items-center justify-center gap-1">
                                 <ArrowDown className="h-4 w-4" /> 改善
                               </span>
@@ -359,6 +397,100 @@ export default function ComparisonView({ onCompare }: ComparisonViewProps) {
               </div>
             </CardContent>
           </Card>
+          
+          {/* 角度数据对比 */}
+          {comparison.record1.angles && comparison.record2.angles && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-purple-600" />
+                  关节角度对比
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-gray-50">
+                        <th className="text-left py-2 px-2">角度名称</th>
+                        <th className="text-center py-2 px-2">历史值</th>
+                        <th className="text-center py-2 px-2">最新值</th>
+                        <th className="text-center py-2 px-2">变化</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from(new Set([
+                        ...Object.keys(comparison.record1.angles),
+                        ...Object.keys(comparison.record2.angles)
+                      ])).slice(0, 15).map(angle => {
+                        const v1 = comparison.record1!.angles[angle];
+                        const v2 = comparison.record2!.angles[angle];
+                        const change = v1 - v2;
+                        
+                        return (
+                          <tr key={angle} className="border-b hover:bg-gray-50">
+                            <td className="py-2 px-2">{angle}</td>
+                            <td className="text-center py-2 px-2">{v2?.toFixed(1) || '-'}°</td>
+                            <td className="text-center py-2 px-2">{v1?.toFixed(1) || '-'}°</td>
+                            <td className={`text-center py-2 px-2 font-medium ${
+                              Math.abs(change) > 5 ? (change > 0 ? 'text-orange-500' : 'text-blue-500') : 'text-gray-500'
+                            }`}>
+                              {change > 0 ? '+' : ''}{change.toFixed(1)}°
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* 肌肉状态对比 */}
+          {comparison.record1.muscles && comparison.record2.muscles && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  肌肉状态对比
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-red-600 mb-2">紧张肌肉变化</h4>
+                    <div className="space-y-1">
+                      {comparison.record1.muscles.tight.filter(m => !comparison.record2!.muscles?.tight.includes(m)).map(m => (
+                        <div key={m} className="text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" /> {m} (新增)
+                        </div>
+                      ))}
+                      {comparison.record2.muscles.tight.filter(m => !comparison.record1!.muscles?.tight.includes(m)).map(m => (
+                        <div key={m} className="text-xs text-green-600 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> {m} (已缓解)
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-blue-600 mb-2">无力肌肉变化</h4>
+                    <div className="space-y-1">
+                      {comparison.record1.muscles.weak.filter(m => !comparison.record2!.muscles?.weak.includes(m)).map(m => (
+                        <div key={m} className="text-xs text-orange-600 flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" /> {m} (新增)
+                        </div>
+                      ))}
+                      {comparison.record2.muscles.weak.filter(m => !comparison.record1!.muscles?.weak.includes(m)).map(m => (
+                        <div key={m} className="text-xs text-green-600 flex items-center gap-1">
+                          <CheckCircle2 className="h-3 w-3" /> {m} (已恢复)
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
     </div>
