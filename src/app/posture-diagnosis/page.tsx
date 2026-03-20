@@ -38,7 +38,7 @@ import {
   DEFAULT_ENHANCED_DRAW_CONFIG,
 } from '@/lib/pose-drawing-enhanced';
 import { EXERCISE_DATABASE, SuitableIssue } from '@/lib/exercise-database';
-import { generateTrainingPlan } from '@/lib/training-planner';
+import { generateTrainingPlan, getPhaseWeeklyPlans, PHASE_DETAILS, TrainingPhase, TrainingPlan } from '@/lib/training-planner';
 import { saveRecord, getAllRecords, AssessmentRecord, getStatistics } from '@/lib/progress-tracker';
 import { generatePDFReport, downloadPDF, generateReportFilename, ReportData } from '@/lib/pdf-generator';
 
@@ -80,6 +80,7 @@ interface SemanticAnalysisResult {
   recommendations: any;
   tcmPerspective: any;
   treatmentPlan: any;
+  trainingPlan?: TrainingPlan;
 }
 
 // ==================== 辅助函数 ====================
@@ -296,6 +297,9 @@ export default function PostureDiagnosisPageV2() {
     setExportingPDF(true);
     
     try {
+      const trainingPlan = result.semanticAnalysis?.trainingPlan || 
+        generateTrainingPlan(result.allIssues.map(i => i.type as any));
+      
       const reportData: ReportData = {
         assessmentDate: new Date().toLocaleDateString('zh-CN'),
         overallScore: result.overallScore,
@@ -324,8 +328,32 @@ export default function PostureDiagnosisPageV2() {
         },
         tcmAnalysis: result.semanticAnalysis?.tcmPerspective ? {
           constitution: result.semanticAnalysis.tcmPerspective.constitution || '',
+          constitutionType: result.semanticAnalysis.tcmPerspective.constitutionType,
           meridians: result.semanticAnalysis.tcmPerspective.meridians?.map((m: any) => m.name) || [],
           acupoints: result.semanticAnalysis.tcmPerspective.acupoints?.map((a: any) => a.name) || [],
+          meridianSymptoms: result.semanticAnalysis.tcmPerspective.meridianSymptoms,
+          acupointContraindications: result.semanticAnalysis.tcmPerspective.acupointContraindications,
+          daoyinSuggestions: result.semanticAnalysis.tcmPerspective.daoyinSuggestions,
+          dietSuggestions: result.semanticAnalysis.tcmPerspective.dietSuggestions,
+          seasonalAdvice: result.semanticAnalysis.tcmPerspective.seasonalAdvice,
+          dailySchedule: result.semanticAnalysis.tcmPerspective.dailySchedule,
+        } : undefined,
+        trainingPlan: trainingPlan ? {
+          phases: Object.entries(PHASE_DETAILS).map(([key, phase]) => {
+            const weeklyPlans = getPhaseWeeklyPlans(trainingPlan, key as TrainingPhase);
+            return {
+              name: phase.name,
+              duration: phase.duration,
+              focus: phase.objective,
+              weeklyPlan: weeklyPlans.map(wp => ({
+                week: wp.week,
+                sessions: wp.sessions.map(s => ({
+                  day: s.day,
+                  exercises: s.exercises.map(e => typeof e === 'string' ? e : e.name),
+                })),
+              })),
+            };
+          }),
         } : undefined,
         images: {
           front: images.front || undefined,
@@ -350,46 +378,69 @@ export default function PostureDiagnosisPageV2() {
   // 绘制骨骼标注图的函数
   const drawAnnotationToCanvas = useCallback((
     angle: keyof ImageState,
-    imageElement: HTMLImageElement,
+    imageDataUrl: string,
     analysisResult: EnhancedPostureAnalysisResult | null
   ) => {
     const canvas = canvasRefs[angle].current;
-    if (!canvas || !imageElement) return;
+    if (!canvas || !imageDataUrl) {
+      console.log(`[Canvas] ${angle} canvas或图片数据不存在`);
+      return;
+    }
     
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    // 设置canvas尺寸
-    const maxWidth = 600;
-    const scale = imageElement.naturalWidth > maxWidth ? maxWidth / imageElement.naturalWidth : 1;
-    canvas.width = imageElement.naturalWidth * scale;
-    canvas.height = imageElement.naturalHeight * scale;
-    
-    // 绘制原图
-    ctx.drawImage(imageElement, 0, 0, canvas.width, canvas.height);
-    
-    // 绘制骨骼标注
-    if (analysisResult) {
-      drawPostureAnnotationEnhanced(ctx, canvas, analysisResult, {
-        showLandmarkLabels: false,
-        showAngleArcs: true,
-        showConfidence: true,
-      });
+    if (!ctx) {
+      console.log(`[Canvas] ${angle} 无法获取ctx`);
+      return;
     }
+    
+    // 创建新的图片对象
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    img.onload = () => {
+      console.log(`[Canvas] ${angle} 图片加载成功，开始绘制`);
+      
+      // 设置canvas尺寸
+      const maxWidth = 600;
+      const scale = img.naturalWidth > maxWidth ? maxWidth / img.naturalWidth : 1;
+      canvas.width = img.naturalWidth * scale;
+      canvas.height = img.naturalHeight * scale;
+      
+      // 绘制原图
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      // 绘制骨骼标注
+      if (analysisResult) {
+        console.log(`[Canvas] ${angle} 开始绘制骨骼标注，landmarks数量:`, analysisResult.landmarks?.length);
+        drawPostureAnnotationEnhanced(ctx, canvas, analysisResult, {
+          showLandmarkLabels: false,
+          showAngleArcs: true,
+          showConfidence: true,
+        });
+      } else {
+        console.log(`[Canvas] ${angle} 无分析结果`);
+      }
+    };
+    
+    img.onerror = (e) => {
+      console.error(`[Canvas] ${angle} 图片加载失败`, e);
+    };
+    
+    img.src = imageDataUrl;
   }, []);
   
   // 当分析结果变化时绘制Canvas
   useEffect(() => {
     if (!result) return;
     
+    console.log('[Canvas] 分析结果变化，开始绘制Canvas');
+    
     const angles: (keyof ImageState)[] = ['front', 'left', 'right', 'back'];
     
     angles.forEach(angle => {
       if (images[angle] && result.mediaPipeResults[angle]) {
-        const img = imageRefs[angle].current;
-        if (img && img.complete) {
-          drawAnnotationToCanvas(angle, img, result.mediaPipeResults[angle]);
-        }
+        console.log(`[Canvas] ${angle} 准备绘制`);
+        drawAnnotationToCanvas(angle, images[angle]!, result.mediaPipeResults[angle]);
       }
     });
   }, [result, images, drawAnnotationToCanvas]);
@@ -673,6 +724,33 @@ export default function PostureDiagnosisPageV2() {
       
       setResult(finalResult);
       setActiveTab('result');
+      
+      // 自动保存评估结果
+      try {
+        const record = saveRecord({
+          overallScore: finalResult.overallScore,
+          grade: finalResult.grade,
+          issues: finalResult.allIssues.map(i => ({
+            type: i.type,
+            name: i.name,
+            severity: i.severity,
+            angle: i.angle,
+          })),
+          angles: finalResult.mediaPipeResults.front?.extendedAngles ? 
+            Object.fromEntries(Object.entries(finalResult.mediaPipeResults.front.extendedAngles)) : {},
+          muscles: {
+            tight: finalResult.allMuscles.filter(m => m.status === 'tight').map(m => m.name),
+            weak: finalResult.allMuscles.filter(m => m.status === 'weak').map(m => m.name),
+          },
+          imageThumbnail: images.front || undefined,
+        });
+        
+        // 更新历史记录
+        setAssessmentHistory(prev => [record, ...prev]);
+        console.log('[PostureDiagnosis] 评估结果已自动保存');
+      } catch (saveErr) {
+        console.error('[PostureDiagnosis] 保存评估结果失败:', saveErr);
+      }
       
     } catch (err) {
       console.error('[PostureDiagnosis] 分析失败:', err);
@@ -1462,33 +1540,62 @@ export default function PostureDiagnosisPageV2() {
                   <TabsContent value="tcm" className="space-y-4">
                     {result.semanticAnalysis?.tcmPerspective ? (
                       <div className="space-y-4">
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-base">中医体质辨识</CardTitle>
+                        {/* 体质辨识 */}
+                        <Card className="border-l-4 border-l-amber-500">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <span className="text-amber-600">中医体质辨识</span>
+                            </CardTitle>
                           </CardHeader>
                           <CardContent>
-                            <div className="text-gray-700">
-                              {result.semanticAnalysis.tcmPerspective.constitution && (
-                                <p><strong>体质类型：</strong>{result.semanticAnalysis.tcmPerspective.constitution}</p>
-                              )}
-                              {result.semanticAnalysis.tcmPerspective.constitutionReason && (
-                                <p className="text-sm text-gray-500 mt-1">{result.semanticAnalysis.tcmPerspective.constitutionReason}</p>
-                              )}
+                            <div className="flex items-center gap-4 mb-3">
+                              <div className="text-2xl font-bold text-amber-600">
+                                {result.semanticAnalysis.tcmPerspective.constitution || '平和质'}
+                              </div>
+                              <Badge variant="outline" className="bg-amber-50 text-amber-700">
+                                中医九种体质
+                              </Badge>
                             </div>
+                            {result.semanticAnalysis.tcmPerspective.constitutionReason && (
+                              <p className="text-sm text-gray-600 mb-3">{result.semanticAnalysis.tcmPerspective.constitutionReason}</p>
+                            )}
+                            {result.semanticAnalysis.tcmPerspective.constitutionFeatures && (
+                              <div className="flex flex-wrap gap-2">
+                                {result.semanticAnalysis.tcmPerspective.constitutionFeatures.map((f: string, i: number) => (
+                                  <Badge key={i} variant="outline" className="text-xs">{f}</Badge>
+                                ))}
+                              </div>
+                            )}
                           </CardContent>
                         </Card>
                         
-                        {result.semanticAnalysis.tcmPerspective.meridians && (
+                        {/* 经络分析 */}
+                        {result.semanticAnalysis.tcmPerspective.meridians && result.semanticAnalysis.tcmPerspective.meridians.length > 0 && (
                           <Card>
-                            <CardHeader>
-                              <CardTitle className="text-base">经络分析</CardTitle>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-base flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-red-500" />
+                                经络状态分析
+                              </CardTitle>
+                              <CardDescription>根据体态问题分析相关经络的气血运行状态</CardDescription>
                             </CardHeader>
                             <CardContent>
-                              <div className="space-y-2">
+                              <div className="space-y-3">
                                 {result.semanticAnalysis.tcmPerspective.meridians.map((m: any, idx: number) => (
-                                  <div key={idx} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                                    <span className="font-medium">{m.name}</span>
-                                    <Badge variant={m.status === '受阻' ? 'destructive' : 'outline'}>{m.status}</Badge>
+                                  <div key={idx} className="p-3 bg-gray-50 rounded-lg">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <span className="font-medium text-gray-800">{m.name}</span>
+                                      <Badge variant={m.status === '受阻' ? 'destructive' : m.status === '不畅' ? 'default' : 'outline'}>
+                                        {m.status}
+                                      </Badge>
+                                    </div>
+                                    <p className="text-sm text-gray-600">{m.reason}</p>
+                                    {m.symptoms && m.symptoms.length > 0 && (
+                                      <div className="mt-2 text-xs text-gray-500">
+                                        <span className="font-medium">可能症状：</span>
+                                        {m.symptoms.join('、')}
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -1496,19 +1603,131 @@ export default function PostureDiagnosisPageV2() {
                           </Card>
                         )}
                         
-                        {result.semanticAnalysis.tcmPerspective.acupoints && (
+                        {/* 穴位调理 */}
+                        {result.semanticAnalysis.tcmPerspective.acupoints && result.semanticAnalysis.tcmPerspective.acupoints.length > 0 && (
                           <Card>
-                            <CardHeader>
-                              <CardTitle className="text-base">穴位调理建议</CardTitle>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-base flex items-center gap-2">
+                                <Target className="h-5 w-5 text-green-500" />
+                                穴位调理建议
+                              </CardTitle>
+                              <CardDescription>针对体态问题的穴位按摩调理方案</CardDescription>
                             </CardHeader>
                             <CardContent>
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                {result.semanticAnalysis.tcmPerspective.acupoints.slice(0, 6).map((a: any, idx: number) => (
-                                  <div key={idx} className="p-2 bg-blue-50 rounded text-center">
-                                    <div className="font-medium">{a.name}</div>
-                                    <div className="text-xs text-gray-500">{a.location}</div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {result.semanticAnalysis.tcmPerspective.acupoints.slice(0, 8).map((a: any, idx: number) => (
+                                  <div key={idx} className="p-3 bg-green-50 rounded-lg border border-green-100">
+                                    <div className="font-medium text-green-800 mb-1">{a.name}</div>
+                                    <div className="text-xs text-gray-500 mb-1">
+                                      <strong>位置：</strong>{a.location}
+                                    </div>
+                                    <div className="text-xs text-gray-600 mb-2">{a.benefit}</div>
+                                    <div className="text-xs text-green-600 bg-green-100 p-2 rounded">
+                                      <strong>方法：</strong>{a.method}
+                                    </div>
+                                    {a.contraindications && (
+                                      <div className="text-xs text-orange-600 mt-1">
+                                        ⚠️ {a.contraindications}
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+                        
+                        {/* 导引功法 */}
+                        {result.semanticAnalysis.tcmPerspective.daoyinSuggestions && result.semanticAnalysis.tcmPerspective.daoyinSuggestions.length > 0 && (
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-base flex items-center gap-2">
+                                <Activity className="h-5 w-5 text-purple-500" />
+                                中医导引功法
+                              </CardTitle>
+                              <CardDescription>传统功法对体态调理的帮助</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="flex flex-wrap gap-2">
+                                {result.semanticAnalysis.tcmPerspective.daoyinSuggestions.map((d: string, i: number) => (
+                                  <Badge key={i} variant="outline" className="bg-purple-50 text-purple-700 py-1.5">
+                                    {d}
+                                  </Badge>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+                        
+                        {/* 饮食建议 */}
+                        {result.semanticAnalysis.tcmPerspective.dietaryAdvice && (
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-base flex items-center gap-2">
+                                <Heart className="h-5 w-5 text-red-500" />
+                                食疗养生建议
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                {result.semanticAnalysis.tcmPerspective.dietaryAdvice.suitable && (
+                                  <div className="flex items-start gap-2">
+                                    <Badge className="bg-green-100 text-green-700">宜食</Badge>
+                                    <span className="text-sm text-gray-600">
+                                      {result.semanticAnalysis.tcmPerspective.dietaryAdvice.suitable.join('、')}
+                                    </span>
+                                  </div>
+                                )}
+                                {result.semanticAnalysis.tcmPerspective.dietaryAdvice.avoid && (
+                                  <div className="flex items-start gap-2">
+                                    <Badge className="bg-red-100 text-red-700">忌食</Badge>
+                                    <span className="text-sm text-gray-600">
+                                      {result.semanticAnalysis.tcmPerspective.dietaryAdvice.avoid.join('、')}
+                                    </span>
+                                  </div>
+                                )}
+                                {result.semanticAnalysis.tcmPerspective.dietaryAdvice.teaRecommendation && (
+                                  <div className="p-2 bg-amber-50 rounded text-sm text-amber-800">
+                                    <strong>代茶饮：</strong>{result.semanticAnalysis.tcmPerspective.dietaryAdvice.teaRecommendation}
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        )}
+                        
+                        {/* 四季养生 */}
+                        {result.semanticAnalysis.tcmPerspective.seasonalAdvice && (
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-base">四季养生建议</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-gray-600">{result.semanticAnalysis.tcmPerspective.seasonalAdvice}</p>
+                            </CardContent>
+                          </Card>
+                        )}
+                        
+                        {/* 日常养生 */}
+                        {result.semanticAnalysis.tcmPerspective.dailyRoutine && (
+                          <Card>
+                            <CardHeader className="pb-2">
+                              <CardTitle className="text-base">日常养生时辰</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="grid grid-cols-3 gap-4 text-center">
+                                <div className="p-3 bg-orange-50 rounded-lg">
+                                  <div className="text-orange-600 font-medium mb-1">早晨</div>
+                                  <div className="text-xs text-gray-600">{result.semanticAnalysis.tcmPerspective.dailyRoutine.morning || '晨起活动，舒展筋骨'}</div>
+                                </div>
+                                <div className="p-3 bg-red-50 rounded-lg">
+                                  <div className="text-red-600 font-medium mb-1">中午</div>
+                                  <div className="text-xs text-gray-600">{result.semanticAnalysis.tcmPerspective.dailyRoutine.noon || '午休调养，养心安神'}</div>
+                                </div>
+                                <div className="p-3 bg-blue-50 rounded-lg">
+                                  <div className="text-blue-600 font-medium mb-1">晚间</div>
+                                  <div className="text-xs text-gray-600">{result.semanticAnalysis.tcmPerspective.dailyRoutine.evening || '早睡早起，养肝护肾'}</div>
+                                </div>
                               </div>
                             </CardContent>
                           </Card>
@@ -1885,15 +2104,34 @@ function TrainingPlanView({ issues, muscles }: { issues: PostureIssue[]; muscles
   const plan = useMemo(() => generateTrainingPlan(suitableIssues), [suitableIssues]);
   
   const phaseNames = ['姿势纠正', '肌肉激活', '力量强化', '功能整合', '维持巩固'];
+  const phaseKeys: TrainingPhase[] = ['phase1', 'phase2', 'phase3', 'phase4', 'phase5'];
   const phaseDurations = ['1-2周', '2-4周', '4-8周', '8-12周', '长期'];
   
-  // 获取当前周的练习
-  const currentWeekExercises = useMemo(() => {
-    if (plan.weeklyPlans.length > activePhase) {
-      return plan.weeklyPlans[activePhase].sessions.flatMap(s => s.exercises);
-    }
-    return [];
+  // 获取当前阶段的周计划
+  const currentPhasePlans = useMemo(() => {
+    return getPhaseWeeklyPlans(plan, phaseKeys[activePhase]);
   }, [plan, activePhase]);
+  
+  // 获取当前阶段的详细信息
+  const currentPhaseDetail = useMemo(() => {
+    return PHASE_DETAILS[phaseKeys[activePhase]];
+  }, [activePhase]);
+  
+  // 获取当前阶段的所有练习
+  const currentPhaseExercises = useMemo(() => {
+    const allExercises: any[] = [];
+    currentPhasePlans.forEach(weekPlan => {
+      weekPlan.sessions.forEach(session => {
+        session.exercises.forEach(ex => {
+          // 避免重复
+          if (!allExercises.find(e => e.id === ex.id)) {
+            allExercises.push(ex);
+          }
+        });
+      });
+    });
+    return allExercises;
+  }, [currentPhasePlans]);
   
   return (
     <div className="space-y-4">
@@ -1922,21 +2160,54 @@ function TrainingPlanView({ issues, muscles }: { issues: PostureIssue[]; muscles
             <Badge variant="outline">{phaseDurations[activePhase]}</Badge>
           </div>
           <CardDescription>
-            {plan.weeklyPlans[activePhase]?.objective || '根据您的评估结果定制的训练计划'}
+            {currentPhaseDetail?.objective || '根据您的评估结果定制的训练计划'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {currentWeekExercises.length > 0 ? (
-            <div className="space-y-3">
-              {currentWeekExercises.slice(0, 10).map((ex: any, i: number) => (
+          {/* 阶段说明 */}
+          <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
+            <div className="font-medium mb-1">训练目标</div>
+            <div>{currentPhaseDetail?.description}</div>
+            <div className="mt-2 text-xs text-blue-600">
+              频率：{currentPhaseDetail?.frequency} · 每次时长：{currentPhaseDetail?.durationPerSession}
+            </div>
+          </div>
+          
+          {/* 关键要点 */}
+          {currentPhaseDetail?.keyPoints && currentPhaseDetail.keyPoints.length > 0 && (
+            <div className="mb-4">
+              <div className="font-medium text-sm mb-2">关键要点</div>
+              <div className="flex flex-wrap gap-2">
+                {currentPhaseDetail.keyPoints.map((point, i) => (
+                  <Badge key={i} variant="outline" className="bg-gray-50">{point}</Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
+          {/* 训练动作 */}
+          <div className="mb-2">
+            <div className="font-medium text-sm mb-2">训练动作（共{currentPhaseExercises.length}个）</div>
+          </div>
+          
+          {currentPhaseExercises.length > 0 ? (
+            <div className="space-y-2 max-h-[300px] overflow-y-auto">
+              {currentPhaseExercises.map((ex, i) => (
                 <div key={i} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
                   <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-sm font-medium">
                     {i + 1}
                   </div>
                   <div className="flex-1">
                     <div className="font-medium text-sm">{ex.name}</div>
-                    <div className="text-xs text-gray-500">{ex.frequency || ''} · {ex.duration || ''}</div>
+                    <div className="text-xs text-gray-500">
+                      {ex.duration || ex.repetitions || ''} · {ex.frequency || '每周2-3次'}
+                    </div>
                   </div>
+                  <Badge variant="outline" className="text-xs">
+                    {ex.category === 'stretch' ? '拉伸' :
+                     ex.category === 'activation' ? '激活' :
+                     ex.category === 'strengthening' ? '强化' : '功能'}
+                  </Badge>
                 </div>
               ))}
             </div>
@@ -1944,6 +2215,21 @@ function TrainingPlanView({ issues, muscles }: { issues: PostureIssue[]; muscles
             <div className="text-center py-8 text-gray-500">
               <CalendarDays className="h-12 w-12 mx-auto mb-2 opacity-50" />
               <p>暂无训练内容</p>
+            </div>
+          )}
+          
+          {/* 预期效果 */}
+          {currentPhaseDetail?.expectedOutcomes && currentPhaseDetail.expectedOutcomes.length > 0 && (
+            <div className="mt-4 pt-4 border-t">
+              <div className="font-medium text-sm mb-2 text-green-700">预期效果</div>
+              <ul className="text-xs text-gray-600 space-y-1">
+                {currentPhaseDetail.expectedOutcomes.map((outcome, i) => (
+                  <li key={i} className="flex items-start gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-500 mt-0.5" />
+                    {outcome}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </CardContent>

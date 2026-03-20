@@ -177,22 +177,16 @@ export const PHASE_DETAILS: Record<TrainingPhase, PhaseDetail> = {
 
 // ==================== 方案生成器 ====================
 
-// 根据问题生成个性化训练方案
+// 根据问题生成个性化训练方案（生成所有阶段的计划）
 export function generateTrainingPlan(issues: SuitableIssue[], currentPhase: TrainingPhase = 'phase1'): TrainingPlan {
   const weeklyPlans: WeeklyPlan[] = [];
   
-  // 生成当前阶段的周计划
-  if (currentPhase === 'phase1') {
-    weeklyPlans.push(...generatePhase1WeeklyPlans(issues));
-  } else if (currentPhase === 'phase2') {
-    weeklyPlans.push(...generatePhase2WeeklyPlans(issues));
-  } else if (currentPhase === 'phase3') {
-    weeklyPlans.push(...generatePhase3WeeklyPlans(issues));
-  } else if (currentPhase === 'phase4') {
-    weeklyPlans.push(...generatePhase4WeeklyPlans(issues));
-  } else if (currentPhase === 'phase5') {
-    weeklyPlans.push(...generatePhase5WeeklyPlans(issues));
-  }
+  // 生成所有阶段的周计划
+  weeklyPlans.push(...generatePhase1WeeklyPlans(issues));
+  weeklyPlans.push(...generatePhase2WeeklyPlans(issues));
+  weeklyPlans.push(...generatePhase3WeeklyPlans(issues));
+  weeklyPlans.push(...generatePhase4WeeklyPlans(issues));
+  weeklyPlans.push(...generatePhase5WeeklyPlans(issues));
 
   return {
     id: `plan-${Date.now()}`,
@@ -207,6 +201,22 @@ export function generateTrainingPlan(issues: SuitableIssue[], currentPhase: Trai
       startDate: new Date().toISOString(),
     },
   };
+}
+
+// 获取指定阶段的周计划
+export function getPhaseWeeklyPlans(plan: TrainingPlan, phase: TrainingPhase): WeeklyPlan[] {
+  return plan.weeklyPlans.filter(w => w.phase === phase);
+}
+
+// 获取所有阶段的详细信息
+export function getAllPhaseDetails(): PhaseDetail[] {
+  return [
+    PHASE_DETAILS.phase1,
+    PHASE_DETAILS.phase2,
+    PHASE_DETAILS.phase3,
+    PHASE_DETAILS.phase4,
+    PHASE_DETAILS.phase5,
+  ];
 }
 
 // 第一阶段周计划
