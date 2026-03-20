@@ -351,7 +351,7 @@ export async function generatePDFReport(data: ReportData): Promise<Blob> {
       
       doc.setTextColor(...COLORS.text);
       doc.setFontSize(9);
-      doc.text(`${risk.category}: ${risk.condition}`, margin + 6, y + 7);
+      doc.text(`${getCategoryText(risk.category)}: ${risk.condition}`, margin + 6, y + 7);
       
       doc.setTextColor(...riskColor);
       doc.setFont(CHINESE_FONT, 'bold');
@@ -696,6 +696,19 @@ function getRiskText(risk: string): string {
     'low': '低风险',
   };
   return texts[risk] || '未知';
+}
+
+function getCategoryText(category: string): string {
+  const texts: Record<string, string> = {
+    'skeletal': '骨骼系统',
+    'neurological': '神经系统',
+    'circulatory': '循环系统',
+    'respiratory': '呼吸系统',
+    'digestive': '消化系统',
+    'muscular': '肌肉系统',
+    'postural': '姿态系统',
+  };
+  return texts[category] || category;
 }
 
 // 下载PDF

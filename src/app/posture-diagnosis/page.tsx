@@ -48,7 +48,9 @@ import dynamic from 'next/dynamic';
 const BodyModel3D = dynamic(() => import('@/components/BodyModel3D'), { ssr: false });
 const ProgressChart = dynamic(() => import('@/components/ProgressChart'), { ssr: false });
 const ComparisonView = dynamic(() => import('@/components/ComparisonView'), { ssr: false });
-const ChatPanel = dynamic(() => import('@/components/ChatPanel'), { ssr: false });
+const SkeletonAnnotationCanvas = dynamic(() => import('@/components/SkeletonAnnotationCanvas'), { ssr: false });
+const PostureHistoryManager = dynamic(() => import('@/components/PostureHistoryManager'), { ssr: false });
+const AIDeepAnalysisView = dynamic(() => import('@/components/AIDeepAnalysisView'), { ssr: false });
 
 // ==================== 类型定义 ====================
 
@@ -189,6 +191,7 @@ export default function PostureDiagnosisPageV2() {
   const [activeResultTab, setActiveResultTab] = useState('overview');
   
   // 新增状态
+  const [showHistoryManager, setShowHistoryManager] = useState(false);
   const [showChat, setShowChat] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
@@ -1240,6 +1243,15 @@ export default function PostureDiagnosisPageV2() {
               </div>
             </div>
             <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowHistoryManager(true)}
+                className="gap-1"
+              >
+                <History className="h-4 w-4" />
+                历史记录
+              </Button>
               {poseReady ? (
                 <Badge className="bg-green-100 text-green-800">
                   <CheckCircle className="h-3 w-3 mr-1" />
@@ -1465,10 +1477,10 @@ export default function PostureDiagnosisPageV2() {
                             <div className="text-sm font-medium text-center bg-gray-100 py-1 rounded">
                               {angle === 'front' ? '正面' : angle === 'back' ? '背面' : angle === 'left' ? '左侧' : '右侧'}
                             </div>
-                            <div className="relative bg-gray-50 rounded-lg overflow-hidden">
-                              <canvas
-                                ref={canvasRefs[angle]}
-                                className="w-full"
+                            <div className="relative bg-gray-50 rounded-lg overflow-hidden min-h-[200px]">
+                              <SkeletonAnnotationCanvas
+                                imageUrl={images[angle]!}
+                                angle={angle}
                               />
                             </div>
                             <Button 
@@ -1574,21 +1586,9 @@ export default function PostureDiagnosisPageV2() {
                       </Card>
                     </div>
                     
-                    {/* AI深度分析摘要 */}
+                    {/* AI深度分析 */}
                     {result.semanticAnalysis && (
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Sparkles className="h-5 w-5 text-yellow-500" />
-                            AI 深度分析摘要
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-700 leading-relaxed">
-                            {result.semanticAnalysis.summary}
-                          </p>
-                        </CardContent>
-                      </Card>
+                      <AIDeepAnalysisView analysis={result.semanticAnalysis} />
                     )}
                   </TabsContent>
 
@@ -2020,13 +2020,16 @@ export default function PostureDiagnosisPageV2() {
         </DialogContent>
       </Dialog>
       
-      {/* AI问答对话框 */}
-      <Dialog open={showChat} onOpenChange={setShowChat}>
-        <DialogContent className="max-w-2xl h-[650px] p-0">
-          <ChatPanel 
-            assessmentResult={result}
-            onClose={() => setShowChat(false)}
-          />
+      {/* 历史记录管理对话框 */}
+      <Dialog open={showHistoryManager} onOpenChange={setShowHistoryManager}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              历史记录管理
+            </DialogTitle>
+          </DialogHeader>
+          <PostureHistoryManager />
         </DialogContent>
       </Dialog>
       
