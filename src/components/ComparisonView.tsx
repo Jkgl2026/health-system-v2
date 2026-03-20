@@ -12,6 +12,7 @@ import {
   compareRecords, 
   AssessmentRecord 
 } from '@/lib/progress-tracker';
+import { ANGLE_NAMES_CN } from '@/lib/pose-detection-enhanced';
 import { 
   ArrowUp, 
   ArrowDown, 
@@ -427,9 +428,12 @@ export default function ComparisonView({ onCompare }: ComparisonViewProps) {
                         const v2 = comparison.record2!.angles[angle];
                         const change = v1 - v2;
                         
+                        // 使用中文名称
+                        const angleName = ANGLE_NAMES_CN[angle] || angle;
+                        
                         return (
                           <tr key={angle} className="border-b hover:bg-gray-50">
-                            <td className="py-2 px-2">{angle}</td>
+                            <td className="py-2 px-2">{angleName}</td>
                             <td className="text-center py-2 px-2">{v2?.toFixed(1) || '-'}°</td>
                             <td className="text-center py-2 px-2">{v1?.toFixed(1) || '-'}°</td>
                             <td className={`text-center py-2 px-2 font-medium ${

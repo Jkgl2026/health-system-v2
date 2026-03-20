@@ -92,9 +92,9 @@ export async function POST(request: NextRequest) {
     // 添加当前问题
     messages.push({ role: 'user', content: message });
 
-    // 调用模型（使用流式）
+    // 调用模型
     const response = await client.invoke(messages, {
-      model: 'doubao-seed-1-6-flash-250828',
+      model: 'doubao-seed-1-6-251015',
       temperature: 0.7,
     });
 

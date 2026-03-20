@@ -419,17 +419,26 @@ export default function PostureDiagnosisPageV2() {
       
       // 绘制原图
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      console.log(`[Canvas] ${angle} 原图绘制完成，尺寸: ${canvas.width}x${canvas.height}`);
       
-      // 绘制骨骼标注
-      if (analysisResult) {
-        console.log(`[Canvas] ${angle} 开始绘制骨骼标注，landmarks数量:`, analysisResult.landmarks?.length);
+      // 绘制骨骼标注（不清空画布，保留原图）
+      if (analysisResult && analysisResult.landmarks && analysisResult.landmarks.length > 0) {
+        console.log(`[Canvas] ${angle} 开始绘制骨骼标注，landmarks数量:`, analysisResult.landmarks.length);
         drawPostureAnnotationEnhanced(ctx, canvas, analysisResult, {
           showLandmarkLabels: false,
           showAngleArcs: true,
           showConfidence: true,
-        });
+        }, false); // false 表示不清空画布
+        console.log(`[Canvas] ${angle} 骨骼标注绘制完成`);
       } else {
-        console.log(`[Canvas] ${angle} 无分析结果`);
+        console.log(`[Canvas] ${angle} 无骨骼数据或landmarks为空，跳过骨骼绘制`);
+        // 在图片上显示提示
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+        ctx.fillRect(10, 10, 150, 30);
+        ctx.fillStyle = '#fff';
+        ctx.font = '12px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('骨骼检测数据不完整', 15, 30);
       }
     };
     

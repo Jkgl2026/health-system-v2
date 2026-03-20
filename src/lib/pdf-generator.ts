@@ -3,6 +3,7 @@
  */
 
 import { jsPDF } from 'jspdf';
+import { ANGLE_NAMES_CN } from './pose-detection-enhanced';
 
 // 报告数据接口
 export interface ReportData {
@@ -254,9 +255,12 @@ export async function generatePDFReport(data: ReportData): Promise<Blob> {
       
       if (currentY > pageHeight - 20) return;
       
+      // 使用中文名称
+      const angleName = ANGLE_NAMES_CN[key] || key;
+      
       doc.setFontSize(9);
       doc.setTextColor(...COLORS.text);
-      doc.text(`${key}: ${value.toFixed(1)}deg`, x + 5, currentY);
+      doc.text(`${angleName}: ${value.toFixed(1)}deg`, x + 5, currentY);
     });
     
     y += Math.ceil(angleEntries.length / 2) * 8 + 10;

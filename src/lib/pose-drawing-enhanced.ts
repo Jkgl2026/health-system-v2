@@ -114,12 +114,15 @@ export function drawPostureAnnotationEnhanced(
   ctx: CanvasRenderingContext2D,
   canvas: HTMLCanvasElement,
   analysisResult: EnhancedPostureAnalysisResult | null,
-  config: Partial<EnhancedDrawConfig> = {}
+  config: Partial<EnhancedDrawConfig> = {},
+  clearCanvas: boolean = true
 ): void {
   const cfg = { ...DEFAULT_ENHANCED_DRAW_CONFIG, ...config };
   
-  // 清空画布
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // 清空画布（仅在需要时）
+  if (clearCanvas) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
   
   if (!analysisResult) {
     // 绘制无数据提示
@@ -133,6 +136,17 @@ export function drawPostureAnnotationEnhanced(
   }
   
   const { landmarks, issues, extendedAngles, confidence } = analysisResult;
+  
+  // 如果没有 landmarks，显示提示
+  if (!landmarks || landmarks.length === 0) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('骨骼检测数据不完整', canvas.width / 2, canvas.height / 2);
+    return;
+  }
   
   // 1. 绘制问题区域高亮（最底层）
   drawIssueHighlightsEnhanced(ctx, landmarks, issues, cfg, canvas.width, canvas.height);
