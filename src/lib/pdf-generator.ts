@@ -1,6 +1,7 @@
 /**
- * PDF报告生成器 - 专业版
- * 优化排版：封面设计、表格化数据、卡片样式、统一字体
+ * PDF报告生成器 - 专业版 v3.0
+ * 参照专业体检报告设计标准
+ * 包含：封面、摘要、详细分析、肌肉评估、风险预测、改善方案、中医分析
  */
 
 import { jsPDF } from 'jspdf';
@@ -8,15 +9,10 @@ import { jsPDF } from 'jspdf';
 // ==================== 类型定义 ====================
 
 export interface ReportData {
-  // 基本信息
   userName?: string;
   assessmentDate: string;
-  
-  // 评估结果
   overallScore: number;
   grade: string;
-  
-  // 检测到的问题
   issues: {
     type: string;
     name: string;
@@ -27,717 +23,812 @@ export interface ReportData {
     impact?: string;
     recommendation?: string;
   }[];
-  
-  // 角度数据
   angles: Record<string, number>;
-  
-  // 肌肉分析
-  muscles?: {
-    tight: string[];
-    weak: string[];
-  };
-  
-  // 健康风险
-  risks?: {
-    category: string;
-    risk: string;
-    condition: string;
-    cause?: string;
-    prevention?: string;
-  }[];
-  
-  // 建议
+  muscles?: { tight: string[]; weak: string[] };
+  risks?: { category: string; risk: string; condition: string; cause?: string; prevention?: string }[];
   recommendations?: {
     immediate: string[];
     shortTerm: string[];
     longTerm: string[];
-    exercises?: {
-      name: string;
-      category: string;
-      purpose: string;
-      method: string;
-    }[];
+    exercises?: { name: string; category: string; purpose: string; method: string }[];
   };
-  
-  // 中医分析
   tcmAnalysis?: {
     constitution: string;
     constitutionType?: string;
     constitutionFeatures?: string[];
-    meridians?: {
-      name: string;
-      status: string;
-      reason: string;
-    }[];
-    acupoints?: {
-      name: string;
-      location: string;
-      benefit: string;
-    }[];
+    meridians?: { name: string; status: string; reason: string }[];
+    acupoints?: { name: string; location: string; benefit: string }[];
     dietSuggestions?: string[];
+    daoyinSuggestions?: string[];
   };
-  
-  // 训练方案
-  trainingPlan?: {
-    phases: {
-      name: string;
-      duration: string;
-      focus: string;
-      exercises: string[];
-    }[];
+  trainingPlan?: { phases: { name: string; duration: string; focus: string; exercises: string[] }[] };
+  images?: { front?: string; left?: string; right?: string; back?: string };
+  // 新增详细分析数据
+  detailedAnalysis?: {
+    head?: { status: string; angle?: string; description?: string; impact?: string };
+    shoulders?: { status: string; leftRightDiff?: string; description?: string; impact?: string };
+    spine?: { status: string; alignmentScore?: string; description?: string; impact?: string };
+    pelvis?: { status: string; tiltAngle?: string; description?: string; impact?: string };
+    knees?: { status: string; angle?: string; description?: string; impact?: string };
+    ankles?: { status: string; description?: string; impact?: string };
   };
-  
-  // 图片
-  images?: {
-    front?: string;
-    left?: string;
-    right?: string;
-    back?: string;
+  fasciaChainAnalysis?: {
+    frontLine?: { status: string; tension?: string; impact?: string };
+    backLine?: { status: string; tension?: string; impact?: string };
+    lateralLine?: { status: string; tension?: string; impact?: string };
+    spiralLine?: { status: string; tension?: string; impact?: string };
+  };
+  breathingAssessment?: {
+    pattern?: string;
+    diaphragm?: string;
+    ribcageMobility?: string;
+    impact?: string;
+  };
+  healthPrediction?: {
+    shortTerm?: string;
+    midTerm?: string;
+    longTerm?: string;
+    preventiveMeasures?: string[];
   };
 }
 
-// ==================== 样式配置 ====================
+// ==================== 专业配色方案 ====================
 
-const COLORS = {
-  // 主色调
-  primary: '#1a56db',      // 主蓝色
-  primaryLight: '#dbeafe', // 浅蓝背景
-  
-  // 状态色
-  success: '#059669',      // 绿色
-  successLight: '#d1fae5',
-  warning: '#d97706',      // 橙色
-  warningLight: '#fef3c7',
-  danger: '#dc2626',       // 红色
-  dangerLight: '#fee2e2',
-  
-  // 中性色
-  text: '#111827',         // 主文字
-  textSecondary: '#6b7280', // 次要文字
-  border: '#e5e7eb',       // 边框
-  background: '#f9fafb',   // 背景
-  white: '#ffffff',
-};
-
-const PAGE = {
-  width: 210,    // A4 宽度 mm
-  height: 297,   // A4 高度 mm
-  margin: 15,    // 页边距
-  contentWidth: 180, // 内容宽度
+const THEME = {
+  primary: '#1E40AF',
+  primaryLight: '#DBEAFE',
+  primaryDark: '#1E3A8A',
+  accent: '#059669',
+  accentLight: '#D1FAE5',
+  success: '#16A34A',
+  successLight: '#DCFCE7',
+  warning: '#D97706',
+  warningLight: '#FEF3C7',
+  danger: '#DC2626',
+  dangerLight: '#FEE2E2',
+  text: '#1F2937',
+  textSecondary: '#4B5563',
+  textMuted: '#9CA3AF',
+  border: '#E5E7EB',
+  background: '#F9FAFB',
+  white: '#FFFFFF',
+  page: { width: 210, height: 297 },
+  margin: 12,
+  contentWidth: 186,
 };
 
 // ==================== 工具函数 ====================
 
-/**
- * 创建 Canvas 渲染中文文本
- */
 function renderText(
   text: string,
   options: {
     fontSize?: number;
     fontWeight?: 'normal' | 'bold';
     color?: string;
-    backgroundColor?: string;
+    bgColor?: string;
     width?: number;
     lineHeight?: number;
     align?: 'left' | 'center' | 'right';
     padding?: number;
   } = {}
 ): HTMLCanvasElement {
-  const {
-    fontSize = 10,
-    fontWeight = 'normal',
-    color = COLORS.text,
-    backgroundColor,
-    width = 360,
-    lineHeight = 1.5,
-    align = 'left',
-    padding = 0,
-  } = options;
-
+  const { fontSize = 10, fontWeight = 'normal', color = THEME.text, bgColor, width = 372, lineHeight = 1.5, align = 'left', padding = 0 } = options;
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return canvas;
-
-  const fontFamily = '"Noto Sans SC", "Microsoft YaHei", "PingFang SC", sans-serif';
+  const ctx = canvas.getContext('2d')!;
+  const fontFamily = '"Noto Sans SC", "Microsoft YaHei", "SimHei", sans-serif';
+  
   ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-
-  const lines = wrapText(ctx, text, width - padding * 2);
+  const lines = wrapText(ctx, text, width - padding * 2, fontSize);
   const height = lines.length * fontSize * lineHeight + padding * 2;
-
+  
   canvas.width = width * 2;
   canvas.height = Math.max(height * 2, 2);
   ctx.scale(2, 2);
-
-  if (backgroundColor) {
-    ctx.fillStyle = backgroundColor;
+  
+  if (bgColor) {
+    ctx.fillStyle = bgColor;
     ctx.fillRect(0, 0, width, height);
   }
-
+  
   ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
   ctx.fillStyle = color;
   ctx.textBaseline = 'top';
-
-  lines.forEach((line, index) => {
+  
+  lines.forEach((line, i) => {
     const x = align === 'center' ? width / 2 : align === 'right' ? width - padding : padding;
     ctx.textAlign = align;
-    ctx.fillText(line, x, padding + index * fontSize * lineHeight);
+    ctx.fillText(line, x, padding + i * fontSize * lineHeight);
   });
-
+  
   return canvas;
 }
 
-/**
- * 文本换行
- */
-function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
+function wrapText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, fontSize: number): string[] {
   const lines: string[] = [];
-  const paragraphs = text.split('\n');
-
-  paragraphs.forEach(paragraph => {
-    if (paragraph === '') {
-      lines.push('');
-      return;
-    }
-
-    let currentLine = '';
-    for (const char of paragraph) {
-      const testLine = currentLine + char;
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && currentLine !== '') {
-        lines.push(currentLine);
-        currentLine = char;
+  text.split('\n').forEach(para => {
+    if (!para) { lines.push(''); return; }
+    let line = '';
+    for (const char of para) {
+      const test = line + char;
+      if (ctx.measureText(test).width > maxWidth && line) {
+        lines.push(line);
+        line = char;
       } else {
-        currentLine = testLine;
+        line = test;
       }
     }
-    if (currentLine) lines.push(currentLine);
+    if (line) lines.push(line);
   });
-
   return lines;
 }
 
-/**
- * Canvas 转 Base64
- */
 function toBase64(canvas: HTMLCanvasElement): string {
   return canvas.toDataURL('image/png');
 }
 
-/**
- * 获取 Canvas 高度 (mm)
- */
-function getCanvasHeight(canvas: HTMLCanvasElement): number {
+function getHeight(canvas: HTMLCanvasElement): number {
   return (canvas.height / 2) * 0.264583;
 }
 
-/**
- * 添加文本并返回新 Y 坐标
- */
-function addText(
-  doc: jsPDF,
-  text: string,
-  x: number,
-  y: number,
-  options: Parameters<typeof renderText>[1] & { maxWidth?: number } = {}
-): number {
-  const { maxWidth = 360, ...renderOptions } = options;
-  const canvas = renderText(text, { width: maxWidth, ...renderOptions });
-  const height = getCanvasHeight(canvas);
-  doc.addImage(toBase64(canvas), 'PNG', x, y, maxWidth * 0.264583, height);
-  return y + height;
+function drawRoundedRect(doc: jsPDF, x: number, y: number, w: number, h: number, r: number) {
+  doc.roundedRect(x, y, w, h, r, r);
 }
 
-/**
- * 绘制章节标题
- */
-function drawSectionTitle(doc: jsPDF, title: string, y: number): number {
-  // 标题文字
-  const titleCanvas = renderText(title, {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    width: 360,
+// ==================== 页面元素 ====================
+
+function drawHeader(doc: jsPDF, pageNum: number, totalPages: number, reportId: string): number {
+  doc.setFillColor(THEME.primary);
+  doc.rect(0, 0, THEME.page.width, 8, 'F');
+  
+  const headerText = renderText(`AI 体态评估报告  |  报告编号: ${reportId}  |  第 ${pageNum}/${totalPages} 页`, {
+    fontSize: 8, color: THEME.textMuted, width: 372, align: 'center',
   });
-  const titleHeight = getCanvasHeight(titleCanvas);
-  doc.addImage(toBase64(titleCanvas), 'PNG', PAGE.margin, y, 180, titleHeight);
-
-  // 下划线
-  const lineY = y + titleHeight + 2;
-  doc.setDrawColor(COLORS.primary);
-  doc.setLineWidth(0.5);
-  doc.line(PAGE.margin, lineY, PAGE.margin + 40, lineY);
-
-  return lineY + 6;
+  doc.addImage(toBase64(headerText), 'PNG', 0, 10, THEME.page.width, getHeight(headerText));
+  
+  doc.setDrawColor(THEME.border);
+  doc.setLineWidth(0.3);
+  doc.line(THEME.margin, 18, THEME.page.width - THEME.margin, 18);
+  
+  return 22;
 }
 
-/**
- * 绘制数据表格
- */
+function drawFooter(doc: jsPDF) {
+  const y = THEME.page.height - 15;
+  doc.setDrawColor(THEME.border);
+  doc.setLineWidth(0.3);
+  doc.line(THEME.margin, y, THEME.page.width - THEME.margin, y);
+  
+  const footerText = renderText('本报告由 AI 体态评估系统自动生成，仅供参考，不作为医疗诊断依据。如有疑问请咨询专业医师。', {
+    fontSize: 7, color: THEME.textMuted, width: 372, align: 'center',
+  });
+  doc.addImage(toBase64(footerText), 'PNG', 0, y + 3, THEME.page.width, getHeight(footerText));
+}
+
+function drawSectionTitle(doc: jsPDF, title: string, y: number, icon?: string): number {
+  doc.setFillColor(THEME.primary);
+  doc.circle(THEME.margin + 6, y + 5, 5, 'F');
+  
+  const numText = renderText(icon || '●', { fontSize: 10, color: THEME.white, width: 12, align: 'center' });
+  doc.addImage(toBase64(numText), 'PNG', THEME.margin, y + 1, 12, 8);
+  
+  const titleText = renderText(title, { fontSize: 13, fontWeight: 'bold', color: THEME.text, width: 340 });
+  doc.addImage(toBase64(titleText), 'PNG', THEME.margin + 14, y + 2, 180, getHeight(titleText));
+  
+  doc.setDrawColor(THEME.primary);
+  doc.setLineWidth(0.8);
+  doc.line(THEME.margin, y + 12, THEME.margin + 50, y + 12);
+  
+  return y + 18;
+}
+
 function drawDataTable(
   doc: jsPDF,
-  data: { label: string; value: string; color?: string }[],
-  x: number,
+  headers: string[],
+  rows: string[][],
   y: number,
-  colWidth: number = 60
+  options: { colWidths?: number[]; rowHeight?: number; headerBg?: string } = {}
 ): number {
-  const rowHeight = 12;
-  const headerHeight = 10;
-
-  // 表头背景
-  doc.setFillColor(COLORS.primaryLight);
-  doc.roundedRect(x, y, colWidth * data.length, headerHeight, 2, 2);
-
-  // 表头文字
-  data.forEach((item, i) => {
-    const labelCanvas = renderText(item.label, {
-      fontSize: 9,
-      fontWeight: 'bold',
-      color: COLORS.primary,
-      width: colWidth * 3.78,
-      align: 'center',
-    });
-    doc.addImage(toBase64(labelCanvas), 'PNG', x + i * colWidth, y + 2, colWidth, 6);
+  const { colWidths, rowHeight = 8, headerBg = THEME.primaryLight } = options;
+  const widths = colWidths || Array(headers.length).fill(THEME.contentWidth / headers.length);
+  const tableWidth = widths.reduce((a, b) => a + b, 0);
+  const x = THEME.margin;
+  
+  doc.setFillColor(headerBg);
+  doc.rect(x, y, tableWidth, rowHeight, 'F');
+  
+  let colX = x;
+  headers.forEach((h, i) => {
+    const hText = renderText(h, { fontSize: 9, fontWeight: 'bold', color: THEME.primaryDark, width: widths[i] * 3.78, align: 'center' });
+    doc.addImage(toBase64(hText), 'PNG', colX, y + 1.5, widths[i], rowHeight - 3);
+    colX += widths[i];
   });
-
-  // 数据行
-  const dataY = y + headerHeight + 2;
-  data.forEach((item, i) => {
-    const valueCanvas = renderText(item.value, {
-      fontSize: 14,
-      fontWeight: 'bold',
-      color: item.color || COLORS.text,
-      width: colWidth * 3.78,
-      align: 'center',
+  
+  y += rowHeight;
+  
+  rows.forEach((row, rowIdx) => {
+    if (rowIdx % 2 === 0) {
+      doc.setFillColor(THEME.background);
+      doc.rect(x, y, tableWidth, rowHeight, 'F');
+    }
+    
+    colX = x;
+    row.forEach((cell, i) => {
+      const cellText = renderText(cell, { fontSize: 8, color: THEME.text, width: widths[i] * 3.78 - 4, align: 'center' });
+      doc.addImage(toBase64(cellText), 'PNG', colX + 2, y + 1, widths[i] - 4, rowHeight - 2);
+      colX += widths[i];
     });
-    doc.addImage(toBase64(valueCanvas), 'PNG', x + i * colWidth, dataY, colWidth, 10);
+    
+    y += rowHeight;
   });
-
-  return dataY + rowHeight + 5;
+  
+  doc.setDrawColor(THEME.border);
+  doc.setLineWidth(0.3);
+  doc.rect(x, y - rows.length * rowHeight - rowHeight, tableWidth, (rows.length + 1) * rowHeight);
+  
+  return y + 5;
 }
 
-/**
- * 绘制问题卡片
- */
+function drawScoreCard(doc: jsPDF, score: number, grade: string, issueCount: number, y: number): number {
+  const cardWidth = 55;
+  const cardHeight = 35;
+  const gap = 8;
+  const startX = THEME.margin + (THEME.contentWidth - cardWidth * 3 - gap * 2) / 2;
+  
+  const scoreColor = score >= 80 ? THEME.success : score >= 60 ? THEME.warning : THEME.danger;
+  
+  // 评分卡
+  doc.setFillColor(scoreColor);
+  drawRoundedRect(doc, startX, y, cardWidth, cardHeight, 3);
+  const scoreTitle = renderText('综合评分', { fontSize: 9, color: '#FFFFFF', width: cardWidth * 3.78, align: 'center' });
+  doc.addImage(toBase64(scoreTitle), 'PNG', startX, y + 4, cardWidth, 6);
+  const scoreNum = renderText(`${score}`, { fontSize: 20, fontWeight: 'bold', color: '#FFFFFF', width: cardWidth * 3.78, align: 'center' });
+  doc.addImage(toBase64(scoreNum), 'PNG', startX, y + 12, cardWidth, 14);
+  const scoreUnit = renderText('分', { fontSize: 8, color: '#FFFFFF', width: cardWidth * 3.78, align: 'center' });
+  doc.addImage(toBase64(scoreUnit), 'PNG', startX, y + 26, cardWidth, 6);
+  
+  // 等级卡
+  const gradeText = { A: '优秀', B: '良好', C: '一般', D: '较差', E: '需改善' }[grade] || '未知';
+  doc.setFillColor(THEME.accent);
+  drawRoundedRect(doc, startX + cardWidth + gap, y, cardWidth, cardHeight, 3);
+  const gradeTitle = renderText('评估等级', { fontSize: 9, color: '#FFFFFF', width: cardWidth * 3.78, align: 'center' });
+  doc.addImage(toBase64(gradeTitle), 'PNG', startX + cardWidth + gap, y + 4, cardWidth, 6);
+  const gradeNum = renderText(`${grade}级`, { fontSize: 18, fontWeight: 'bold', color: '#FFFFFF', width: cardWidth * 3.78, align: 'center' });
+  doc.addImage(toBase64(gradeNum), 'PNG', startX + cardWidth + gap, y + 13, cardWidth, 12);
+  const gradeDesc = renderText(gradeText, { fontSize: 9, color: '#FFFFFF', width: cardWidth * 3.78, align: 'center' });
+  doc.addImage(toBase64(gradeDesc), 'PNG', startX + cardWidth + gap, y + 25, cardWidth, 6);
+  
+  // 问题数卡
+  doc.setFillColor(THEME.textSecondary);
+  drawRoundedRect(doc, startX + (cardWidth + gap) * 2, y, cardWidth, cardHeight, 3);
+  const issueTitle = renderText('异常项目', { fontSize: 9, color: '#FFFFFF', width: cardWidth * 3.78, align: 'center' });
+  doc.addImage(toBase64(issueTitle), 'PNG', startX + (cardWidth + gap) * 2, y + 4, cardWidth, 6);
+  const issueNum = renderText(`${issueCount}`, { fontSize: 18, fontWeight: 'bold', color: '#FFFFFF', width: cardWidth * 3.78, align: 'center' });
+  doc.addImage(toBase64(issueNum), 'PNG', startX + (cardWidth + gap) * 2, y + 12, cardWidth, 12);
+  const issueUnit = renderText('项', { fontSize: 9, color: '#FFFFFF', width: cardWidth * 3.78, align: 'center' });
+  doc.addImage(toBase64(issueUnit), 'PNG', startX + (cardWidth + gap) * 2, y + 24, cardWidth, 6);
+  
+  return y + cardHeight + 10;
+}
+
 function drawIssueCard(
   doc: jsPDF,
-  issue: ReportData['issues'][0],
+  issue: { name: string; severity: string; angle: number; description?: string; cause?: string; recommendation?: string },
   index: number,
   y: number
 ): number {
-  const cardHeight = 35;
-  const leftBarWidth = 4;
-
-  // 确定颜色
-  const severityColors: Record<string, { bar: string; bg: string }> = {
-    severe: { bar: COLORS.danger, bg: COLORS.dangerLight },
-    moderate: { bar: COLORS.warning, bg: COLORS.warningLight },
-    mild: { bar: COLORS.success, bg: COLORS.successLight },
+  const cardHeight = 38;
+  const barWidth = 4;
+  
+  const colors: Record<string, { bar: string; bg: string }> = {
+    severe: { bar: THEME.danger, bg: THEME.dangerLight },
+    moderate: { bar: THEME.warning, bg: THEME.warningLight },
+    mild: { bar: THEME.success, bg: THEME.successLight },
   };
-  const colors = severityColors[issue.severity] || severityColors.mild;
-
-  // 卡片背景
-  doc.setFillColor(COLORS.white);
-  doc.setDrawColor(COLORS.border);
-  doc.roundedRect(PAGE.margin, y, PAGE.contentWidth, cardHeight, 3, 3);
-
-  // 左侧颜色条
-  doc.setFillColor(colors.bar);
-  doc.roundedRect(PAGE.margin, y, leftBarWidth, cardHeight, 3, 3);
-
-  // 问题标题
-  const severityText = { severe: '重度', moderate: '中度', mild: '轻度' }[issue.severity] || '无';
-  const titleText = `${index + 1}. ${issue.name} (${severityText})`;
-  y = addText(doc, titleText, PAGE.margin + leftBarWidth + 3, y + 3, {
-    fontSize: 11,
-    fontWeight: 'bold',
-    maxWidth: 340,
-  });
-
-  // 测量角度
-  y = addText(doc, `测量角度: ${issue.angle.toFixed(1)}°`, PAGE.margin + leftBarWidth + 3, y, {
-    fontSize: 9,
-    color: COLORS.textSecondary,
-    maxWidth: 340,
-  });
-
-  // 原因
-  if (issue.cause) {
-    y = addText(doc, `原因: ${issue.cause.substring(0, 40)}`, PAGE.margin + leftBarWidth + 3, y, {
-      fontSize: 8,
-      color: COLORS.text,
-      maxWidth: 340,
-    });
+  const color = colors[issue.severity] || colors.mild;
+  
+  doc.setFillColor(THEME.white);
+  doc.setDrawColor(THEME.border);
+  drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, cardHeight, 2);
+  
+  doc.setFillColor(color.bar);
+  drawRoundedRect(doc, THEME.margin, y, barWidth, cardHeight, 2);
+  
+  doc.setFillColor(color.bg);
+  doc.circle(THEME.margin + 12, y + 8, 5, 'F');
+  const numText = renderText(`${index + 1}`, { fontSize: 10, fontWeight: 'bold', color: color.bar, width: 10, align: 'center' });
+  doc.addImage(toBase64(numText), 'PNG', THEME.margin + 7, y + 4, 10, 8);
+  
+  const severityLabel = { severe: '重度', moderate: '中度', mild: '轻度' }[issue.severity] || '';
+  const titleText = renderText(`${issue.name} (${severityLabel})`, { fontSize: 11, fontWeight: 'bold', color: THEME.text, width: 300 });
+  doc.addImage(toBase64(titleText), 'PNG', THEME.margin + 20, y + 4, 150, 7);
+  
+  const angleText = renderText(`测量值: ${issue.angle.toFixed(1)}°`, { fontSize: 9, color: THEME.textSecondary, width: 80 });
+  doc.addImage(toBase64(angleText), 'PNG', THEME.margin + 20, y + 12, 40, 6);
+  
+  const refText = renderText(`参考范围: 正常`, { fontSize: 9, color: THEME.textMuted, width: 80 });
+  doc.addImage(toBase64(refText), 'PNG', THEME.margin + 65, y + 12, 40, 6);
+  
+  const statusColor = issue.severity === 'severe' ? THEME.danger : issue.severity === 'moderate' ? THEME.warning : THEME.success;
+  doc.setFillColor(statusColor);
+  drawRoundedRect(doc, THEME.page.width - THEME.margin - 25, y + 4, 22, 8, 2);
+  const statusText = renderText(severityLabel, { fontSize: 8, fontWeight: 'bold', color: '#FFFFFF', width: 22 * 3.78, align: 'center' });
+  doc.addImage(toBase64(statusText), 'PNG', THEME.page.width - THEME.margin - 25, y + 5, 22, 6);
+  
+  if (issue.description) {
+    const descText = renderText(issue.description.substring(0, 50), { fontSize: 8, color: THEME.textSecondary, width: 340 });
+    doc.addImage(toBase64(descText), 'PNG', THEME.margin + 8, y + 20, THEME.contentWidth - 16, 6);
   }
-
-  return y + 5;
+  
+  if (issue.recommendation || issue.cause) {
+    const recText = renderText(`建议: ${(issue.recommendation || issue.cause || '').substring(0, 40)}`, { fontSize: 8, color: THEME.accent, width: 340 });
+    doc.addImage(toBase64(recText), 'PNG', THEME.margin + 8, y + 28, THEME.contentWidth - 16, 6);
+  }
+  
+  return y + cardHeight + 5;
 }
 
 // ==================== 主函数 ====================
 
 export async function generatePDFReport(data: ReportData): Promise<Blob> {
-  const doc = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4',
-  });
-
-  let y = PAGE.margin;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const reportId = `PT${Date.now().toString(36).toUpperCase()}`;
+  const totalPages = 8;
   let pageNum = 1;
+  let y = THEME.margin;
 
-  // ==================== 封面 ====================
+  // ==================== 第1页：封面 ====================
   
-  // 封面背景渐变效果（用矩形模拟）
-  doc.setFillColor(26, 86, 219); // primary blue
-  doc.rect(0, 0, PAGE.width, 90, 'F');
-
-  // 标题
-  const mainTitleCanvas = renderText('AI 体态评估报告', {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: COLORS.white,
-    width: 400,
-    align: 'center',
-  });
-  doc.addImage(toBase64(mainTitleCanvas), 'PNG', 0, 30, PAGE.width, 20);
-
-  // 副标题
-  const subtitleCanvas = renderText('专业体态分析与改善方案', {
-    fontSize: 14,
-    color: '#bfdbfe',
-    width: 400,
-    align: 'center',
-  });
-  doc.addImage(toBase64(subtitleCanvas), 'PNG', 0, 55, PAGE.width, 10);
-
-  // 报告编号
-  const reportId = `PT-${Date.now().toString(36).toUpperCase()}`;
-  const idCanvas = renderText(`报告编号: ${reportId}`, {
-    fontSize: 11,
-    color: '#93c5fd',
-    width: 400,
-    align: 'center',
-  });
-  doc.addImage(toBase64(idCanvas), 'PNG', 0, 72, PAGE.width, 8);
-
-  // 基本信息卡片
-  y = 105;
-  doc.setFillColor(COLORS.white);
-  doc.setDrawColor(COLORS.border);
-  doc.roundedRect(PAGE.margin, y, PAGE.contentWidth, 30, 4, 4);
-
-  // 评估日期
-  y = addText(doc, `评估日期: ${data.assessmentDate}`, PAGE.margin + 8, y + 5, {
-    fontSize: 11,
-    fontWeight: 'bold',
-    maxWidth: 160,
-  });
-
-  // 姓名
-  if (data.userName) {
-    y = addText(doc, `姓名: ${data.userName}`, PAGE.margin + 8, y, {
-      fontSize: 11,
-      maxWidth: 160,
-    });
-  }
-
-  y = 145;
-
-  // ==================== 一、综合评估结果 ====================
+  doc.setFillColor(THEME.primary);
+  doc.rect(0, 0, THEME.page.width, 60, 'F');
   
-  y = drawSectionTitle(doc, '一、综合评估结果', y);
-
-  // 评分卡片组
-  const scoreColor = data.overallScore >= 80 ? COLORS.success :
-                     data.overallScore >= 60 ? COLORS.warning : COLORS.danger;
-  const gradeText = { A: '优秀', B: '良好', C: '一般', D: '较差', E: '需改善' }[data.grade] || '未知';
-
-  y = drawDataTable(
-    doc,
-    [
-      { label: '综合评分', value: `${data.overallScore}分`, color: scoreColor },
-      { label: '评估等级', value: `${data.grade}级 (${gradeText})`, color: scoreColor },
-      { label: '问题数量', value: `${data.issues.length}个`, color: COLORS.danger },
-    ],
-    PAGE.margin,
-    y,
-    60
-  );
-
-  y += 10;
-
-  // ==================== 二、详细问题分析 ====================
+  const logoText = renderText('AI 体态评估系统', { fontSize: 28, fontWeight: 'bold', color: '#FFFFFF', width: 400, align: 'center' });
+  doc.addImage(toBase64(logoText), 'PNG', 0, 20, THEME.page.width, 20);
   
-  y = drawSectionTitle(doc, '二、详细问题分析', y);
+  const subText = renderText('专业体态分析与健康评估报告', { fontSize: 14, color: '#BFDBFE', width: 400, align: 'center' });
+  doc.addImage(toBase64(subText), 'PNG', 0, 42, THEME.page.width, 10);
+  
+  const reportTitle = renderText('体态评估报告', { fontSize: 24, fontWeight: 'bold', color: THEME.primary, width: 400, align: 'center' });
+  doc.addImage(toBase64(reportTitle), 'PNG', 0, 80, THEME.page.width, 18);
+  
+  const infoCardY = 110;
+  doc.setFillColor(THEME.background);
+  drawRoundedRect(doc, THEME.margin + 20, infoCardY, THEME.contentWidth - 40, 60, 4);
+  
+  const infoItems = [
+    ['报告编号', reportId],
+    ['评估日期', data.assessmentDate],
+    ['姓名', data.userName || '未填写'],
+    ['综合评分', `${data.overallScore} 分 (${data.grade}级)`],
+  ];
+  
+  infoItems.forEach((item, i) => {
+    const label = renderText(item[0], { fontSize: 10, color: THEME.textSecondary, width: 60 });
+    doc.addImage(toBase64(label), 'PNG', THEME.margin + 30, infoCardY + 8 + i * 12, 30, 7);
+    const value = renderText(item[1], { fontSize: 11, fontWeight: 'bold', color: THEME.text, width: 200 });
+    doc.addImage(toBase64(value), 'PNG', THEME.margin + 70, infoCardY + 8 + i * 12, 100, 7);
+  });
+  
+  const disclaimer = renderText('本报告由 AI 体态评估系统自动生成，仅供参考，不作为医疗诊断依据。', {
+    fontSize: 9, color: THEME.textMuted, width: 400, align: 'center',
+  });
+  doc.addImage(toBase64(disclaimer), 'PNG', 0, THEME.page.height - 25, THEME.page.width, 8);
+  
+  const genDate = renderText(`生成时间: ${new Date().toLocaleString('zh-CN')}`, {
+    fontSize: 8, color: THEME.textMuted, width: 400, align: 'center',
+  });
+  doc.addImage(toBase64(genDate), 'PNG', 0, THEME.page.height - 15, THEME.page.width, 6);
 
+  // ==================== 第2页：评估摘要 ====================
+  
+  doc.addPage();
+  pageNum++;
+  y = drawHeader(doc, pageNum, totalPages, reportId);
+  
+  y = drawSectionTitle(doc, '评估摘要', y, '1');
+  y = drawScoreCard(doc, data.overallScore, data.grade, data.issues.length, y);
+  
+  y += 5;
+  y = drawSectionTitle(doc, '异常项目汇总', y, '2');
+  
   if (data.issues.length > 0) {
-    // 按严重程度排序
-    const sortedIssues = [...data.issues].sort((a, b) => {
-      const order: Record<string, number> = { severe: 0, moderate: 1, mild: 2 };
-      return (order[a.severity] ?? 3) - (order[b.severity] ?? 3);
-    });
-
-    sortedIssues.slice(0, 6).forEach((issue, index) => {
-      if (y > 250) {
-        addPageFooter(doc, pageNum, reportId);
-        doc.addPage();
-        pageNum++;
-        y = PAGE.margin;
-      }
-      y = drawIssueCard(doc, issue, index, y);
-    });
+    const issueRows = data.issues.map(i => [
+      i.name,
+      { severe: '重度↑', moderate: '中度↑', mild: '轻度↑' }[i.severity] || '正常',
+      `${i.angle.toFixed(1)}°`,
+      '详见分析',
+    ]);
+    y = drawDataTable(doc, ['检测项目', '状态', '测量值', '建议'], issueRows, y, { colWidths: [50, 30, 30, 76] });
   } else {
-    y = addText(doc, '未检测到明显的体态问题！', PAGE.margin, y, {
-      fontSize: 12,
-      color: COLORS.success,
-    });
+    const noIssue = renderText('恭喜！未检测到明显的体态异常问题。', { fontSize: 11, color: THEME.success, width: 340 });
+    doc.addImage(toBase64(noIssue), 'PNG', THEME.margin, y, 170, 10);
+    y += 15;
   }
-
-  // ==================== 三、肌肉功能评估 ====================
   
-  if (data.muscles && (data.muscles.tight.length > 0 || data.muscles.weak.length > 0)) {
-    if (y > 220) {
-      addPageFooter(doc, pageNum, reportId);
+  y += 5;
+  y = drawSectionTitle(doc, '评估结论', y, '3');
+  
+  const severeCount = data.issues.filter(i => i.severity === 'severe').length;
+  const moderateCount = data.issues.filter(i => i.severity === 'moderate').length;
+  const mildCount = data.issues.filter(i => i.severity === 'mild').length;
+  
+  const conclusionText = `经 AI 体态评估系统分析，您的体态综合评分为 ${data.overallScore} 分，评估等级为 ${data.grade} 级。共检测到 ${data.issues.length} 个体态问题，其中重度 ${severeCount} 项，中度 ${moderateCount} 项，轻度 ${mildCount} 项。`;
+  
+  const conclusion = renderText(conclusionText, { fontSize: 10, color: THEME.text, width: 340, lineHeight: 1.6 });
+  doc.addImage(toBase64(conclusion), 'PNG', THEME.margin, y, THEME.contentWidth, getHeight(conclusion));
+  
+  drawFooter(doc);
+
+  // ==================== 第3页：详细部位分析 ====================
+  
+  doc.addPage();
+  pageNum++;
+  y = drawHeader(doc, pageNum, totalPages, reportId);
+  
+  y = drawSectionTitle(doc, '体态问题详细分析', y, '4');
+  
+  const sortedIssues = [...data.issues].sort((a, b) => {
+    const order: Record<string, number> = { severe: 0, moderate: 1, mild: 2 };
+    return (order[a.severity] ?? 3) - (order[b.severity] ?? 3);
+  });
+  
+  sortedIssues.slice(0, 5).forEach((issue, i) => {
+    if (y > 240) {
+      drawFooter(doc);
       doc.addPage();
       pageNum++;
-      y = PAGE.margin;
+      y = drawHeader(doc, pageNum, totalPages, reportId);
     }
-
-    y = drawSectionTitle(doc, '三、肌肉功能评估', y);
-
-    const colWidth = 87;
-    const cardHeight = 15 + Math.max(data.muscles.tight.length, data.muscles.weak.length) * 5;
-
-    // 紧张肌肉
-    doc.setFillColor(COLORS.dangerLight);
-    doc.roundedRect(PAGE.margin, y, colWidth, cardHeight, 3, 3);
-    y = addText(doc, `紧张肌肉 (${data.muscles.tight.length})`, PAGE.margin + 3, y + 3, {
-      fontSize: 10,
-      fontWeight: 'bold',
-      color: COLORS.danger,
-      maxWidth: 280,
+    y = drawIssueCard(doc, issue, i, y);
+  });
+  
+  // 部位详细分析
+  if (data.detailedAnalysis) {
+    y += 10;
+    y = drawSectionTitle(doc, '各部位状态分析', y, '5');
+    
+    const parts = [
+      { key: 'head', name: '头部', data: data.detailedAnalysis.head },
+      { key: 'shoulders', name: '肩部', data: data.detailedAnalysis.shoulders },
+      { key: 'spine', name: '脊柱', data: data.detailedAnalysis.spine },
+      { key: 'pelvis', name: '骨盆', data: data.detailedAnalysis.pelvis },
+      { key: 'knees', name: '膝关节', data: data.detailedAnalysis.knees },
+    ];
+    
+    const partRows = parts.filter(p => p.data).map(p => {
+      const d = p.data as Record<string, any>;
+      return [
+        p.name,
+        d?.status || '正常',
+        d?.angle || d?.tiltAngle || d?.leftRightDiff || '-',
+        (d?.description || '').substring(0, 20),
+      ];
     });
-    data.muscles.tight.slice(0, 6).forEach(m => {
-      y = addText(doc, `• ${m}`, PAGE.margin + 3, y, { fontSize: 8, maxWidth: 280 });
-    });
-
-    // 无力肌肉
-    y = PAGE.margin + 30; // 重置 y 为第二列
-    doc.setFillColor(COLORS.primaryLight);
-    doc.roundedRect(PAGE.margin + colWidth + 6, y, colWidth, cardHeight, 3, 3);
-    let y2 = addText(doc, `无力肌肉 (${data.muscles.weak.length})`, PAGE.margin + colWidth + 9, y + 3, {
-      fontSize: 10,
-      fontWeight: 'bold',
-      color: COLORS.primary,
-      maxWidth: 280,
-    });
-    data.muscles.weak.slice(0, 6).forEach(m => {
-      y2 = addText(doc, `• ${m}`, PAGE.margin + colWidth + 9, y2, { fontSize: 8, maxWidth: 280 });
-    });
-
-    y = Math.max(y + cardHeight + 10, y2 + 10);
+    
+    if (partRows.length > 0) {
+      y = drawDataTable(doc, ['部位', '状态', '数值', '描述'], partRows, y, { colWidths: [30, 40, 30, 86] });
+    }
   }
+  
+  drawFooter(doc);
 
-  // ==================== 四、改善方案 ====================
+  // ==================== 第4页：肌肉与筋膜分析 ====================
+  
+  doc.addPage();
+  pageNum++;
+  y = drawHeader(doc, pageNum, totalPages, reportId);
+  
+  if (data.muscles) {
+    y = drawSectionTitle(doc, '肌肉功能评估', y, '6');
+    
+    const tightCount = data.muscles.tight.length;
+    const weakCount = data.muscles.weak.length;
+    
+    doc.setFillColor(THEME.dangerLight);
+    drawRoundedRect(doc, THEME.margin, y, 88, 20 + tightCount * 5, 3);
+    const tightTitle = renderText(`紧张肌肉 (${tightCount})`, { fontSize: 10, fontWeight: 'bold', color: THEME.danger, width: 280 });
+    doc.addImage(toBase64(tightTitle), 'PNG', THEME.margin + 3, y + 3, 45, 6);
+    data.muscles.tight.slice(0, 6).forEach((m, i) => {
+      const muscleText = renderText(`• ${m}`, { fontSize: 8, color: THEME.text, width: 280 });
+      doc.addImage(toBase64(muscleText), 'PNG', THEME.margin + 3, y + 11 + i * 5, 42, 5);
+    });
+    
+    doc.setFillColor(THEME.primaryLight);
+    drawRoundedRect(doc, THEME.margin + 94, y, 88, 20 + weakCount * 5, 3);
+    const weakTitle = renderText(`无力肌肉 (${weakCount})`, { fontSize: 10, fontWeight: 'bold', color: THEME.primary, width: 280 });
+    doc.addImage(toBase64(weakTitle), 'PNG', THEME.margin + 97, y + 3, 45, 6);
+    data.muscles.weak.slice(0, 6).forEach((m, i) => {
+      const muscleText = renderText(`• ${m}`, { fontSize: 8, color: THEME.text, width: 280 });
+      doc.addImage(toBase64(muscleText), 'PNG', THEME.margin + 97, y + 11 + i * 5, 42, 5);
+    });
+    
+    y += Math.max(25 + tightCount * 5, 25 + weakCount * 5) + 10;
+  }
+  
+  // 筋膜链分析
+  if (data.fasciaChainAnalysis) {
+    y = drawSectionTitle(doc, '筋膜链状态分析', y, '7');
+    
+    const fasciaRows = [
+      ['前表链', data.fasciaChainAnalysis.frontLine?.status || '正常', data.fasciaChainAnalysis.frontLine?.tension || '-', (data.fasciaChainAnalysis.frontLine?.impact || '').substring(0, 25)],
+      ['后表链', data.fasciaChainAnalysis.backLine?.status || '正常', data.fasciaChainAnalysis.backLine?.tension || '-', (data.fasciaChainAnalysis.backLine?.impact || '').substring(0, 25)],
+      ['体侧链', data.fasciaChainAnalysis.lateralLine?.status || '正常', data.fasciaChainAnalysis.lateralLine?.tension || '-', (data.fasciaChainAnalysis.lateralLine?.impact || '').substring(0, 25)],
+      ['螺旋链', data.fasciaChainAnalysis.spiralLine?.status || '正常', data.fasciaChainAnalysis.spiralLine?.tension || '-', (data.fasciaChainAnalysis.spiralLine?.impact || '').substring(0, 25)],
+    ];
+    
+    y = drawDataTable(doc, ['筋膜链', '状态', '张力', '影响'], fasciaRows, y, { colWidths: [35, 35, 35, 81] });
+  }
+  
+  // 呼吸评估
+  if (data.breathingAssessment) {
+    y += 5;
+    y = drawSectionTitle(doc, '呼吸模式评估', y, '8');
+    
+    doc.setFillColor(THEME.warningLight);
+    drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 25, 3);
+    
+    const breathingInfo = [
+      `呼吸模式: ${data.breathingAssessment.pattern || '需评估'}`,
+      `膈肌功能: ${data.breathingAssessment.diaphragm || '需评估'}`,
+      `胸廓活动度: ${data.breathingAssessment.ribcageMobility || '需评估'}`,
+    ];
+    
+    breathingInfo.forEach((info, i) => {
+      const infoText = renderText(info, { fontSize: 9, color: '#92400E', width: 340 });
+      doc.addImage(toBase64(infoText), 'PNG', THEME.margin + 5, y + 5 + i * 6, 170, 5);
+    });
+    
+    y += 30;
+  }
+  
+  // 健康风险
+  if (data.risks && data.risks.length > 0) {
+    y = drawSectionTitle(doc, '健康风险评估', y, '9');
+    
+    const riskRows = data.risks.slice(0, 5).map(r => [
+      { high: '高风险↑', medium: '中风险↑', low: '低风险' }[r.risk] || r.risk,
+      r.condition,
+      r.category,
+    ]);
+    y = drawDataTable(doc, ['风险等级', '潜在问题', '相关系统'], riskRows, y, { colWidths: [30, 80, 76] });
+  }
+  
+  drawFooter(doc);
+
+  // ==================== 第5页：健康预测 ====================
+  
+  doc.addPage();
+  pageNum++;
+  y = drawHeader(doc, pageNum, totalPages, reportId);
+  
+  y = drawSectionTitle(doc, '健康发展趋势预测', y, '10');
+  
+  if (data.healthPrediction) {
+    // 短期预测
+    doc.setFillColor(THEME.warningLight);
+    drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 20, 3);
+    const shortTitle = renderText('短期预测 (1-3个月)', { fontSize: 10, fontWeight: 'bold', color: '#92400E', width: 340 });
+    doc.addImage(toBase64(shortTitle), 'PNG', THEME.margin + 5, y + 3, 50, 6);
+    const shortText = renderText(data.healthPrediction.shortTerm || '建议定期复查', { fontSize: 9, color: '#78350F', width: 340 });
+    doc.addImage(toBase64(shortText), 'PNG', THEME.margin + 5, y + 10, 170, 8);
+    y += 25;
+    
+    // 中期预测
+    doc.setFillColor(THEME.dangerLight);
+    drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 20, 3);
+    const midTitle = renderText('中期预测 (6-12个月)', { fontSize: 10, fontWeight: 'bold', color: '#991B1B', width: 340 });
+    doc.addImage(toBase64(midTitle), 'PNG', THEME.margin + 5, y + 3, 55, 6);
+    const midText = renderText(data.healthPrediction.midTerm || '持续关注体态变化', { fontSize: 9, color: '#7F1D1D', width: 340 });
+    doc.addImage(toBase64(midText), 'PNG', THEME.margin + 5, y + 10, 170, 8);
+    y += 25;
+    
+    // 长期预测
+    doc.setFillColor(THEME.danger);
+    drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 20, 3);
+    const longTitle = renderText('长期预测 (3年以上)', { fontSize: 10, fontWeight: 'bold', color: '#FFFFFF', width: 340 });
+    doc.addImage(toBase64(longTitle), 'PNG', THEME.margin + 5, y + 3, 55, 6);
+    const longText = renderText(data.healthPrediction.longTerm || '预防慢性疼痛发生', { fontSize: 9, color: '#FFFFFF', width: 340 });
+    doc.addImage(toBase64(longText), 'PNG', THEME.margin + 5, y + 10, 170, 8);
+    y += 30;
+    
+    // 预防措施
+    if (data.healthPrediction.preventiveMeasures?.length) {
+      y = drawSectionTitle(doc, '预防措施建议', y, '11');
+      
+      data.healthPrediction.preventiveMeasures.slice(0, 5).forEach((measure, i) => {
+        const measureText = renderText(`${i + 1}. ${measure}`, { fontSize: 9, color: THEME.text, width: 340 });
+        doc.addImage(toBase64(measureText), 'PNG', THEME.margin, y, 170, 6);
+        y += 7;
+      });
+    }
+  }
+  
+  drawFooter(doc);
+
+  // ==================== 第6页：改善方案 ====================
+  
+  doc.addPage();
+  pageNum++;
+  y = drawHeader(doc, pageNum, totalPages, reportId);
+  
+  y = drawSectionTitle(doc, '改善方案与建议', y, '12');
   
   if (data.recommendations) {
-    if (y > 180) {
-      addPageFooter(doc, pageNum, reportId);
-      doc.addPage();
-      pageNum++;
-      y = PAGE.margin;
-    }
-
-    y = drawSectionTitle(doc, '四、改善方案', y);
-
     // 立即行动
     if (data.recommendations.immediate?.length) {
-      y = addText(doc, '▶ 立即行动', PAGE.margin, y, {
-        fontSize: 11,
-        fontWeight: 'bold',
-        color: COLORS.danger,
-        maxWidth: 340,
-      });
+      doc.setFillColor(THEME.dangerLight);
+      drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 15 + data.recommendations.immediate.length * 6, 3);
+      const immTitle = renderText('▶ 立即行动（今天开始）', { fontSize: 10, fontWeight: 'bold', color: THEME.danger, width: 340 });
+      doc.addImage(toBase64(immTitle), 'PNG', THEME.margin + 5, y + 3, 80, 6);
       data.recommendations.immediate.slice(0, 3).forEach((rec, i) => {
-        y = addText(doc, `  ${i + 1}. ${rec}`, PAGE.margin, y, {
-          fontSize: 9,
-          maxWidth: 340,
-        });
+        const recText = renderText(`${i + 1}. ${rec}`, { fontSize: 9, color: THEME.text, width: 330 });
+        doc.addImage(toBase64(recText), 'PNG', THEME.margin + 5, y + 10 + i * 6, 170, 5);
       });
-      y += 3;
+      y += 20 + data.recommendations.immediate.length * 6;
     }
-
+    
     // 短期计划
     if (data.recommendations.shortTerm?.length) {
-      y = addText(doc, '▶ 短期计划 (1-4周)', PAGE.margin, y, {
-        fontSize: 11,
-        fontWeight: 'bold',
-        color: COLORS.warning,
-        maxWidth: 340,
-      });
+      doc.setFillColor(THEME.warningLight);
+      drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 15 + data.recommendations.shortTerm.length * 6, 3);
+      const shortTitle = renderText('▶ 短期计划（1-4周）', { fontSize: 10, fontWeight: 'bold', color: THEME.warning, width: 340 });
+      doc.addImage(toBase64(shortTitle), 'PNG', THEME.margin + 5, y + 3, 80, 6);
       data.recommendations.shortTerm.slice(0, 3).forEach((rec, i) => {
-        y = addText(doc, `  ${i + 1}. ${rec}`, PAGE.margin, y, {
-          fontSize: 9,
-          maxWidth: 340,
-        });
+        const recText = renderText(`${i + 1}. ${rec}`, { fontSize: 9, color: THEME.text, width: 330 });
+        doc.addImage(toBase64(recText), 'PNG', THEME.margin + 5, y + 10 + i * 6, 170, 5);
       });
-      y += 3;
+      y += 20 + data.recommendations.shortTerm.length * 6;
     }
-
+    
     // 长期策略
     if (data.recommendations.longTerm?.length) {
-      y = addText(doc, '▶ 长期策略 (1-3月)', PAGE.margin, y, {
-        fontSize: 11,
-        fontWeight: 'bold',
-        color: COLORS.success,
-        maxWidth: 340,
-      });
+      doc.setFillColor(THEME.successLight);
+      drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 15 + data.recommendations.longTerm.length * 6, 3);
+      const longTitle = renderText('▶ 长期策略（1-3个月）', { fontSize: 10, fontWeight: 'bold', color: THEME.success, width: 340 });
+      doc.addImage(toBase64(longTitle), 'PNG', THEME.margin + 5, y + 3, 85, 6);
       data.recommendations.longTerm.slice(0, 3).forEach((rec, i) => {
-        y = addText(doc, `  ${i + 1}. ${rec}`, PAGE.margin, y, {
-          fontSize: 9,
-          maxWidth: 340,
-        });
+        const recText = renderText(`${i + 1}. ${rec}`, { fontSize: 9, color: THEME.text, width: 330 });
+        doc.addImage(toBase64(recText), 'PNG', THEME.margin + 5, y + 10 + i * 6, 170, 5);
       });
+      y += 20 + data.recommendations.longTerm.length * 6;
     }
   }
+  
+  // 训练计划
+  if (data.trainingPlan?.phases?.length) {
+    y += 5;
+    y = drawSectionTitle(doc, '分阶段训练计划', y, '13');
+    
+    const phaseRows = data.trainingPlan.phases.slice(0, 4).map(p => [
+      p.name,
+      p.duration,
+      p.focus.substring(0, 20),
+      p.exercises.slice(0, 2).join('、').substring(0, 25) || '-',
+    ]);
+    
+    y = drawDataTable(doc, ['阶段', '周期', '重点', '推荐动作'], phaseRows, y, { colWidths: [35, 30, 50, 71] });
+  }
+  
+  drawFooter(doc);
 
-  // ==================== 五、中医体质分析 ====================
+  // ==================== 第7页：中医分析 ====================
+  
+  doc.addPage();
+  pageNum++;
+  y = drawHeader(doc, pageNum, totalPages, reportId);
   
   if (data.tcmAnalysis) {
-    if (y > 180) {
-      addPageFooter(doc, pageNum, reportId);
-      doc.addPage();
-      pageNum++;
-      y = PAGE.margin;
-    }
-
-    y = drawSectionTitle(doc, '五、中医体质分析', y);
-
-    // 体质类型
+    y = drawSectionTitle(doc, '中医体质与经络分析', y, '14');
+    
     if (data.tcmAnalysis.constitution) {
-      doc.setFillColor(COLORS.warningLight);
-      doc.roundedRect(PAGE.margin, y, PAGE.contentWidth, 20, 3, 3);
-      y = addText(doc, `体质类型: ${data.tcmAnalysis.constitution}`, PAGE.margin + 5, y + 3, {
-        fontSize: 12,
-        fontWeight: 'bold',
-        color: '#92400e',
-        maxWidth: 340,
-      });
-      y += 25;
+      doc.setFillColor(THEME.warningLight);
+      drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 25, 3);
+      const constTitle = renderText('体质判断', { fontSize: 9, fontWeight: 'bold', color: '#92400E', width: 340 });
+      doc.addImage(toBase64(constTitle), 'PNG', THEME.margin + 5, y + 3, 30, 5);
+      const constText = renderText(data.tcmAnalysis.constitution, { fontSize: 14, fontWeight: 'bold', color: '#78350F', width: 340 });
+      doc.addImage(toBase64(constText), 'PNG', THEME.margin + 5, y + 10, 170, 10);
+      y += 30;
     }
-
-    // 经络分析
+    
     if (data.tcmAnalysis.meridians?.length) {
-      y = addText(doc, '相关经络:', PAGE.margin, y, {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: COLORS.danger,
-        maxWidth: 340,
+      const meridianTitle = renderText('相关经络状态', { fontSize: 10, fontWeight: 'bold', color: THEME.danger, width: 340 });
+      doc.addImage(toBase64(meridianTitle), 'PNG', THEME.margin, y, 50, 6);
+      y += 8;
+      data.tcmAnalysis.meridians.slice(0, 4).forEach(m => {
+        const mText = renderText(`• ${m.name}: ${m.status} - ${(m.reason || '').substring(0, 25)}`, { fontSize: 8, color: THEME.text, width: 340 });
+        doc.addImage(toBase64(mText), 'PNG', THEME.margin, y, 170, 6);
+        y += 7;
       });
-      data.tcmAnalysis.meridians.slice(0, 3).forEach(m => {
-        y = addText(doc, `  • ${m.name}: ${m.status}`, PAGE.margin, y, {
-          fontSize: 9,
-          maxWidth: 340,
-        });
-      });
-      y += 3;
+      y += 5;
     }
-
-    // 食疗建议
+    
+    if (data.tcmAnalysis.acupoints?.length) {
+      const acupointTitle = renderText('穴位调理建议', { fontSize: 10, fontWeight: 'bold', color: THEME.accent, width: 340 });
+      doc.addImage(toBase64(acupointTitle), 'PNG', THEME.margin, y, 50, 6);
+      y += 8;
+      data.tcmAnalysis.acupoints.slice(0, 4).forEach(a => {
+        const aText = renderText(`• ${a.name} (${a.location}): ${a.benefit.substring(0, 20)}`, { fontSize: 8, color: THEME.text, width: 340 });
+        doc.addImage(toBase64(aText), 'PNG', THEME.margin, y, 170, 6);
+        y += 7;
+      });
+      y += 5;
+    }
+    
+    if (data.tcmAnalysis.daoyinSuggestions?.length) {
+      const daoyinTitle = renderText('导引功法建议', { fontSize: 10, fontWeight: 'bold', color: THEME.primary, width: 340 });
+      doc.addImage(toBase64(daoyinTitle), 'PNG', THEME.margin, y, 50, 6);
+      y += 8;
+      data.tcmAnalysis.daoyinSuggestions.slice(0, 4).forEach(d => {
+        const dText = renderText(`• ${d}`, { fontSize: 8, color: THEME.text, width: 340 });
+        doc.addImage(toBase64(dText), 'PNG', THEME.margin, y, 170, 6);
+        y += 7;
+      });
+      y += 5;
+    }
+    
     if (data.tcmAnalysis.dietSuggestions?.length) {
-      y = addText(doc, '食疗建议:', PAGE.margin, y, {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: COLORS.warning,
-        maxWidth: 340,
-      });
-      data.tcmAnalysis.dietSuggestions.slice(0, 3).forEach(s => {
-        y = addText(doc, `  • ${s}`, PAGE.margin, y, {
-          fontSize: 9,
-          maxWidth: 340,
-        });
+      const dietTitle = renderText('食疗建议', { fontSize: 10, fontWeight: 'bold', color: THEME.warning, width: 340 });
+      doc.addImage(toBase64(dietTitle), 'PNG', THEME.margin, y, 30, 6);
+      y += 8;
+      data.tcmAnalysis.dietSuggestions.slice(0, 4).forEach(s => {
+        const sText = renderText(`• ${s}`, { fontSize: 8, color: THEME.text, width: 340 });
+        doc.addImage(toBase64(sText), 'PNG', THEME.margin, y, 170, 6);
+        y += 7;
       });
     }
   }
-
-  // ==================== 六、总结与建议 ====================
   
-  if (y > 200) {
-    addPageFooter(doc, pageNum, reportId);
-    doc.addPage();
-    pageNum++;
-    y = PAGE.margin;
-  }
+  drawFooter(doc);
 
-  y = drawSectionTitle(doc, '六、总结与建议', y);
-
-  // 评估总结
-  const summaryText = `您的体态评估得分为 ${data.overallScore} 分，属于 ${data.grade} 级（${gradeText}）。`;
-  y = addText(doc, summaryText, PAGE.margin, y, {
-    fontSize: 10,
-    maxWidth: 340,
-  });
-
-  if (data.issues.length > 0) {
-    const severeCount = data.issues.filter(i => i.severity === 'severe').length;
-    const moderateCount = data.issues.filter(i => i.severity === 'moderate').length;
-    y = addText(doc, `检测到 ${data.issues.length} 个体态问题，其中重度 ${severeCount} 个，中度 ${moderateCount} 个。`, PAGE.margin, y, {
-      fontSize: 9,
-      color: COLORS.textSecondary,
-      maxWidth: 340,
-    });
-  }
-
-  y += 5;
-
-  // 注意事项卡片
-  doc.setFillColor(COLORS.warningLight);
-  doc.roundedRect(PAGE.margin, y, PAGE.contentWidth, 25, 3, 3);
-  y = addText(doc, '⚠️ 注意事项', PAGE.margin + 5, y + 3, {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: '#92400e',
-    maxWidth: 340,
-  });
-  y = addText(doc, '训练过程中如出现疼痛加重，请立即停止并咨询专业人士。', PAGE.margin + 5, y, {
-    fontSize: 8,
-    color: '#78350f',
-    maxWidth: 340,
-  });
-  y = addText(doc, '本报告仅供参考，不作为医疗诊断依据。建议4周后复查。', PAGE.margin + 5, y, {
-    fontSize: 8,
-    color: '#78350f',
-    maxWidth: 340,
-  });
-
-  // 页脚
-  addPageFooter(doc, pageNum, reportId);
-
+  // ==================== 第8页：总结与附录 ====================
+  
+  doc.addPage();
+  pageNum++;
+  y = drawHeader(doc, pageNum, totalPages, reportId);
+  
+  y = drawSectionTitle(doc, '总结与注意事项', y, '15');
+  
+  doc.setFillColor(THEME.primaryLight);
+  drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 35, 3);
+  
+  const summaryText = `您的体态评估综合得分为 ${data.overallScore} 分，评估等级为 ${data.grade} 级。共检测到 ${data.issues.length} 个体态问题。建议坚持进行体态矫正训练，保持良好的坐姿和站姿习惯。如有持续疼痛或不适，请及时就医检查。`;
+  const summary = renderText(summaryText, { fontSize: 9, color: THEME.text, width: 340, lineHeight: 1.6 });
+  doc.addImage(toBase64(summary), 'PNG', THEME.margin + 5, y + 5, THEME.contentWidth - 10, 25);
+  
+  y += 40;
+  
+  doc.setFillColor(THEME.warningLight);
+  drawRoundedRect(doc, THEME.margin, y, THEME.contentWidth, 35, 3);
+  const noteTitle = renderText('⚠️ 重要提示', { fontSize: 10, fontWeight: 'bold', color: '#92400E', width: 340 });
+  doc.addImage(toBase64(noteTitle), 'PNG', THEME.margin + 5, y + 3, 40, 6);
+  const noteText = renderText('1. 本报告由AI系统自动生成，仅供参考，不作为医疗诊断依据。\n2. 建议每4周进行一次复查，跟踪改善效果。\n3. 如有疼痛或不适，请及时就医。', { fontSize: 8, color: '#78350F', width: 340 });
+  doc.addImage(toBase64(noteText), 'PNG', THEME.margin + 5, y + 10, 170, 20);
+  
+  y += 40;
+  
+  y = drawSectionTitle(doc, '附录：参考标准', y, '16');
+  
+  const refRows = [
+    ['头前伸角度', '< 15°', '正常范围'],
+    ['肩部倾斜', '< 2°', '正常范围'],
+    ['骨盆前倾', '5-15°', '正常范围'],
+    ['膝关节角度', '170-180°', '正常范围'],
+    ['脊柱对齐度', '> 90%', '正常范围'],
+  ];
+  
+  y = drawDataTable(doc, ['测量项目', '正常范围', '说明'], refRows, y, { colWidths: [50, 50, 86] });
+  
+  y += 10;
+  
+  const contactTitle = renderText('联系我们', { fontSize: 10, fontWeight: 'bold', color: THEME.primary, width: 340 });
+  doc.addImage(toBase64(contactTitle), 'PNG', THEME.margin, y, 30, 6);
+  y += 8;
+  const contactText = renderText('如有任何疑问或需要进一步咨询，请联系专业康复师或医师。', { fontSize: 9, color: THEME.textSecondary, width: 340 });
+  doc.addImage(toBase64(contactText), 'PNG', THEME.margin, y, 170, 6);
+  
+  drawFooter(doc);
+  
   return doc.output('blob');
 }
-
-/**
- * 添加页脚
- */
-function addPageFooter(doc: jsPDF, pageNum: number, reportId: string) {
-  const footerY = 285;
-
-  // 分隔线
-  doc.setDrawColor(COLORS.border);
-  doc.setLineWidth(0.3);
-  doc.line(PAGE.margin, footerY - 3, PAGE.width - PAGE.margin, footerY - 3);
-
-  // 页脚文字
-  const footerCanvas = renderText(`AI 体态评估系统  |  报告编号: ${reportId}  |  第 ${pageNum} 页`, {
-    fontSize: 8,
-    color: COLORS.textSecondary,
-    width: 400,
-    align: 'center',
-  });
-  doc.addImage(toBase64(footerCanvas), 'PNG', 0, footerY, PAGE.width, 6);
-}
-
-// ==================== 导出函数 ====================
 
 export function downloadPDF(blob: Blob, filename: string): void {
   const url = URL.createObjectURL(blob);

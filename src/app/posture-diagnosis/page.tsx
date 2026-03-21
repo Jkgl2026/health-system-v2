@@ -85,6 +85,9 @@ interface SemanticAnalysisResult {
   tcmPerspective: any;
   treatmentPlan: any;
   trainingPlan?: TrainingPlan;
+  fasciaChainAnalysis?: any;
+  breathingAssessment?: any;
+  healthPrediction?: any;
 }
 
 // ==================== 辅助函数 ====================
@@ -348,13 +351,15 @@ export default function PostureDiagnosisPageV2() {
         },
         risks: detailedRisks,
         recommendations: {
-          immediate: result.allIssues.filter(i => i.severity === 'severe').map(i => 
-            `及时就医检查${i.name}，避免进一步恶化`
-          ),
-          shortTerm: result.allIssues.filter(i => i.severity === 'moderate').map(i => 
-            `改善${i.name}问题，加强相关肌肉训练`
-          ),
-          longTerm: [
+          immediate: result.semanticAnalysis?.recommendations?.immediate || 
+            result.allIssues.filter(i => i.severity === 'severe').map(i => 
+              `及时就医检查${i.name}，避免进一步恶化`
+            ),
+          shortTerm: result.semanticAnalysis?.recommendations?.shortTerm ||
+            result.allIssues.filter(i => i.severity === 'moderate').map(i => 
+              `改善${i.name}问题，加强相关肌肉训练`
+            ),
+          longTerm: result.semanticAnalysis?.recommendations?.longTerm || [
             '建立规律的运动习惯，每周至少3次体态矫正训练',
             '保持良好的坐姿和站姿习惯，避免长时间保持同一姿势',
             '定期进行体态评估复查，建议每4周一次',
@@ -362,6 +367,36 @@ export default function PostureDiagnosisPageV2() {
           ],
           exercises: exercises,
         },
+        // 新增：详细部位分析
+        detailedAnalysis: result.semanticAnalysis?.detailedAnalysis ? {
+          head: result.semanticAnalysis.detailedAnalysis.head,
+          shoulders: result.semanticAnalysis.detailedAnalysis.shoulders,
+          spine: result.semanticAnalysis.detailedAnalysis.spine,
+          pelvis: result.semanticAnalysis.detailedAnalysis.pelvis,
+          knees: result.semanticAnalysis.detailedAnalysis.knees,
+          ankles: result.semanticAnalysis.detailedAnalysis.ankles,
+        } : undefined,
+        // 新增：筋膜链分析
+        fasciaChainAnalysis: result.semanticAnalysis?.fasciaChainAnalysis ? {
+          frontLine: result.semanticAnalysis.fasciaChainAnalysis.frontLine,
+          backLine: result.semanticAnalysis.fasciaChainAnalysis.backLine,
+          lateralLine: result.semanticAnalysis.fasciaChainAnalysis.lateralLine,
+          spiralLine: result.semanticAnalysis.fasciaChainAnalysis.spiralLine,
+        } : undefined,
+        // 新增：呼吸评估
+        breathingAssessment: result.semanticAnalysis?.breathingAssessment ? {
+          pattern: result.semanticAnalysis.breathingAssessment.pattern,
+          diaphragm: result.semanticAnalysis.breathingAssessment.diaphragm,
+          ribcageMobility: result.semanticAnalysis.breathingAssessment.ribcageMobility,
+          impact: result.semanticAnalysis.breathingAssessment.impact,
+        } : undefined,
+        // 新增：健康预测
+        healthPrediction: result.semanticAnalysis?.healthPrediction ? {
+          shortTerm: result.semanticAnalysis.healthPrediction.shortTerm,
+          midTerm: result.semanticAnalysis.healthPrediction.midTerm,
+          longTerm: result.semanticAnalysis.healthPrediction.longTerm,
+          preventiveMeasures: result.semanticAnalysis.healthPrediction.preventiveMeasures,
+        } : undefined,
         tcmAnalysis: result.semanticAnalysis?.tcmPerspective ? {
           constitution: result.semanticAnalysis.tcmPerspective.constitution || '',
           constitutionType: result.semanticAnalysis.tcmPerspective.constitutionType,
@@ -376,7 +411,9 @@ export default function PostureDiagnosisPageV2() {
             location: typeof a === 'object' && a.location ? a.location : '',
             benefit: typeof a === 'object' && a.benefit ? a.benefit : '',
           })) || [],
-          dietSuggestions: result.semanticAnalysis.tcmPerspective.dietSuggestions || [],
+          dietSuggestions: result.semanticAnalysis.tcmPerspective.dietaryAdvice?.suitable || 
+            result.semanticAnalysis.tcmPerspective.dietSuggestions || [],
+          daoyinSuggestions: result.semanticAnalysis.tcmPerspective.daoyinSuggestions || [],
         } : undefined,
         trainingPlan: trainingPlan ? {
           phases: Object.entries(PHASE_DETAILS).map(([key, phase]) => {
