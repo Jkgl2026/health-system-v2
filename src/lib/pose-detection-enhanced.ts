@@ -1987,3 +1987,47 @@ export function getSkeletonConnections(): [number, number][] {
     [POSE_LANDMARKS.RIGHT_ANKLE, POSE_LANDMARKS.RIGHT_FOOT_INDEX],
   ];
 }
+
+/**
+ * 使用全局单例管理器检测姿态
+ * 无需传入 poseInstance，内部自动管理
+ */
+export async function detectPoseWithGlobalManager(
+  imageElement: HTMLImageElement | HTMLCanvasElement,
+  viewAngle: 'front' | 'back' | 'left' | 'right'
+): Promise<EnhancedPostureAnalysisResult | null> {
+  // 动态导入避免循环依赖
+  const { detectImage, convertToLandmarks } = await import('./pose-manager');
+  
+  try {
+    const results = await detectImage(imageElement);
+    const landmarks = convertToLandmarks(results);
+    
+    if (!landmarks || landmarks.length === 0) {
+      return null;
+    }
+    
+    const extendedAngles = calculateExtendedAngles(landmarks);
+    const issues = detectPostureIssuesEnhanced(landmarks, extendedAngles, viewAngle);
+    const muscleAnalysis = analyzeMuscleStatus(issues);
+    const fasciaChainAnalysis = analyzeFasciaChains(issues, extendedAngles);
+    const healthRisks = assessHealthRisks(issues, extendedAngles);
+    const overallScore = calculateOverallScoreEnhanced(issues, extendedAngles);
+    const confidence = landmarks.reduce((sum, lm) => sum + lm.visibility, 0) / landmarks.length;
+    
+    return {
+      landmarks,
+      extendedAngles,
+      issues,
+      muscleAnalysis,
+      fasciaChainAnalysis,
+      healthRisks,
+      overallScore,
+      confidence,
+      viewAngle,
+    };
+  } catch (error) {
+    console.error('[detectPoseWithGlobalManager] 检测失败:', error);
+    return null;
+  }
+}

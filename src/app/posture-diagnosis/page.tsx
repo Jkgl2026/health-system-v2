@@ -21,7 +21,6 @@ import {
   History, BarChart3, Dumbbell, CalendarDays, FileDown, BoxIcon, User
 } from 'lucide-react';
 import {
-  createPoseDetector,
   detectPoseFromImageEnhanced,
   EnhancedPostureAnalysisResult,
   PostureIssue,
@@ -43,6 +42,7 @@ import { generateTrainingPlan, getPhaseWeeklyPlans, PHASE_DETAILS, TrainingPhase
 import { saveRecord, getAllRecords, AssessmentRecord, getStatistics } from '@/lib/progress-tracker';
 import { generatePDFReport, downloadPDF, generateReportFilename, ReportData } from '@/lib/pdf-generator';
 import { compressImage, getImageInfo } from '@/lib/image-compress';
+import { initPoseDetector, getPoseStatus, destroyPoseDetector } from '@/lib/pose-manager';
 
 // 动态导入重型组件
 import dynamic from 'next/dynamic';
@@ -205,7 +205,6 @@ export default function PostureDiagnosisPageV2() {
   const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
   
   // MediaPipe实例
-  const [poseInstance, setPoseInstance] = useState<any>(null);
   const [poseReady, setPoseReady] = useState(false);
   
   // Canvas引用
@@ -239,16 +238,10 @@ export default function PostureDiagnosisPageV2() {
     const initPose = async () => {
       try {
         setLoadingStep('正在加载骨骼检测模型...');
-        const pose = createPoseDetector();
         
-        // 等待模型加载
-        await new Promise<void>((resolve) => {
-          pose.onResults(() => {});
-          // 给模型一些初始化时间
-          setTimeout(() => resolve(), 2000);
-        });
+        // 使用全局单例管理器初始化
+        await initPoseDetector();
         
-        setPoseInstance(pose);
         setPoseReady(true);
         console.log('[PostureDiagnosis] MediaPipe Pose 初始化成功');
       } catch (err) {
@@ -260,9 +253,8 @@ export default function PostureDiagnosisPageV2() {
     initPose();
     
     return () => {
-      if (poseInstance) {
-        poseInstance.close?.();
-      }
+      // 清理全局实例
+      destroyPoseDetector();
     };
   }, []);
 
@@ -611,37 +603,37 @@ export default function PostureDiagnosisPageV2() {
           imageRefs[angle].current.src = imageData;
         }
         
-        if (!poseInstance) {
-          console.log(`[PostureDiagnosis] ${angle} poseInstance 不存在`);
+        // 检查全局管理器状态
+        const status = getPoseStatus();
+        if (!status.isReady) {
+          console.log(`[PostureDiagnosis] ${angle} Pose 管理器未就绪`);
           resolve(null);
           return;
         }
         
         try {
           console.log(`[PostureDiagnosis] ${angle} 开始骨骼检测...`);
-          const result = await detectPoseFromImageEnhanced(img, poseInstance, angle);
+          
+          // 动态导入新的检测函数
+          const { detectPoseWithGlobalManager } = await import('@/lib/pose-detection-enhanced');
+          const result = await detectPoseWithGlobalManager(img, angle);
+          
           console.log(`[PostureDiagnosis] ${angle} 检测完成，发现问题:`, result?.issues?.length || 0);
           resolve(result);
         } catch (err: any) {
           console.error(`[PostureDiagnosis] ${angle} 检测失败:`, err);
-          // 捕获 WASM 崩溃错误
-          if (err?.message?.includes('abort') || err?.name === 'RuntimeError') {
-            console.error(`[PostureDiagnosis] ${angle} WASM 崩溃，可能是图片尺寸过大`);
-            // 返回一个空结果而不是 null，这样后续流程可以继续
-            resolve({
-              landmarks: [],
-              issues: [],
-              overallScore: 50,
-              muscleAnalysis: [],
-              fasciaChainAnalysis: [],
-              healthRisks: [],
-              extendedAngles: {},
-              confidence: 0,
-              viewAngle: angle,
-            } as unknown as EnhancedPostureAnalysisResult);
-          } else {
-            resolve(null);
-          }
+          // 返回一个空结果而不是 null，这样后续流程可以继续
+          resolve({
+            landmarks: [],
+            issues: [],
+            overallScore: 50,
+            muscleAnalysis: [],
+            fasciaChainAnalysis: [],
+            healthRisks: [],
+            extendedAngles: {},
+            confidence: 0,
+            viewAngle: angle,
+          } as unknown as EnhancedPostureAnalysisResult);
         }
       };
       
@@ -723,7 +715,7 @@ export default function PostureDiagnosisPageV2() {
       return;
     }
     
-    if (!poseInstance || !poseReady) {
+    if (!poseReady) {
       setError('骨骼检测模型未加载完成，请稍后重试');
       return;
     }

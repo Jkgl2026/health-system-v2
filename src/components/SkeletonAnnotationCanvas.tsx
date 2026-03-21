@@ -3,6 +3,12 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download, AlertCircle, CheckCircle, Loader2 } from 'lucide-react';
+import {
+  initPoseDetector,
+  detectImage,
+  convertToLandmarks,
+  getPoseStatus,
+} from '@/lib/pose-manager';
 
 // MediaPipe Pose 关键点索引
 const POSE_LANDMARKS = {
@@ -49,6 +55,14 @@ const SKELETON_CONNECTIONS: [number, number][] = [
   [POSE_LANDMARKS.RIGHT_HIP, POSE_LANDMARKS.RIGHT_KNEE],
   [POSE_LANDMARKS.RIGHT_KNEE, POSE_LANDMARKS.RIGHT_ANKLE],
 ];
+
+// 计算角度
+function calculateAngle(a: { x: number; y: number }, b: { x: number; y: number }, c: { x: number; y: number }): number {
+  const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
+  let angle = Math.abs(radians * 180 / Math.PI);
+  if (angle > 180) angle = 360 - angle;
+  return angle;
+}
 
 // 绘制骨骼线
 function drawSkeleton(
@@ -122,21 +136,21 @@ function drawAngles(
   height: number
 ) {
   const angleGroups = [
-    { name: '左肘', points: [POSE_LANDMARKS.LEFT_SHOULDER, POSE_LANDMARKS.LEFT_ELBOW, POSE_LANDMARKS.LEFT_WRIST] },
-    { name: '右肘', points: [POSE_LANDMARKS.RIGHT_SHOULDER, POSE_LANDMARKS.RIGHT_ELBOW, POSE_LANDMARKS.RIGHT_WRIST] },
-    { name: '左肩', points: [POSE_LANDMARKS.LEFT_ELBOW, POSE_LANDMARKS.LEFT_SHOULDER, POSE_LANDMARKS.LEFT_HIP] },
-    { name: '右肩', points: [POSE_LANDMARKS.RIGHT_ELBOW, POSE_LANDMARKS.RIGHT_SHOULDER, POSE_LANDMARKS.RIGHT_HIP] },
-    { name: '左髋', points: [POSE_LANDMARKS.LEFT_SHOULDER, POSE_LANDMARKS.LEFT_HIP, POSE_LANDMARKS.LEFT_KNEE] },
-    { name: '右髋', points: [POSE_LANDMARKS.RIGHT_SHOULDER, POSE_LANDMARKS.RIGHT_HIP, POSE_LANDMARKS.RIGHT_KNEE] },
-    { name: '左膝', points: [POSE_LANDMARKS.LEFT_HIP, POSE_LANDMARKS.LEFT_KNEE, POSE_LANDMARKS.LEFT_ANKLE] },
-    { name: '右膝', points: [POSE_LANDMARKS.RIGHT_HIP, POSE_LANDMARKS.RIGHT_KNEE, POSE_LANDMARKS.RIGHT_ANKLE] },
+    { points: [POSE_LANDMARKS.LEFT_SHOULDER, POSE_LANDMARKS.LEFT_ELBOW, POSE_LANDMARKS.LEFT_WRIST] },
+    { points: [POSE_LANDMARKS.RIGHT_SHOULDER, POSE_LANDMARKS.RIGHT_ELBOW, POSE_LANDMARKS.RIGHT_WRIST] },
+    { points: [POSE_LANDMARKS.LEFT_ELBOW, POSE_LANDMARKS.LEFT_SHOULDER, POSE_LANDMARKS.LEFT_HIP] },
+    { points: [POSE_LANDMARKS.RIGHT_ELBOW, POSE_LANDMARKS.RIGHT_SHOULDER, POSE_LANDMARKS.RIGHT_HIP] },
+    { points: [POSE_LANDMARKS.LEFT_SHOULDER, POSE_LANDMARKS.LEFT_HIP, POSE_LANDMARKS.LEFT_KNEE] },
+    { points: [POSE_LANDMARKS.RIGHT_SHOULDER, POSE_LANDMARKS.RIGHT_HIP, POSE_LANDMARKS.RIGHT_KNEE] },
+    { points: [POSE_LANDMARKS.LEFT_HIP, POSE_LANDMARKS.LEFT_KNEE, POSE_LANDMARKS.LEFT_ANKLE] },
+    { points: [POSE_LANDMARKS.RIGHT_HIP, POSE_LANDMARKS.RIGHT_KNEE, POSE_LANDMARKS.RIGHT_ANKLE] },
   ];
 
   ctx.font = 'bold 12px Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  angleGroups.forEach(({ name, points }) => {
+  angleGroups.forEach(({ points }) => {
     const [a, b, c] = points;
     const lmA = landmarks[a];
     const lmB = landmarks[b];
@@ -163,62 +177,32 @@ function drawAngles(
   });
 }
 
-// 计算角度
-function calculateAngle(a: { x: number; y: number }, b: { x: number; y: number }, c: { x: number; y: number }): number {
-  const radians = Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(a.y - b.y, a.x - b.x);
-  let angle = Math.abs(radians * 180 / Math.PI);
-  if (angle > 180) angle = 360 - angle;
-  return angle;
-}
-
-// 绘制错误消息
-function drawErrorMessage(ctx: CanvasRenderingContext2D, width: number, height: number, message: string) {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-  ctx.fillRect(0, height / 2 - 25, width, 50);
-  ctx.fillStyle = '#ff6b6b';
-  ctx.font = 'bold 14px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText(message, width / 2, height / 2);
-}
-
-// 绘制无检测消息
-function drawNoDetectionMessage(ctx: CanvasRenderingContext2D, width: number, height: number) {
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-  ctx.fillRect(0, height / 2 - 25, width, 50);
-  ctx.fillStyle = '#ffa500';
-  ctx.font = 'bold 14px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('未检测到人体骨骼', width / 2, height / 2);
-}
-
 export default function SkeletonAnnotationCanvas({
   imageUrl,
   angle,
   onDetectionComplete,
 }: SkeletonAnnotationCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const [status, setStatus] = useState<'loading' | 'detecting' | 'success' | 'error'>('loading');
   const [error, setError] = useState<string>('');
   const [landmarkCount, setLandmarkCount] = useState<number>(0);
-  const [retryCount, setRetryCount] = useState<number>(0);
-  const detectionAttemptedRef = useRef(false);
+  const detectionRef = useRef(false);
 
-  // 执行检测（支持重试）
-  const performDetection = useCallback(async (retryAttempt: number = 0) => {
+  // 执行检测
+  const performDetection = useCallback(async () => {
     if (typeof window === 'undefined' || !imageUrl || !canvasRef.current) return;
+    if (detectionRef.current) return; // 防止重复检测
+    detectionRef.current = true;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const MAX_RETRIES = 3;
-    
     try {
-      setStatus(retryAttempt > 0 ? 'detecting' : 'loading');
+      setStatus('loading');
       setError('');
 
-      console.log(`[SkeletonCanvas ${angle}] 开始检测，尝试 ${retryAttempt + 1}/${MAX_RETRIES + 1}`);
+      console.log(`[SkeletonCanvas ${angle}] 开始检测...`);
 
       // 加载图片
       const img = new Image();
@@ -230,12 +214,12 @@ export default function SkeletonAnnotationCanvas({
         img.src = imageUrl;
       });
 
-      // 设置画布尺寸（限制最大尺寸避免 WASM 内存问题）
+      // 设置画布尺寸
       const maxWidth = 400;
       const maxHeight = 500;
       let width = img.naturalWidth;
       let height = img.naturalHeight;
-      
+
       if (width > maxWidth) {
         height = (height * maxWidth) / width;
         width = maxWidth;
@@ -254,133 +238,71 @@ export default function SkeletonAnnotationCanvas({
 
       setStatus('detecting');
 
-      // 动态导入 MediaPipe
-      // @ts-ignore
-      const { Pose } = await import('@mediapipe/pose');
+      // 使用全局单例检测
+      const results = await detectImage(img);
 
-      // 创建 Pose 实例（使用轻量模型，避免 WASM 参数错误）
-      const pose = new Pose({
-        locateFile: (file: string) => {
-          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
-        },
-      });
+      // 转换骨骼点
+      const landmarks = convertToLandmarks(results);
 
-      // 设置参数（使用 modelComplexity: 0 避免参数错误）
-      pose.setOptions({
-        modelComplexity: 0,  // 使用最轻量模型
-        smoothLandmarks: false,
-        enableSegmentation: false,
-        smoothSegmentation: false,
-        minDetectionConfidence: 0.3,
-        minTrackingConfidence: 0.3,
-      });
+      if (!landmarks || landmarks.length === 0) {
+        // 未检测到骨骼
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, height / 2 - 25, width, 50);
+        ctx.fillStyle = '#ffa500';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('未检测到人体骨骼', width / 2, height / 2);
+        setStatus('error');
+        setError('未检测到人体骨骼');
+        onDetectionComplete?.(null);
+        return;
+      }
 
-      // 等待模型初始化
-      await new Promise<void>((resolve, reject) => {
-        const timeout = setTimeout(() => {
-          reject(new Error('模型加载超时'));
-        }, 30000);
+      setLandmarkCount(landmarks.length);
 
-        pose.onResults(() => {
-          clearTimeout(timeout);
-          resolve();
-        });
+      // 重新绘制原图
+      ctx.drawImage(img, 0, 0, width, height);
 
-        // 发送空白图像触发初始化
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = 100;
-        tempCanvas.height = 100;
-        const tempCtx = tempCanvas.getContext('2d');
-        if (tempCtx) {
-          tempCtx.fillStyle = 'white';
-          tempCtx.fillRect(0, 0, 100, 100);
-        }
-        
-        pose.send({ image: tempCanvas }).catch(() => {
-          clearTimeout(timeout);
-          resolve();
-        });
-      });
+      // 绘制骨骼标注
+      drawSkeleton(ctx, landmarks, width, height);
+      drawLandmarks(ctx, landmarks, width, height);
+      drawAngles(ctx, landmarks, width, height);
 
-      console.log(`[SkeletonCanvas ${angle}] MediaPipe 初始化完成`);
-
-      // 设置检测结果回调
-      pose.onResults((results: any) => {
-        console.log(`[SkeletonCanvas ${angle}] 检测结果:`, {
-          hasLandmarks: !!results.poseLandmarks,
-          landmarkCount: results.poseLandmarks?.length || 0,
-        });
-
-        if (!results.poseLandmarks || results.poseLandmarks.length === 0) {
-          // 未检测到骨骼
-          ctx.drawImage(img, 0, 0, width, height);
-          drawNoDetectionMessage(ctx, width, height);
-          setStatus('error');
-          setError('未检测到人体骨骼');
-          onDetectionComplete?.(null);
-          return;
-        }
-
-        const landmarks: Landmark[] = results.poseLandmarks.map((lm: any) => ({
-          x: lm.x,
-          y: lm.y,
-          z: lm.z || 0,
-          visibility: lm.visibility || 0,
-        }));
-
-        setLandmarkCount(landmarks.length);
-
-        // 重新绘制原图
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // 绘制骨骼标注
-        drawSkeleton(ctx, landmarks, width, height);
-        drawLandmarks(ctx, landmarks, width, height);
-        drawAngles(ctx, landmarks, width, height);
-
-        setStatus('success');
-        onDetectionComplete?.(landmarks);
-        console.log(`[SkeletonCanvas ${angle}] 骨骼标注绘制完成`);
-
-        // 清理资源
-        pose.close?.();
-      });
-
-      // 发送图片进行检测
-      await pose.send({ image: img });
+      setStatus('success');
+      onDetectionComplete?.(landmarks);
+      console.log(`[SkeletonCanvas ${angle}] 检测成功，${landmarks.length} 个关键点`);
 
     } catch (err: any) {
       console.error(`[SkeletonCanvas ${angle}] 检测失败:`, err);
 
-      // 检查是否需要重试
-      if (retryAttempt < MAX_RETRIES) {
-        console.log(`[SkeletonCanvas ${angle}] 准备重试...`);
-        setRetryCount(retryAttempt + 1);
-        
-        // 延迟后重试
-        setTimeout(() => {
-          performDetection(retryAttempt + 1);
-        }, 1000);
-      } else {
-        // 重试次数用完，显示错误
-        const errorMsg = err?.message || '检测失败';
-        setError(`检测失败: ${errorMsg}`);
-        setStatus('error');
-        onDetectionComplete?.(null);
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext('2d');
+      if (ctx && canvas) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+        ctx.fillRect(0, canvas.height / 2 - 25, canvas.width, 50);
+        ctx.fillStyle = '#ff6b6b';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        const errMsg = err?.message || '检测失败';
+        ctx.fillText(errMsg.substring(0, 30), canvas.width / 2, canvas.height / 2);
       }
+
+      setError(err?.message || '检测失败');
+      setStatus('error');
+      onDetectionComplete?.(null);
     }
   }, [imageUrl, angle, onDetectionComplete]);
 
   // 当图片URL变化时执行检测
   useEffect(() => {
-    if (imageUrl && !detectionAttemptedRef.current) {
-      detectionAttemptedRef.current = true;
-      performDetection(0);
+    if (imageUrl) {
+      detectionRef.current = false;
+      // 延迟执行，确保 Pose 已初始化
+      const timer = setTimeout(() => {
+        performDetection();
+      }, 500);
+      return () => clearTimeout(timer);
     }
-
-    return () => {
-      detectionAttemptedRef.current = false;
-    };
   }, [imageUrl, performDetection]);
 
   // 下载标注图
@@ -396,9 +318,9 @@ export default function SkeletonAnnotationCanvas({
 
   // 手动重试
   const handleRetry = () => {
-    setRetryCount(0);
+    detectionRef.current = false;
     setError('');
-    performDetection(0);
+    performDetection();
   };
 
   const angleLabel = angle === 'front' ? '正面' : angle === 'back' ? '背面' : angle === 'left' ? '左侧' : '右侧';
@@ -410,7 +332,7 @@ export default function SkeletonAnnotationCanvas({
           <span className="text-sm font-medium bg-gray-100 px-2 py-1 rounded">{angleLabel}</span>
           {status === 'loading' && (
             <span className="text-xs text-gray-500 flex items-center gap-1">
-              <Loader2 className="h-3 w-3 animate-spin" /> 加载模型...
+              <Loader2 className="h-3 w-3 animate-spin" /> 等待检测...
             </span>
           )}
           {status === 'detecting' && (
@@ -426,18 +348,17 @@ export default function SkeletonAnnotationCanvas({
           {status === 'error' && (
             <span className="text-xs text-red-500 flex items-center gap-1">
               <AlertCircle className="h-3 w-3" /> {error || '检测失败'}
-              {retryCount > 0 && ` (已重试${retryCount}次)`}
             </span>
           )}
         </div>
       </div>
 
-      <div ref={containerRef} className="relative bg-gray-50 rounded-lg overflow-hidden min-h-[200px] flex items-center justify-center">
+      <div className="relative bg-gray-50 rounded-lg overflow-hidden min-h-[200px] flex items-center justify-center">
         {status === 'loading' && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">加载骨骼检测模型...</p>
+              <p className="text-sm text-gray-500">等待骨骼检测...</p>
             </div>
           </div>
         )}
