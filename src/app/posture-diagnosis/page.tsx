@@ -448,6 +448,83 @@ export default function PostureDiagnosisPageV2() {
     }
   };
 
+  // 从历史记录导出PDF报告
+  const handleViewRecordFromHistory = useCallback(async (record: any) => {
+    setExportingPDF(true);
+    
+    try {
+      // 构建问题数据
+      const issues = record.issues?.map((i: any) => ({
+        type: i.type || '',
+        name: i.name || '',
+        severity: i.severity || 'mild',
+        angle: i.angle || 0,
+        description: i.description || '',
+        cause: '',
+        impact: '',
+        recommendation: '',
+      })) || [];
+
+      // 构建报告数据
+      const reportData: ReportData = {
+        userName: record.name || undefined,
+        assessmentDate: record.assessment_date ? 
+          new Date(record.assessment_date).toLocaleDateString('zh-CN') : 
+          new Date().toLocaleDateString('zh-CN'),
+        overallScore: record.overall_score || 0,
+        grade: record.grade || 'C',
+        issues: issues,
+        angles: record.angles || {},
+        muscles: record.muscles || { tight: [], weak: [] },
+        risks: record.health_risks?.map((r: any) => ({
+          category: r.category || '',
+          risk: r.risk || 'low',
+          condition: r.condition || '',
+          cause: '',
+          prevention: '',
+        })) || [],
+        recommendations: {
+          immediate: issues.filter((i: any) => i.severity === 'severe').map((i: any) => 
+            `及时就医检查${i.name}，避免进一步恶化`
+          ),
+          shortTerm: issues.filter((i: any) => i.severity === 'moderate').map((i: any) => 
+            `改善${i.name}问题，加强相关肌肉训练`
+          ),
+          longTerm: [
+            '建立规律的运动习惯，每周至少3次体态矫正训练',
+            '保持良好的坐姿和站姿习惯，避免长时间保持同一姿势',
+            '定期进行体态评估复查，建议每4周一次',
+          ],
+        },
+        detailedAnalysis: record.ai_detailed_analysis?.detailedAnalysis,
+        fasciaChainAnalysis: record.ai_detailed_analysis?.fasciaChainAnalysis,
+        breathingAssessment: record.ai_detailed_analysis?.breathingAssessment,
+        healthPrediction: record.ai_detailed_analysis?.healthPrediction,
+        tcmAnalysis: record.tcm_analysis ? {
+          constitution: record.tcm_analysis.constitution || '',
+          meridians: record.tcm_analysis.meridians || [],
+          acupoints: record.tcm_analysis.acupoints || [],
+          dietSuggestions: record.tcm_analysis.dietSuggestions || [],
+          daoyinSuggestions: record.tcm_analysis.daoyinSuggestions || [],
+        } : undefined,
+        trainingPlan: record.training_plan ? {
+          phases: record.training_plan.phases || [],
+        } : undefined,
+        images: {
+          front: record.image_front || record.annotation_front || undefined,
+        },
+      };
+      
+      const blob = await generatePDFReport(reportData);
+      downloadPDF(blob, generateReportFilename(record.overall_score || 0));
+    } catch (error) {
+      console.error('历史记录PDF导出失败:', error);
+      setError('PDF导出失败，请稍后重试');
+    } finally {
+      setExportingPDF(false);
+    }
+  }, []);
+
   // ==================== Canvas绘制 ====================
   
   // 绘制骨骼标注图的函数
@@ -2187,7 +2264,9 @@ export default function PostureDiagnosisPageV2() {
               历史记录管理
             </DialogTitle>
           </DialogHeader>
-          <PostureHistoryManager />
+          <PostureHistoryManager 
+            onViewRecord={handleViewRecordFromHistory}
+          />
         </DialogContent>
       </Dialog>
       

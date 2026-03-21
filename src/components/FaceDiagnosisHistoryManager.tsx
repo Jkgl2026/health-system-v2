@@ -11,10 +11,11 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Search, User, History, Plus, ChevronRight, Calendar,
-  AlertCircle, Loader2, Users, FileText, Trash2, Eye, X
+  AlertCircle, Loader2, Users, FileText, Trash2, Eye, X, FileDown
 } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { generateTCMPDFReport, downloadTCMPDF, generateTCMReportFilename, TCMReportData } from '@/lib/tcm-pdf-generator';
 
 // 用户接口
 interface FaceDiagnosisUser {
@@ -67,6 +68,44 @@ export default function FaceDiagnosisHistoryManager({
   const [searchPhone, setSearchPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
+  const [exportingPDF, setExportingPDF] = useState(false);
+
+  // 导出PDF报告
+  const handleExportPDF = useCallback(async () => {
+    if (!recordDetail) return;
+    
+    setExportingPDF(true);
+    try {
+      const reportData: TCMReportData = {
+        userName: recordDetail.name || undefined,
+        diagnosisDate: recordDetail.diagnosis_date ? 
+          new Date(recordDetail.diagnosis_date).toLocaleDateString('zh-CN') : 
+          new Date().toLocaleDateString('zh-CN'),
+        diagnosisType: 'face',
+        constitution: recordDetail.constitution || undefined,
+        faceColor: recordDetail.face_color || undefined,
+        healthHints: recordDetail.health_hints?.map((h: any) => ({
+          category: h.category || '健康提示',
+          hint: h.hint || h,
+          severity: h.severity || 'low',
+        })) || [],
+        recommendations: {
+          diet: recordDetail.recommendations?.filter((r: any) => r.type === 'diet').map((r: any) => r.content || r) || [],
+          lifestyle: recordDetail.recommendations?.filter((r: any) => r.type === 'lifestyle').map((r: any) => r.content || r) || [],
+        },
+        aiAnalysis: recordDetail.ai_analysis || recordDetail.full_report || undefined,
+        imageThumbnail: recordDetail.image_thumbnail || undefined,
+      };
+      
+      const blob = await generateTCMPDFReport(reportData);
+      downloadTCMPDF(blob, generateTCMReportFilename('face'));
+    } catch (error) {
+      console.error('PDF导出失败:', error);
+      alert('PDF导出失败，请稍后重试');
+    } finally {
+      setExportingPDF(false);
+    }
+  }, [recordDetail]);
 
   // 加载用户列表
   const loadUsers = useCallback(async () => {
@@ -398,8 +437,18 @@ export default function FaceDiagnosisHistoryManager({
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button onClick={() => setShowDetailDialog(false)}>关闭</Button>
+          <DialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowDetailDialog(false)}>
+              关闭
+            </Button>
+            <Button onClick={handleExportPDF} disabled={exportingPDF}>
+              {exportingPDF ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <FileDown className="h-4 w-4 mr-2" />
+              )}
+              导出报告
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
