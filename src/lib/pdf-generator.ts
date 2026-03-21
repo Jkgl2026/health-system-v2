@@ -1,25 +1,16 @@
 /**
- * AI体态评估报告生成器 - 专业医疗版 v4.2
- * 使用 jsPDF + 中文字体生成 PDF 报告
+ * AI体态评估报告生成器 - 专业医疗版 v4.3
+ * 使用 html2canvas + jsPDF 生成支持中文的PDF报告
  * 
  * 设计理念：
- * 1. 使用 jsPDF 确保文字清晰可复制
- * 2. 使用 jspdf-autotable 生成专业医疗表格
+ * 1. 使用 html2canvas 渲染中文内容为图片
+ * 2. 使用 jsPDF 生成专业医疗报告
  * 3. 医学化专业术语和描述
  * 4. 完整的审核签名流程
  */
 
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-
-// 扩展 jsPDF 类型
-declare module 'jspdf' {
-  interface jsPDF {
-    lastAutoTable?: {
-      finalY: number;
-    };
-  }
-}
+import html2canvas from 'html2canvas';
 
 // ==================== 类型定义 ====================
 
@@ -123,67 +114,11 @@ export interface ReportData {
   };
 }
 
-// ==================== 中文字体支持 ====================
-
-// 使用在线加载中文字体的方式
-let chineseFontLoaded = false;
-const CHINESE_FONT_URL = 'https://cdn.jsdelivr.net/gh/Advplyr/jspdf-chinese-fonts@master/dist/SourceHanSansCN-Normal-bold.js';
-
-/**
- * 加载中文字体
- */
-async function loadChineseFont(): Promise<void> {
-  if (chineseFontLoaded) return;
-  
-  try {
-    // 动态加载中文字体脚本
-    const script = document.createElement('script');
-    script.src = CHINESE_FONT_URL;
-    document.head.appendChild(script);
-    
-    await new Promise<void>((resolve, reject) => {
-      script.onload = () => {
-        chineseFontLoaded = true;
-        resolve();
-      };
-      script.onerror = () => reject(new Error('Failed to load Chinese font'));
-    });
-  } catch (error) {
-    console.warn('Chinese font loading failed, using fallback');
-  }
-}
-
-// ==================== 配置常量 ====================
-
-const COLORS: Record<string, [number, number, number]> = {
-  primary: [30, 64, 175],
-  primaryLight: [219, 234, 254],
-  primaryDark: [30, 58, 138],
-  success: [22, 163, 74],
-  successLight: [220, 252, 231],
-  warning: [217, 119, 6],
-  warningLight: [254, 243, 199],
-  danger: [220, 38, 38],
-  dangerLight: [254, 226, 226],
-  text: [31, 41, 55],
-  textSecondary: [75, 85, 99],
-  textMuted: [156, 163, 175],
-  border: [229, 231, 235],
-  background: [249, 250, 251],
-};
-
-const PAGE = {
-  width: 210,
-  height: 297,
-  margin: 15,
-  contentWidth: 180,
-};
-
 // ==================== 辅助函数 ====================
 
 function formatDate(date: string | Date): string {
   const d = typeof date === 'string' ? new Date(date) : date;
-  return `${d.getFullYear()}-${(d.getMonth() + 1).toString().padStart(2, '0')}-${d.getDate().toString().padStart(2, '0')}`;
+  return `${d.getFullYear()}年${(d.getMonth() + 1).toString().padStart(2, '0')}月${d.getDate().toString().padStart(2, '0')}日`;
 }
 
 function formatDateTime(date: string | Date): string {
@@ -192,839 +127,589 @@ function formatDateTime(date: string | Date): string {
 }
 
 function getSeverityText(severity: string): string {
-  const map: Record<string, string> = { severe: 'Severe', moderate: 'Moderate', mild: 'Mild' };
-  return map[severity] || 'Normal';
+  const map: Record<string, string> = { severe: '重度', moderate: '中度', mild: '轻度' };
+  return map[severity] || '正常';
 }
 
-function getSeverityColor(severity: string): [number, number, number] {
-  const map: Record<string, [number, number, number]> = {
-    severe: COLORS.danger,
-    moderate: COLORS.warning,
-    mild: COLORS.success,
-  };
-  return map[severity] || COLORS.textMuted;
+function getSeverityClass(severity: string): string {
+  const map: Record<string, string> = { severe: 'severity-severe', moderate: 'severity-moderate', mild: 'severity-mild' };
+  return map[severity] || '';
 }
 
 function getRiskText(risk: string): string {
-  const map: Record<string, string> = { high: 'High', medium: 'Medium', low: 'Low' };
-  return map[risk] || 'Unknown';
+  const map: Record<string, string> = { high: '高风险', medium: '中风险', low: '低风险' };
+  return map[risk] || '未知';
 }
 
 function getGradeText(grade: string): string {
-  const map: Record<string, string> = { A: 'Excellent', B: 'Good', C: 'Fair', D: 'Poor', E: 'Need Improvement' };
-  return map[grade] || 'Unknown';
+  const map: Record<string, string> = { A: '优秀', B: '良好', C: '一般', D: '较差', E: '需改善' };
+  return map[grade] || '未知';
 }
 
-function getScoreColor(score: number): [number, number, number] {
-  if (score >= 80) return COLORS.success;
-  if (score >= 60) return COLORS.warning;
-  return COLORS.danger;
+function getScoreClass(score: number): string {
+  if (score >= 80) return 'score-excellent';
+  if (score >= 60) return 'score-good';
+  return 'score-poor';
+}
+
+// ==================== HTML 模板生成 ====================
+
+function generateReportHTML(data: ReportData, reportId: string): string {
+  const severeCount = data.issues.filter(i => i.severity === 'severe').length;
+  const moderateCount = data.issues.filter(i => i.severity === 'moderate').length;
+  const mildCount = data.issues.filter(i => i.severity === 'mild').length;
+
+  return `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #fff; }
+    
+    .page { width: 794px; min-height: 1123px; padding: 40px; background: #fff; position: relative; }
+    
+    /* 颜色定义 */
+    .primary { color: #1e40af; }
+    .primary-bg { background: #1e40af; }
+    .primary-light { background: #dbeafe; }
+    .success { color: #16a34a; }
+    .success-bg { background: #dcfce7; }
+    .warning { color: #d97706; }
+    .warning-bg { background: #fef3c7; }
+    .danger { color: #dc2626; }
+    .danger-bg { background: #fee2e2; }
+    .text-gray { color: #6b7280; }
+    .text-muted { color: #9ca3af; }
+    .bg-gray { background: #f9fafb; }
+    
+    /* 评分颜色 */
+    .score-excellent { color: #16a34a; }
+    .score-good { color: #d97706; }
+    .score-poor { color: #dc2626; }
+    
+    /* 严重程度 */
+    .severity-severe { color: #dc2626; font-weight: bold; }
+    .severity-moderate { color: #d97706; font-weight: bold; }
+    .severity-mild { color: #16a34a; }
+    
+    /* 封面样式 */
+    .cover-header { background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%); color: white; padding: 40px; margin: -40px -40px 30px -40px; }
+    .cover-title { font-size: 32px; font-weight: bold; margin-bottom: 8px; }
+    .cover-subtitle { font-size: 16px; opacity: 0.9; margin-bottom: 15px; }
+    .cover-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 20px; font-size: 14px; }
+    
+    /* 条形码区域 */
+    .barcode-box { border: 1px solid #e5e7eb; padding: 15px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .barcode-label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .barcode-value { font-family: monospace; font-size: 16px; font-weight: bold; letter-spacing: 2px; }
+    
+    /* 表格样式 */
+    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .info-table th, .info-table td { border: 1px solid #e5e7eb; padding: 10px 12px; text-align: left; font-size: 13px; }
+    .info-table th { background: #1e40af; color: white; font-weight: 600; }
+    .info-table .label { background: #f9fafb; font-weight: 600; width: 100px; }
+    .info-table .striped { background: #f9fafb; }
+    
+    /* 摘要卡片 */
+    .summary-cards { display: flex; gap: 15px; margin-bottom: 20px; }
+    .summary-card { flex: 1; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; text-align: center; }
+    .summary-card .label { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
+    .summary-card .value { font-size: 24px; font-weight: bold; }
+    
+    /* 检测方法 */
+    .method-box { border: 1px solid #e5e7eb; padding: 15px; margin-bottom: 20px; }
+    .method-title { font-size: 13px; font-weight: 600; color: #6b7280; margin-bottom: 8px; }
+    .method-text { font-size: 12px; color: #374151; line-height: 1.6; }
+    
+    /* 章节标题 */
+    .section-title { background: #1e40af; color: white; padding: 10px 15px; font-size: 14px; font-weight: bold; margin-bottom: 15px; }
+    
+    /* 页眉 */
+    .page-header { background: #1e40af; color: white; padding: 8px 15px; margin: -40px -40px 20px -40px; display: flex; justify-content: space-between; font-size: 11px; }
+    
+    /* 页脚 */
+    .page-footer { position: absolute; bottom: 20px; left: 40px; right: 40px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+    
+    /* 目录 */
+    .toc-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e5e7eb; font-size: 13px; }
+    .toc-item .title { color: #1e40af; font-weight: 500; }
+    .toc-item .page { color: #6b7280; }
+    
+    /* 正文段落 */
+    .body-text { font-size: 13px; line-height: 1.8; color: #374151; margin-bottom: 15px; }
+    
+    /* 问题卡片 */
+    .issue-card { border: 1px solid #e5e7eb; border-left: 4px solid #6b7280; padding: 12px 15px; margin-bottom: 10px; display: flex; align-items: flex-start; }
+    .issue-card.severe { border-left-color: #dc2626; }
+    .issue-card.moderate { border-left-color: #d97706; }
+    .issue-card.mild { border-left-color: #16a34a; }
+    .issue-number { background: #dbeafe; color: #1e40af; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: 12px; flex-shrink: 0; }
+    .issue-content { flex: 1; }
+    .issue-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .issue-meta { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    .issue-desc { font-size: 11px; color: #4b5563; }
+    .issue-severity { font-size: 11px; padding: 3px 8px; border-radius: 10px; margin-left: 10px; }
+    .issue-severity.severe { background: #fee2e2; color: #dc2626; }
+    .issue-severity.moderate { background: #fef3c7; color: #d97706; }
+    .issue-severity.mild { background: #dcfce7; color: #16a34a; }
+    
+    /* 建议区块 */
+    .rec-block { margin-bottom: 15px; }
+    .rec-header { padding: 6px 10px; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+    .rec-header.danger { background: #fee2e2; color: #dc2626; }
+    .rec-header.warning { background: #fef3c7; color: #d97706; }
+    .rec-header.primary { background: #dbeafe; color: #1e40af; }
+    .rec-list { padding-left: 20px; font-size: 12px; line-height: 1.8; }
+    
+    /* 签名区域 */
+    .signature-box { border: 1px solid #e5e7eb; display: flex; margin-bottom: 20px; }
+    .signature-item { flex: 1; padding: 20px; text-align: center; border-right: 1px solid #e5e7eb; }
+    .signature-item:last-child { border-right: none; }
+    .signature-label { font-size: 11px; color: #6b7280; margin-bottom: 8px; }
+    .signature-value { font-size: 13px; margin-bottom: 5px; }
+    .signature-date { font-size: 10px; color: #9ca3af; }
+    
+    /* 免责声明 */
+    .disclaimer { background: #fef3c7; padding: 12px 15px; margin-bottom: 15px; }
+    .disclaimer-title { font-size: 12px; font-weight: 600; color: #92400e; margin-bottom: 5px; }
+    .disclaimer-text { font-size: 11px; color: #78350f; line-height: 1.6; }
+    
+    /* 分页符 */
+    .page-break { page-break-after: always; }
+  </style>
+</head>
+<body>
+  <!-- ========== 第1页：封面 ========== -->
+  <div class="page" id="page1">
+    <div class="cover-header">
+      <div class="cover-title">AI 体态评估系统</div>
+      <div class="cover-subtitle">专业体态分析与健康评估报告</div>
+      <div class="cover-badge">体态评估报告</div>
+    </div>
+    
+    <div class="barcode-box">
+      <div>
+        <div class="barcode-label">报告编号</div>
+        <div class="barcode-value">${reportId}</div>
+      </div>
+      <div style="text-align: right;">
+        <div class="barcode-label">生成时间</div>
+        <div style="font-size: 13px;">${formatDateTime(new Date())}</div>
+      </div>
+    </div>
+    
+    <table class="info-table">
+      <tr><th colspan="4">受检者信息</th></tr>
+      <tr>
+        <td class="label">姓　　名</td>
+        <td>${data.userName || '未填写'}</td>
+        <td class="label">性　　别</td>
+        <td>${data.userGender || '未填写'}</td>
+      </tr>
+      <tr class="striped">
+        <td class="label">年　　龄</td>
+        <td>${data.userAge || '未填写'}</td>
+        <td class="label">联系电话</td>
+        <td>${data.userPhone || '未填写'}</td>
+      </tr>
+      <tr>
+        <td class="label">评估日期</td>
+        <td>${formatDate(data.assessmentDate)}</td>
+        <td class="label">报告编号</td>
+        <td>${reportId}</td>
+      </tr>
+    </table>
+    
+    <table class="info-table">
+      <tr><th colspan="3">评估结果摘要</th></tr>
+    </table>
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="label">综合评分</div>
+        <div class="value ${getScoreClass(data.overallScore)}">${data.overallScore}分</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">评估等级</div>
+        <div class="value">${data.grade}级 (${getGradeText(data.grade)})</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">异常项目</div>
+        <div class="value">${data.issues.length}项</div>
+      </div>
+    </div>
+    
+    <div class="method-box">
+      <div class="method-title">检测方法</div>
+      <div class="method-text">本报告采用 MediaPipe 视觉分析技术，对人体骨骼关键点进行精准定位，结合 AI 深度学习算法进行体态评估。评估依据：《人体姿态评估规范》（T/CNAS 001-2023）、《运动医学体态分析指南》等标准。</div>
+    </div>
+    
+    <div style="position: absolute; bottom: 40px; left: 40px; right: 40px; text-align: center; font-size: 11px; color: #9ca3af;">
+      <div>本报告由 AI 系统自动生成，仅供参考，不作为临床诊断依据。</div>
+    </div>
+  </div>
+
+  <!-- ========== 第2页：目录 ========== -->
+  <div class="page" id="page2">
+    <div class="page-header">
+      <span>AI 体态评估系统</span>
+      <span>第 2 页 / 共 8 页</span>
+    </div>
+    
+    <div class="section-title">目　录</div>
+    
+    <div class="toc-item"><span class="title">一、评估摘要</span><span class="page">3</span></div>
+    <div class="toc-item"><span class="title">二、体态问题详细分析</span><span class="page">4</span></div>
+    <div class="toc-item"><span class="title">三、肌肉功能评估</span><span class="page">5</span></div>
+    <div class="toc-item"><span class="title">四、健康风险评估</span><span class="page">5</span></div>
+    <div class="toc-item"><span class="title">五、健康发展预测</span><span class="page">6</span></div>
+    <div class="toc-item"><span class="title">六、改善方案与建议</span><span class="page">6</span></div>
+    <div class="toc-item"><span class="title">七、中医体质分析</span><span class="page">7</span></div>
+    <div class="toc-item"><span class="title">八、附录与参考标准</span><span class="page">8</span></div>
+    
+    <div class="method-box" style="margin-top: 30px;">
+      <div class="method-title">报告说明</div>
+      <div class="method-text">
+        1. 本报告基于 AI 视觉分析技术，对受检者体态进行综合评估，评估结果仅供参考。<br>
+        2. 评估等级说明：A级(≥90分)优秀、B级(80-89分)良好、C级(60-79分)一般、D级(40-59分)较差、E级(<40分)需改善。<br>
+        3. 状态标识说明：↑↑表示重度异常、↑表示中度异常、−表示轻度异常、正常表示在参考范围内。<br>
+        4. 本报告不作为医疗诊断依据，如有身体不适请及时就医。<br>
+        5. 建议每 4 周进行一次复查，跟踪体态改善情况。
+      </div>
+    </div>
+    
+    <div class="page-footer">本报告由 AI 体态评估系统自动生成，仅供参考，不作为临床诊断依据。</div>
+  </div>
+
+  <!-- ========== 第3页：评估摘要 ========== -->
+  <div class="page" id="page3">
+    <div class="page-header">
+      <span>AI 体态评估系统</span>
+      <span>第 3 页 / 共 8 页</span>
+    </div>
+    
+    <div class="section-title">一、评估摘要</div>
+    
+    <p class="body-text">
+      经 AI 体态评估系统检测分析，受检者${data.userName || '被评估者'}体态综合评分为 <strong>${data.overallScore}分</strong>，根据《人体姿态评估规范》标准，评估等级为 <strong>${data.grade}级</strong>（${getGradeText(data.grade)}）。本次检测共发现 <strong>${data.issues.length}项</strong> 体态异常，其中重度异常 ${severeCount} 项、中度异常 ${moderateCount} 项、轻度异常 ${mildCount} 项。
+    </p>
+    
+    <table class="info-table">
+      <tr>
+        <th style="width: 40px;">序号</th>
+        <th>检测项目</th>
+        <th style="width: 70px;">检测值</th>
+        <th style="width: 100px;">参考范围</th>
+        <th style="width: 60px;">状态</th>
+      </tr>
+      ${data.issues.length > 0 ? data.issues.map((issue, i) => `
+      <tr class="${i % 2 === 1 ? 'striped' : ''}">
+        <td style="text-align: center;">${i + 1}</td>
+        <td>${issue.name}</td>
+        <td style="text-align: center;">${issue.angle.toFixed(1)}°</td>
+        <td style="text-align: center;">${issue.referenceRange || '正常范围'}</td>
+        <td style="text-align: center;" class="${getSeverityClass(issue.severity)}">${getSeverityText(issue.severity)}</td>
+      </tr>
+      `).join('') : `
+      <tr><td colspan="5" style="text-align: center; color: #16a34a; padding: 20px;">恭喜！本次检测未发现明显体态异常问题。</td></tr>
+      `}
+    </table>
+    
+    <div class="page-footer">本报告由 AI 体态评估系统自动生成，仅供参考，不作为临床诊断依据。</div>
+  </div>
+
+  <!-- ========== 第4页：详细分析 ========== -->
+  <div class="page" id="page4">
+    <div class="page-header">
+      <span>AI 体态评估系统</span>
+      <span>第 4 页 / 共 8 页</span>
+    </div>
+    
+    <div class="section-title">二、体态问题详细分析</div>
+    
+    ${data.issues.length > 0 ? data.issues.map((issue, i) => `
+    <div class="issue-card ${issue.severity}">
+      <div class="issue-number">${i + 1}</div>
+      <div class="issue-content">
+        <div style="display: flex; align-items: center;">
+          <span class="issue-title">${issue.name}</span>
+          <span class="issue-severity ${issue.severity}">${getSeverityText(issue.severity)}</span>
+        </div>
+        <div class="issue-meta">检测值: ${issue.angle.toFixed(1)}°  |  参考范围: ${issue.referenceRange || '正常范围'}</div>
+        ${issue.description ? `<div class="issue-desc">${issue.description}</div>` : ''}
+      </div>
+    </div>
+    `).join('') : '<div style="text-align: center; padding: 40px; color: #16a34a;">无异常项目</div>'}
+    
+    <div class="page-footer">本报告由 AI 体态评估系统自动生成，仅供参考，不作为临床诊断依据。</div>
+  </div>
+
+  <!-- ========== 第5页：肌肉与风险评估 ========== -->
+  <div class="page" id="page5">
+    <div class="page-header">
+      <span>AI 体态评估系统</span>
+      <span>第 5 页 / 共 8 页</span>
+    </div>
+    
+    <div class="section-title">三、肌肉功能评估</div>
+    
+    ${data.muscles && (data.muscles.tight.length > 0 || data.muscles.weak.length > 0) ? `
+    <table class="info-table">
+      <tr>
+        <th style="background: #dc2626;">紧张肌肉</th>
+        <th style="background: #1e40af;">无力肌肉</th>
+      </tr>
+      ${Array.from({ length: Math.max(data.muscles?.tight.length || 0, data.muscles?.weak.length || 0) }).map((_, i) => `
+      <tr class="${i % 2 === 1 ? 'striped' : ''}">
+        <td style="text-align: center; color: #dc2626;">${data.muscles?.tight[i] || '-'}</td>
+        <td style="text-align: center; color: #1e40af;">${data.muscles?.weak[i] || '-'}</td>
+      </tr>
+      `).join('')}
+    </table>
+    ` : '<div style="text-align: center; padding: 20px; color: #6b7280;">暂无肌肉评估数据</div>'}
+    
+    <div class="section-title" style="margin-top: 25px;">四、健康风险评估</div>
+    
+    ${data.risks && data.risks.length > 0 ? `
+    <table class="info-table">
+      <tr>
+        <th style="width: 80px;">风险类别</th>
+        <th>潜在健康问题</th>
+        <th style="width: 70px;">风险等级</th>
+        <th style="width: 90px;">参考编码</th>
+      </tr>
+      ${data.risks.map((risk, i) => `
+      <tr class="${i % 2 === 1 ? 'striped' : ''}">
+        <td style="text-align: center;">${risk.category}</td>
+        <td>${risk.condition}</td>
+        <td style="text-align: center; ${risk.risk === 'high' ? 'color: #dc2626; font-weight: bold;' : risk.risk === 'medium' ? 'color: #d97706;' : 'color: #16a34a;'}">${getRiskText(risk.risk)}</td>
+        <td style="text-align: center;">${risk.icdCode || '-'}</td>
+      </tr>
+      `).join('')}
+    </table>
+    ` : '<div style="text-align: center; padding: 20px; color: #6b7280;">暂无风险评估数据</div>'}
+    
+    <div class="page-footer">本报告由 AI 体态评估系统自动生成，仅供参考，不作为临床诊断依据。</div>
+  </div>
+
+  <!-- ========== 第6页：预测与建议 ========== -->
+  <div class="page" id="page6">
+    <div class="page-header">
+      <span>AI 体态评估系统</span>
+      <span>第 6 页 / 共 8 页</span>
+    </div>
+    
+    <div class="section-title">五、健康发展预测</div>
+    
+    ${data.healthPrediction ? `
+    <table class="info-table">
+      <tr><th style="width: 120px;">预测周期</th><th>发展预测</th></tr>
+      <tr><td style="text-align: center; font-weight: 600;">短期（1-3个月）</td><td>${data.healthPrediction.shortTerm || '建议定期复查'}</td></tr>
+      <tr class="striped"><td style="text-align: center; font-weight: 600;">中期（6-12个月）</td><td>${data.healthPrediction.midTerm || '持续关注体态变化'}</td></tr>
+      <tr><td style="text-align: center; font-weight: 600;">长期（3年以上）</td><td>${data.healthPrediction.longTerm || '预防慢性疼痛发生'}</td></tr>
+    </table>
+    ` : ''}
+    
+    <div class="section-title" style="margin-top: 25px;">六、改善方案与建议</div>
+    
+    ${data.recommendations ? `
+    ${data.recommendations.immediate?.length ? `
+    <div class="rec-block">
+      <div class="rec-header danger">立即行动（建议即刻执行）</div>
+      <ol class="rec-list">
+        ${data.recommendations.immediate.slice(0, 3).map(r => `<li>${r}</li>`).join('')}
+      </ol>
+    </div>
+    ` : ''}
+    
+    ${data.recommendations.shortTerm?.length ? `
+    <div class="rec-block">
+      <div class="rec-header warning">短期计划（1-4周内执行）</div>
+      <ol class="rec-list">
+        ${data.recommendations.shortTerm.slice(0, 3).map(r => `<li>${r}</li>`).join('')}
+      </ol>
+    </div>
+    ` : ''}
+    
+    ${data.recommendations.longTerm?.length ? `
+    <div class="rec-block">
+      <div class="rec-header primary">长期策略（持续执行1-3个月）</div>
+      <ol class="rec-list">
+        ${data.recommendations.longTerm.slice(0, 3).map(r => `<li>${r}</li>`).join('')}
+      </ol>
+    </div>
+    ` : ''}
+    ` : '<div style="text-align: center; padding: 20px; color: #6b7280;">暂无建议数据</div>'}
+    
+    <div class="page-footer">本报告由 AI 体态评估系统自动生成，仅供参考，不作为临床诊断依据。</div>
+  </div>
+
+  <!-- ========== 第7页：中医分析 ========== -->
+  <div class="page" id="page7">
+    <div class="page-header">
+      <span>AI 体态评估系统</span>
+      <span>第 7 页 / 共 8 页</span>
+    </div>
+    
+    <div class="section-title">七、中医体质分析</div>
+    
+    ${data.tcmAnalysis ? `
+    ${data.tcmAnalysis.constitution ? `
+    <div class="warning-bg" style="padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+      <div style="font-size: 12px; color: #92400e; font-weight: 600; margin-bottom: 5px;">体质判断</div>
+      <div style="font-size: 18px; color: #78350f; font-weight: bold;">${data.tcmAnalysis.constitution}</div>
+    </div>
+    ` : ''}
+    
+    ${data.tcmAnalysis.meridians?.length ? `
+    <table class="info-table">
+      <tr><th style="background: #dc2626; width: 100px;">经络名称</th><th style="background: #dc2626; width: 80px;">状态</th><th style="background: #dc2626;">分析说明</th></tr>
+      ${data.tcmAnalysis.meridians.map((m, i) => `
+      <tr class="${i % 2 === 1 ? 'striped' : ''}">
+        <td style="text-align: center;">${m.name}</td>
+        <td style="text-align: center;">${m.status}</td>
+        <td>${(m.reason || '').substring(0, 50)}</td>
+      </tr>
+      `).join('')}
+    </table>
+    ` : ''}
+    
+    ${data.tcmAnalysis.acupoints?.length ? `
+    <div style="margin-top: 20px;">
+      <div style="font-size: 13px; font-weight: 600; color: #059669; margin-bottom: 10px;">穴位调理建议</div>
+      <ol style="padding-left: 20px; font-size: 12px; line-height: 1.8;">
+        ${data.tcmAnalysis.acupoints.slice(0, 4).map(a => `<li><strong>${a.name}</strong>（${a.location}）：${a.benefit}</li>`).join('')}
+      </ol>
+    </div>
+    ` : ''}
+    ` : '<div style="text-align: center; padding: 40px; color: #6b7280;">暂无中医分析数据</div>'}
+    
+    <div class="page-footer">本报告由 AI 体态评估系统自动生成，仅供参考，不作为临床诊断依据。</div>
+  </div>
+
+  <!-- ========== 第8页：附录与签名 ========== -->
+  <div class="page" id="page8">
+    <div class="page-header">
+      <span>AI 体态评估系统</span>
+      <span>第 8 页 / 共 8 页</span>
+    </div>
+    
+    <div class="section-title">八、附录与参考标准</div>
+    
+    <table class="info-table">
+      <tr><th>评估指标</th><th style="width: 100px;">正常参考范围</th><th>说明</th></tr>
+      <tr><td style="text-align: center;">头前伸角度</td><td style="text-align: center;">&lt; 10°</td><td>颈胸角正常范围</td></tr>
+      <tr class="striped"><td style="text-align: center;">肩部倾斜</td><td style="text-align: center;">&lt; 2°</td><td>双肩高度差</td></tr>
+      <tr><td style="text-align: center;">骨盆前倾角</td><td style="text-align: center;">5-15°</td><td>髂前上棘与髂后上棘连线角度</td></tr>
+      <tr class="striped"><td style="text-align: center;">膝关节角度</td><td style="text-align: center;">170-180°</td><td>膝关节伸展角度</td></tr>
+      <tr><td style="text-align: center;">脊柱对齐度</td><td style="text-align: center;">&gt; 90%</td><td>脊柱侧弯程度评估</td></tr>
+      <tr class="striped"><td style="text-align: center;">肩胛骨位置</td><td style="text-align: center;">对称</td><td>肩胛骨内侧缘距脊柱距离</td></tr>
+    </table>
+    
+    <div class="section-title" style="margin-top: 25px;">报告审核</div>
+    
+    <div class="signature-box">
+      <div class="signature-item">
+        <div class="signature-label">报告生成</div>
+        <div class="signature-value">AI 体态评估系统</div>
+        <div class="signature-date">${formatDateTime(new Date())}</div>
+      </div>
+      <div class="signature-item">
+        <div class="signature-label">技术审核</div>
+        <div class="signature-value">____________</div>
+        <div class="signature-date">审核日期：________</div>
+      </div>
+      <div class="signature-item">
+        <div class="signature-label">报告签发</div>
+        <div class="signature-value">____________</div>
+        <div class="signature-date">签发日期：________</div>
+      </div>
+    </div>
+    
+    <div class="disclaimer">
+      <div class="disclaimer-title">重要声明</div>
+      <div class="disclaimer-text">本报告由 AI 体态评估系统自动生成，评估结果仅供参考，不作为临床诊断依据。如有身体不适或持续疼痛，请及时就医。本报告有效期为 30 天，建议定期复查跟踪改善效果。</div>
+    </div>
+    
+    <div style="text-align: center; font-size: 11px; color: #9ca3af; margin-top: 20px;">
+      如有疑问，请联系专业康复师或医师进行咨询。
+    </div>
+  </div>
+</body>
+</html>
+`;
 }
 
 // ==================== 主生成函数 ====================
 
 export async function generatePDFReport(data: ReportData): Promise<Blob> {
-  // 尝试加载中文字体
-  try {
-    await loadChineseFont();
-  } catch (e) {
-    console.warn('Font loading skipped');
-  }
-  
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
   const reportId = data.reportId || `PT${Date.now().toString(36).toUpperCase()}`;
   
-  // 检查是否支持中文字体
-  const hasChineseFont = typeof (window as any).SourceHanSansCN !== 'undefined';
-  if (hasChineseFont) {
-    doc.addFileToVFS('SourceHanSansCN-normal.ttf', (window as any).SourceHanSansCN);
-    doc.addFont('SourceHanSansCN-normal.ttf', 'SourceHanSansCN', 'normal');
-    doc.setFont('SourceHanSansCN');
+  // 生成 HTML
+  const html = generateReportHTML(data, reportId);
+  
+  // 创建临时容器
+  const container = document.createElement('div');
+  container.style.cssText = 'position: absolute; left: -9999px; top: 0;';
+  document.body.appendChild(container);
+  
+  // 创建 iframe 来渲染 HTML
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'width: 794px; height: 1123px; border: none;';
+  container.appendChild(iframe);
+  
+  // 写入 HTML
+  const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+  if (!iframeDoc) {
+    throw new Error('无法创建 iframe 文档');
   }
   
-  const severeCount = data.issues.filter(i => i.severity === 'severe').length;
-  const moderateCount = data.issues.filter(i => i.severity === 'moderate').length;
-  const mildCount = data.issues.filter(i => i.severity === 'mild').length;
+  iframeDoc.open();
+  iframeDoc.write(html);
+  iframeDoc.close();
   
-  let y = PAGE.margin;
-  let pageNum = 1;
-  const totalPages = 8;
+  // 等待字体加载
+  await new Promise(resolve => setTimeout(resolve, 500));
   
-  // ==================== 封面 ====================
-  
-  // 顶部蓝色条
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, PAGE.width, 50, 'F');
-  
-  // 标题
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(24);
-  doc.setFont('helvetica', 'bold');
-  doc.text('AI Posture Assessment System', PAGE.width / 2, 20, { align: 'center' });
-  
-  doc.setFontSize(12);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Professional Posture Analysis and Health Assessment Report', PAGE.width / 2, 32, { align: 'center' });
-  
-  // 报告类型
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(PAGE.width / 2 - 35, 38, 70, 8, 2, 2, 'F');
-  doc.setTextColor(...COLORS.primary);
-  doc.setFontSize(10);
-  doc.text('Posture Assessment Report', PAGE.width / 2, 43.5, { align: 'center' });
-  
-  // 条形码区域
-  y = 60;
-  doc.setDrawColor(...COLORS.border);
-  doc.setLineWidth(0.5);
-  doc.rect(PAGE.margin + 20, y, PAGE.contentWidth - 40, 18);
-  
-  doc.setTextColor(...COLORS.textSecondary);
-  doc.setFontSize(8);
-  doc.text('Report ID:', PAGE.margin + 25, y + 6);
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(12);
-  doc.setFont('courier', 'bold');
-  doc.text(reportId, PAGE.margin + 25, y + 13);
-  
-  // 受检者信息表
-  y = 85;
-  
-  autoTable(doc, {
-    startY: y,
-    margin: { left: PAGE.margin + 10, right: PAGE.margin + 10 },
-    tableWidth: PAGE.contentWidth - 20,
-    head: [[
-      { content: 'Examinee Information', colSpan: 4, styles: { fillColor: COLORS.primary, halign: 'center', fontSize: 11, fontStyle: 'bold', textColor: [255,255,255] } }
-    ]],
-    body: [
-      [
-        { content: 'Name', styles: { fillColor: COLORS.background, fontStyle: 'bold', fontSize: 9 } },
-        { content: data.userName || 'N/A', styles: { fontSize: 10 } },
-        { content: 'Gender', styles: { fillColor: COLORS.background, fontStyle: 'bold', fontSize: 9 } },
-        { content: data.userGender || 'N/A', styles: { fontSize: 10 } },
-      ],
-      [
-        { content: 'Age', styles: { fillColor: COLORS.background, fontStyle: 'bold', fontSize: 9 } },
-        { content: data.userAge || 'N/A', styles: { fontSize: 10 } },
-        { content: 'Phone', styles: { fillColor: COLORS.background, fontStyle: 'bold', fontSize: 9 } },
-        { content: data.userPhone || 'N/A', styles: { fontSize: 10 } },
-      ],
-      [
-        { content: 'Assessment Date', styles: { fillColor: COLORS.background, fontStyle: 'bold', fontSize: 9 } },
-        { content: formatDate(data.assessmentDate), styles: { fontSize: 10 } },
-        { content: 'Report ID', styles: { fillColor: COLORS.background, fontStyle: 'bold', fontSize: 9 } },
-        { content: reportId, styles: { fontSize: 10 } },
-      ],
-    ],
-    theme: 'grid',
-    styles: { cellPadding: 3, lineColor: COLORS.border, lineWidth: 0.5, textColor: COLORS.text, font: 'helvetica' },
-    columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 45 }, 2: { cellWidth: 40 }, 3: { cellWidth: 45 } },
+  // 创建 PDF
+  const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
   });
   
-  // 评估结果摘要
-  y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 140;
+  const pageWidth = 210;
+  const pageHeight = 297;
   
-  autoTable(doc, {
-    startY: y,
-    margin: { left: PAGE.margin + 10, right: PAGE.margin + 10 },
-    tableWidth: PAGE.contentWidth - 20,
-    head: [[
-      { content: 'Assessment Summary', colSpan: 3, styles: { fillColor: COLORS.primary, halign: 'center', fontSize: 11, fontStyle: 'bold', textColor: [255,255,255] } }
-    ]],
-    body: [
-      [
-        { 
-          content: `Overall Score\n${data.overallScore} points`, 
-          styles: { halign: 'center', fontSize: 12, fontStyle: 'bold', textColor: getScoreColor(data.overallScore) } 
-        },
-        { 
-          content: `Grade\n${data.grade} (${getGradeText(data.grade)})`, 
-          styles: { halign: 'center', fontSize: 12, fontStyle: 'bold' } 
-        },
-        { 
-          content: `Abnormal Items\n${data.issues.length} items`, 
-          styles: { halign: 'center', fontSize: 12, fontStyle: 'bold' } 
-        },
-      ],
-    ],
-    theme: 'grid',
-    styles: { cellPadding: 5, lineColor: COLORS.border, lineWidth: 0.5, textColor: COLORS.text, font: 'helvetica' },
-  });
+  // 获取所有页面
+  const pages = iframeDoc.querySelectorAll('.page');
   
-  // 检测方法说明
-  y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 10 : 180;
-  
-  doc.setDrawColor(...COLORS.border);
-  doc.setLineWidth(0.5);
-  doc.rect(PAGE.margin + 10, y, PAGE.contentWidth - 20, 22);
-  
-  doc.setTextColor(...COLORS.textSecondary);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Detection Method', PAGE.margin + 15, y + 6);
-  
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text(
-    'This report uses MediaPipe visual analysis technology for precise positioning of human skeletal key points, ' +
-    'combined with AI deep learning algorithms for posture assessment.',
-    PAGE.margin + 15, y + 11, { maxWidth: PAGE.contentWidth - 30 }
-  );
-  
-  // 底部声明
-  doc.setTextColor(...COLORS.textMuted);
-  doc.setFontSize(8);
-  doc.text('This report is auto-generated by AI system, for reference only.', PAGE.width / 2, PAGE.height - 20, { align: 'center' });
-  doc.setFontSize(7);
-  doc.text(`Generated: ${formatDateTime(new Date())}`, PAGE.width / 2, PAGE.height - 15, { align: 'center' });
-  
-  // ==================== 第2页：目录 ====================
-  
-  doc.addPage();
-  pageNum++;
-  
-  // 页眉
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, PAGE.width, 10, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.text('AI Posture Assessment System', PAGE.margin, 7);
-  doc.text(`Page ${pageNum}/${totalPages}`, PAGE.width - PAGE.margin, 7, { align: 'right' });
-  
-  y = 20;
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Contents', PAGE.margin + 3, y + 5.5);
-  
-  y += 15;
-  
-  const tocItems = [
-    { title: '1. Assessment Summary', page: '3' },
-    { title: '2. Detailed Posture Analysis', page: '4' },
-    { title: '3. Muscle Function Assessment', page: '5' },
-    { title: '4. Health Risk Assessment', page: '5' },
-    { title: '5. Health Development Prediction', page: '6' },
-    { title: '6. Improvement Plan & Recommendations', page: '6' },
-    { title: '7. TCM Constitution Analysis', page: '7' },
-    { title: '8. Appendix & Reference Standards', page: '8' },
-  ];
-  
-  tocItems.forEach((item) => {
-    doc.setTextColor(...COLORS.primary);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text(item.title, PAGE.margin + 5, y);
-    
-    doc.setDrawColor(...COLORS.border);
-    doc.setLineDashPattern([1, 1], 0);
-    doc.line(PAGE.margin + 70, y - 1, PAGE.width - PAGE.margin - 10, y - 1);
-    doc.setLineDashPattern([], 0);
-    
-    doc.setTextColor(...COLORS.textSecondary);
-    doc.setFontSize(10);
-    doc.text(item.page, PAGE.width - PAGE.margin - 5, y, { align: 'right' });
-    y += 10;
-  });
-  
-  // ==================== 第3页：评估摘要 ====================
-  
-  doc.addPage();
-  pageNum++;
-  
-  // 页眉
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, PAGE.width, 10, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.text('AI Posture Assessment System', PAGE.margin, 7);
-  doc.text(`Page ${pageNum}/${totalPages}`, PAGE.width - PAGE.margin, 7, { align: 'right' });
-  
-  y = 20;
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('1. Assessment Summary', PAGE.margin + 3, y + 5.5);
-  
-  y += 15;
-  
-  // 评估结论
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'normal');
-  
-  const conclusionText = `Based on AI posture assessment analysis, the examinee's overall posture score is ${data.overallScore} points. ` +
-    `According to standard assessment criteria, the grade is ${data.grade} (${getGradeText(data.grade)}). ` +
-    `This assessment detected ${data.issues.length} posture abnormalities, including ${severeCount} severe, ${moderateCount} moderate, and ${mildCount} mild issues.`;
-  
-  const conclusionLines = doc.splitTextToSize(conclusionText, PAGE.contentWidth);
-  doc.text(conclusionLines, PAGE.margin, y);
-  y += conclusionLines.length * 5 + 10;
-  
-  // 异常项目汇总表
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(10);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Abnormal Items Summary', PAGE.margin + 3, y + 5.5);
-  y += 12;
-  
-  if (data.issues.length > 0) {
-    autoTable(doc, {
-      startY: y,
-      margin: { left: PAGE.margin },
-      head: [[
-        { content: 'No.', styles: { halign: 'center', fontSize: 9 } },
-        { content: 'Detection Item', styles: { halign: 'center', fontSize: 9 } },
-        { content: 'Value', styles: { halign: 'center', fontSize: 9 } },
-        { content: 'Reference Range', styles: { halign: 'center', fontSize: 9 } },
-        { content: 'Status', styles: { halign: 'center', fontSize: 9 } },
-      ]],
-      body: data.issues.map((issue, index) => [
-        String(index + 1),
-        issue.name,
-        `${issue.angle.toFixed(1)} deg`,
-        issue.referenceRange || 'Normal Range',
-        getSeverityText(issue.severity),
-      ]),
-      theme: 'grid',
-      headStyles: { fillColor: COLORS.primary, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9, cellPadding: 3 },
-      bodyStyles: { fontSize: 9, cellPadding: 3 },
-      alternateRowStyles: { fillColor: COLORS.background },
-      columnStyles: {
-        0: { cellWidth: 15, halign: 'center' },
-        1: { cellWidth: 55 },
-        2: { cellWidth: 30, halign: 'center' },
-        3: { cellWidth: 50, halign: 'center' },
-        4: { cellWidth: 30, halign: 'center' },
-      },
-      didParseCell: function(data) {
-        if (data.column.index === 4 && data.section === 'body') {
-          const text = data.cell.raw as string;
-          if (text === 'Severe') {
-            data.cell.styles.textColor = COLORS.danger;
-            data.cell.styles.fontStyle = 'bold';
-          } else if (text === 'Moderate') {
-            data.cell.styles.textColor = COLORS.warning;
-            data.cell.styles.fontStyle = 'bold';
-          } else if (text === 'Mild') {
-            data.cell.styles.textColor = COLORS.success;
-          }
-        }
-      },
-    });
-  }
-  
-  // ==================== 第4页：详细分析 ====================
-  
-  doc.addPage();
-  pageNum++;
-  
-  // 页眉
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, PAGE.width, 10, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.text('AI Posture Assessment System', PAGE.margin, 7);
-  doc.text(`Page ${pageNum}/${totalPages}`, PAGE.width - PAGE.margin, 7, { align: 'right' });
-  
-  y = 20;
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('2. Detailed Posture Analysis', PAGE.margin + 3, y + 5.5);
-  
-  y += 15;
-  
-  const sortedIssues = [...data.issues].sort((a, b) => {
-    const order: Record<string, number> = { severe: 0, moderate: 1, mild: 2 };
-    return (order[a.severity] ?? 3) - (order[b.severity] ?? 3);
-  });
-  
-  sortedIssues.forEach((issue, index) => {
-    if (y > 250) {
-      doc.addPage();
-      pageNum++;
-      doc.setFillColor(...COLORS.primary);
-      doc.rect(0, 0, PAGE.width, 10, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(9);
-      doc.text('AI Posture Assessment System', PAGE.margin, 7);
-      doc.text(`Page ${pageNum}/${totalPages}`, PAGE.width - PAGE.margin, 7, { align: 'right' });
-      y = 20;
+  for (let i = 0; i < pages.length; i++) {
+    if (i > 0) {
+      pdf.addPage();
     }
     
-    // 问题卡片
-    const cardHeight = 25;
-    
-    // 左侧状态条
-    doc.setFillColor(...getSeverityColor(issue.severity));
-    doc.rect(PAGE.margin, y, 3, cardHeight, 'F');
-    
-    // 卡片边框
-    doc.setDrawColor(...COLORS.border);
-    doc.setLineWidth(0.3);
-    doc.rect(PAGE.margin, y, PAGE.contentWidth, cardHeight);
-    
-    // 序号
-    doc.setFillColor(...COLORS.primaryLight);
-    doc.circle(PAGE.margin + 10, y + 8, 4, 'F');
-    doc.setTextColor(...COLORS.primary);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`${index + 1}`, PAGE.margin + 10, y + 9.5, { align: 'center' });
-    
-    // 问题名称
-    doc.setTextColor(...COLORS.text);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'bold');
-    doc.text(issue.name, PAGE.margin + 16, y + 8);
-    
-    // 严重程度标签
-    doc.setFillColor(...getSeverityColor(issue.severity));
-    doc.roundedRect(PAGE.width - PAGE.margin - 25, y + 3, 22, 6, 1, 1, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(8);
-    doc.text(getSeverityText(issue.severity), PAGE.width - PAGE.margin - 14, y + 7, { align: 'center' });
-    
-    // 检测值和参考范围
-    doc.setTextColor(...COLORS.textSecondary);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Value: ${issue.angle.toFixed(1)} deg  |  Reference: ${issue.referenceRange || 'Normal Range'}`, PAGE.margin + 16, y + 16);
-    
-    y += cardHeight + 4;
-  });
-  
-  // ==================== 第5页：肌肉与风险评估 ====================
-  
-  doc.addPage();
-  pageNum++;
-  
-  // 页眉
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, PAGE.width, 10, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.text('AI Posture Assessment System', PAGE.margin, 7);
-  doc.text(`Page ${pageNum}/${totalPages}`, PAGE.width - PAGE.margin, 7, { align: 'right' });
-  
-  y = 20;
-  
-  // 肌肉功能评估
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('3. Muscle Function Assessment', PAGE.margin + 3, y + 5.5);
-  y += 12;
-  
-  if (data.muscles && (data.muscles.tight.length > 0 || data.muscles.weak.length > 0)) {
-    const maxLen = Math.max(data.muscles.tight.length, data.muscles.weak.length);
-    const muscleData = [];
-    for (let i = 0; i < maxLen; i++) {
-      muscleData.push([data.muscles.tight[i] || '-', data.muscles.weak[i] || '-']);
-    }
-    
-    autoTable(doc, {
-      startY: y,
-      margin: { left: PAGE.margin },
-      head: [[
-        { content: 'Tight Muscles', styles: { fillColor: COLORS.danger, halign: 'center', textColor: [255,255,255] } },
-        { content: 'Weak Muscles', styles: { fillColor: COLORS.primary, halign: 'center', textColor: [255,255,255] } },
-      ]],
-      body: muscleData,
-      theme: 'grid',
-      headStyles: { fontStyle: 'bold', fontSize: 10, cellPadding: 4 },
-      bodyStyles: { fontSize: 9, cellPadding: 3, halign: 'center' },
-      alternateRowStyles: { fillColor: COLORS.background },
-      columnStyles: { 0: { cellWidth: PAGE.contentWidth / 2 }, 1: { cellWidth: PAGE.contentWidth / 2 } },
+    // 使用 html2canvas 渲染页面
+    const canvas = await html2canvas(pages[i] as HTMLElement, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
     });
     
-    y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : y + 30;
+    // 将 canvas 转换为图片
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    
+    // 添加到 PDF
+    pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, pageHeight);
   }
   
-  // 健康风险评估
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('4. Health Risk Assessment', PAGE.margin + 3, y + 5.5);
-  y += 12;
+  // 清理
+  document.body.removeChild(container);
   
-  if (data.risks && data.risks.length > 0) {
-    autoTable(doc, {
-      startY: y,
-      margin: { left: PAGE.margin },
-      head: [[
-        { content: 'Risk Category', styles: { halign: 'center', fontSize: 9 } },
-        { content: 'Potential Health Issue', styles: { halign: 'center', fontSize: 9 } },
-        { content: 'Risk Level', styles: { halign: 'center', fontSize: 9 } },
-        { content: 'Reference Code', styles: { halign: 'center', fontSize: 9 } },
-      ]],
-      body: data.risks.map(risk => [
-        risk.category,
-        risk.condition,
-        getRiskText(risk.risk),
-        risk.icdCode || '-',
-      ]),
-      theme: 'grid',
-      headStyles: { fillColor: COLORS.primary, textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 9, cellPadding: 3 },
-      bodyStyles: { fontSize: 9, cellPadding: 3 },
-      alternateRowStyles: { fillColor: COLORS.background },
-      columnStyles: {
-        0: { cellWidth: 35, halign: 'center' },
-        1: { cellWidth: 70 },
-        2: { cellWidth: 35, halign: 'center' },
-        3: { cellWidth: 40, halign: 'center' },
-      },
-      didParseCell: function(data) {
-        if (data.column.index === 2 && data.section === 'body') {
-          const text = data.cell.raw as string;
-          if (text === 'High') {
-            data.cell.styles.textColor = COLORS.danger;
-            data.cell.styles.fontStyle = 'bold';
-          } else if (text === 'Medium') {
-            data.cell.styles.textColor = COLORS.warning;
-          } else {
-            data.cell.styles.textColor = COLORS.success;
-          }
-        }
-      },
-    });
-  }
-  
-  // ==================== 第6页：预测与建议 ====================
-  
-  doc.addPage();
-  pageNum++;
-  
-  // 页眉
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, PAGE.width, 10, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.text('AI Posture Assessment System', PAGE.margin, 7);
-  doc.text(`Page ${pageNum}/${totalPages}`, PAGE.width - PAGE.margin, 7, { align: 'right' });
-  
-  y = 20;
-  
-  // 健康发展预测
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('5. Health Development Prediction', PAGE.margin + 3, y + 5.5);
-  y += 12;
-  
-  if (data.healthPrediction) {
-    autoTable(doc, {
-      startY: y,
-      margin: { left: PAGE.margin },
-      head: [[
-        { content: 'Prediction Period', styles: { fillColor: COLORS.primary, halign: 'center', fontSize: 9, textColor: [255,255,255] } },
-        { content: 'Development Prediction', styles: { fillColor: COLORS.primary, halign: 'center', fontSize: 9, textColor: [255,255,255] } },
-      ]],
-      body: [
-        ['Short-term (1-3 months)', data.healthPrediction.shortTerm || 'Regular check-up recommended'],
-        ['Mid-term (6-12 months)', data.healthPrediction.midTerm || 'Continue monitoring posture changes'],
-        ['Long-term (3+ years)', data.healthPrediction.longTerm || 'Prevent chronic pain development'],
-      ],
-      theme: 'grid',
-      bodyStyles: { fontSize: 9, cellPadding: 4 },
-      columnStyles: { 0: { cellWidth: 50, halign: 'center', fontStyle: 'bold' }, 1: { cellWidth: 130 } },
-    });
-    
-    y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : y + 30;
-  }
-  
-  // 改善方案
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('6. Improvement Plan & Recommendations', PAGE.margin + 3, y + 5.5);
-  y += 12;
-  
-  if (data.recommendations) {
-    // 立即行动
-    if (data.recommendations.immediate?.length) {
-      doc.setFillColor(...COLORS.dangerLight);
-      doc.rect(PAGE.margin, y, PAGE.contentWidth, 6, 'F');
-      doc.setTextColor(...COLORS.danger);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Immediate Action (Recommended to execute immediately)', PAGE.margin + 3, y + 4.5);
-      y += 8;
-      
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      data.recommendations.immediate.slice(0, 3).forEach((rec, i) => {
-        doc.text(`${i + 1}. ${rec}`, PAGE.margin + 5, y);
-        y += 5;
-      });
-      y += 5;
-    }
-    
-    // 短期计划
-    if (data.recommendations.shortTerm?.length) {
-      doc.setFillColor(...COLORS.warningLight);
-      doc.rect(PAGE.margin, y, PAGE.contentWidth, 6, 'F');
-      doc.setTextColor(...COLORS.warning);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Short-term Plan (1-4 weeks)', PAGE.margin + 3, y + 4.5);
-      y += 8;
-      
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      data.recommendations.shortTerm.slice(0, 3).forEach((rec, i) => {
-        doc.text(`${i + 1}. ${rec}`, PAGE.margin + 5, y);
-        y += 5;
-      });
-      y += 5;
-    }
-    
-    // 长期策略
-    if (data.recommendations.longTerm?.length) {
-      doc.setFillColor(...COLORS.primaryLight);
-      doc.rect(PAGE.margin, y, PAGE.contentWidth, 6, 'F');
-      doc.setTextColor(...COLORS.primaryDark);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Long-term Strategy (1-3 months)', PAGE.margin + 3, y + 4.5);
-      y += 8;
-      
-      doc.setTextColor(...COLORS.text);
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'normal');
-      data.recommendations.longTerm.slice(0, 3).forEach((rec, i) => {
-        doc.text(`${i + 1}. ${rec}`, PAGE.margin + 5, y);
-        y += 5;
-      });
-    }
-  }
-  
-  // ==================== 第7页：中医分析 ====================
-  
-  doc.addPage();
-  pageNum++;
-  
-  // 页眉
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, PAGE.width, 10, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.text('AI Posture Assessment System', PAGE.margin, 7);
-  doc.text(`Page ${pageNum}/${totalPages}`, PAGE.width - PAGE.margin, 7, { align: 'right' });
-  
-  y = 20;
-  
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('7. TCM Constitution Analysis', PAGE.margin + 3, y + 5.5);
-  y += 12;
-  
-  if (data.tcmAnalysis) {
-    // 体质判断
-    if (data.tcmAnalysis.constitution) {
-      doc.setFillColor(...COLORS.warningLight);
-      doc.roundedRect(PAGE.margin, y, PAGE.contentWidth, 15, 2, 2, 'F');
-      doc.setTextColor(146, 64, 14);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Constitution Type:', PAGE.margin + 5, y + 5);
-      doc.setTextColor(120, 53, 15);
-      doc.setFontSize(14);
-      doc.text(data.tcmAnalysis.constitution, PAGE.margin + 5, y + 11);
-      y += 18;
-    }
-    
-    // 经络状态
-    if (data.tcmAnalysis.meridians?.length) {
-      autoTable(doc, {
-        startY: y,
-        margin: { left: PAGE.margin },
-        head: [[
-          { content: 'Meridian', styles: { halign: 'center', textColor: [255,255,255] } },
-          { content: 'Status', styles: { halign: 'center', textColor: [255,255,255] } },
-          { content: 'Analysis', styles: { halign: 'center', textColor: [255,255,255] } },
-        ]],
-        body: data.tcmAnalysis.meridians.map(m => [
-          m.name,
-          m.status,
-          (m.reason || '').substring(0, 40),
-        ]),
-        theme: 'grid',
-        headStyles: { fillColor: COLORS.danger, fontStyle: 'bold', fontSize: 9 },
-        bodyStyles: { fontSize: 8 },
-        columnStyles: {
-          0: { cellWidth: 40, halign: 'center' },
-          1: { cellWidth: 30, halign: 'center' },
-          2: { cellWidth: 110 },
-        },
-      });
-      
-      y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : y + 20;
-    }
-    
-    // 穴位建议
-    if (data.tcmAnalysis.acupoints?.length) {
-      doc.setTextColor(5, 150, 105);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Acupoint Recommendations:', PAGE.margin, y);
-      y += 6;
-      
-      data.tcmAnalysis.acupoints.slice(0, 4).forEach((a, i) => {
-        doc.setTextColor(...COLORS.text);
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`${i + 1}. ${a.name} (${a.location}): ${a.benefit}`, PAGE.margin + 5, y);
-        y += 5;
-      });
-    }
-  }
-  
-  // ==================== 第8页：附录与签名 ====================
-  
-  doc.addPage();
-  pageNum++;
-  
-  // 页眉
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(0, 0, PAGE.width, 10, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
-  doc.text('AI Posture Assessment System', PAGE.margin, 7);
-  doc.text(`Page ${pageNum}/${totalPages}`, PAGE.width - PAGE.margin, 7, { align: 'right' });
-  
-  y = 20;
-  
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('8. Appendix & Reference Standards', PAGE.margin + 3, y + 5.5);
-  y += 12;
-  
-  // 参考标准表
-  autoTable(doc, {
-    startY: y,
-    margin: { left: PAGE.margin },
-    head: [[
-      { content: 'Assessment Indicator', styles: { halign: 'center', fontSize: 9, textColor: [255,255,255] } },
-      { content: 'Normal Range', styles: { halign: 'center', fontSize: 9, textColor: [255,255,255] } },
-      { content: 'Description', styles: { halign: 'center', fontSize: 9, textColor: [255,255,255] } },
-    ]],
-    body: [
-      ['Head Forward Angle', '< 10 deg', 'Normal cervical-thoracic angle range'],
-      ['Shoulder Tilt', '< 2 deg', 'Bilateral shoulder height difference'],
-      ['Pelvic Tilt Angle', '5-15 deg', 'Angle between ASIS and PSIS line'],
-      ['Knee Angle', '170-180 deg', 'Knee extension angle'],
-      ['Spine Alignment', '> 90%', 'Spinal curvature assessment'],
-      ['Scapular Position', 'Symmetric', 'Distance from scapula to spine'],
-    ],
-    theme: 'grid',
-    headStyles: { fillColor: COLORS.primary, fontStyle: 'bold', fontSize: 9 },
-    bodyStyles: { fontSize: 9, halign: 'center' },
-    alternateRowStyles: { fillColor: COLORS.background },
-  });
-  
-  y = doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : y + 50;
-  
-  // 签名区域
-  doc.setFillColor(...COLORS.primary);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 8, 'F');
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Report Verification', PAGE.margin + 3, y + 5.5);
-  y += 12;
-  
-  // 签名框
-  doc.setDrawColor(...COLORS.border);
-  doc.setLineWidth(0.5);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 35);
-  
-  // 分隔线
-  doc.line(PAGE.margin + PAGE.contentWidth / 3, y, PAGE.margin + PAGE.contentWidth / 3, y + 35);
-  doc.line(PAGE.margin + PAGE.contentWidth * 2 / 3, y, PAGE.margin + PAGE.contentWidth * 2 / 3, y + 35);
-  
-  // 报告生成
-  doc.setTextColor(...COLORS.textSecondary);
-  doc.setFontSize(8);
-  doc.text('Report Generated', PAGE.margin + PAGE.contentWidth / 6, y + 8, { align: 'center' });
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(9);
-  doc.text('AI Posture Assessment', PAGE.margin + PAGE.contentWidth / 6, y + 18, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text(formatDateTime(new Date()), PAGE.margin + PAGE.contentWidth / 6, y + 26, { align: 'center' });
-  
-  // 技术审核
-  doc.setTextColor(...COLORS.textSecondary);
-  doc.text('Technical Review', PAGE.margin + PAGE.contentWidth / 2, y + 8, { align: 'center' });
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(9);
-  doc.text('____________', PAGE.margin + PAGE.contentWidth / 2, y + 18, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text('Review Date: ________', PAGE.margin + PAGE.contentWidth / 2, y + 26, { align: 'center' });
-  
-  // 报告签发
-  doc.setTextColor(...COLORS.textSecondary);
-  doc.text('Report Issued', PAGE.margin + PAGE.contentWidth * 5 / 6, y + 8, { align: 'center' });
-  doc.setTextColor(...COLORS.text);
-  doc.setFontSize(9);
-  doc.text('____________', PAGE.margin + PAGE.contentWidth * 5 / 6, y + 18, { align: 'center' });
-  doc.setFontSize(8);
-  doc.text('Issue Date: ________', PAGE.margin + PAGE.contentWidth * 5 / 6, y + 26, { align: 'center' });
-  
-  y += 45;
-  
-  // 重要声明
-  doc.setFillColor(...COLORS.warningLight);
-  doc.rect(PAGE.margin, y, PAGE.contentWidth, 22, 'F');
-  
-  doc.setTextColor(146, 64, 14);
-  doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('Important Disclaimer', PAGE.margin + 5, y + 6);
-  
-  doc.setTextColor(120, 53, 15);
-  doc.setFontSize(8);
-  doc.setFont('helvetica', 'normal');
-  doc.text(
-    'This report is auto-generated by AI Posture Assessment System for reference only, not for clinical diagnosis. ' +
-    'Please consult a physician if you experience any discomfort. Report valid for 30 days.',
-    PAGE.margin + 5, y + 11, { maxWidth: PAGE.contentWidth - 10 }
-  );
-  
-  // 联系方式
-  y += 30;
-  doc.setTextColor(...COLORS.textMuted);
-  doc.setFontSize(8);
-  doc.text('For questions, please consult a professional physical therapist or physician.', PAGE.width / 2, y, { align: 'center' });
-  
-  return doc.output('blob');
+  return pdf.output('blob');
 }
 
 // ==================== 辅助导出函数 ====================
@@ -1042,5 +727,5 @@ export function downloadPDF(blob: Blob, filename: string): void {
 
 export function generateReportFilename(score: number): string {
   const date = new Date().toISOString().split('T')[0];
-  return `Posture-Assessment-Report-${date}-Score${score}.pdf`;
+  return `体态评估报告-${date}-评分${score}.pdf`;
 }
