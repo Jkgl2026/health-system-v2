@@ -65,11 +65,17 @@ async function ensureTables() {
       )
     `);
 
-    // 创建索引
+    // 创建索引 - 注意顺序，先确保表存在
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_face_users_name ON face_diagnosis_users(name);
+    `);
+    await client.query(`
       CREATE INDEX IF NOT EXISTS idx_face_users_phone ON face_diagnosis_users(phone);
+    `);
+    await client.query(`
       CREATE INDEX IF NOT EXISTS idx_face_records_user_id ON face_diagnosis_records(user_id);
+    `);
+    await client.query(`
       CREATE INDEX IF NOT EXISTS idx_face_records_date ON face_diagnosis_records(diagnosis_date);
     `);
 

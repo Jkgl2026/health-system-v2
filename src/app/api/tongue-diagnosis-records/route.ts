@@ -71,13 +71,11 @@ async function ensureTables() {
       )
     `);
 
-    // 创建索引
-    await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_tongue_users_name ON tongue_diagnosis_users(name);
-      CREATE INDEX IF NOT EXISTS idx_tongue_users_phone ON tongue_diagnosis_users(phone);
-      CREATE INDEX IF NOT EXISTS idx_tongue_records_user_id ON tongue_diagnosis_records(user_id);
-      CREATE INDEX IF NOT EXISTS idx_tongue_records_date ON tongue_diagnosis_records(diagnosis_date);
-    `);
+    // 创建索引 - 分开执行避免错误
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_users_name ON tongue_diagnosis_users(name)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_users_phone ON tongue_diagnosis_users(phone)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_records_user_id ON tongue_diagnosis_records(user_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_records_date ON tongue_diagnosis_records(diagnosis_date)`);
 
     console.log('[TongueDiagnosisRecords] 表结构检查完成');
   } finally {
