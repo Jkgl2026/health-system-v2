@@ -318,43 +318,73 @@ export default function PostureDiagnosisPageV2() {
       const trainingPlan = result.semanticAnalysis?.trainingPlan || 
         generateTrainingPlan(result.allIssues.map(i => i.type as any));
       
+      // 构建详细问题数据
+      const detailedIssues = result.allIssues.map(i => ({
+        type: i.type,
+        name: i.name,
+        severity: i.severity,
+        angle: i.angle,
+        description: i.description,
+        cause: i.healthImpact?.shortTerm?.join('、') || '',
+        impact: i.healthImpact?.longTerm?.join('、') || '',
+        recommendation: '',
+      }));
+      
+      // 构建健康风险数据
+      const detailedRisks = result.allHealthRisks.map(r => ({
+        category: r.category,
+        risk: r.risk,
+        condition: r.condition,
+        cause: '',
+        prevention: '',
+      }));
+      
+      // 构建推荐动作数据
+      const exercises: { name: string; category: string; purpose: string; method: string }[] = [];
+      
       const reportData: ReportData = {
+        userName: userInfo.name || undefined,
         assessmentDate: new Date().toLocaleDateString('zh-CN'),
         overallScore: result.overallScore,
         grade: result.grade,
-        issues: result.allIssues.map(i => ({
-          name: i.name,
-          severity: i.severity,
-          angle: i.angle,
-          description: i.description,
-        })),
+        issues: detailedIssues,
         angles: result.mediaPipeResults.front?.extendedAngles ? 
           Object.fromEntries(Object.entries(result.mediaPipeResults.front.extendedAngles)) : {},
         muscles: {
           tight: result.allMuscles.filter(m => m.status === 'tight').map(m => m.name),
           weak: result.allMuscles.filter(m => m.status === 'weak').map(m => m.name),
         },
-        risks: result.allHealthRisks.map(r => ({
-          category: r.category,
-          risk: r.risk,
-          condition: r.condition,
-        })),
+        risks: detailedRisks,
         recommendations: {
-          immediate: result.allIssues.filter(i => i.severity === 'severe').map(i => `纠正${i.name}`),
-          shortTerm: result.allIssues.filter(i => i.severity === 'moderate').map(i => `改善${i.name}`),
-          longTerm: ['坚持规律训练', '保持良好姿势习惯', '定期复查评估'],
+          immediate: result.allIssues.filter(i => i.severity === 'severe').map(i => 
+            `及时就医检查${i.name}，避免进一步恶化`
+          ),
+          shortTerm: result.allIssues.filter(i => i.severity === 'moderate').map(i => 
+            `改善${i.name}问题，加强相关肌肉训练`
+          ),
+          longTerm: [
+            '建立规律的运动习惯，每周至少3次体态矫正训练',
+            '保持良好的坐姿和站姿习惯，避免长时间保持同一姿势',
+            '定期进行体态评估复查，建议每4周一次',
+            '加强核心肌群训练，提升身体稳定性',
+          ],
+          exercises: exercises,
         },
         tcmAnalysis: result.semanticAnalysis?.tcmPerspective ? {
           constitution: result.semanticAnalysis.tcmPerspective.constitution || '',
           constitutionType: result.semanticAnalysis.tcmPerspective.constitutionType,
-          meridians: result.semanticAnalysis.tcmPerspective.meridians?.map((m: any) => m.name) || [],
-          acupoints: result.semanticAnalysis.tcmPerspective.acupoints?.map((a: any) => a.name) || [],
-          meridianSymptoms: result.semanticAnalysis.tcmPerspective.meridianSymptoms,
-          acupointContraindications: result.semanticAnalysis.tcmPerspective.acupointContraindications,
-          daoyinSuggestions: result.semanticAnalysis.tcmPerspective.daoyinSuggestions,
-          dietSuggestions: result.semanticAnalysis.tcmPerspective.dietSuggestions,
-          seasonalAdvice: result.semanticAnalysis.tcmPerspective.seasonalAdvice,
-          dailySchedule: result.semanticAnalysis.tcmPerspective.dailySchedule,
+          constitutionFeatures: result.semanticAnalysis.tcmPerspective.constitutionFeatures || [],
+          meridians: result.semanticAnalysis.tcmPerspective.meridians?.map((m: any) => ({
+            name: typeof m === 'string' ? m : m.name,
+            status: typeof m === 'object' && m.status ? m.status : '失衡',
+            reason: typeof m === 'object' && m.reason ? m.reason : '',
+          })) || [],
+          acupoints: result.semanticAnalysis.tcmPerspective.acupoints?.map((a: any) => ({
+            name: typeof a === 'string' ? a : a.name,
+            location: typeof a === 'object' && a.location ? a.location : '',
+            benefit: typeof a === 'object' && a.benefit ? a.benefit : '',
+          })) || [],
+          dietSuggestions: result.semanticAnalysis.tcmPerspective.dietSuggestions || [],
         } : undefined,
         trainingPlan: trainingPlan ? {
           phases: Object.entries(PHASE_DETAILS).map(([key, phase]) => {
@@ -363,13 +393,11 @@ export default function PostureDiagnosisPageV2() {
               name: phase.name,
               duration: phase.duration,
               focus: phase.objective,
-              weeklyPlan: weeklyPlans.map(wp => ({
-                week: wp.week,
-                sessions: wp.sessions.map(s => ({
-                  day: s.day,
-                  exercises: s.exercises.map(e => typeof e === 'string' ? e : e.name),
-                })),
-              })),
+              exercises: weeklyPlans.flatMap(wp => 
+                wp.sessions.flatMap(s => 
+                  s.exercises.map(e => typeof e === 'string' ? e : e.name)
+                )
+              ).slice(0, 5),
             };
           }),
         } : undefined,

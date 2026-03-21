@@ -121,7 +121,6 @@ function drawAngles(
   width: number,
   height: number
 ) {
-  // 计算并显示主要关节角度
   const angleGroups = [
     { name: '左肘', points: [POSE_LANDMARKS.LEFT_SHOULDER, POSE_LANDMARKS.LEFT_ELBOW, POSE_LANDMARKS.LEFT_WRIST] },
     { name: '右肘', points: [POSE_LANDMARKS.RIGHT_SHOULDER, POSE_LANDMARKS.RIGHT_ELBOW, POSE_LANDMARKS.RIGHT_WRIST] },
@@ -153,13 +152,11 @@ function drawAngles(
       const x = lmB.x * width;
       const y = lmB.y * height;
 
-      // 背景
       ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
       ctx.beginPath();
       ctx.roundRect(x - 22, y - 10, 44, 20, 4);
       ctx.fill();
 
-      // 文字
       ctx.fillStyle = '#ffffff';
       ctx.fillText(`${angle.toFixed(0)}°`, x, y);
     }
@@ -201,208 +198,190 @@ export default function SkeletonAnnotationCanvas({
 }: SkeletonAnnotationCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const poseRef = useRef<any>(null);
   const [status, setStatus] = useState<'loading' | 'detecting' | 'success' | 'error'>('loading');
   const [error, setError] = useState<string>('');
   const [landmarkCount, setLandmarkCount] = useState<number>(0);
-  const initializedRef = useRef(false);
+  const [retryCount, setRetryCount] = useState<number>(0);
+  const detectionAttemptedRef = useRef(false);
 
-  // 初始化 MediaPipe 并执行检测
-  useEffect(() => {
-    if (typeof window === 'undefined' || !imageUrl) return;
+  // 执行检测（支持重试）
+  const performDetection = useCallback(async (retryAttempt: number = 0) => {
+    if (typeof window === 'undefined' || !imageUrl || !canvasRef.current) return;
 
-    let isMounted = true;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
 
-    const initAndDetect = async () => {
-      try {
-        setStatus('loading');
-        setError('');
+    const MAX_RETRIES = 3;
+    
+    try {
+      setStatus(retryAttempt > 0 ? 'detecting' : 'loading');
+      setError('');
 
-        console.log(`[SkeletonCanvas ${angle}] 开始初始化 MediaPipe...`);
+      console.log(`[SkeletonCanvas ${angle}] 开始检测，尝试 ${retryAttempt + 1}/${MAX_RETRIES + 1}`);
 
-        // 动态导入 MediaPipe
-        // @ts-ignore
-        const { Pose } = await import('@mediapipe/pose');
+      // 加载图片
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
 
-        if (!isMounted) return;
-
-        // 创建 Pose 实例
-        const pose = new Pose({
-          locateFile: (file: string) => {
-            return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
-          },
-        });
-
-        pose.setOptions({
-          modelComplexity: 1,
-          smoothLandmarks: false,
-          enableSegmentation: false,
-          smoothSegmentation: false,
-          minDetectionConfidence: 0.5,
-          minTrackingConfidence: 0.5,
-        });
-
-        poseRef.current = pose;
-
-        // 等待模型加载
-        await new Promise<void>((resolve, reject) => {
-          const timeout = setTimeout(() => {
-            reject(new Error('模型加载超时'));
-          }, 30000);
-
-          pose.onResults(() => {
-            clearTimeout(timeout);
-            resolve();
-          });
-
-          // 发送一个空白图像触发初始化
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = 100;
-          tempCanvas.height = 100;
-          const tempCtx = tempCanvas.getContext('2d');
-          if (tempCtx) {
-            tempCtx.fillStyle = 'white';
-            tempCtx.fillRect(0, 0, 100, 100);
-          }
-          pose.send({ image: tempCanvas }).catch(() => {
-            clearTimeout(timeout);
-            resolve(); // 即使失败也继续
-          });
-        });
-
-        if (!isMounted) return;
-
-        console.log(`[SkeletonCanvas ${angle}] MediaPipe 初始化完成，开始检测图片...`);
-        setStatus('detecting');
-
-        // 加载图片
-        const img = new Image();
-        img.crossOrigin = 'anonymous';
-
-        img.onload = async () => {
-          if (!isMounted) return;
-
-          const canvas = canvasRef.current;
-          if (!canvas) {
-            setError('Canvas未初始化');
-            setStatus('error');
-            return;
-          }
-
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            setError('无法获取Canvas上下文');
-            setStatus('error');
-            return;
-          }
-
-          // 设置画布尺寸
-          const maxWidth = 400;
-          const maxHeight = 500;
-          let width = img.naturalWidth;
-          let height = img.naturalHeight;
-          
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width;
-            width = maxWidth;
-          }
-          if (height > maxHeight) {
-            width = (width * maxHeight) / height;
-            height = maxHeight;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-
-          // 绘制原图
-          ctx.drawImage(img, 0, 0, width, height);
-          console.log(`[SkeletonCanvas ${angle}] 原图绘制完成: ${width}x${height}`);
-
-          // 设置检测结果处理
-          pose.onResults((results: any) => {
-            if (!isMounted) return;
-
-            console.log(`[SkeletonCanvas ${angle}] 检测结果:`, {
-              hasLandmarks: !!results.poseLandmarks,
-              landmarkCount: results.poseLandmarks?.length || 0,
-            });
-
-            if (!results.poseLandmarks || results.poseLandmarks.length === 0) {
-              drawNoDetectionMessage(ctx, width, height);
-              setStatus('error');
-              setError('未检测到人体骨骼');
-              onDetectionComplete?.(null);
-              return;
-            }
-
-            const landmarks: Landmark[] = results.poseLandmarks.map((lm: any) => ({
-              x: lm.x,
-              y: lm.y,
-              z: lm.z || 0,
-              visibility: lm.visibility || 0,
-            }));
-
-            setLandmarkCount(landmarks.length);
-
-            // 重新绘制原图（清除之前的标注）
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // 绘制骨骼标注
-            drawSkeleton(ctx, landmarks, width, height);
-            drawLandmarks(ctx, landmarks, width, height);
-            drawAngles(ctx, landmarks, width, height);
-
-            setStatus('success');
-            onDetectionComplete?.(landmarks);
-            console.log(`[SkeletonCanvas ${angle}] 骨骼标注绘制完成，共${landmarks.length}个关键点`);
-          });
-
-          // 发送图片进行检测
-          try {
-            await pose.send({ image: img });
-          } catch (sendErr: any) {
-            console.error(`[SkeletonCanvas ${angle}] 发送检测请求失败:`, sendErr);
-            ctx.drawImage(img, 0, 0, width, height);
-            drawErrorMessage(ctx, width, height, '检测请求失败');
-            setStatus('error');
-            setError('检测请求失败: ' + (sendErr.message || '未知错误'));
-            onDetectionComplete?.(null);
-          }
-        };
-
-        img.onerror = (e) => {
-          if (!isMounted) return;
-          console.error(`[SkeletonCanvas ${angle}] 图片加载失败:`, e);
-          setError('图片加载失败');
-          setStatus('error');
-          onDetectionComplete?.(null);
-        };
-
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error('图片加载失败'));
         img.src = imageUrl;
+      });
 
-      } catch (err: any) {
-        if (!isMounted) return;
-        console.error(`[SkeletonCanvas ${angle}] 初始化失败:`, err);
-        setError('骨骼检测模型加载失败: ' + (err.message || '未知错误'));
+      // 设置画布尺寸（限制最大尺寸避免 WASM 内存问题）
+      const maxWidth = 400;
+      const maxHeight = 500;
+      let width = img.naturalWidth;
+      let height = img.naturalHeight;
+      
+      if (width > maxWidth) {
+        height = (height * maxWidth) / width;
+        width = maxWidth;
+      }
+      if (height > maxHeight) {
+        width = (width * maxHeight) / height;
+        height = maxHeight;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // 绘制原图
+      ctx.drawImage(img, 0, 0, width, height);
+      console.log(`[SkeletonCanvas ${angle}] 原图绘制完成: ${width}x${height}`);
+
+      setStatus('detecting');
+
+      // 动态导入 MediaPipe
+      // @ts-ignore
+      const { Pose } = await import('@mediapipe/pose');
+
+      // 创建 Pose 实例（使用轻量模型，避免 WASM 参数错误）
+      const pose = new Pose({
+        locateFile: (file: string) => {
+          return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+        },
+      });
+
+      // 设置参数（使用 modelComplexity: 0 避免参数错误）
+      pose.setOptions({
+        modelComplexity: 0,  // 使用最轻量模型
+        smoothLandmarks: false,
+        enableSegmentation: false,
+        smoothSegmentation: false,
+        minDetectionConfidence: 0.3,
+        minTrackingConfidence: 0.3,
+      });
+
+      // 等待模型初始化
+      await new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('模型加载超时'));
+        }, 30000);
+
+        pose.onResults(() => {
+          clearTimeout(timeout);
+          resolve();
+        });
+
+        // 发送空白图像触发初始化
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = 100;
+        tempCanvas.height = 100;
+        const tempCtx = tempCanvas.getContext('2d');
+        if (tempCtx) {
+          tempCtx.fillStyle = 'white';
+          tempCtx.fillRect(0, 0, 100, 100);
+        }
+        
+        pose.send({ image: tempCanvas }).catch(() => {
+          clearTimeout(timeout);
+          resolve();
+        });
+      });
+
+      console.log(`[SkeletonCanvas ${angle}] MediaPipe 初始化完成`);
+
+      // 设置检测结果回调
+      pose.onResults((results: any) => {
+        console.log(`[SkeletonCanvas ${angle}] 检测结果:`, {
+          hasLandmarks: !!results.poseLandmarks,
+          landmarkCount: results.poseLandmarks?.length || 0,
+        });
+
+        if (!results.poseLandmarks || results.poseLandmarks.length === 0) {
+          // 未检测到骨骼
+          ctx.drawImage(img, 0, 0, width, height);
+          drawNoDetectionMessage(ctx, width, height);
+          setStatus('error');
+          setError('未检测到人体骨骼');
+          onDetectionComplete?.(null);
+          return;
+        }
+
+        const landmarks: Landmark[] = results.poseLandmarks.map((lm: any) => ({
+          x: lm.x,
+          y: lm.y,
+          z: lm.z || 0,
+          visibility: lm.visibility || 0,
+        }));
+
+        setLandmarkCount(landmarks.length);
+
+        // 重新绘制原图
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // 绘制骨骼标注
+        drawSkeleton(ctx, landmarks, width, height);
+        drawLandmarks(ctx, landmarks, width, height);
+        drawAngles(ctx, landmarks, width, height);
+
+        setStatus('success');
+        onDetectionComplete?.(landmarks);
+        console.log(`[SkeletonCanvas ${angle}] 骨骼标注绘制完成`);
+
+        // 清理资源
+        pose.close?.();
+      });
+
+      // 发送图片进行检测
+      await pose.send({ image: img });
+
+    } catch (err: any) {
+      console.error(`[SkeletonCanvas ${angle}] 检测失败:`, err);
+
+      // 检查是否需要重试
+      if (retryAttempt < MAX_RETRIES) {
+        console.log(`[SkeletonCanvas ${angle}] 准备重试...`);
+        setRetryCount(retryAttempt + 1);
+        
+        // 延迟后重试
+        setTimeout(() => {
+          performDetection(retryAttempt + 1);
+        }, 1000);
+      } else {
+        // 重试次数用完，显示错误
+        const errorMsg = err?.message || '检测失败';
+        setError(`检测失败: ${errorMsg}`);
         setStatus('error');
         onDetectionComplete?.(null);
       }
-    };
+    }
+  }, [imageUrl, angle, onDetectionComplete]);
 
-    initAndDetect();
+  // 当图片URL变化时执行检测
+  useEffect(() => {
+    if (imageUrl && !detectionAttemptedRef.current) {
+      detectionAttemptedRef.current = true;
+      performDetection(0);
+    }
 
     return () => {
-      isMounted = false;
-      if (poseRef.current) {
-        try {
-          poseRef.current.close?.();
-        } catch (e) {
-          // 忽略关闭错误
-        }
-        poseRef.current = null;
-      }
+      detectionAttemptedRef.current = false;
     };
-  }, [imageUrl, angle]); // 不包含 onDetectionComplete 避免重复执行
+  }, [imageUrl, performDetection]);
 
   // 下载标注图
   const handleDownload = () => {
@@ -413,6 +392,13 @@ export default function SkeletonAnnotationCanvas({
     link.download = `体态分析_${angle}_${Date.now()}.png`;
     link.href = canvas.toDataURL('image/png', 1.0);
     link.click();
+  };
+
+  // 手动重试
+  const handleRetry = () => {
+    setRetryCount(0);
+    setError('');
+    performDetection(0);
   };
 
   const angleLabel = angle === 'front' ? '正面' : angle === 'back' ? '背面' : angle === 'left' ? '左侧' : '右侧';
@@ -440,6 +426,7 @@ export default function SkeletonAnnotationCanvas({
           {status === 'error' && (
             <span className="text-xs text-red-500 flex items-center gap-1">
               <AlertCircle className="h-3 w-3" /> {error || '检测失败'}
+              {retryCount > 0 && ` (已重试${retryCount}次)`}
             </span>
           )}
         </div>
@@ -447,7 +434,7 @@ export default function SkeletonAnnotationCanvas({
 
       <div ref={containerRef} className="relative bg-gray-50 rounded-lg overflow-hidden min-h-[200px] flex items-center justify-center">
         {status === 'loading' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-50">
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-50 z-10">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-2" />
               <p className="text-sm text-gray-500">加载骨骼检测模型...</p>
@@ -461,16 +448,27 @@ export default function SkeletonAnnotationCanvas({
         />
       </div>
 
-      <Button
-        variant="outline"
-        size="sm"
-        className="w-full"
-        onClick={handleDownload}
-        disabled={status !== 'success'}
-      >
-        <Download className="h-3 w-3 mr-1" />
-        下载标注图
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1"
+          onClick={handleDownload}
+          disabled={status !== 'success'}
+        >
+          <Download className="h-3 w-3 mr-1" />
+          下载标注图
+        </Button>
+        {status === 'error' && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRetry}
+          >
+            重试
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
