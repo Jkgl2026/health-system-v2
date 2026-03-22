@@ -41,6 +41,7 @@ import { EXERCISE_DATABASE, SuitableIssue } from '@/lib/exercise-database';
 import { generateTrainingPlan, getPhaseWeeklyPlans, PHASE_DETAILS, TrainingPhase, TrainingPlan } from '@/lib/training-planner';
 import { saveRecord, getAllRecords, AssessmentRecord, getStatistics } from '@/lib/progress-tracker';
 import { generatePDFReport, downloadPDF, generateReportFilename, ReportData } from '@/lib/pdf-generator';
+import { generatePostureDiagnosisReport, PostureDiagnosisData, UserInfo } from '@/lib/report-generator';
 import { compressImage, getImageInfo } from '@/lib/image-compress';
 import { initPoseDetector, getPoseStatus, destroyPoseDetector } from '@/lib/pose-manager';
 
@@ -445,6 +446,91 @@ export default function PostureDiagnosisPageV2() {
       setError('PDF导出失败，请稍后重试');
     } finally {
       setExportingPDF(false);
+    }
+  };
+
+  // 导出Word报告
+  const [exportingWord, setExportingWord] = useState(false);
+  const handleExportWord = async () => {
+    if (!result) return;
+    
+    setExportingWord(true);
+    
+    try {
+      const trainingPlan = result.semanticAnalysis?.trainingPlan || 
+        generateTrainingPlan(result.allIssues.map(i => i.type as any));
+      
+      // 构建问题数据
+      const issues = result.allIssues.map(i => ({
+        type: i.type,
+        name: i.name,
+        nameEn: i.nameEn,
+        severity: i.severity,
+        angle: i.angle,
+        description: i.description,
+        anatomicalInfo: i.anatomicalInfo,
+        healthImpact: i.healthImpact,
+      }));
+      
+      // 构建肌肉数据
+      const muscles = result.allMuscles.map(m => ({
+        name: m.name,
+        status: m.status,
+        severity: m.severity,
+        reason: m.reason,
+      }));
+      
+      // 构建训练计划数据
+      const trainingPlanData = trainingPlan ? {
+        phases: Object.entries(PHASE_DETAILS).map(([key, phase]) => {
+          const weeklyPlans = getPhaseWeeklyPlans(trainingPlan, key as TrainingPhase);
+          return {
+            name: phase.name,
+            duration: phase.duration,
+            goals: [phase.objective],
+            exercises: weeklyPlans.flatMap(wp => 
+              wp.sessions.flatMap(s => 
+                s.exercises.map(e => typeof e === 'string' ? e : e.name)
+              )
+            ).slice(0, 5),
+          };
+        }),
+      } : undefined;
+      
+      // 构建语义分析数据
+      const semanticAnalysis = {
+        summary: result.semanticAnalysis?.summary,
+        recommendations: result.semanticAnalysis?.recommendations ? [
+          ...(result.semanticAnalysis.recommendations.immediate || []),
+          ...(result.semanticAnalysis.recommendations.shortTerm || []),
+          ...(result.semanticAnalysis.recommendations.longTerm || []),
+        ] : [],
+        tcmPerspective: typeof result.semanticAnalysis?.tcmPerspective === 'string' 
+          ? result.semanticAnalysis.tcmPerspective 
+          : result.semanticAnalysis?.tcmPerspective?.constitution || '',
+      };
+      
+      const reportData: PostureDiagnosisData = {
+        overallScore: result.overallScore,
+        grade: result.grade,
+        issues: issues,
+        muscles: muscles,
+        trainingPlan: trainingPlanData,
+        semanticAnalysis: semanticAnalysis,
+        timestamp: new Date().toISOString(),
+      };
+      
+      const reportUserInfo: UserInfo = {
+        name: userInfo.name,
+        phone: userInfo.phone,
+      };
+      
+      await generatePostureDiagnosisReport(reportData, reportUserInfo);
+    } catch (error) {
+      console.error('Word导出失败:', error);
+      setError('Word导出失败，请稍后重试');
+    } finally {
+      setExportingWord(false);
     }
   };
 
@@ -2172,7 +2258,21 @@ export default function PostureDiagnosisPageV2() {
                       ) : (
                         <FileDown className="h-4 w-4 mr-2" />
                       )}
-                      导出报告
+                      导出PDF
+                    </Button>
+                    
+                    <Button 
+                      variant="default" 
+                      onClick={handleExportWord}
+                      disabled={exportingWord}
+                      className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600"
+                    >
+                      {exportingWord ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <FileDown className="h-4 w-4 mr-2" />
+                      )}
+                      导出Word报告
                     </Button>
                     
                     <Button 

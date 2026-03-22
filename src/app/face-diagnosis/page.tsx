@@ -13,8 +13,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { 
   Camera, Loader2, FileText, AlertCircle, CheckCircle2, RotateCcw,
   Download, Copy, Sparkles, ArrowLeft, Heart, Eye, Activity, Shield,
-  History, User, Save
+  History, User, Save, FileDown
 } from 'lucide-react';
+import { generateFaceDiagnosisReport, FaceDiagnosisData, UserInfo } from '@/lib/report-generator';
 import dynamic from 'next/dynamic';
 
 // 动态导入历史记录组件
@@ -202,6 +203,41 @@ export default function FaceDiagnosisPage() {
     URL.revokeObjectURL(url);
   };
 
+  // 导出Word报告
+  const [exporting, setExporting] = useState(false);
+  const handleExportReport = async () => {
+    if (!result) return;
+    
+    setExporting(true);
+    try {
+      const reportData: FaceDiagnosisData = {
+        score: result.score,
+        faceColor: result.faceColor,
+        faceLuster: result.faceLuster,
+        facialFeatures: result.facialFeatures,
+        facialCharacteristics: result.facialCharacteristics,
+        constitution: result.constitution,
+        organStatus: result.organStatus,
+        suggestions: result.suggestions,
+        summary: result.summary,
+        fullReport: result.fullReport,
+        timestamp: result.timestamp,
+      };
+      
+      const reportUserInfo: UserInfo = {
+        name: userInfo.name,
+        phone: userInfo.phone,
+      };
+      
+      await generateFaceDiagnosisReport(reportData, reportUserInfo);
+    } catch (err) {
+      console.error('导出报告失败:', err);
+      alert('导出报告失败，请重试');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // 从历史记录选择用户
   const handleSelectUserFromHistory = (user: any) => {
     setUserInfo({ name: user.name, phone: user.phone || '' });
@@ -377,6 +413,9 @@ export default function FaceDiagnosisPage() {
                         </Button>
                         <Button variant="outline" size="sm" onClick={handleDownload}>
                           <Download className="mr-2 h-4 w-4" />下载
+                        </Button>
+                        <Button variant="default" size="sm" onClick={handleExportReport} disabled={exporting}>
+                          {exporting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />导出中...</>) : (<><FileDown className="mr-2 h-4 w-4" />导出报告</>)}
                         </Button>
                       </div>
                     </div>

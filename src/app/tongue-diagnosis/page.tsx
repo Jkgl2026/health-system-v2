@@ -11,8 +11,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Camera, Loader2, FileText, AlertCircle, CheckCircle2, RotateCcw,
-  Download, Copy, Sparkles, ArrowLeft, Heart, History, User
+  Download, Copy, Sparkles, ArrowLeft, Heart, History, User, FileDown
 } from 'lucide-react';
+import { generateTongueDiagnosisReport, TongueDiagnosisData, UserInfo } from '@/lib/report-generator';
 import dynamic from 'next/dynamic';
 
 // 动态导入历史记录组件
@@ -219,6 +220,40 @@ ${result}
     URL.revokeObjectURL(url);
   };
 
+  // 导出Word报告
+  const [exporting, setExporting] = useState(false);
+  const handleExportReport = async () => {
+    if (!resultData) return;
+    
+    setExporting(true);
+    try {
+      // 从API返回的数据构建报告数据
+      const reportData: TongueDiagnosisData = {
+        score: resultData.score,
+        tongueBody: resultData.tongueBody,
+        tongueCoating: resultData.tongueCoating,
+        constitution: resultData.constitution,
+        organStatus: resultData.organStatus,
+        suggestions: resultData.suggestions,
+        summary: resultData.summary,
+        fullReport: resultData.diagnosis || resultData.fullReport,
+        timestamp: resultData.timestamp,
+      };
+      
+      const reportUserInfo: UserInfo = {
+        name: userInfo.name,
+        phone: userInfo.phone,
+      };
+      
+      await generateTongueDiagnosisReport(reportData, reportUserInfo);
+    } catch (err) {
+      console.error('导出报告失败:', err);
+      alert('导出报告失败，请重试');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // 从历史记录选择用户
   const handleSelectUserFromHistory = (user: any) => {
     setUserInfo({ name: user.name, phone: user.phone || '' });
@@ -376,6 +411,9 @@ ${result}
                       </Button>
                       <Button variant="outline" size="sm" onClick={handleDownload}>
                         <Download className="mr-2 h-4 w-4" />下载
+                      </Button>
+                      <Button variant="default" size="sm" onClick={handleExportReport} disabled={exporting}>
+                        {exporting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />导出中...</>) : (<><FileDown className="mr-2 h-4 w-4" />导出报告</>)}
                       </Button>
                     </div>
                   </div>
