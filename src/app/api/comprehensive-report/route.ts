@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
-import { healthProfiles } from '@/storage/database/shared/schema';
-import { desc, eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 // GET /api/comprehensive-report - 获取综合健康报告
+// 注意：诊断表不由 Drizzle 管理，使用原始 SQL 查询
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -163,13 +163,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 获取健康档案
-    const profileResult = await db
-      .select()
-      .from(healthProfiles)
-      .where(userId ? eq(healthProfiles.userId, userId) : sql`1=1`)
-      .orderBy(desc(healthProfiles.updatedAt))
-      .limit(1);
+    // 获取健康档案 (使用原始SQL)
+    const profileResult = await db.execute(sql`
+      SELECT * FROM health_profiles
+      ${userId ? sql`WHERE user_id = ${userId}` : sql``}
+      ORDER BY updated_at DESC
+      LIMIT 1
+    `);
 
     return NextResponse.json({
       success: true,
@@ -185,7 +185,7 @@ export async function GET(request: NextRequest) {
           postureScore: postureData?.score || null,
           recommendations: mergedRecommendations.slice(0, 10), // 最多10条建议
         },
-        healthProfile: profileResult[0] || null,
+        healthProfile: profileResult.rows[0] || null,
         generatedAt: new Date().toISOString(),
       },
     });

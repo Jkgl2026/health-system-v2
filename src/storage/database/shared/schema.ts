@@ -302,187 +302,16 @@ export const courses = pgTable(
 );
 
 // ============================================================
-// 诊断相关表 - 这些表由各自的 API 路由创建和管理
-// 必须在 Drizzle schema 中定义以避免迁移冲突
-// 注意：这些表使用 VARCHAR(36) UUID，与数据库实际结构一致
+// 诊断相关表的类型定义已移至 diagnosis-types.ts
+// 这些表由各自的 API 路由使用原始 SQL 创建和管理：
+// - face_diagnosis_users / face_diagnosis_records
+// - tongue_diagnosis_users / tongue_diagnosis_records
+// - health_profiles
+// - posture_diagnosis_records / posture_comparisons
+// 
+// Drizzle 不管理这些表，以避免迁移冲突。
+// 类型定义请导入: import { FaceDiagnosisRecord, ... } from "./diagnosis-types"
 // ============================================================
-
-// 面诊用户表 (与 face-diagnosis-records API 结构一致)
-export const faceDiagnosisUsers = pgTable(
-  "face_diagnosis_users",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    name: varchar("name", { length: 100 }).notNull(),
-    phone: varchar("phone", { length: 20 }),
-    age: integer("age"),
-    gender: varchar("gender", { length: 10 }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-  },
-  (table) => ({
-    nameIdx: index("idx_face_users_name").on(table.name),
-    phoneIdx: index("idx_face_users_phone").on(table.phone),
-  })
-);
-
-// 面诊记录表 (与 migrate-diagnosis-tables 和 face-diagnosis-records API 结构一致)
-export const faceDiagnosisRecords = pgTable(
-  "face_diagnosis_records",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => faceDiagnosisUsers.id, { onDelete: "cascade" }),
-    imageUrl: text("image_url"),
-    score: integer("score"),
-    faceColor: jsonb("face_color"),
-    faceLuster: jsonb("face_luster"),
-    facialFeatures: jsonb("facial_features"),
-    facialCharacteristics: jsonb("facial_characteristics"),
-    constitution: jsonb("constitution"),
-    organStatus: jsonb("organ_status"),
-    suggestions: jsonb("suggestions"),
-    fullReport: text("full_report"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    userIdIdx: index("face_diagnosis_records_user_id_idx").on(table.userId),
-    createdAtIdx: index("face_diagnosis_records_created_at_idx").on(table.createdAt),
-    scoreIdx: index("face_diagnosis_records_score_idx").on(table.score),
-  })
-);
-
-// 舌诊用户表 (与 tongue-diagnosis-records API 结构一致)
-export const tongueDiagnosisUsers = pgTable(
-  "tongue_diagnosis_users",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    name: varchar("name", { length: 100 }).notNull(),
-    phone: varchar("phone", { length: 20 }),
-    age: integer("age"),
-    gender: varchar("gender", { length: 10 }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-  },
-  (table) => ({
-    nameIdx: index("idx_tongue_users_name").on(table.name),
-    phoneIdx: index("idx_tongue_users_phone").on(table.phone),
-  })
-);
-
-// 舌诊记录表 (与 migrate-diagnosis-tables 和 tongue-diagnosis-records API 结构一致)
-export const tongueDiagnosisRecords = pgTable(
-  "tongue_diagnosis_records",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => tongueDiagnosisUsers.id, { onDelete: "cascade" }),
-    imageUrl: text("image_url"),
-    score: integer("score"),
-    tongueBody: jsonb("tongue_body"),
-    tongueCoating: jsonb("tongue_coating"),
-    constitution: jsonb("constitution"),
-    organStatus: jsonb("organ_status"),
-    suggestions: jsonb("suggestions"),
-    fullReport: text("full_report"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    userIdIdx: index("tongue_diagnosis_records_user_id_idx").on(table.userId),
-    createdAtIdx: index("tongue_diagnosis_records_created_at_idx").on(table.createdAt),
-    scoreIdx: index("tongue_diagnosis_records_score_idx").on(table.score),
-  })
-);
-
-// 健康档案表 (与 migrate-diagnosis-tables API 结构一致)
-export const healthProfiles = pgTable(
-  "health_profiles",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
-    latestScore: integer("latest_score"),
-    constitution: varchar("constitution", { length: 50 }),
-    constitutionConfidence: integer("constitution_confidence"),
-    latestFaceScore: integer("latest_face_score"),
-    faceDiagnosisCount: integer("face_diagnosis_count").default(0),
-    lastFaceDiagnosisAt: timestamp("last_face_diagnosis_at", { withTimezone: true }),
-    latestTongueScore: integer("latest_tongue_score"),
-    tongueDiagnosisCount: integer("tongue_diagnosis_count").default(0),
-    lastTongueDiagnosisAt: timestamp("last_tongue_diagnosis_at", { withTimezone: true }),
-    organStatusTrend: jsonb("organ_status_trend"),
-    comprehensiveConclusion: jsonb("comprehensive_conclusion"),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    userIdIdx: index("health_profiles_user_id_idx").on(table.userId),
-    latestScoreIdx: index("health_profiles_latest_score_idx").on(table.latestScore),
-    updatedAtIdx: index("health_profiles_updated_at_idx").on(table.updatedAt),
-  })
-);
-
-// 体态诊断记录表 (与 migrate-posture-tables API 结构一致)
-export const postureDiagnosisRecords = pgTable(
-  "posture_diagnosis_records",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => users.id, { onDelete: "cascade" }),
-    frontImageUrl: text("front_image_url"),
-    leftSideImageUrl: text("left_side_image_url"),
-    rightSideImageUrl: text("right_side_image_url"),
-    backImageUrl: text("back_image_url"),
-    score: integer("score"),
-    grade: varchar("grade", { length: 2 }),
-    bodyStructure: jsonb("body_structure"),
-    fasciaChainAnalysis: jsonb("fascia_chain_analysis"),
-    muscleAnalysis: jsonb("muscle_analysis"),
-    breathingAssessment: jsonb("breathing_assessment"),
-    alignmentAssessment: jsonb("alignment_assessment"),
-    compensationPatterns: jsonb("compensation_patterns"),
-    healthImpact: jsonb("health_impact"),
-    healthPrediction: jsonb("health_prediction"),
-    treatmentPlan: jsonb("treatment_plan"),
-    fullReport: text("full_report"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    userIdIdx: index("posture_diagnosis_records_user_id_idx").on(table.userId),
-    createdAtIdx: index("posture_diagnosis_records_created_at_idx").on(table.createdAt),
-    scoreIdx: index("posture_diagnosis_records_score_idx").on(table.score),
-  })
-);
-
-// 体态对比记录表 (与 migrate-posture-tables API 结构一致 - VARCHAR UUID)
-export const postureComparisons = pgTable(
-  "posture_comparisons",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => users.id, { onDelete: "cascade" }),
-    currentRecordId: varchar("current_record_id", { length: 36 }).references(() => postureDiagnosisRecords.id, { onDelete: "cascade" }),
-    previousRecordId: varchar("previous_record_id", { length: 36 }).references(() => postureDiagnosisRecords.id, { onDelete: "cascade" }),
-    scoreChange: integer("score_change"),
-    improvements: jsonb("improvements"),
-    deteriorations: jsonb("deteriorations"),
-    stableItems: jsonb("stable_items"),
-    comparisonImages: jsonb("comparison_images"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    userIdIdx: index("posture_comparisons_user_id_idx").on(table.userId),
-    currentRecordIdx: index("posture_comparisons_current_record_idx").on(table.currentRecordId),
-    previousRecordIdx: index("posture_comparisons_previous_record_idx").on(table.previousRecordId),
-  })
-);
 
 // 训练动作库表 (与 migrate-posture-tables API 结构一致)
 export const exerciseLibrary = pgTable(
@@ -672,20 +501,8 @@ export const insertCourseSchema = createCoercedInsertSchema(courses).pick({
   season: true,
 });
 
-export const insertHealthProfileSchema = createCoercedInsertSchema(healthProfiles).pick({
-  userId: true,
-  latestScore: true,
-  constitution: true,
-  constitutionConfidence: true,
-  latestFaceScore: true,
-  faceDiagnosisCount: true,
-  lastFaceDiagnosisAt: true,
-  latestTongueScore: true,
-  tongueDiagnosisCount: true,
-  lastTongueDiagnosisAt: true,
-  organStatusTrend: true,
-  comprehensiveConclusion: true,
-});
+// 注意：insertHealthProfileSchema 已移除，health_profiles 表不由 Drizzle 管理
+// 如需类型，请使用 diagnosis-types.ts 中的 InsertHealthProfile
 
 export const insertExerciseLibrarySchema = createCoercedInsertSchema(exerciseLibrary).pick({
   name: true,
@@ -759,23 +576,28 @@ export type BackupRecord = typeof backupRecords.$inferSelect;
 export type InsertBackupRecord = typeof backupRecords.$inferInsert;
 export type Course = typeof courses.$inferSelect;
 export type InsertCourse = typeof courses.$inferInsert;
-export type FaceDiagnosisUser = typeof faceDiagnosisUsers.$inferSelect;
-export type InsertFaceDiagnosisUser = typeof faceDiagnosisUsers.$inferInsert;
-export type FaceDiagnosisRecord = typeof faceDiagnosisRecords.$inferSelect;
-export type InsertFaceDiagnosisRecord = typeof faceDiagnosisRecords.$inferInsert;
-export type TongueDiagnosisUser = typeof tongueDiagnosisUsers.$inferSelect;
-export type InsertTongueDiagnosisUser = typeof tongueDiagnosisUsers.$inferInsert;
-export type TongueDiagnosisRecord = typeof tongueDiagnosisRecords.$inferSelect;
-export type InsertTongueDiagnosisRecord = typeof tongueDiagnosisRecords.$inferInsert;
-export type HealthProfile = typeof healthProfiles.$inferSelect;
-export type InsertHealthProfile = typeof healthProfiles.$inferInsert;
-export type PostureDiagnosisRecord = typeof postureDiagnosisRecords.$inferSelect;
-export type InsertPostureDiagnosisRecord = typeof postureDiagnosisRecords.$inferInsert;
-export type PostureComparison = typeof postureComparisons.$inferSelect;
-export type InsertPostureComparison = typeof postureComparisons.$inferInsert;
 export type ExerciseLibraryRecord = typeof exerciseLibrary.$inferSelect;
 export type InsertExerciseLibraryRecord = typeof exerciseLibrary.$inferInsert;
 export type CheckInRecord = typeof checkInRecords.$inferSelect;
 export type InsertCheckInRecord = typeof checkInRecords.$inferInsert;
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = typeof reminders.$inferInsert;
+
+// 诊断表类型从单独的类型文件导出
+// 这些表不由 Drizzle 管理，类型定义在 diagnosis-types.ts
+export type {
+  FaceDiagnosisUser,
+  InsertFaceDiagnosisUser,
+  FaceDiagnosisRecord,
+  InsertFaceDiagnosisRecord,
+  TongueDiagnosisUser,
+  InsertTongueDiagnosisUser,
+  TongueDiagnosisRecord,
+  InsertTongueDiagnosisRecord,
+  HealthProfile,
+  InsertHealthProfile,
+  PostureDiagnosisRecord,
+  InsertPostureDiagnosisRecord,
+  PostureComparison,
+  InsertPostureComparison,
+} from "./diagnosis-types";

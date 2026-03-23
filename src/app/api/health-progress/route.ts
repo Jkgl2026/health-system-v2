@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
-import { healthProfiles } from '@/storage/database/shared/schema';
-import { desc, eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 // GET /api/health-progress - 获取健康改善进度数据
+// 注意：诊断表不由 Drizzle 管理，使用原始 SQL 查询
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
