@@ -14,83 +14,49 @@ function getPool(): Pool {
   return pool;
 }
 
-// 创建表
+// 创建表 - 使用 UUID 以与 migrate-diagnosis-tables 保持一致
 async function ensureTables() {
   const client = await getPool().connect();
   try {
-    // 舌诊用户表
+    // 舌诊用户表 - 使用 UUID 主键
     await client.query(`
       CREATE TABLE IF NOT EXISTS tongue_diagnosis_users (
-        id SERIAL PRIMARY KEY,
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(100) NOT NULL,
         phone VARCHAR(20),
         age INTEGER,
         gender VARCHAR(10),
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         UNIQUE(name, phone)
       )
     `);
 
-    // 添加 age 和 gender 字段（如果不存在）
-    await client.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tongue_diagnosis_users' AND column_name = 'age') THEN
-          ALTER TABLE tongue_diagnosis_users ADD COLUMN age INTEGER;
-        END IF;
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tongue_diagnosis_users' AND column_name = 'gender') THEN
-          ALTER TABLE tongue_diagnosis_users ADD COLUMN gender VARCHAR(10);
-        END IF;
-      END $$;
-    `);
+    // 创建索引
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_users_name ON tongue_diagnosis_users(name)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_users_phone ON tongue_diagnosis_users(phone)`);
 
-    // 舌诊记录表
+    // 舌诊记录表 - 使用 UUID 以与 migrate-diagnosis-tables 结构一致
     await client.query(`
       CREATE TABLE IF NOT EXISTS tongue_diagnosis_records (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES tongue_diagnosis_users(id),
-        diagnosis_date TIMESTAMP DEFAULT NOW(),
-        
-        -- 舌色
-        tongue_color VARCHAR(50),
-        
-        -- 舌苔
-        tongue_coating VARCHAR(50),
-        
-        -- 舌形
-        tongue_shape VARCHAR(50),
-        
-        -- 体质类型
-        constitution VARCHAR(50),
-        
-        -- 舌象特征（JSON）
-        features JSONB DEFAULT '{}',
-        
-        -- 健康提示（JSON数组）
-        health_hints JSONB DEFAULT '[]',
-        
-        -- AI详细分析
-        ai_analysis TEXT,
-        
-        -- 建议（JSON数组）
-        recommendations JSONB DEFAULT '[]',
-        
-        -- 图片缩略图
-        image_thumbnail TEXT,
-        
-        -- 完整报告
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR(36) REFERENCES tongue_diagnosis_users(id) ON DELETE CASCADE,
+        image_url TEXT,
+        score INTEGER,
+        tongue_body JSONB,
+        tongue_coating JSONB,
+        constitution JSONB,
+        organ_status JSONB,
+        suggestions JSONB,
         full_report TEXT,
-        
-        created_at TIMESTAMP DEFAULT NOW()
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       )
     `);
 
-    // 创建索引 - 分开执行避免错误
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_users_name ON tongue_diagnosis_users(name)`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_users_phone ON tongue_diagnosis_users(phone)`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_records_user_id ON tongue_diagnosis_records(user_id)`);
-    await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_records_date ON tongue_diagnosis_records(diagnosis_date)`);
+    // 创建索引
+    await client.query(`CREATE INDEX IF NOT EXISTS tongue_diagnosis_records_user_id_idx ON tongue_diagnosis_records(user_id)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS tongue_diagnosis_records_created_at_idx ON tongue_diagnosis_records(created_at)`);
+    await client.query(`CREATE INDEX IF NOT EXISTS tongue_diagnosis_records_score_idx ON tongue_diagnosis_records(score)`);
 
     console.log('[TongueDiagnosisRecords] 表结构检查完成');
   } finally {
@@ -119,7 +85,7 @@ export async function GET(request: NextRequest) {
           SELECT 
             u.id, u.name, u.phone, u.age, u.gender, u.created_at,
             COUNT(r.id) as diagnosis_count,
-            MAX(r.diagnosis_date) as last_diagnosis_date
+            MAX(r.created_at) as last_diagnosis_date
           FROM tongue_diagnosis_users u
           LEFT JOIN tongue_diagnosis_records r ON u.id = r.user_id
           GROUP BY u.id, u.name, u.phone, u.age, u.gender, u.created_at
@@ -153,11 +119,11 @@ export async function GET(request: NextRequest) {
       if (action === 'userRecords' && userId) {
         const result = await client.query(`
           SELECT 
-            id, diagnosis_date, tongue_color, tongue_coating, tongue_shape,
-            constitution, health_hints, ai_analysis
+            id, created_at as diagnosis_date, constitution, tongue_body, tongue_coating,
+            suggestions, full_report, score
           FROM tongue_diagnosis_records
           WHERE user_id = $1
-          ORDER BY diagnosis_date DESC
+          ORDER BY created_at DESC
         `, [userId]);
         
         return NextResponse.json({ success: true, data: result.rows });
@@ -184,12 +150,12 @@ export async function GET(request: NextRequest) {
         const limit = parseInt(searchParams.get('limit') || '20');
         const result = await client.query(`
           SELECT 
-            r.id, r.diagnosis_date, r.tongue_color, r.tongue_coating,
-            r.tongue_shape, r.constitution, r.health_hints, r.ai_analysis,
+            r.id, r.created_at as diagnosis_date, r.tongue_body, r.tongue_coating,
+            r.constitution, r.suggestions, r.full_report, r.score,
             u.id as user_id, u.name, u.phone, u.age, u.gender
           FROM tongue_diagnosis_records r
           JOIN tongue_diagnosis_users u ON r.user_id = u.id
-          ORDER BY r.diagnosis_date DESC
+          ORDER BY r.created_at DESC
           LIMIT $1
         `, [limit]);
         
@@ -245,7 +211,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: true, data: result.rows[0] });
         }
         
-        // 创建新用户
+        // 创建新用户（UUID 会自动生成）
         result = await client.query(
           `INSERT INTO tongue_diagnosis_users (name, phone, age, gender) VALUES ($1, $2, $3, $4) RETURNING *`,
           [name.trim(), phone?.trim() || null, age || null, gender || null]
@@ -257,35 +223,31 @@ export async function POST(request: NextRequest) {
       // 保存诊断记录
       if (action === 'saveDiagnosis' && userId) {
         const {
-          tongueColor,
+          imageUrl,
+          score,
+          tongueBody,
           tongueCoating,
-          tongueShape,
           constitution,
-          features,
-          healthHints,
-          aiAnalysis,
-          recommendations,
-          imageThumbnail,
+          organStatus,
+          suggestions,
           fullReport,
         } = diagnosisData || {};
         
         const result = await client.query(`
           INSERT INTO tongue_diagnosis_records (
-            user_id, tongue_color, tongue_coating, tongue_shape, constitution,
-            features, health_hints, ai_analysis, recommendations, image_thumbnail, full_report
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            user_id, image_url, score, tongue_body, tongue_coating,
+            constitution, organ_status, suggestions, full_report
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
           RETURNING *
         `, [
           userId,
-          tongueColor || null,
+          imageUrl || null,
+          score || null,
+          tongueBody || null,
           tongueCoating || null,
-          tongueShape || null,
           constitution || null,
-          JSON.stringify(features || {}),
-          JSON.stringify(healthHints || []),
-          aiAnalysis || null,
-          JSON.stringify(recommendations || []),
-          imageThumbnail || null,
+          organStatus || null,
+          suggestions || null,
           fullReport || null,
         ]);
         

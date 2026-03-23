@@ -14,84 +14,65 @@ function getPool(): Pool {
   return pool;
 }
 
-// 创建表
+// 创建表 - 使用 UUID 以与 migrate-diagnosis-tables 保持一致
 async function ensureTables() {
   const client = await getPool().connect();
   try {
-    // 面诊用户表
+    // 注意：face_diagnosis_records 表由 migrate-diagnosis-tables API 创建
+    // 这里只创建 face_diagnosis_users 表（如果需要的话）
+    // 实际的面诊记录应该使用 migrate-diagnosis-tables 创建的表
+    
+    // 面诊用户表 - 使用 UUID 主键
     await client.query(`
       CREATE TABLE IF NOT EXISTS face_diagnosis_users (
-        id SERIAL PRIMARY KEY,
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(100) NOT NULL,
         phone VARCHAR(20),
         age INTEGER,
         gender VARCHAR(10),
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         UNIQUE(name, phone)
       )
     `);
 
-    // 添加 age 和 gender 字段（如果不存在）
-    await client.query(`
-      DO $$
-      BEGIN
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'face_diagnosis_users' AND column_name = 'age') THEN
-          ALTER TABLE face_diagnosis_users ADD COLUMN age INTEGER;
-        END IF;
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'face_diagnosis_users' AND column_name = 'gender') THEN
-          ALTER TABLE face_diagnosis_users ADD COLUMN gender VARCHAR(10);
-        END IF;
-      END $$;
-    `);
-
-    // 面诊记录表
-    await client.query(`
-      CREATE TABLE IF NOT EXISTS face_diagnosis_records (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES face_diagnosis_users(id),
-        diagnosis_date TIMESTAMP DEFAULT NOW(),
-        
-        -- 体质类型
-        constitution VARCHAR(50),
-        
-        -- 面色分析
-        face_color TEXT,
-        
-        -- 面部特征（JSON）
-        features JSONB DEFAULT '{}',
-        
-        -- 健康提示（JSON数组）
-        health_hints JSONB DEFAULT '[]',
-        
-        -- AI详细分析
-        ai_analysis TEXT,
-        
-        -- 建议（JSON数组）
-        recommendations JSONB DEFAULT '[]',
-        
-        -- 图片缩略图
-        image_thumbnail TEXT,
-        
-        -- 完整报告
-        full_report TEXT,
-        
-        created_at TIMESTAMP DEFAULT NOW()
-      )
-    `);
-
-    // 创建索引 - 注意顺序，先确保表存在
+    // 创建索引
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_face_users_name ON face_diagnosis_users(name);
     `);
     await client.query(`
       CREATE INDEX IF NOT EXISTS idx_face_users_phone ON face_diagnosis_users(phone);
     `);
+
+    // 检查 face_diagnosis_records 表是否存在，如果不存在则创建（使用 UUID）
+    // 这与 migrate-diagnosis-tables API 创建的结构一致
     await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_face_records_user_id ON face_diagnosis_records(user_id);
+      CREATE TABLE IF NOT EXISTS face_diagnosis_records (
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR(36) REFERENCES face_diagnosis_users(id) ON DELETE CASCADE,
+        image_url TEXT,
+        score INTEGER,
+        face_color JSONB,
+        face_luster JSONB,
+        facial_features JSONB,
+        facial_characteristics JSONB,
+        constitution JSONB,
+        organ_status JSONB,
+        suggestions JSONB,
+        full_report TEXT,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+      )
+    `);
+
+    // 创建 face_diagnosis_records 索引
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS face_diagnosis_records_user_id_idx ON face_diagnosis_records(user_id);
     `);
     await client.query(`
-      CREATE INDEX IF NOT EXISTS idx_face_records_date ON face_diagnosis_records(diagnosis_date);
+      CREATE INDEX IF NOT EXISTS face_diagnosis_records_created_at_idx ON face_diagnosis_records(created_at);
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS face_diagnosis_records_score_idx ON face_diagnosis_records(score);
     `);
 
     console.log('[FaceDiagnosisRecords] 表结构检查完成');
@@ -121,7 +102,7 @@ export async function GET(request: NextRequest) {
           SELECT 
             u.id, u.name, u.phone, u.age, u.gender, u.created_at,
             COUNT(r.id) as diagnosis_count,
-            MAX(r.diagnosis_date) as last_diagnosis_date
+            MAX(r.created_at) as last_diagnosis_date
           FROM face_diagnosis_users u
           LEFT JOIN face_diagnosis_records r ON u.id = r.user_id
           GROUP BY u.id, u.name, u.phone, u.age, u.gender, u.created_at
@@ -155,11 +136,11 @@ export async function GET(request: NextRequest) {
       if (action === 'userRecords' && userId) {
         const result = await client.query(`
           SELECT 
-            id, diagnosis_date, constitution, face_color,
-            health_hints, ai_analysis
+            id, created_at as diagnosis_date, constitution, face_color,
+            suggestions, full_report, score
           FROM face_diagnosis_records
           WHERE user_id = $1
-          ORDER BY diagnosis_date DESC
+          ORDER BY created_at DESC
         `, [userId]);
         
         return NextResponse.json({ success: true, data: result.rows });
@@ -186,12 +167,12 @@ export async function GET(request: NextRequest) {
         const limit = parseInt(searchParams.get('limit') || '20');
         const result = await client.query(`
           SELECT 
-            r.id, r.diagnosis_date, r.constitution, r.face_color,
-            r.health_hints, r.ai_analysis,
+            r.id, r.created_at as diagnosis_date, r.constitution, r.face_color,
+            r.suggestions, r.full_report, r.score,
             u.id as user_id, u.name, u.phone, u.age, u.gender
           FROM face_diagnosis_records r
           JOIN face_diagnosis_users u ON r.user_id = u.id
-          ORDER BY r.diagnosis_date DESC
+          ORDER BY r.created_at DESC
           LIMIT $1
         `, [limit]);
         
@@ -247,7 +228,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({ success: true, data: result.rows[0] });
         }
         
-        // 创建新用户
+        // 创建新用户（UUID 会自动生成）
         result = await client.query(
           `INSERT INTO face_diagnosis_users (name, phone, age, gender) VALUES ($1, $2, $3, $4) RETURNING *`,
           [name.trim(), phone?.trim() || null, age || null, gender || null]
@@ -259,31 +240,36 @@ export async function POST(request: NextRequest) {
       // 保存诊断记录
       if (action === 'saveDiagnosis' && userId) {
         const {
-          constitution,
+          imageUrl,
+          score,
           faceColor,
-          features,
-          healthHints,
-          aiAnalysis,
-          recommendations,
-          imageThumbnail,
+          faceLuster,
+          facialFeatures,
+          facialCharacteristics,
+          constitution,
+          organStatus,
+          suggestions,
           fullReport,
         } = diagnosisData || {};
         
         const result = await client.query(`
           INSERT INTO face_diagnosis_records (
-            user_id, constitution, face_color, features, health_hints,
-            ai_analysis, recommendations, image_thumbnail, full_report
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            user_id, image_url, score, face_color, face_luster,
+            facial_features, facial_characteristics, constitution,
+            organ_status, suggestions, full_report
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
           RETURNING *
         `, [
           userId,
-          constitution || null,
+          imageUrl || null,
+          score || null,
           faceColor || null,
-          JSON.stringify(features || {}),
-          JSON.stringify(healthHints || []),
-          aiAnalysis || null,
-          JSON.stringify(recommendations || []),
-          imageThumbnail || null,
+          faceLuster || null,
+          facialFeatures || null,
+          facialCharacteristics || null,
+          constitution || null,
+          organStatus || null,
+          suggestions || null,
           fullReport || null,
         ]);
         

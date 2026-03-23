@@ -307,14 +307,34 @@ export const courses = pgTable(
 // 注意：这些表使用 VARCHAR(36) UUID，与数据库实际结构一致
 // ============================================================
 
-// 面诊记录表 (与 migrate-diagnosis-tables API 结构一致)
+// 面诊用户表 (与 face-diagnosis-records API 结构一致)
+export const faceDiagnosisUsers = pgTable(
+  "face_diagnosis_users",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: varchar("name", { length: 100 }).notNull(),
+    phone: varchar("phone", { length: 20 }),
+    age: integer("age"),
+    gender: varchar("gender", { length: 10 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    nameIdx: index("idx_face_users_name").on(table.name),
+    phoneIdx: index("idx_face_users_phone").on(table.phone),
+  })
+);
+
+// 面诊记录表 (与 migrate-diagnosis-tables 和 face-diagnosis-records API 结构一致)
 export const faceDiagnosisRecords = pgTable(
   "face_diagnosis_records",
   {
     id: varchar("id", { length: 36 })
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => users.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 }).references(() => faceDiagnosisUsers.id, { onDelete: "cascade" }),
     imageUrl: text("image_url"),
     score: integer("score"),
     faceColor: jsonb("face_color"),
@@ -334,14 +354,34 @@ export const faceDiagnosisRecords = pgTable(
   })
 );
 
-// 舌诊记录表 (与 migrate-diagnosis-tables API 结构一致)
+// 舌诊用户表 (与 tongue-diagnosis-records API 结构一致)
+export const tongueDiagnosisUsers = pgTable(
+  "tongue_diagnosis_users",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: varchar("name", { length: 100 }).notNull(),
+    phone: varchar("phone", { length: 20 }),
+    age: integer("age"),
+    gender: varchar("gender", { length: 10 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  },
+  (table) => ({
+    nameIdx: index("idx_tongue_users_name").on(table.name),
+    phoneIdx: index("idx_tongue_users_phone").on(table.phone),
+  })
+);
+
+// 舌诊记录表 (与 migrate-diagnosis-tables 和 tongue-diagnosis-records API 结构一致)
 export const tongueDiagnosisRecords = pgTable(
   "tongue_diagnosis_records",
   {
     id: varchar("id", { length: 36 })
       .primaryKey()
       .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => users.id, { onDelete: "cascade" }),
+    userId: varchar("user_id", { length: 36 }).references(() => tongueDiagnosisUsers.id, { onDelete: "cascade" }),
     imageUrl: text("image_url"),
     score: integer("score"),
     tongueBody: jsonb("tongue_body"),
@@ -719,8 +759,12 @@ export type BackupRecord = typeof backupRecords.$inferSelect;
 export type InsertBackupRecord = typeof backupRecords.$inferInsert;
 export type Course = typeof courses.$inferSelect;
 export type InsertCourse = typeof courses.$inferInsert;
+export type FaceDiagnosisUser = typeof faceDiagnosisUsers.$inferSelect;
+export type InsertFaceDiagnosisUser = typeof faceDiagnosisUsers.$inferInsert;
 export type FaceDiagnosisRecord = typeof faceDiagnosisRecords.$inferSelect;
 export type InsertFaceDiagnosisRecord = typeof faceDiagnosisRecords.$inferInsert;
+export type TongueDiagnosisUser = typeof tongueDiagnosisUsers.$inferSelect;
+export type InsertTongueDiagnosisUser = typeof tongueDiagnosisUsers.$inferInsert;
 export type TongueDiagnosisRecord = typeof tongueDiagnosisRecords.$inferSelect;
 export type InsertTongueDiagnosisRecord = typeof tongueDiagnosisRecords.$inferInsert;
 export type HealthProfile = typeof healthProfiles.$inferSelect;
