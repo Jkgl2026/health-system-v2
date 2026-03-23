@@ -3,6 +3,7 @@ import { getDb } from 'coze-coding-dev-sdk';
 
 // POST /api/migrate-diagnosis-tables - 迁移添加诊断相关表
 // 此API用于在现有数据库中添加新的诊断表，不会删除现有数据
+// 注意：诊断表使用专用的用户表（face_diagnosis_users, tongue_diagnosis_users）
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -22,12 +23,44 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
     const results: string[] = [];
 
+    // 创建面诊用户表
+    try {
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS face_diagnosis_users (
+          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(100) NOT NULL,
+          phone VARCHAR(20),
+          age INTEGER,
+          gender VARCHAR(10),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          UNIQUE(name, phone)
+        );
+      `);
+      results.push('面诊用户表创建成功');
+    } catch (e: any) {
+      if (e.message?.includes('already exists')) {
+        results.push('面诊用户表已存在，跳过');
+      } else {
+        throw e;
+      }
+    }
+
+    // 创建面诊用户索引
+    try {
+      await db.execute(`CREATE INDEX IF NOT EXISTS idx_face_users_name ON face_diagnosis_users(name);`);
+      await db.execute(`CREATE INDEX IF NOT EXISTS idx_face_users_phone ON face_diagnosis_users(phone);`);
+      results.push('面诊用户索引创建成功');
+    } catch (e) {
+      results.push('面诊用户索引已存在或创建失败（可忽略）');
+    }
+
     // 创建面诊记录表
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS face_diagnosis_records (
           id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE,
+          user_id VARCHAR(36) REFERENCES face_diagnosis_users(id) ON DELETE CASCADE,
           image_url TEXT,
           score INTEGER,
           face_color JSONB,
@@ -60,12 +93,44 @@ export async function POST(request: NextRequest) {
       results.push('面诊记录索引已存在或创建失败（可忽略）');
     }
 
+    // 创建舌诊用户表
+    try {
+      await db.execute(`
+        CREATE TABLE IF NOT EXISTS tongue_diagnosis_users (
+          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+          name VARCHAR(100) NOT NULL,
+          phone VARCHAR(20),
+          age INTEGER,
+          gender VARCHAR(10),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          UNIQUE(name, phone)
+        );
+      `);
+      results.push('舌诊用户表创建成功');
+    } catch (e: any) {
+      if (e.message?.includes('already exists')) {
+        results.push('舌诊用户表已存在，跳过');
+      } else {
+        throw e;
+      }
+    }
+
+    // 创建舌诊用户索引
+    try {
+      await db.execute(`CREATE INDEX IF NOT EXISTS idx_tongue_users_name ON tongue_diagnosis_users(name);`);
+      await db.execute(`CREATE INDEX IF NOT EXISTS idx_tongue_users_phone ON tongue_diagnosis_users(phone);`);
+      results.push('舌诊用户索引创建成功');
+    } catch (e) {
+      results.push('舌诊用户索引已存在或创建失败（可忽略）');
+    }
+
     // 创建舌诊记录表
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS tongue_diagnosis_records (
           id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE,
+          user_id VARCHAR(36) REFERENCES tongue_diagnosis_users(id) ON DELETE CASCADE,
           image_url TEXT,
           score INTEGER,
           tongue_body JSONB,
@@ -140,7 +205,9 @@ export async function POST(request: NextRequest) {
       message: '数据库迁移完成',
       results,
       tables: [
+        'face_diagnosis_users',
         'face_diagnosis_records',
+        'tongue_diagnosis_users',
         'tongue_diagnosis_records',
         'health_profiles'
       ]
