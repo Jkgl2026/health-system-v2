@@ -24,10 +24,25 @@ async function ensureTables() {
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         phone VARCHAR(20),
+        age INTEGER,
+        gender VARCHAR(10),
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(name, phone)
       )
+    `);
+
+    // 添加 age 和 gender 字段（如果不存在）
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tongue_diagnosis_users' AND column_name = 'age') THEN
+          ALTER TABLE tongue_diagnosis_users ADD COLUMN age INTEGER;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'tongue_diagnosis_users' AND column_name = 'gender') THEN
+          ALTER TABLE tongue_diagnosis_users ADD COLUMN gender VARCHAR(10);
+        END IF;
+      END $$;
     `);
 
     // 舌诊记录表
@@ -202,7 +217,7 @@ export async function POST(request: NextRequest) {
     await ensureTables();
     
     const body = await request.json();
-    const { action, name, phone, userId, diagnosisData } = body;
+    const { action, name, phone, age, gender, userId, diagnosisData } = body;
 
     const client = await getPool().connect();
     
@@ -220,13 +235,20 @@ export async function POST(request: NextRequest) {
         );
         
         if (result.rows.length > 0) {
+          // 更新年龄和性别（如果提供了）
+          if (age !== undefined || gender !== undefined) {
+            result = await client.query(
+              `UPDATE tongue_diagnosis_users SET age = COALESCE($1, age), gender = COALESCE($2, gender), updated_at = NOW() WHERE id = $3 RETURNING *`,
+              [age || null, gender || null, result.rows[0].id]
+            );
+          }
           return NextResponse.json({ success: true, data: result.rows[0] });
         }
         
         // 创建新用户
         result = await client.query(
-          `INSERT INTO tongue_diagnosis_users (name, phone) VALUES ($1, $2) RETURNING *`,
-          [name.trim(), phone?.trim() || null]
+          `INSERT INTO tongue_diagnosis_users (name, phone, age, gender) VALUES ($1, $2, $3, $4) RETURNING *`,
+          [name.trim(), phone?.trim() || null, age || null, gender || null]
         );
         
         return NextResponse.json({ success: true, data: result.rows[0] });

@@ -934,6 +934,151 @@ function createPostureDiagnosisContent(data: PostureDiagnosisData): (Paragraph |
 
 // ==================== 报告尾部 ====================
 
+// 面诊报告参考标准
+function createFaceDiagnosisReference(): Paragraph[] {
+  const paragraphs: Paragraph[] = [];
+  
+  paragraphs.push(createSectionTitle('参考标准说明'));
+  paragraphs.push(
+    createParagraph('本面诊报告评估标准依据以下专业教材及临床指南制定：')
+  );
+  paragraphs.push(new Paragraph({ spacing: { before: 100 } }));
+  paragraphs.push(createParagraph('  1. 《中医诊断学》（新世纪第四版）- 面部五色诊法与脏腑对应关系'));
+  paragraphs.push(createParagraph('  2. 《中医面诊学》- 面部望诊的理论与方法'));
+  paragraphs.push(createParagraph('  3. 《黄帝内经·素问》- 面部望诊理论基础'));
+  paragraphs.push(createParagraph('  4. 《中医诊断学实验教程》- 面部特征辨识标准'));
+  paragraphs.push(createParagraph('  5. 《中医体质学》- 体质辨识与面部特征关联'));
+  
+  paragraphs.push(new Paragraph({ spacing: { before: 150 } }));
+  paragraphs.push(createParagraph('评分等级说明：'));
+  paragraphs.push(createParagraph('  - A级（90-100分）：面色红润有光泽，五官端正，面部无明显异常'));
+  paragraphs.push(createParagraph('  - B级（80-89分）：面色基本正常，偶有轻微异常表现'));
+  paragraphs.push(createParagraph('  - C级（70-79分）：面色略有异常，建议调理'));
+  paragraphs.push(createParagraph('  - D级（60-69分）：面色明显异常，建议就医检查'));
+  paragraphs.push(createParagraph('  - E级（60分以下）：面色严重异常，需及时就医'));
+  
+  return paragraphs;
+}
+
+// 舌诊报告参考标准
+function createTongueDiagnosisReference(): Paragraph[] {
+  const paragraphs: Paragraph[] = [];
+  
+  paragraphs.push(createSectionTitle('参考标准说明'));
+  paragraphs.push(
+    createParagraph('本舌诊报告评估标准依据以下专业教材及临床指南制定：')
+  );
+  paragraphs.push(new Paragraph({ spacing: { before: 100 } }));
+  paragraphs.push(createParagraph('  1. 《中医诊断学》（新世纪第四版）- 舌诊理论与方法'));
+  paragraphs.push(createParagraph('  2. 《中医舌诊学》- 舌质舌苔辨识标准'));
+  paragraphs.push(createParagraph('  3. 《舌诊研究与临床应用》- 现代舌诊技术'));
+  paragraphs.push(createParagraph('  4. 《中医诊断学图谱》- 舌象标准化参考'));
+  paragraphs.push(createParagraph('  5. 《中医舌诊临床图谱》- 舌诊临床应用指南'));
+  
+  paragraphs.push(new Paragraph({ spacing: { before: 150 } }));
+  paragraphs.push(createParagraph('评分等级说明：'));
+  paragraphs.push(createParagraph('  - A级（90-100分）：淡红舌薄白苔，舌体柔软灵活'));
+  paragraphs.push(createParagraph('  - B级（80-89分）：舌质舌苔基本正常，偶有轻微变化'));
+  paragraphs.push(createParagraph('  - C级（70-79分）：舌质或舌苔略有异常，建议调理'));
+  paragraphs.push(createParagraph('  - D级（60-69分）：舌象明显异常，建议就医检查'));
+  paragraphs.push(createParagraph('  - E级（60分以下）：舌象严重异常，需及时就医'));
+  
+  return paragraphs;
+}
+
+// 体态评估报告参考标准
+function createPostureDiagnosisReference(): Paragraph[] {
+  const paragraphs: Paragraph[] = [];
+  
+  paragraphs.push(createSectionTitle('参考标准说明'));
+  paragraphs.push(
+    createParagraph('本体态评估报告依据以下专业教材及临床指南制定：')
+  );
+  paragraphs.push(new Paragraph({ spacing: { before: 100 } }));
+  paragraphs.push(createParagraph('  1. 《运动解剖学》（第三版）- 骨骼肌肉运动原理'));
+  paragraphs.push(createParagraph('  2. 《体态评估与矫正》- 体态评估标准与矫正方法'));
+  paragraphs.push(createParagraph('  3. 《临床运动学》- 关节活动度评估标准'));
+  paragraphs.push(createParagraph('  4. 《筋膜链理论与应用》- 肌筋膜链评估与治疗'));
+  paragraphs.push(createParagraph('  5. 《肌肉功能与测试》- 肌肉功能评估指南'));
+  paragraphs.push(createParagraph('  6. 《姿势异常与肌肉骨骼疼痛》- 体态异常临床评估'));
+  
+  paragraphs.push(new Paragraph({ spacing: { before: 150 } }));
+  paragraphs.push(createParagraph('评分等级说明：'));
+  paragraphs.push(createParagraph('  - A级（90-100分）：体态端正，各部位力线正常'));
+  paragraphs.push(createParagraph('  - B级（80-89分）：体态基本正常，轻微不对称或偏移'));
+  paragraphs.push(createParagraph('  - C级（70-79分）：轻度体态异常，建议进行矫正训练'));
+  paragraphs.push(createParagraph('  - D级（60-69分）：中度体态异常，建议专业康复指导'));
+  paragraphs.push(createParagraph('  - E级（60分以下）：严重体态异常，需及时就医'));
+  
+  return paragraphs;
+}
+
+// 重要声明
+function createDisclaimer(): Paragraph[] {
+  const paragraphs: Paragraph[] = [];
+  
+  paragraphs.push(createDivider());
+  paragraphs.push(createSectionTitle('重要声明'));
+  paragraphs.push(createParagraph('1. 本报告由AI中医健康管理系统自动生成，仅供参考。'));
+  paragraphs.push(createParagraph('2. 本报告不作为临床诊断依据，如有不适请及时就医。'));
+  paragraphs.push(createParagraph('3. 建议定期复查，跟踪健康状况变化。'));
+  paragraphs.push(createParagraph('4. 本报告有效期为生成之日起3个月内。'));
+  
+  return paragraphs;
+}
+
+// 报告结束信息
+function createReportEnd(): Paragraph[] {
+  const paragraphs: Paragraph[] = [];
+  
+  paragraphs.push(createDivider());
+  paragraphs.push(new Paragraph({ spacing: { before: 200 } }));
+  paragraphs.push(createLabeledParagraph('报告生成：', 'AI 中医健康管理系统'));
+  paragraphs.push(createLabeledParagraph('技术支持：', 'AI健康科技'));
+  paragraphs.push(createLabeledParagraph('生成日期：', new Date().toLocaleDateString('zh-CN')));
+  
+  paragraphs.push(new Paragraph({ spacing: { before: 200 } }));
+  paragraphs.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [
+        new TextRun({
+          text: '══════════════════════════════════════════════════════════════',
+          font: 'Microsoft YaHei',
+          color: '999999',
+        }),
+      ],
+    })
+  );
+  paragraphs.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [
+        new TextRun({
+          text: '报告结束',
+          size: 24,
+          font: 'Microsoft YaHei',
+          color: '666666',
+        }),
+      ],
+    })
+  );
+  paragraphs.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      children: [
+        new TextRun({
+          text: '══════════════════════════════════════════════════════════════',
+          font: 'Microsoft YaHei',
+          color: '999999',
+        }),
+      ],
+    })
+  );
+
+  return paragraphs;
+}
+
 function createReportFooter(): Paragraph[] {
   const paragraphs: Paragraph[] = [];
 
@@ -1041,7 +1186,9 @@ export async function generateFaceDiagnosisReport(
           ...createReportHeader('face', reportId, userInfo, timestamp),
           ...createAssessmentSummary(score, grade, issues),
           ...createFaceDiagnosisContent(data),
-          ...createReportFooter(),
+          ...createFaceDiagnosisReference(),
+          ...createDisclaimer(),
+          ...createReportEnd(),
         ],
       },
     ],
@@ -1083,7 +1230,9 @@ export async function generateTongueDiagnosisReport(
           ...createReportHeader('tongue', reportId, userInfo, timestamp),
           ...createAssessmentSummary(score, grade, issues),
           ...createTongueDiagnosisContent(data),
-          ...createReportFooter(),
+          ...createTongueDiagnosisReference(),
+          ...createDisclaimer(),
+          ...createReportEnd(),
         ],
       },
     ],
@@ -1119,7 +1268,9 @@ export async function generatePostureDiagnosisReport(
           ...createReportHeader('posture', reportId, userInfo, timestamp),
           ...createAssessmentSummary(score, grade, issues),
           ...createPostureDiagnosisContent(data),
-          ...createReportFooter(),
+          ...createPostureDiagnosisReference(),
+          ...createDisclaimer(),
+          ...createReportEnd(),
         ],
       },
     ],

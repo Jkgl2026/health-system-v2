@@ -9,13 +9,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Search, User, History, Plus, ChevronRight, Calendar,
-  AlertCircle, Loader2, Users, FileText, Trash2, Eye, X, FileDown
+  AlertCircle, Loader2, Users, FileText, Trash2, Eye, X, FileDown,
+  GitCompare, TrendingUp, TrendingDown, Minus
 } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { generateTCMPDFReport, downloadTCMPDF, generateTCMReportFilename, TCMReportData } from '@/lib/tcm-pdf-generator';
+import { compareFaceDiagnosisRecords, ComparisonResult } from '@/lib/comparison-utils';
 
 // 用户接口
 interface FaceDiagnosisUser {
@@ -69,6 +72,12 @@ export default function FaceDiagnosisHistoryManager({
   const [loading, setLoading] = useState(false);
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [exportingPDF, setExportingPDF] = useState(false);
+  
+  // 对比模式状态
+  const [compareMode, setCompareMode] = useState(false);
+  const [selectedRecords, setSelectedRecords] = useState<number[]>([]);
+  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
+  const [showComparisonDialog, setShowComparisonDialog] = useState(false);
 
   // 导出PDF报告
   const handleExportPDF = useCallback(async () => {
@@ -226,8 +235,57 @@ export default function FaceDiagnosisHistoryManager({
     setSelectedUser(user);
     loadUserRecords(user.id);
     setActiveTab('records');
+    setCompareMode(false);
+    setSelectedRecords([]);
     onSelectUser?.(user);
   };
+  
+  // 切换记录选择（用于对比）
+  const toggleRecordSelection = (recordId: number) => {
+    setSelectedRecords(prev => {
+      if (prev.includes(recordId)) {
+        return prev.filter(id => id !== recordId);
+      }
+      if (prev.length >= 2) {
+        return [prev[1], recordId];
+      }
+      return [...prev, recordId];
+    });
+  };
+  
+  // 执行对比分析
+  const handleCompare = useCallback(async () => {
+    if (selectedRecords.length !== 2) return;
+    
+    setLoading(true);
+    try {
+      // 加载两条记录的详情
+      const [res1, res2] = await Promise.all([
+        fetch(`/api/face-diagnosis-records?action=detail&recordId=${selectedRecords[0]}`),
+        fetch(`/api/face-diagnosis-records?action=detail&recordId=${selectedRecords[1]}`),
+      ]);
+      const [data1, data2] = await Promise.all([res1.json(), res2.json()]);
+      
+      if (data1.success && data2.success) {
+        // 执行对比（按时间排序，旧记录在前）
+        const record1 = data1.data;
+        const record2 = data2.data;
+        const date1 = new Date(record1.diagnosis_date).getTime();
+        const date2 = new Date(record2.diagnosis_date).getTime();
+        
+        const result = date1 < date2 
+          ? compareFaceDiagnosisRecords(record1, record2)
+          : compareFaceDiagnosisRecords(record2, record1);
+        
+        setComparisonResult(result);
+        setShowComparisonDialog(true);
+      }
+    } catch (err) {
+      console.error('对比失败:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedRecords]);
 
   return (
     <Card className="w-full">
@@ -314,19 +372,65 @@ export default function FaceDiagnosisHistoryManager({
           
           {/* 诊断记录 */}
           <TabsContent value="records" className="space-y-4">
-            {/* 返回按钮 */}
-            {selectedUser && (
-              <div className="flex items-center gap-2 pb-2">
-                <Button variant="ghost" size="sm" onClick={() => setSelectedUser(null)}>
-                  <X className="h-4 w-4 mr-1" />
-                  返回用户列表
-                </Button>
-                <Separator orientation="vertical" className="h-6" />
-                <span className="text-sm text-gray-600">
-                  {selectedUser.name} 的诊断记录
-                </span>
-              </div>
-            )}
+            {/* 返回按钮和对比控制 */}
+            <div className="flex items-center justify-between">
+              {selectedUser && (
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => {
+                    setSelectedUser(null);
+                    setCompareMode(false);
+                    setSelectedRecords([]);
+                  }}>
+                    <X className="h-4 w-4 mr-1" />
+                    返回用户列表
+                  </Button>
+                  <Separator orientation="vertical" className="h-6" />
+                  <span className="text-sm text-gray-600">
+                    {selectedUser.name} 的诊断记录
+                  </span>
+                </div>
+              )}
+              
+              {/* 对比模式控制 */}
+              {(selectedUser ? userRecords : records).length >= 2 && (
+                <div className="flex items-center gap-2">
+                  {compareMode ? (
+                    <>
+                      <span className="text-sm text-blue-600">
+                        已选择 {selectedRecords.length}/2 条记录
+                      </span>
+                      <Button 
+                        size="sm" 
+                        onClick={handleCompare}
+                        disabled={selectedRecords.length !== 2}
+                      >
+                        <GitCompare className="h-4 w-4 mr-1" />
+                        开始对比
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setCompareMode(false);
+                          setSelectedRecords([]);
+                        }}
+                      >
+                        取消
+                      </Button>
+                    </>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setCompareMode(true)}
+                    >
+                      <GitCompare className="h-4 w-4 mr-1" />
+                      对比分析
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
             
             {/* 记录列表 */}
             <ScrollArea className="h-[350px]">
@@ -344,10 +448,21 @@ export default function FaceDiagnosisHistoryManager({
                   {(selectedUser ? userRecords : records).map((record) => (
                     <div
                       key={record.id}
-                      className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100"
+                      className={`p-3 rounded-lg transition-colors ${
+                        selectedRecords.includes(record.id) 
+                          ? 'bg-blue-50 border-2 border-blue-300' 
+                          : 'bg-gray-50 hover:bg-gray-100'
+                      } ${compareMode ? 'cursor-pointer' : ''}`}
+                      onClick={() => compareMode && toggleRecordSelection(record.id)}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
+                          {compareMode && (
+                            <Checkbox 
+                              checked={selectedRecords.includes(record.id)}
+                              onCheckedChange={() => toggleRecordSelection(record.id)}
+                            />
+                          )}
                           <Calendar className="h-4 w-4 text-gray-400" />
                           <span className="text-sm">
                             {format(parseISO(record.diagnosis_date), 'yyyy-MM-dd HH:mm', { locale: zhCN })}
@@ -357,14 +472,20 @@ export default function FaceDiagnosisHistoryManager({
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => loadRecordDetail(record.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              loadRecordDetail(record.id);
+                            }}
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => deleteRecord(record.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteRecord(record.id);
+                            }}
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
@@ -452,6 +573,159 @@ export default function FaceDiagnosisHistoryManager({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* 对比结果弹窗 */}
+      <Dialog open={showComparisonDialog} onOpenChange={setShowComparisonDialog}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GitCompare className="h-5 w-5" />
+              对比分析结果
+            </DialogTitle>
+          </DialogHeader>
+          {comparisonResult && (
+            <div className="space-y-6">
+              {/* 趋势总览 */}
+              <div className={`p-4 rounded-lg ${
+                comparisonResult.trend === 'improving' ? 'bg-green-50' :
+                comparisonResult.trend === 'declining' ? 'bg-red-50' : 'bg-gray-50'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  {comparisonResult.trend === 'improving' && (
+                    <>
+                      <TrendingUp className="h-5 w-5 text-green-600" />
+                      <span className="font-medium text-green-700">整体趋势：改善中</span>
+                    </>
+                  )}
+                  {comparisonResult.trend === 'declining' && (
+                    <>
+                      <TrendingDown className="h-5 w-5 text-red-600" />
+                      <span className="font-medium text-red-700">整体趋势：需关注</span>
+                    </>
+                  )}
+                  {comparisonResult.trend === 'stable' && (
+                    <>
+                      <Minus className="h-5 w-5 text-gray-600" />
+                      <span className="font-medium text-gray-700">整体趋势：稳定</span>
+                    </>
+                  )}
+                </div>
+                <p className="text-sm text-gray-600">
+                  基于 {selectedRecords.length} 次评估记录的对比分析
+                </p>
+              </div>
+              
+              {/* 改善项 */}
+              {comparisonResult.improvements.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-green-700 mb-2 flex items-center gap-1">
+                    <TrendingUp className="h-4 w-4" />
+                    改善项目
+                  </h4>
+                  <div className="space-y-2">
+                    {comparisonResult.improvements.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-green-50 rounded">
+                        <span className="font-medium">{item.name}</span>
+                        <div className="text-sm">
+                          <span className="text-gray-500">{item.previous}</span>
+                          <span className="mx-2">→</span>
+                          <span className="text-green-600 font-medium">{item.current}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* 退步项 */}
+              {comparisonResult.deteriorations.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-red-700 mb-2 flex items-center gap-1">
+                    <TrendingDown className="h-4 w-4" />
+                    需关注项目
+                  </h4>
+                  <div className="space-y-2">
+                    {comparisonResult.deteriorations.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                        <span className="font-medium">{item.name}</span>
+                        <div className="text-sm">
+                          <span className="text-gray-500">{item.previous}</span>
+                          <span className="mx-2">→</span>
+                          <span className="text-red-600 font-medium">{item.current}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* 稳定项 */}
+              {comparisonResult.stableItems.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-1">
+                    <Minus className="h-4 w-4" />
+                    稳定项目
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {comparisonResult.stableItems.map((item, idx) => (
+                      <Badge key={idx} variant="outline" className="bg-gray-50">
+                        {item}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* 五脏状态对比 */}
+              {comparisonResult.organStatusComparison && (
+                <div>
+                  <h4 className="font-medium mb-2">五脏状态变化</h4>
+                  <div className="grid grid-cols-5 gap-2">
+                    {Object.entries(comparisonResult.organStatusComparison).map(([organ, data]) => (
+                      <div key={organ} className="text-center p-2 bg-gray-50 rounded">
+                        <p className="text-sm text-gray-500">{getOrganName(organ)}</p>
+                        <p className={`font-bold ${data.change > 0 ? 'text-green-600' : data.change < 0 ? 'text-red-600' : 'text-gray-600'}`}>
+                          {data.change > 0 ? '+' : ''}{data.change}
+                        </p>
+                        <p className="text-xs text-gray-400">{data.previous} → {data.current}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* 建议 */}
+              {comparisonResult.recommendations.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-2">健康建议</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                    {comparisonResult.recommendations.map((rec, idx) => (
+                      <li key={idx}>{rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowComparisonDialog(false)}>
+              关闭
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
+}
+
+// 辅助函数
+function getOrganName(organ: string): string {
+  const names: Record<string, string> = {
+    heart: '心',
+    liver: '肝',
+    spleen: '脾',
+    lung: '肺',
+    kidney: '肾',
+  };
+  return names[organ] || organ;
 }

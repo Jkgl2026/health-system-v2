@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -28,7 +29,7 @@ export default function FaceDiagnosisPage() {
   const router = useRouter();
   
   // 用户信息
-  const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
+  const [userInfo, setUserInfo] = useState({ name: '', phone: '', age: '', gender: '' });
   const [userId, setUserId] = useState<number | null>(null);
   
   // 图片相关
@@ -95,6 +96,8 @@ export default function FaceDiagnosisPage() {
           action: 'createUser',
           name: userInfo.name.trim(),
           phone: userInfo.phone.trim() || null,
+          age: userInfo.age ? parseInt(userInfo.age) : null,
+          gender: userInfo.gender || null,
         }),
       });
       const data = await res.json();
@@ -227,6 +230,8 @@ export default function FaceDiagnosisPage() {
       const reportUserInfo: UserInfo = {
         name: userInfo.name,
         phone: userInfo.phone,
+        age: userInfo.age,
+        gender: userInfo.gender === 'male' ? '男' : userInfo.gender === 'female' ? '女' : undefined,
       };
       
       await generateFaceDiagnosisReport(reportData, reportUserInfo);
@@ -240,7 +245,12 @@ export default function FaceDiagnosisPage() {
 
   // 从历史记录选择用户
   const handleSelectUserFromHistory = (user: any) => {
-    setUserInfo({ name: user.name, phone: user.phone || '' });
+    setUserInfo({ 
+      name: user.name, 
+      phone: user.phone || '', 
+      age: user.age?.toString() || '', 
+      gender: user.gender || '' 
+    });
     setUserId(user.id);
     setShowHistory(false);
     setActiveTab('upload');
@@ -287,7 +297,7 @@ export default function FaceDiagnosisPage() {
                 <CardDescription>请填写您的姓名和电话（电话选填），用于保存和查询历史记录</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">姓名 <span className="text-red-500">*</span></Label>
                     <Input
@@ -305,6 +315,28 @@ export default function FaceDiagnosisPage() {
                       value={userInfo.phone}
                       onChange={(e) => setUserInfo(prev => ({ ...prev, phone: e.target.value }))}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="age">年龄 <span className="text-gray-400">(选填)</span></Label>
+                    <Input
+                      id="age"
+                      type="number"
+                      placeholder="请输入年龄"
+                      value={userInfo.age}
+                      onChange={(e) => setUserInfo(prev => ({ ...prev, age: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="gender">性别 <span className="text-gray-400">(选填)</span></Label>
+                    <Select value={userInfo.gender} onValueChange={(v) => setUserInfo(prev => ({ ...prev, gender: v }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="请选择性别" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">男</SelectItem>
+                        <SelectItem value="female">女</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>

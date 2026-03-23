@@ -24,10 +24,25 @@ async function ensureTables() {
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         phone VARCHAR(20),
+        age INTEGER,
+        gender VARCHAR(10),
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(name, phone)
       )
+    `);
+
+    // 添加 age 和 gender 字段（如果不存在）
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'posture_users' AND column_name = 'age') THEN
+          ALTER TABLE posture_users ADD COLUMN age INTEGER;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'posture_users' AND column_name = 'gender') THEN
+          ALTER TABLE posture_users ADD COLUMN gender VARCHAR(10);
+        END IF;
+      END $$;
     `);
 
     // 评估记录表
@@ -257,7 +272,7 @@ export async function POST(request: NextRequest) {
     await ensureTables();
     
     const body = await request.json();
-    const { action, name, phone, userId, assessmentData } = body;
+    const { action, name, phone, age, gender, userId, assessmentData } = body;
     
     const pool = getPool();
     
@@ -277,6 +292,18 @@ export async function POST(request: NextRequest) {
       );
       
       if (existingUser.rows.length > 0) {
+        // 更新年龄和性别（如果提供了）
+        if (age !== undefined || gender !== undefined) {
+          const updatedUser = await pool.query(
+            'UPDATE posture_users SET age = COALESCE($1, age), gender = COALESCE($2, gender), updated_at = NOW() WHERE id = $3 RETURNING *',
+            [age || null, gender || null, existingUser.rows[0].id]
+          );
+          return NextResponse.json({
+            success: true,
+            data: updatedUser.rows[0],
+            message: '用户信息已更新',
+          });
+        }
         return NextResponse.json({
           success: true,
           data: existingUser.rows[0],
@@ -286,8 +313,8 @@ export async function POST(request: NextRequest) {
       
       // 创建新用户
       const result = await pool.query(
-        'INSERT INTO posture_users (name, phone) VALUES ($1, $2) RETURNING *',
-        [name, phone || null]
+        'INSERT INTO posture_users (name, phone, age, gender) VALUES ($1, $2, $3, $4) RETURNING *',
+        [name, phone || null, age || null, gender || null]
       );
       
       return NextResponse.json({

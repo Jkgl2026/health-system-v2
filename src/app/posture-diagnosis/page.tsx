@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Camera, Loader2, FileText, AlertCircle, CheckCircle2, RotateCcw,
   Download, Copy, Sparkles, ArrowLeft, Activity, Shield,
@@ -206,7 +207,7 @@ export default function PostureDiagnosisPageV2() {
   const [assessmentHistory, setAssessmentHistory] = useState<AssessmentRecord[]>([]);
   
   // 用户信息
-  const [userInfo, setUserInfo] = useState({ name: '', phone: '' });
+  const [userInfo, setUserInfo] = useState({ name: '', phone: '', age: '', gender: '' });
   
   // MediaPipe实例
   const [poseReady, setPoseReady] = useState(false);
@@ -523,6 +524,8 @@ export default function PostureDiagnosisPageV2() {
       const reportUserInfo: UserInfo = {
         name: userInfo.name,
         phone: userInfo.phone,
+        age: userInfo.age,
+        gender: userInfo.gender === 'male' ? '男' : userInfo.gender === 'female' ? '女' : undefined,
       };
       
       await generatePostureDiagnosisReport(reportData, reportUserInfo);
@@ -1068,6 +1071,8 @@ export default function PostureDiagnosisPageV2() {
               action: 'createUser',
               name: userInfo.name.trim(),
               phone: userInfo.phone.trim() || null,
+              age: userInfo.age ? parseInt(userInfo.age) : null,
+              gender: userInfo.gender || null,
             }),
           });
           const userData = await userRes.json();
@@ -1658,7 +1663,7 @@ export default function PostureDiagnosisPageV2() {
                 <CardDescription>请填写基本信息以便保存评估记录</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">姓名 *</label>
                     <Input
@@ -1674,6 +1679,27 @@ export default function PostureDiagnosisPageV2() {
                       value={userInfo.phone}
                       onChange={(e) => setUserInfo(prev => ({ ...prev, phone: e.target.value }))}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">年龄（选填）</label>
+                    <Input
+                      type="number"
+                      placeholder="请输入年龄"
+                      value={userInfo.age}
+                      onChange={(e) => setUserInfo(prev => ({ ...prev, age: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">性别（选填）</label>
+                    <Select value={userInfo.gender} onValueChange={(v) => setUserInfo(prev => ({ ...prev, gender: v }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="请选择性别" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">男</SelectItem>
+                        <SelectItem value="female">女</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>
