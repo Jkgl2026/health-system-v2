@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
-import { faceDiagnosisRecords, tongueDiagnosisRecords, healthProfiles, postureDiagnosisRecords } from '@/storage/database/shared/schema';
+import { healthProfiles } from '@/storage/database/shared/schema';
 import { desc, eq, sql } from 'drizzle-orm';
 
 // GET /api/comprehensive-report - 获取综合健康报告
@@ -11,35 +11,32 @@ export async function GET(request: NextRequest) {
 
     const db = await getDb();
 
-    // 获取最新的面诊记录
-    const faceResult = await db
-      .select()
-      .from(faceDiagnosisRecords)
-      .where(userId ? eq(faceDiagnosisRecords.userId, userId) : sql`1=1`)
-      .orderBy(desc(faceDiagnosisRecords.createdAt))
-      .limit(1);
+    // 获取最新的面诊记录 (使用原始SQL)
+    const faceResult = await db.execute(sql`
+      SELECT * FROM face_diagnosis_records 
+      ${userId ? sql`WHERE user_id = ${userId}` : sql``}
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `);
+    const faceRecord = faceResult.rows[0] || null;
 
-    const faceRecord = faceResult[0] || null;
+    // 获取最新的舌诊记录 (使用原始SQL)
+    const tongueResult = await db.execute(sql`
+      SELECT * FROM tongue_diagnosis_records 
+      ${userId ? sql`WHERE user_id = ${userId}` : sql``}
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `);
+    const tongueRecord = tongueResult.rows[0] || null;
 
-    // 获取最新的舌诊记录
-    const tongueResult = await db
-      .select()
-      .from(tongueDiagnosisRecords)
-      .where(userId ? eq(tongueDiagnosisRecords.userId, userId) : sql`1=1`)
-      .orderBy(desc(tongueDiagnosisRecords.createdAt))
-      .limit(1);
-
-    const tongueRecord = tongueResult[0] || null;
-
-    // 获取最新的体态评估记录
-    const postureResult = await db
-      .select()
-      .from(postureDiagnosisRecords)
-      .where(userId ? eq(postureDiagnosisRecords.userId, userId) : sql`1=1`)
-      .orderBy(desc(postureDiagnosisRecords.createdAt))
-      .limit(1);
-
-    const postureRecord = postureResult[0] || null;
+    // 获取最新的体态评估记录 (使用原始SQL)
+    const postureResult = await db.execute(sql`
+      SELECT * FROM posture_diagnosis_records 
+      ${userId ? sql`WHERE user_id = ${userId}` : sql``}
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `);
+    const postureRecord = postureResult.rows[0] || null;
 
     if (!faceRecord && !tongueRecord && !postureRecord) {
       return NextResponse.json({
@@ -54,36 +51,41 @@ export async function GET(request: NextRequest) {
       return typeof data === 'string' ? JSON.parse(data) : data;
     };
 
+    // 使用 any 类型来避免 TypeScript 对原始 SQL 结果的类型检查
     const faceData = faceRecord ? {
       ...faceRecord,
-      organ_status: parseJson(faceRecord.organStatus),
-      constitution: parseJson(faceRecord.constitution),
-      recommendations: parseJson(faceRecord.suggestions),
-      diagnosis_details: parseJson(faceRecord.faceColor),
-      full_report: faceRecord.fullReport,
-    } : null;
+      score: (faceRecord as any).score,
+      organ_status: parseJson((faceRecord as any).organ_status),
+      constitution: parseJson((faceRecord as any).constitution),
+      recommendations: parseJson((faceRecord as any).suggestions),
+      diagnosis_details: parseJson((faceRecord as any).face_color),
+      full_report: (faceRecord as any).full_report,
+    } as any : null;
 
     const tongueData = tongueRecord ? {
       ...tongueRecord,
-      organ_status: parseJson(tongueRecord.organStatus),
-      constitution: parseJson(tongueRecord.constitution),
-      recommendations: parseJson(tongueRecord.suggestions),
-      diagnosis_details: parseJson(tongueRecord.tongueBody),
-      full_report: tongueRecord.fullReport,
-    } : null;
+      score: (tongueRecord as any).score,
+      organ_status: parseJson((tongueRecord as any).organ_status),
+      constitution: parseJson((tongueRecord as any).constitution),
+      recommendations: parseJson((tongueRecord as any).suggestions),
+      diagnosis_details: parseJson((tongueRecord as any).tongue_body),
+      full_report: (tongueRecord as any).full_report,
+    } as any : null;
 
     const postureData = postureRecord ? {
       ...postureRecord,
-      bodyStructure: parseJson(postureRecord.bodyStructure),
-      fasciaChainAnalysis: parseJson(postureRecord.fasciaChainAnalysis),
-      muscleAnalysis: parseJson(postureRecord.muscleAnalysis),
-      breathingAssessment: parseJson(postureRecord.breathingAssessment),
-      alignmentAssessment: parseJson(postureRecord.alignmentAssessment),
-      compensationPatterns: parseJson(postureRecord.compensationPatterns),
-      healthImpact: parseJson(postureRecord.healthImpact),
-      healthPrediction: parseJson(postureRecord.healthPrediction),
-      treatmentPlan: parseJson(postureRecord.treatmentPlan),
-    } : null;
+      score: (postureRecord as any).score,
+      grade: (postureRecord as any).grade,
+      bodyStructure: parseJson((postureRecord as any).body_structure),
+      fasciaChainAnalysis: parseJson((postureRecord as any).fascia_chain_analysis),
+      muscleAnalysis: parseJson((postureRecord as any).muscle_analysis),
+      breathingAssessment: parseJson((postureRecord as any).breathing_assessment),
+      alignmentAssessment: parseJson((postureRecord as any).alignment_assessment),
+      compensationPatterns: parseJson((postureRecord as any).compensation_patterns),
+      healthImpact: parseJson((postureRecord as any).health_impact),
+      healthPrediction: parseJson((postureRecord as any).health_prediction),
+      treatmentPlan: parseJson((postureRecord as any).treatment_plan),
+    } as any : null;
 
     // 计算综合评分（包含面诊、舌诊、体态）
     let overallScore = null;

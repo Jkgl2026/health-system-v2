@@ -301,98 +301,19 @@ export const courses = pgTable(
   })
 );
 
-// 面诊记录表
-export const faceDiagnosisRecords = pgTable(
-  "face_diagnosis_records",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 })
-      .references(() => users.id, { onDelete: "cascade" }), // 关联用户ID（可选，匿名用户可为空）
-    imageUrl: text("image_url"), // 图片URL（对象存储）
-    
-    // 分析结果
-    score: integer("score"), // 综合评分 0-100
-    
-    // 五色分析
-    faceColor: jsonb("face_color"), // {color: "偏黄", meaning: "...", severity: "轻度"}
-    
-    // 面色光泽
-    faceLuster: jsonb("face_luster"), // {status: "明润/晦暗", meaning: "..."}
-    
-    // 五官分析
-    facialFeatures: jsonb("facial_features"), // {eyes: {...}, nose: {...}, lips: {...}, ears: {...}}
-    
-    // 面部特征
-    facialCharacteristics: jsonb("facial_characteristics"), // {spots: [...], acne: [...], wrinkles: [...]}
-    
-    // 体质判断
-    constitution: jsonb("constitution"), // {type: "气虚质", confidence: 0.8, secondary: "脾虚湿盛"}
-    
-    // 五脏状态（用于雷达图）
-    organStatus: jsonb("organ_status"), // {heart: 70, liver: 80, spleen: 60, lung: 75, kidney: 65}
-    
-    // 健康建议
-    suggestions: jsonb("suggestions"), // [{type: "饮食", content: "..."}, ...]
-    
-    // 完整分析报告
-    fullReport: text("full_report"), // AI生成的完整报告文本
-    
-    // 元数据
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => ({
-    userIdIdx: index("face_diagnosis_records_user_id_idx").on(table.userId),
-    createdAtIdx: index("face_diagnosis_records_created_at_idx").on(table.createdAt),
-    scoreIdx: index("face_diagnosis_records_score_idx").on(table.score),
-  })
-);
+// 注意：面诊、舌诊、体态诊断记录表由各自的 API 路由使用原始 SQL 管理
+// 这些表使用 SERIAL (整数) ID，而不是 UUID
+// 相关 API 路由：
+// - src/app/api/face-diagnosis-records/route.ts
+// - src/app/api/tongue-diagnosis-records/route.ts
+// - src/app/api/posture-records/route.ts
+// 不要在 Drizzle schema 中定义这些表，否则部署时会与现有表结构冲突
 
-// 舌诊记录表
-export const tongueDiagnosisRecords = pgTable(
-  "tongue_diagnosis_records",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 })
-      .references(() => users.id, { onDelete: "cascade" }), // 关联用户ID（可选）
-    imageUrl: text("image_url"), // 图片URL
-    
-    // 分析结果
-    score: integer("score"), // 综合评分 0-100
-    
-    // 舌质分析
-    tongueBody: jsonb("tongue_body"), // {color: "...", shape: "...", texture: "..."}
-    
-    // 舌苔分析
-    tongueCoating: jsonb("tongue_coating"), // {color: "...", thickness: "...", moisture: "..."}
-    
-    // 体质判断
-    constitution: jsonb("constitution"), // {type: "...", confidence: 0.8}
-    
-    // 五脏状态
-    organStatus: jsonb("organ_status"), // {heart: 70, liver: 80, ...}
-    
-    // 健康建议
-    suggestions: jsonb("suggestions"), // [...]
-    
-    // 完整分析报告
-    fullReport: text("full_report"), // AI生成的完整报告文本
-    
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => ({
-    userIdIdx: index("tongue_diagnosis_records_user_id_idx").on(table.userId),
-    createdAtIdx: index("tongue_diagnosis_records_created_at_idx").on(table.createdAt),
-    scoreIdx: index("tongue_diagnosis_records_score_idx").on(table.score),
-  })
-);
+// 以下定义已被移除，因为与 API 创建的表结构不兼容：
+// - faceDiagnosisRecords (face_diagnosis_records)
+// - tongueDiagnosisRecords (tongue_diagnosis_records)
+// - postureDiagnosisRecords (posture_diagnosis_records)
+// 如需查询这些表，请在 API 路由中使用原始 SQL 查询
 
 // 用户健康档案表（综合）
 export const healthProfiles = pgTable(
@@ -441,66 +362,7 @@ export const healthProfiles = pgTable(
   })
 );
 
-// 体态诊断记录表
-export const postureDiagnosisRecords = pgTable(
-  "posture_diagnosis_records",
-  {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 })
-      .references(() => users.id, { onDelete: "cascade" }),
-    
-    // 四角度图片
-    frontImageUrl: text("front_image_url"),
-    leftSideImageUrl: text("left_side_image_url"),
-    rightSideImageUrl: text("right_side_image_url"),
-    backImageUrl: text("back_image_url"),
-    
-    // 综合评估结果
-    score: integer("score"),
-    grade: varchar("grade", { length: 2 }),
-    
-    // 身体结构分析
-    bodyStructure: jsonb("body_structure"), // 各部位检测结果
-    
-    // 筋膜链评估
-    fasciaChainAnalysis: jsonb("fascia_chain_analysis"),
-    
-    // 肌肉分析
-    muscleAnalysis: jsonb("muscle_analysis"),
-    
-    // 呼吸模式评估
-    breathingAssessment: jsonb("breathing_assessment"),
-    
-    // 重心与力线评估
-    alignmentAssessment: jsonb("alignment_assessment"),
-    
-    // 代偿模式识别
-    compensationPatterns: jsonb("compensation_patterns"),
-    
-    // 健康影响评估
-    healthImpact: jsonb("health_impact"),
-    
-    // 健康预测
-    healthPrediction: jsonb("health_prediction"),
-    
-    // 综合调理方案
-    treatmentPlan: jsonb("treatment_plan"),
-    
-    // 完整报告
-    fullReport: text("full_report"),
-    
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .defaultNow()
-      .notNull(),
-  },
-  (table) => ({
-    userIdIdx: index("posture_diagnosis_records_user_id_idx").on(table.userId),
-    createdAtIdx: index("posture_diagnosis_records_created_at_idx").on(table.createdAt),
-    scoreIdx: index("posture_diagnosis_records_score_idx").on(table.score),
-  })
-);
+// 体态诊断记录表已移除 - 由 src/app/api/posture-records/route.ts 使用原始 SQL 管理
 
 // 训练动作库表
 export const exerciseLibrary = pgTable(
@@ -567,6 +429,8 @@ export const exerciseLibrary = pgTable(
 );
 
 // 体态历史对比表
+// 注意：postureComparisons 的 foreign key 引用已移除，因为 postureDiagnosisRecords 表
+// 由 /api/posture-records 路由使用原始 SQL 管理，不在 Drizzle schema 中
 export const postureComparisons = pgTable(
   "posture_comparisons",
   {
@@ -576,11 +440,9 @@ export const postureComparisons = pgTable(
     userId: varchar("user_id", { length: 36 })
       .references(() => users.id, { onDelete: "cascade" }),
     
-    // 对比记录
-    currentRecordId: varchar("current_record_id", { length: 36 })
-      .references(() => postureDiagnosisRecords.id, { onDelete: "cascade" }),
-    previousRecordId: varchar("previous_record_id", { length: 36 })
-      .references(() => postureDiagnosisRecords.id, { onDelete: "cascade" }),
+    // 对比记录 - 使用 varchar 存储记录 ID
+    currentRecordId: varchar("current_record_id", { length: 36 }),
+    previousRecordId: varchar("previous_record_id", { length: 36 }),
     
     // 对比结果
     scoreChange: integer("score_change"),
@@ -771,31 +633,10 @@ export const insertCourseSchema = createCoercedInsertSchema(courses).pick({
   season: true,
 });
 
-export const insertFaceDiagnosisSchema = createCoercedInsertSchema(faceDiagnosisRecords).pick({
-  userId: true,
-  imageUrl: true,
-  score: true,
-  faceColor: true,
-  faceLuster: true,
-  facialFeatures: true,
-  facialCharacteristics: true,
-  constitution: true,
-  organStatus: true,
-  suggestions: true,
-  fullReport: true,
-});
-
-export const insertTongueDiagnosisSchema = createCoercedInsertSchema(tongueDiagnosisRecords).pick({
-  userId: true,
-  imageUrl: true,
-  score: true,
-  tongueBody: true,
-  tongueCoating: true,
-  constitution: true,
-  organStatus: true,
-  suggestions: true,
-  fullReport: true,
-});
+// 以下 Zod schemas 已移除，因为对应的表由 API 路由使用原始 SQL 管理：
+// - insertFaceDiagnosisSchema
+// - insertTongueDiagnosisSchema
+// - insertPostureDiagnosisSchema
 
 export const insertHealthProfileSchema = createCoercedInsertSchema(healthProfiles).pick({
   userId: true,
@@ -812,25 +653,7 @@ export const insertHealthProfileSchema = createCoercedInsertSchema(healthProfile
   comprehensiveConclusion: true,
 });
 
-export const insertPostureDiagnosisSchema = createCoercedInsertSchema(postureDiagnosisRecords).pick({
-  userId: true,
-  frontImageUrl: true,
-  leftSideImageUrl: true,
-  rightSideImageUrl: true,
-  backImageUrl: true,
-  score: true,
-  grade: true,
-  bodyStructure: true,
-  fasciaChainAnalysis: true,
-  muscleAnalysis: true,
-  breathingAssessment: true,
-  alignmentAssessment: true,
-  compensationPatterns: true,
-  healthImpact: true,
-  healthPrediction: true,
-  treatmentPlan: true,
-  fullReport: true,
-});
+// insertPostureDiagnosisSchema 已移除 - 表由 /api/posture-records 路由管理
 
 export const insertExerciseSchema = createCoercedInsertSchema(exerciseLibrary).pick({
   name: true,
@@ -920,23 +743,16 @@ export type InsertAuditLog = z.infer<typeof insertAuditLogSchema>;
 export type Course = typeof courses.$inferSelect;
 export type InsertCourse = z.infer<typeof insertCourseSchema>;
 
-export type FaceDiagnosisRecord = typeof faceDiagnosisRecords.$inferSelect;
-export type InsertFaceDiagnosisRecord = z.infer<typeof insertFaceDiagnosisSchema>;
-
-export type TongueDiagnosisRecord = typeof tongueDiagnosisRecords.$inferSelect;
-export type InsertTongueDiagnosisRecord = z.infer<typeof insertTongueDiagnosisSchema>;
+// FaceDiagnosisRecord, TongueDiagnosisRecord, PostureDiagnosisRecord types 已移除
+// 这些表由各自的 API 路由使用原始 SQL 管理
 
 export type HealthProfile = typeof healthProfiles.$inferSelect;
 export type InsertHealthProfile = z.infer<typeof insertHealthProfileSchema>;
 
-export type PostureDiagnosisRecord = typeof postureDiagnosisRecords.$inferSelect;
-export type InsertPostureDiagnosisRecord = z.infer<typeof insertPostureDiagnosisSchema>;
-
 export type Exercise = typeof exerciseLibrary.$inferSelect;
 export type InsertExercise = z.infer<typeof insertExerciseSchema>;
 
-export type PostureComparison = typeof postureComparisons.$inferSelect;
-export type InsertPostureComparison = z.infer<typeof insertPostureComparisonSchema>;
+// PostureComparison 类型已移除（引用了已删除的表）
 
 export type CheckInRecord = typeof checkInRecords.$inferSelect;
 export type InsertCheckInRecord = z.infer<typeof insertCheckInSchema>;

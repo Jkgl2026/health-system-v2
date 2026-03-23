@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
-import { faceDiagnosisRecords, tongueDiagnosisRecords } from '@/storage/database/shared/schema';
-import { desc, eq, and, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 // GET /api/diagnosis-history - 获取诊断历史记录列表
 export async function GET(request: NextRequest) {
@@ -17,39 +16,29 @@ export async function GET(request: NextRequest) {
     let records: any[] = [];
 
     if (type === 'all' || type === 'face') {
-      const faceRecords = await db
-        .select({
-          id: faceDiagnosisRecords.id,
-          user_id: faceDiagnosisRecords.userId,
-          score: faceDiagnosisRecords.score,
-          constitution: faceDiagnosisRecords.constitution,
-          created_at: faceDiagnosisRecords.createdAt,
-        })
-        .from(faceDiagnosisRecords)
-        .where(userId ? eq(faceDiagnosisRecords.userId, userId) : sql`1=1`)
-        .orderBy(desc(faceDiagnosisRecords.createdAt))
-        .limit(limit)
-        .offset(offset);
+      // 使用原始SQL查询面诊记录
+      const faceResult = await db.execute(sql`
+        SELECT id, user_id, score, constitution, created_at 
+        FROM face_diagnosis_records 
+        ${userId ? sql`WHERE user_id = ${userId}` : sql``}
+        ORDER BY created_at DESC 
+        LIMIT ${limit} OFFSET ${offset}
+      `);
 
-      records = [...records, ...faceRecords.map(r => ({ ...r, type: 'face' as const }))];
+      records = [...records, ...faceResult.rows.map((r: any) => ({ ...r, type: 'face' as const }))];
     }
 
     if (type === 'all' || type === 'tongue') {
-      const tongueRecords = await db
-        .select({
-          id: tongueDiagnosisRecords.id,
-          user_id: tongueDiagnosisRecords.userId,
-          score: tongueDiagnosisRecords.score,
-          constitution: tongueDiagnosisRecords.constitution,
-          created_at: tongueDiagnosisRecords.createdAt,
-        })
-        .from(tongueDiagnosisRecords)
-        .where(userId ? eq(tongueDiagnosisRecords.userId, userId) : sql`1=1`)
-        .orderBy(desc(tongueDiagnosisRecords.createdAt))
-        .limit(limit)
-        .offset(offset);
+      // 使用原始SQL查询舌诊记录
+      const tongueResult = await db.execute(sql`
+        SELECT id, user_id, score, constitution, created_at 
+        FROM tongue_diagnosis_records 
+        ${userId ? sql`WHERE user_id = ${userId}` : sql``}
+        ORDER BY created_at DESC 
+        LIMIT ${limit} OFFSET ${offset}
+      `);
 
-      records = [...records, ...tongueRecords.map(r => ({ ...r, type: 'tongue' as const }))];
+      records = [...records, ...tongueResult.rows.map((r: any) => ({ ...r, type: 'tongue' as const }))];
     }
 
     // 按时间排序

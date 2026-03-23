@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
-import { postureDiagnosisRecords, faceDiagnosisRecords, tongueDiagnosisRecords, users, symptomChecks } from '@/storage/database/shared/schema';
-import { eq, desc } from 'drizzle-orm';
+import { users, symptomChecks } from '@/storage/database/shared/schema';
+import { eq, desc, sql } from 'drizzle-orm';
 
 // 综合调理方案生成系统提示词
 const COMPREHENSIVE_TREATMENT_PROMPT = `你是一位拥有丰富经验的中西医结合健康管理专家，擅长从面诊、舌诊、体态评估和症状自检多维度综合分析健康状况，并制定个性化的调理方案。
@@ -221,45 +221,45 @@ export async function POST(request: NextRequest) {
       userData = userResult[0];
     }
 
-    // 获取最新的面诊数据
+    // 获取最新的面诊数据 (使用原始SQL)
     if (includeFaceDiagnosis) {
-      const faceResult = await db
-        .select()
-        .from(faceDiagnosisRecords)
-        .where(eq(faceDiagnosisRecords.userId, userId))
-        .orderBy(desc(faceDiagnosisRecords.createdAt))
-        .limit(1);
+      const faceResult = await db.execute(sql`
+        SELECT * FROM face_diagnosis_records 
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `);
       
-      if (faceResult.length > 0) {
-        faceData = faceResult[0];
+      if (faceResult.rows.length > 0) {
+        faceData = faceResult.rows[0];
       }
     }
 
-    // 获取最新的舌诊数据
+    // 获取最新的舌诊数据 (使用原始SQL)
     if (includeTongueDiagnosis) {
-      const tongueResult = await db
-        .select()
-        .from(tongueDiagnosisRecords)
-        .where(eq(tongueDiagnosisRecords.userId, userId))
-        .orderBy(desc(tongueDiagnosisRecords.createdAt))
-        .limit(1);
+      const tongueResult = await db.execute(sql`
+        SELECT * FROM tongue_diagnosis_records 
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `);
       
-      if (tongueResult.length > 0) {
-        tongueData = tongueResult[0];
+      if (tongueResult.rows.length > 0) {
+        tongueData = tongueResult.rows[0];
       }
     }
 
-    // 获取最新的体态评估数据
+    // 获取最新的体态评估数据 (使用原始SQL)
     if (includePostureDiagnosis) {
-      const postureResult = await db
-        .select()
-        .from(postureDiagnosisRecords)
-        .where(eq(postureDiagnosisRecords.userId, userId))
-        .orderBy(desc(postureDiagnosisRecords.createdAt))
-        .limit(1);
+      const postureResult = await db.execute(sql`
+        SELECT * FROM posture_diagnosis_records 
+        WHERE user_id = ${userId}
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `);
       
-      if (postureResult.length > 0) {
-        postureData = postureResult[0];
+      if (postureResult.rows.length > 0) {
+        postureData = postureResult.rows[0];
       }
     }
 
@@ -298,14 +298,15 @@ export async function POST(request: NextRequest) {
     // 面诊数据
     if (faceData) {
       promptContent += '## 面诊数据\n';
-      if (faceData.fullReport) {
-        promptContent += `完整报告：${faceData.fullReport.substring(0, 500)}\n`;
+      const faceReport = (faceData as any).full_report;
+      if (faceReport) {
+        promptContent += `完整报告：${String(faceReport).substring(0, 500)}\n`;
       }
-      if (faceData.organStatus) {
-        promptContent += `脏腑状态：${JSON.stringify(faceData.organStatus, null, 2)}\n`;
+      if ((faceData as any).organ_status) {
+        promptContent += `脏腑状态：${JSON.stringify((faceData as any).organ_status, null, 2)}\n`;
       }
-      if (faceData.constitution) {
-        promptContent += `体质判断：${JSON.stringify(faceData.constitution, null, 2)}\n`;
+      if ((faceData as any).constitution) {
+        promptContent += `体质判断：${JSON.stringify((faceData as any).constitution, null, 2)}\n`;
       }
       promptContent += '\n';
     }
@@ -313,14 +314,15 @@ export async function POST(request: NextRequest) {
     // 舌诊数据
     if (tongueData) {
       promptContent += '## 舌诊数据\n';
-      if (tongueData.fullReport) {
-        promptContent += `完整报告：${tongueData.fullReport.substring(0, 500)}\n`;
+      const tongueReport = (tongueData as any).full_report;
+      if (tongueReport) {
+        promptContent += `完整报告：${String(tongueReport).substring(0, 500)}\n`;
       }
-      if (tongueData.organStatus) {
-        promptContent += `脏腑状态：${JSON.stringify(tongueData.organStatus, null, 2)}\n`;
+      if ((tongueData as any).organ_status) {
+        promptContent += `脏腑状态：${JSON.stringify((tongueData as any).organ_status, null, 2)}\n`;
       }
-      if (tongueData.constitution) {
-        promptContent += `体质判断：${JSON.stringify(tongueData.constitution, null, 2)}\n`;
+      if ((tongueData as any).constitution) {
+        promptContent += `体质判断：${JSON.stringify((tongueData as any).constitution, null, 2)}\n`;
       }
       promptContent += '\n';
     }
@@ -330,26 +332,26 @@ export async function POST(request: NextRequest) {
       promptContent += '## 体态评估数据\n';
       promptContent += `- 评分：${postureData.score || '未知'}\n`;
       promptContent += `- 等级：${postureData.grade || '未知'}\n`;
-      if (postureData.bodyStructure) {
-        promptContent += `- 身体结构：${JSON.stringify(postureData.bodyStructure, null, 2)}\n`;
+      if (postureData.body_structure) {
+        promptContent += `- 身体结构：${JSON.stringify(postureData.body_structure, null, 2)}\n`;
       }
-      if (postureData.fasciaChainAnalysis) {
-        promptContent += `- 筋膜链分析：${JSON.stringify(postureData.fasciaChainAnalysis, null, 2)}\n`;
+      if (postureData.fascia_chain_analysis) {
+        promptContent += `- 筋膜链分析：${JSON.stringify(postureData.fascia_chain_analysis, null, 2)}\n`;
       }
-      if (postureData.muscleAnalysis) {
-        promptContent += `- 肌肉分析：${JSON.stringify(postureData.muscleAnalysis, null, 2)}\n`;
+      if (postureData.muscle_analysis) {
+        promptContent += `- 肌肉分析：${JSON.stringify(postureData.muscle_analysis, null, 2)}\n`;
       }
-      if (postureData.breathingAssessment) {
-        promptContent += `- 呼吸评估：${JSON.stringify(postureData.breathingAssessment, null, 2)}\n`;
+      if (postureData.breathing_assessment) {
+        promptContent += `- 呼吸评估：${JSON.stringify(postureData.breathing_assessment, null, 2)}\n`;
       }
-      if (postureData.alignmentAssessment) {
-        promptContent += `- 重心力线：${JSON.stringify(postureData.alignmentAssessment, null, 2)}\n`;
+      if (postureData.alignment_assessment) {
+        promptContent += `- 重心力线：${JSON.stringify(postureData.alignment_assessment, null, 2)}\n`;
       }
-      if (postureData.compensationPatterns) {
-        promptContent += `- 代偿模式：${JSON.stringify(postureData.compensationPatterns, null, 2)}\n`;
+      if (postureData.compensation_patterns) {
+        promptContent += `- 代偿模式：${JSON.stringify(postureData.compensation_patterns, null, 2)}\n`;
       }
-      if (postureData.healthPrediction) {
-        promptContent += `- 健康预测：${JSON.stringify(postureData.healthPrediction, null, 2)}\n`;
+      if (postureData.health_prediction) {
+        promptContent += `- 健康预测：${JSON.stringify(postureData.health_prediction, null, 2)}\n`;
       }
       promptContent += '\n';
     }

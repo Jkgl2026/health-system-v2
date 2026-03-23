@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb, LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk';
-import { exerciseLibrary, postureDiagnosisRecords } from '@/storage/database/shared/schema';
+import { exerciseLibrary } from '@/storage/database/shared/schema';
 import { eq, sql } from 'drizzle-orm';
 
 // 训练推荐系统提示词
@@ -53,21 +53,19 @@ export async function POST(request: NextRequest) {
 
     const db = await getDb();
 
-    // 查询诊断记录
-    const records = await db
-      .select()
-      .from(postureDiagnosisRecords)
-      .where(eq(postureDiagnosisRecords.id, diagnosisRecordId))
-      .limit(1);
+    // 查询诊断记录 - 使用原始SQL
+    const diagnosisResult = await db.execute(sql`
+      SELECT * FROM posture_diagnosis_records WHERE id = ${diagnosisRecordId} LIMIT 1
+    `);
 
-    if (!records[0]) {
+    if (!diagnosisResult.rows[0]) {
       return NextResponse.json(
         { success: false, error: '诊断记录不存在' },
         { status: 404 }
       );
     }
 
-    const diagnosisRecord = records[0];
+    const diagnosisRecord = diagnosisResult.rows[0];
 
     // 查询训练动作库
     const exercises = await db
@@ -79,8 +77,8 @@ export async function POST(request: NextRequest) {
     // 提取用户主要问题
     const mainIssues: string[] = [];
     
-    if (diagnosisRecord.bodyStructure) {
-      const bodyStructure = diagnosisRecord.bodyStructure as Record<string, any>;
+    if (diagnosisRecord.body_structure) {
+      const bodyStructure = diagnosisRecord.body_structure as Record<string, any>;
       Object.entries(bodyStructure).forEach(([key, value]) => {
         if (value && typeof value === 'object' && (value as any).severity && (value as any).severity !== '无') {
           mainIssues.push(key);
@@ -97,11 +95,11 @@ export async function POST(request: NextRequest) {
       diagnosis: {
         score: diagnosisRecord.score,
         grade: diagnosisRecord.grade,
-        bodyStructure: diagnosisRecord.bodyStructure,
-        fasciaChainAnalysis: diagnosisRecord.fasciaChainAnalysis,
-        muscleAnalysis: diagnosisRecord.muscleAnalysis,
-        breathingAssessment: diagnosisRecord.breathingAssessment,
-        compensationPatterns: diagnosisRecord.compensationPatterns,
+        bodyStructure: diagnosisRecord.body_structure,
+        fasciaChainAnalysis: diagnosisRecord.fascia_chain_analysis,
+        muscleAnalysis: diagnosisRecord.muscle_analysis,
+        breathingAssessment: diagnosisRecord.breathing_assessment,
+        compensationPatterns: diagnosisRecord.compensation_patterns,
         mainIssues,
       },
       exerciseLibrary: {

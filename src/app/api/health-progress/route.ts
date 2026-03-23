@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
-import { faceDiagnosisRecords, tongueDiagnosisRecords, healthProfiles } from '@/storage/database/shared/schema';
+import { healthProfiles } from '@/storage/database/shared/schema';
 import { desc, eq, sql } from 'drizzle-orm';
 
 // GET /api/health-progress - 获取健康改善进度数据
@@ -11,38 +11,30 @@ export async function GET(request: NextRequest) {
 
     const db = await getDb();
 
-    // 获取面诊记录（按时间排序）
-    const faceRecords = await db
-      .select({
-        id: faceDiagnosisRecords.id,
-        score: faceDiagnosisRecords.score,
-        organStatus: faceDiagnosisRecords.organStatus,
-        constitution: faceDiagnosisRecords.constitution,
-        createdAt: faceDiagnosisRecords.createdAt,
-      })
-      .from(faceDiagnosisRecords)
-      .where(userId ? eq(faceDiagnosisRecords.userId, userId) : sql`1=1`)
-      .orderBy(faceDiagnosisRecords.createdAt)
-      .limit(20);
+    // 获取面诊记录（按时间排序）- 使用原始SQL
+    const faceResult = await db.execute(sql`
+      SELECT id, score, organ_status, constitution, created_at 
+      FROM face_diagnosis_records 
+      ${userId ? sql`WHERE user_id = ${userId}` : sql``}
+      ORDER BY created_at ASC 
+      LIMIT 20
+    `);
+    const faceRecords = faceResult.rows;
 
-    // 获取舌诊记录（按时间排序）
-    const tongueRecords = await db
-      .select({
-        id: tongueDiagnosisRecords.id,
-        score: tongueDiagnosisRecords.score,
-        organStatus: tongueDiagnosisRecords.organStatus,
-        constitution: tongueDiagnosisRecords.constitution,
-        createdAt: tongueDiagnosisRecords.createdAt,
-      })
-      .from(tongueDiagnosisRecords)
-      .where(userId ? eq(tongueDiagnosisRecords.userId, userId) : sql`1=1`)
-      .orderBy(tongueDiagnosisRecords.createdAt)
-      .limit(20);
+    // 获取舌诊记录（按时间排序）- 使用原始SQL
+    const tongueResult = await db.execute(sql`
+      SELECT id, score, organ_status, constitution, created_at 
+      FROM tongue_diagnosis_records 
+      ${userId ? sql`WHERE user_id = ${userId}` : sql``}
+      ORDER BY created_at ASC 
+      LIMIT 20
+    `);
+    const tongueRecords = tongueResult.rows;
 
     // 合并并按时间排序
     const allRecords = [
-      ...(faceRecords || []).map((r: any) => ({ ...r, type: 'face', created_at: r.createdAt })),
-      ...(tongueRecords || []).map((r: any) => ({ ...r, type: 'tongue', created_at: r.createdAt })),
+      ...(faceRecords || []).map((r: any) => ({ ...r, type: 'face', created_at: r.created_at })),
+      ...(tongueRecords || []).map((r: any) => ({ ...r, type: 'tongue', created_at: r.created_at })),
     ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
     // 计算评分趋势
@@ -55,8 +47,8 @@ export async function GET(request: NextRequest) {
     // 计算五脏状态趋势（取最近的记录）
     const organTrend: any = { heart: [], liver: [], spleen: [], lung: [], kidney: [] };
     allRecords.forEach((r: any) => {
-      if (r.organStatus) {
-        const organStatus = typeof r.organStatus === 'string' ? JSON.parse(r.organStatus) : r.organStatus;
+      if (r.organ_status) {
+        const organStatus = typeof r.organ_status === 'string' ? JSON.parse(r.organ_status) : r.organ_status;
         Object.keys(organTrend).forEach(organ => {
           if (organStatus && organStatus[organ]) {
             organTrend[organ].push({

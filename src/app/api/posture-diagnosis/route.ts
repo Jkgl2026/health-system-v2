@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
-import { postureDiagnosisRecords } from '@/storage/database/shared/schema';
-import { eq, desc, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 // LLM调用重试配置
 const MAX_RETRIES = 2;
@@ -505,28 +504,31 @@ export async function POST(request: NextRequest) {
       try {
         const db = await getDb();
         
-        // 插入体态诊断记录
-        const insertResult = await db.insert(postureDiagnosisRecords).values({
-          userId,
-          frontImageUrl: frontImage || null,
-          leftSideImageUrl: leftSideImage || null,
-          rightSideImageUrl: rightSideImage || null,
-          backImageUrl: backImage || null,
-          score: analysisResult.score || null,
-          grade: analysisResult.grade || null,
-          bodyStructure: analysisResult.bodyStructure || null,
-          fasciaChainAnalysis: analysisResult.fasciaChainAnalysis || null,
-          muscleAnalysis: analysisResult.muscleAnalysis || null,
-          breathingAssessment: analysisResult.breathingAssessment || null,
-          alignmentAssessment: analysisResult.alignmentAssessment || null,
-          compensationPatterns: analysisResult.compensationPatterns || null,
-          healthImpact: analysisResult.healthImpact || null,
-          healthPrediction: analysisResult.healthPrediction || null,
-          treatmentPlan: analysisResult.treatmentPlan || null,
-          fullReport: llmResult.content,
-        }).returning({ id: postureDiagnosisRecords.id });
+        // 插入体态诊断记录 - 使用原始SQL
+        const insertResult = await db.execute(sql`
+          INSERT INTO posture_diagnosis_records (
+            user_id, front_image_url, left_side_image_url, right_side_image_url, back_image_url,
+            score, grade, body_structure, fascia_chain_analysis, muscle_analysis,
+            breathing_assessment, alignment_assessment, compensation_patterns,
+            health_impact, health_prediction, treatment_plan, full_report
+          ) VALUES (
+            ${userId}, ${frontImage || null}, ${leftSideImage || null}, ${rightSideImage || null}, ${backImage || null},
+            ${analysisResult.score || null}, ${analysisResult.grade || null},
+            ${analysisResult.bodyStructure ? JSON.stringify(analysisResult.bodyStructure) : null},
+            ${analysisResult.fasciaChainAnalysis ? JSON.stringify(analysisResult.fasciaChainAnalysis) : null},
+            ${analysisResult.muscleAnalysis ? JSON.stringify(analysisResult.muscleAnalysis) : null},
+            ${analysisResult.breathingAssessment ? JSON.stringify(analysisResult.breathingAssessment) : null},
+            ${analysisResult.alignmentAssessment ? JSON.stringify(analysisResult.alignmentAssessment) : null},
+            ${analysisResult.compensationPatterns ? JSON.stringify(analysisResult.compensationPatterns) : null},
+            ${analysisResult.healthImpact ? JSON.stringify(analysisResult.healthImpact) : null},
+            ${analysisResult.healthPrediction ? JSON.stringify(analysisResult.healthPrediction) : null},
+            ${analysisResult.treatmentPlan ? JSON.stringify(analysisResult.treatmentPlan) : null},
+            ${llmResult.content}
+          )
+          RETURNING id
+        `);
 
-        recordId = insertResult[0]?.id;
+        recordId = insertResult.rows[0]?.id;
       } catch (dbError) {
         console.error('Failed to save posture diagnosis record:', dbError);
         // 不影响主流程，继续返回结果
@@ -572,22 +574,21 @@ export async function GET(request: NextRequest) {
 
     const db = await getDb();
 
-    // 查询体态诊断记录
-    const records = await db
-      .select()
-      .from(postureDiagnosisRecords)
-      .where(eq(postureDiagnosisRecords.userId, userId))
-      .orderBy(desc(postureDiagnosisRecords.createdAt))
-      .limit(limit)
-      .offset(offset);
+    // 查询体态诊断记录 - 使用原始SQL
+    const recordsResult = await db.execute(sql`
+      SELECT * FROM posture_diagnosis_records 
+      WHERE user_id = ${userId}
+      ORDER BY created_at DESC 
+      LIMIT ${limit} OFFSET ${offset}
+    `);
+    const records = recordsResult.rows;
 
     // 查询总数
-    const countResult = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(postureDiagnosisRecords)
-      .where(eq(postureDiagnosisRecords.userId, userId));
+    const countResult = await db.execute(sql`
+      SELECT COUNT(*) as count FROM posture_diagnosis_records WHERE user_id = ${userId}
+    `);
 
-    const total = Number(countResult[0]?.count) || 0;
+    const total = Number(countResult.rows[0]?.count) || 0;
 
     return NextResponse.json({
       success: true,

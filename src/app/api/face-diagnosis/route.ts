@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
-import { faceDiagnosisRecords, healthProfiles } from '@/storage/database/shared/schema';
-import { eq, sql } from 'drizzle-orm';
+import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk';
+// 注意：faceDiagnosisRecords 表由 /api/face-diagnosis-records 路由管理
+// 这里不再直接使用 Drizzle ORM 操作该表，避免与原始 SQL 创建的表结构冲突
 
 // LLM调用重试配置
 const MAX_RETRIES = 2;
@@ -341,37 +341,10 @@ export async function POST(request: NextRequest) {
     // 生成完整报告文本
     const fullReport = generateFullReport(analysisResult);
 
-    // 保存到数据库
+    // 保存到数据库 - 使用原始 SQL，通过 face-diagnosis-records API
+    // 注意：不在此处直接保存，由前端调用 /api/face-diagnosis-records 的 saveDiagnosis action
+    // 这样可以避免与原始 SQL 创建的表结构冲突
     let recordId = null;
-    if (saveRecord) {
-      try {
-        const db = await getDb();
-        
-        // 插入面诊记录
-        const insertResult = await db.insert(faceDiagnosisRecords).values({
-          userId: userId || null,
-          score: analysisResult.score || null,
-          faceColor: analysisResult.faceColor || {},
-          faceLuster: analysisResult.faceLuster || {},
-          facialFeatures: analysisResult.facialFeatures || {},
-          facialCharacteristics: analysisResult.facialCharacteristics || {},
-          constitution: analysisResult.constitution || {},
-          organStatus: analysisResult.organStatus || {},
-          suggestions: analysisResult.suggestions || [],
-          fullReport: fullReport,
-        }).returning({ id: faceDiagnosisRecords.id });
-
-        recordId = insertResult[0]?.id || null;
-
-        // 更新健康档案（如果有关联用户）
-        if (userId) {
-          await updateHealthProfile(db, userId, 'face', analysisResult);
-        }
-      } catch (dbError) {
-        console.error('Failed to save diagnosis record:', dbError);
-        // 不影响主流程，继续返回结果
-      }
-    }
 
     // 返回分析结果
     return NextResponse.json({

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
-import { faceDiagnosisRecords, tongueDiagnosisRecords } from '@/storage/database/shared/schema';
-import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 
 // GET /api/diagnosis-history/[id] - 获取单条诊断记录详情
 export async function GET(
@@ -25,21 +24,17 @@ export async function GET(
     let record: any;
 
     if (type === 'face') {
-      const result = await db
-        .select()
-        .from(faceDiagnosisRecords)
-        .where(eq(faceDiagnosisRecords.id, id))
-        .limit(1);
-
-      record = result[0];
+      // 使用原始SQL查询面诊记录
+      const result = await db.execute(sql`
+        SELECT * FROM face_diagnosis_records WHERE id = ${id} LIMIT 1
+      `);
+      record = result.rows[0];
     } else {
-      const result = await db
-        .select()
-        .from(tongueDiagnosisRecords)
-        .where(eq(tongueDiagnosisRecords.id, id))
-        .limit(1);
-
-      record = result[0];
+      // 使用原始SQL查询舌诊记录
+      const result = await db.execute(sql`
+        SELECT * FROM tongue_diagnosis_records WHERE id = ${id} LIMIT 1
+      `);
+      record = result.rows[0];
     }
 
     if (!record) {
@@ -58,11 +53,11 @@ export async function GET(
     const formattedRecord = {
       ...record,
       type,
-      organ_status: parseJson(record.organStatus),
+      organ_status: parseJson(record.organ_status),
       constitution: parseJson(record.constitution),
       recommendations: parseJson(record.suggestions),
-      diagnosis_details: parseJson(record.tongueBody || record.faceColor),
-      full_report: record.fullReport,
+      diagnosis_details: parseJson(record.tongue_body || record.face_color),
+      full_report: record.full_report,
     };
 
     return NextResponse.json({
@@ -98,9 +93,11 @@ export async function DELETE(
     const db = await getDb();
 
     if (type === 'face') {
-      await db.delete(faceDiagnosisRecords).where(eq(faceDiagnosisRecords.id, id));
+      // 使用原始SQL删除面诊记录
+      await db.execute(sql`DELETE FROM face_diagnosis_records WHERE id = ${id}`);
     } else {
-      await db.delete(tongueDiagnosisRecords).where(eq(tongueDiagnosisRecords.id, id));
+      // 使用原始SQL删除舌诊记录
+      await db.execute(sql`DELETE FROM tongue_diagnosis_records WHERE id = ${id}`);
     }
 
     return NextResponse.json({

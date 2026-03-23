@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
-import { tongueDiagnosisRecords, healthProfiles } from '@/storage/database/shared/schema';
-import { eq, sql } from 'drizzle-orm';
+import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk';
+// 注意：tongueDiagnosisRecords 表由 /api/tongue-diagnosis-records 路由管理
+// 这里不再直接使用 Drizzle ORM 操作该表，避免与原始 SQL 创建的表结构冲突
 
 // LLM调用重试配置
 const MAX_RETRIES = 2;
@@ -271,26 +271,10 @@ export async function POST(request: NextRequest) {
 
     const fullReport = generateFullReport(analysisResult);
 
+    // 保存到数据库 - 使用原始 SQL，通过 tongue-diagnosis-records API
+    // 注意：不在此处直接保存，由前端调用 /api/tongue-diagnosis-records 的 saveDiagnosis action
+    // 这样可以避免与原始 SQL 创建的表结构冲突
     let recordId = null;
-    if (saveRecord) {
-      try {
-        const db = await getDb();
-        const insertResult = await db.insert(tongueDiagnosisRecords).values({
-          userId: userId || null,
-          score: analysisResult.score || null,
-          tongueBody: analysisResult.tongueBody || {},
-          tongueCoating: analysisResult.tongueCoating || {},
-          constitution: analysisResult.constitution || {},
-          organStatus: analysisResult.organStatus || {},
-          suggestions: analysisResult.suggestions || [],
-          fullReport: fullReport,
-        }).returning({ id: tongueDiagnosisRecords.id });
-        recordId = insertResult[0]?.id || null;
-        if (userId) await updateHealthProfile(db, userId, 'tongue', analysisResult);
-      } catch (dbError) {
-        console.error('Failed to save diagnosis record:', dbError);
-      }
-    }
 
     return NextResponse.json({
       success: true,
