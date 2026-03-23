@@ -302,16 +302,196 @@ export const courses = pgTable(
 );
 
 // ============================================================
-// 诊断相关表的类型定义已移至 diagnosis-types.ts
-// 这些表由各自的 API 路由使用原始 SQL 创建和管理：
-// - face_diagnosis_users / face_diagnosis_records
-// - tongue_diagnosis_users / tongue_diagnosis_records
-// - health_profiles
-// - posture_diagnosis_records / posture_comparisons
+// 诊断相关表的影子定义（与生产数据库实际结构完全匹配）
 // 
-// Drizzle 不管理这些表，以避免迁移冲突。
+// 这些表已存在于生产数据库中，此处的定义仅用于告知 Drizzle 这些表存在，
+// 避免 Drizzle 尝试创建或修改它们。
+// 
+// 这些表由各自的 API 路由使用原始 SQL 管理：
+// - face_diagnosis_users / face_diagnosis_records: 由 face-diagnosis-records API 管理
+// - tongue_diagnosis_users / tongue_diagnosis_records: 由 tongue-diagnosis-records API 管理
+// - health_profiles: 由 migrate-diagnosis-tables API 管理
+// - posture_users / posture_assessments: 由 posture-records API 管理
+// - posture_diagnosis_records / posture_comparisons: 由 migrate-posture-tables API 管理
+// 
 // 类型定义请导入: import { FaceDiagnosisRecord, ... } from "./diagnosis-types"
 // ============================================================
+
+// 面诊用户表（影子定义 - 匹配生产数据库结构）
+export const faceDiagnosisUsers = pgTable(
+  "face_diagnosis_users",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar("name", { length: 100 }).notNull(),
+    phone: varchar("phone", { length: 20 }),
+    age: integer("age"),
+    gender: varchar("gender", { length: 10 }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  }
+);
+
+// 面诊记录表（影子定义 - 匹配生产数据库结构）
+export const faceDiagnosisRecords = pgTable(
+  "face_diagnosis_records",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id"),
+    diagnosisDate: timestamp("diagnosis_date").defaultNow(),
+    constitution: varchar("constitution", { length: 50 }),
+    faceColor: text("face_color"),
+    features: jsonb("features").default({}),
+    healthHints: jsonb("health_hints").default([]),
+    aiAnalysis: text("ai_analysis"),
+    recommendations: jsonb("recommendations").default([]),
+    imageThumbnail: text("image_thumbnail"),
+    fullReport: text("full_report"),
+    createdAt: timestamp("created_at").defaultNow(),
+  }
+);
+
+// 舌诊用户表（影子定义 - 匹配生产数据库结构）
+export const tongueDiagnosisUsers = pgTable(
+  "tongue_diagnosis_users",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar("name", { length: 100 }).notNull(),
+    phone: varchar("phone", { length: 20 }),
+    age: integer("age"),
+    gender: varchar("gender", { length: 10 }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  }
+);
+
+// 舌诊记录表（影子定义 - 匹配生产数据库结构）
+export const tongueDiagnosisRecords = pgTable(
+  "tongue_diagnosis_records",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id"),
+    diagnosisDate: timestamp("diagnosis_date").defaultNow(),
+    tongueColor: varchar("tongue_color", { length: 50 }),
+    tongueCoating: varchar("tongue_coating", { length: 50 }),
+    tongueShape: varchar("tongue_shape", { length: 50 }),
+    constitution: varchar("constitution", { length: 50 }),
+    features: jsonb("features").default({}),
+    healthHints: jsonb("health_hints").default([]),
+    aiAnalysis: text("ai_analysis"),
+    recommendations: jsonb("recommendations").default([]),
+    imageThumbnail: text("image_thumbnail"),
+    fullReport: text("full_report"),
+    createdAt: timestamp("created_at").defaultNow(),
+  }
+);
+
+// 健康档案表（影子定义 - 匹配生产数据库结构）
+export const healthProfiles = pgTable(
+  "health_profiles",
+  {
+    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }).notNull(),
+    latestScore: integer("latest_score"),
+    constitution: varchar("constitution", { length: 50 }),
+    constitutionConfidence: integer("constitution_confidence"),
+    latestFaceScore: integer("latest_face_score"),
+    faceDiagnosisCount: integer("face_diagnosis_count").default(0),
+    lastFaceDiagnosisAt: timestamp("last_face_diagnosis_at", { withTimezone: true }),
+    latestTongueScore: integer("latest_tongue_score"),
+    tongueDiagnosisCount: integer("tongue_diagnosis_count").default(0),
+    lastTongueDiagnosisAt: timestamp("last_tongue_diagnosis_at", { withTimezone: true }),
+    organStatusTrend: jsonb("organ_status_trend"),
+    comprehensiveConclusion: jsonb("comprehensive_conclusion"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  }
+);
+
+// 体态用户表（影子定义 - 匹配生产数据库结构）
+export const postureUsers = pgTable(
+  "posture_users",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar("name", { length: 100 }).notNull(),
+    phone: varchar("phone", { length: 20 }),
+    age: integer("age"),
+    gender: varchar("gender", { length: 10 }),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
+  }
+);
+
+// 体态评估记录表（影子定义 - 匹配生产数据库结构）
+export const postureAssessments = pgTable(
+  "posture_assessments",
+  {
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id"),
+    assessmentDate: timestamp("assessment_date").defaultNow(),
+    overallScore: integer("overall_score"),
+    grade: varchar("grade", { length: 1 }),
+    issues: jsonb("issues").default([]),
+    angles: jsonb("angles").default({}),
+    muscles: jsonb("muscles").default({}),
+    healthRisks: jsonb("health_risks").default([]),
+    aiSummary: text("ai_summary"),
+    aiDetailedAnalysis: jsonb("ai_detailed_analysis").default({}),
+    tcmAnalysis: jsonb("tcm_analysis").default({}),
+    trainingPlan: jsonb("training_plan").default({}),
+    imageFront: text("image_front"),
+    imageLeft: text("image_left"),
+    imageRight: text("image_right"),
+    imageBack: text("image_back"),
+    annotationFront: text("annotation_front"),
+    annotationLeft: text("annotation_left"),
+    annotationRight: text("annotation_right"),
+    annotationBack: text("annotation_back"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at").defaultNow(),
+  }
+);
+
+// 体态诊断记录表（影子定义 - 匹配生产数据库结构）
+export const postureDiagnosisRecords = pgTable(
+  "posture_diagnosis_records",
+  {
+    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }),
+    frontImageUrl: text("front_image_url"),
+    leftSideImageUrl: text("left_side_image_url"),
+    rightSideImageUrl: text("right_side_image_url"),
+    backImageUrl: text("back_image_url"),
+    score: integer("score"),
+    grade: varchar("grade", { length: 2 }),
+    bodyStructure: jsonb("body_structure"),
+    fasciaChainAnalysis: jsonb("fascia_chain_analysis"),
+    muscleAnalysis: jsonb("muscle_analysis"),
+    breathingAssessment: jsonb("breathing_assessment"),
+    alignmentAssessment: jsonb("alignment_assessment"),
+    compensationPatterns: jsonb("compensation_patterns"),
+    healthImpact: jsonb("health_impact"),
+    healthPrediction: jsonb("health_prediction"),
+    treatmentPlan: jsonb("treatment_plan"),
+    fullReport: text("full_report"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  }
+);
+
+// 体态对比记录表（影子定义 - 匹配生产数据库结构）
+export const postureComparisons = pgTable(
+  "posture_comparisons",
+  {
+    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }),
+    currentRecordId: varchar("current_record_id", { length: 36 }),
+    previousRecordId: varchar("previous_record_id", { length: 36 }),
+    scoreChange: integer("score_change"),
+    improvements: jsonb("improvements"),
+    deteriorations: jsonb("deteriorations"),
+    stableItems: jsonb("stable_items"),
+    comparisonImages: jsonb("comparison_images"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  }
+);
 
 // 训练动作库表 (与 migrate-posture-tables API 结构一致)
 export const exerciseLibrary = pgTable(
