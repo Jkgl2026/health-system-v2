@@ -12,10 +12,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Search, User, History, BarChart3, TrendingUp, TrendingDown,
   Plus, ChevronRight, Calendar, Award, AlertCircle, Loader2,
-  Users, FileText, Trash2, Eye
+  Users, FileText, Trash2, Eye, GitCompare, Minus
 } from 'lucide-react';
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
+import { comparePostureDiagnosisRecords, ComparisonResult, getOrganName } from '@/lib/comparison-utils';
 
 // 用户接口
 interface PostureUser {
@@ -78,6 +79,8 @@ export default function PostureHistoryManager({
   const [showDetailDialog, setShowDetailDialog] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
   const [selectedForCompare, setSelectedForCompare] = useState<number[]>([]);
+  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
+  const [showComparisonDialog, setShowComparisonDialog] = useState(false);
 
   // 加载用户列表
   const loadUsers = useCallback(async () => {
@@ -272,6 +275,12 @@ export default function PostureHistoryManager({
       const [data1, data2] = await Promise.all([res1.json(), res2.json()]);
       
       if (data1.success && data2.success) {
+        // 使用对比工具生成对比结果
+        const result = comparePostureDiagnosisRecords(data1.data, data2.data);
+        setComparisonResult(result);
+        setShowComparisonDialog(true);
+        
+        // 同时调用外部回调
         onCompareRecords?.(data1.data, data2.data);
       }
     } catch (err) {
@@ -710,6 +719,165 @@ export default function PostureHistoryManager({
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* 对比分析弹窗 */}
+      <Dialog open={showComparisonDialog} onOpenChange={setShowComparisonDialog}>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GitCompare className="h-5 w-5 text-blue-600" />
+              体态评估对比分析
+            </DialogTitle>
+          </DialogHeader>
+          
+          {comparisonResult && (
+            <div className="space-y-4">
+              {/* 评分变化 */}
+              <div className="grid grid-cols-3 gap-4 p-3 bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">上次评分</p>
+                  <p className="text-2xl font-bold">{comparisonResult.previousScore}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">当前评分</p>
+                  <p className="text-2xl font-bold">{comparisonResult.currentScore}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">变化</p>
+                  <p className={`text-2xl font-bold ${comparisonResult.scoreChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {comparisonResult.scoreChange >= 0 ? '+' : ''}{comparisonResult.scoreChange}
+                  </p>
+                </div>
+              </div>
+              
+              {/* 体态问题对比 */}
+              {comparisonResult.detailedComparison.postureIssues && comparisonResult.detailedComparison.postureIssues.length > 0 && (
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-blue-50 px-3 py-2 border-b">
+                    <h4 className="font-medium text-blue-800">体态问题对比</h4>
+                  </div>
+                  <div className="divide-y">
+                    {comparisonResult.detailedComparison.postureIssues.map((item, idx) => (
+                      <div key={idx} className="grid grid-cols-3 gap-3 p-3 items-center">
+                        <div className="text-sm font-medium text-gray-600">{item.name}</div>
+                        <div className="text-center">
+                          <Badge variant="outline" className="bg-gray-50">{item.previous}</Badge>
+                        </div>
+                        <div className="flex items-center gap-2 justify-end">
+                          <Badge variant="outline" className="bg-gray-50">{item.current}</Badge>
+                          {item.change === 'improved' && (
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                          )}
+                          {item.change === 'declined' && (
+                            <TrendingDown className="h-4 w-4 text-red-500" />
+                          )}
+                          {item.change === 'changed' && (
+                            <Minus className="h-4 w-4 text-blue-500" />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* 肌肉状态对比 */}
+              {comparisonResult.detailedComparison.muscles && comparisonResult.detailedComparison.muscles.length > 0 && (
+                <div className="border rounded-lg overflow-hidden">
+                  <div className="bg-orange-50 px-3 py-2 border-b">
+                    <h4 className="font-medium text-orange-800">肌肉状态对比</h4>
+                  </div>
+                  <div className="divide-y">
+                    {comparisonResult.detailedComparison.muscles.map((item, idx) => (
+                      <div key={idx} className="grid grid-cols-3 gap-3 p-3 items-center">
+                        <div className="text-sm font-medium text-gray-600">{item.name}</div>
+                        <div className="text-center">
+                          <Badge variant="outline" className="bg-gray-50">{item.previous}</Badge>
+                        </div>
+                        <div className="flex items-center gap-2 justify-end">
+                          <Badge variant="outline" className="bg-gray-50">{item.current}</Badge>
+                          {item.change === 'improved' && (
+                            <TrendingUp className="h-4 w-4 text-green-500" />
+                          )}
+                          {item.change === 'declined' && (
+                            <TrendingDown className="h-4 w-4 text-red-500" />
+                          )}
+                          {item.change === 'changed' && (
+                            <Minus className="h-4 w-4 text-blue-500" />
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* 改善项 */}
+              {comparisonResult.improvements.length > 0 && (
+                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-4 w-4 text-green-600" />
+                    <h4 className="font-medium text-green-800">改善项</h4>
+                  </div>
+                  <ul className="text-sm text-green-700 space-y-1">
+                    {comparisonResult.improvements.map((item, idx) => (
+                      <li key={idx}>• {item.name}: {item.previous} → {item.current}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {/* 需关注项 */}
+              {comparisonResult.deteriorations.length > 0 && (
+                <div className="p-3 bg-red-50 rounded-lg border border-red-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingDown className="h-4 w-4 text-red-600" />
+                    <h4 className="font-medium text-red-800">需关注项</h4>
+                  </div>
+                  <ul className="text-sm text-red-700 space-y-1">
+                    {comparisonResult.deteriorations.map((item, idx) => (
+                      <li key={idx}>• {item.name}: {item.previous} → {item.current}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {/* 变化项 */}
+              {comparisonResult.changes.length > 0 && (
+                <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Minus className="h-4 w-4 text-blue-600" />
+                    <h4 className="font-medium text-blue-800">变化项</h4>
+                  </div>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    {comparisonResult.changes.map((item, idx) => (
+                      <li key={idx}>• {item.name}: {item.previous} → {item.current}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              
+              {/* 建议 */}
+              {comparisonResult.recommendations.length > 0 && (
+                <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="font-medium text-purple-800 mb-2">训练建议</h4>
+                  <ul className="text-sm text-purple-700 space-y-1">
+                    {comparisonResult.recommendations.map((rec, idx) => (
+                      <li key={idx}>• {rec}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowComparisonDialog(false)}>
+              关闭
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

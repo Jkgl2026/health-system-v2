@@ -18,7 +18,7 @@ import {
 import { format, parseISO, differenceInDays } from 'date-fns';
 import { zhCN } from 'date-fns/locale';
 import { generateTCMPDFReport, downloadTCMPDF, generateTCMReportFilename, TCMReportData } from '@/lib/tcm-pdf-generator';
-import { compareFaceDiagnosisRecords, ComparisonResult } from '@/lib/comparison-utils';
+import { compareFaceDiagnosisRecords, ComparisonResult, ComparisonItem } from '@/lib/comparison-utils';
 
 // 用户接口
 interface FaceDiagnosisUser {
@@ -576,82 +576,143 @@ export default function FaceDiagnosisHistoryManager({
       
       {/* 对比结果弹窗 */}
       <Dialog open={showComparisonDialog} onOpenChange={setShowComparisonDialog}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <GitCompare className="h-5 w-5" />
-              对比分析结果
+              面诊对比分析结果
             </DialogTitle>
           </DialogHeader>
           {comparisonResult && (
             <div className="space-y-6">
               {/* 趋势总览 */}
               <div className={`p-4 rounded-lg ${
-                comparisonResult.trend === 'improving' ? 'bg-green-50' :
-                comparisonResult.trend === 'declining' ? 'bg-red-50' : 'bg-gray-50'
+                comparisonResult.trend === 'improving' ? 'bg-green-50 border border-green-200' :
+                comparisonResult.trend === 'declining' ? 'bg-red-50 border border-red-200' : 'bg-gray-50 border border-gray-200'
               }`}>
-                <div className="flex items-center gap-2 mb-2">
-                  {comparisonResult.trend === 'improving' && (
-                    <>
-                      <TrendingUp className="h-5 w-5 text-green-600" />
-                      <span className="font-medium text-green-700">整体趋势：改善中</span>
-                    </>
-                  )}
-                  {comparisonResult.trend === 'declining' && (
-                    <>
-                      <TrendingDown className="h-5 w-5 text-red-600" />
-                      <span className="font-medium text-red-700">整体趋势：需关注</span>
-                    </>
-                  )}
-                  {comparisonResult.trend === 'stable' && (
-                    <>
-                      <Minus className="h-5 w-5 text-gray-600" />
-                      <span className="font-medium text-gray-700">整体趋势：稳定</span>
-                    </>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {comparisonResult.trend === 'improving' && (
+                      <>
+                        <TrendingUp className="h-6 w-6 text-green-600" />
+                        <span className="font-medium text-green-700 text-lg">整体趋势：改善中</span>
+                      </>
+                    )}
+                    {comparisonResult.trend === 'declining' && (
+                      <>
+                        <TrendingDown className="h-6 w-6 text-red-600" />
+                        <span className="font-medium text-red-700 text-lg">整体趋势：需关注</span>
+                      </>
+                    )}
+                    {comparisonResult.trend === 'stable' && (
+                      <>
+                        <Minus className="h-6 w-6 text-gray-600" />
+                        <span className="font-medium text-gray-700 text-lg">整体趋势：稳定</span>
+                      </>
+                    )}
+                  </div>
+                  {comparisonResult.scoreChange !== 0 && (
+                    <div className={`text-lg font-bold ${
+                      comparisonResult.scoreChange > 0 ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      评分变化: {comparisonResult.scoreChange > 0 ? '+' : ''}{comparisonResult.scoreChange}
+                    </div>
                   )}
                 </div>
-                <p className="text-sm text-gray-600">
-                  基于 {selectedRecords.length} 次评估记录的对比分析
+                <p className="text-sm text-gray-600 mt-2">
+                  上次评分: {comparisonResult.previousScore}分 → 本次评分: {comparisonResult.currentScore}分
                 </p>
               </div>
               
-              {/* 改善项 */}
-              {comparisonResult.improvements.length > 0 && (
-                <div>
-                  <h4 className="font-medium text-green-700 mb-2 flex items-center gap-1">
-                    <TrendingUp className="h-4 w-4" />
-                    改善项目
-                  </h4>
-                  <div className="space-y-2">
-                    {comparisonResult.improvements.map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2 bg-green-50 rounded">
-                        <span className="font-medium">{item.name}</span>
-                        <div className="text-sm">
-                          <span className="text-gray-500">{item.previous}</span>
-                          <span className="mx-2">→</span>
-                          <span className="text-green-600 font-medium">{item.current}</span>
-                        </div>
+              {/* 详细对比 - 分类别展示 */}
+              {comparisonResult.detailedComparison && (
+                <div className="space-y-4">
+                  {/* 面色对比 */}
+                  {comparisonResult.detailedComparison.faceColor && (
+                    <ComparisonCategoryCard 
+                      title="面色分析" 
+                      items={[comparisonResult.detailedComparison.faceColor]} 
+                    />
+                  )}
+                  
+                  {/* 光泽对比 */}
+                  {comparisonResult.detailedComparison.faceLuster && (
+                    <ComparisonCategoryCard 
+                      title="面色光泽" 
+                      items={[comparisonResult.detailedComparison.faceLuster]} 
+                    />
+                  )}
+                  
+                  {/* 五官对比 */}
+                  {comparisonResult.detailedComparison.facialFeatures && 
+                   comparisonResult.detailedComparison.facialFeatures.length > 0 && (
+                    <ComparisonCategoryCard 
+                      title="五官分析" 
+                      items={comparisonResult.detailedComparison.facialFeatures} 
+                    />
+                  )}
+                  
+                  {/* 面部特征对比 */}
+                  {comparisonResult.detailedComparison.facialCharacteristics && 
+                   comparisonResult.detailedComparison.facialCharacteristics.length > 0 && (
+                    <ComparisonCategoryCard 
+                      title="面部特征" 
+                      items={comparisonResult.detailedComparison.facialCharacteristics} 
+                    />
+                  )}
+                  
+                  {/* 体质对比 */}
+                  {comparisonResult.detailedComparison.constitution && (
+                    <ComparisonCategoryCard 
+                      title="体质判断" 
+                      items={[comparisonResult.detailedComparison.constitution]} 
+                    />
+                  )}
+                </div>
+              )}
+              
+              {/* 五脏状态对比 */}
+              {comparisonResult.detailedComparison?.organStatus && (
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <h4 className="font-medium mb-3 text-gray-700">五脏状态变化</h4>
+                  <div className="grid grid-cols-5 gap-3">
+                    {Object.entries(comparisonResult.detailedComparison.organStatus).map(([organ, data]) => (
+                      <div key={organ} className={`text-center p-3 rounded-lg ${
+                        (data as any).change > 0 ? 'bg-green-100' : 
+                        (data as any).change < 0 ? 'bg-red-100' : 'bg-white'
+                      }`}>
+                        <p className="text-sm font-medium text-gray-600">{getOrganName(organ)}</p>
+                        <p className={`text-xl font-bold ${
+                          (data as any).change > 0 ? 'text-green-600' : 
+                          (data as any).change < 0 ? 'text-red-600' : 'text-gray-600'
+                        }`}>
+                          {(data as any).change > 0 ? '+' : ''}{(data as any).change}
+                        </p>
+                        <p className="text-xs text-gray-500">{(data as any).previous} → {(data as any).current}</p>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
               
-              {/* 退步项 */}
-              {comparisonResult.deteriorations.length > 0 && (
+              {/* 变化项（无法判断好坏） */}
+              {comparisonResult.changes && comparisonResult.changes.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-red-700 mb-2 flex items-center gap-1">
-                    <TrendingDown className="h-4 w-4" />
-                    需关注项目
+                  <h4 className="font-medium text-blue-700 mb-2 flex items-center gap-1">
+                    <GitCompare className="h-4 w-4" />
+                    变化项目
                   </h4>
                   <div className="space-y-2">
-                    {comparisonResult.deteriorations.map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2 bg-red-50 rounded">
-                        <span className="font-medium">{item.name}</span>
+                    {comparisonResult.changes.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-2 bg-blue-50 rounded">
+                        <div>
+                          <span className="text-xs text-blue-600 mr-2">[{item.category}]</span>
+                          <span className="font-medium">{item.name}</span>
+                        </div>
                         <div className="text-sm">
                           <span className="text-gray-500">{item.previous}</span>
                           <span className="mx-2">→</span>
-                          <span className="text-red-600 font-medium">{item.current}</span>
+                          <span className="text-blue-600 font-medium">{item.current}</span>
                         </div>
                       </div>
                     ))}
@@ -660,35 +721,17 @@ export default function FaceDiagnosisHistoryManager({
               )}
               
               {/* 稳定项 */}
-              {comparisonResult.stableItems.length > 0 && (
+              {comparisonResult.stableItems && comparisonResult.stableItems.length > 0 && (
                 <div>
                   <h4 className="font-medium text-gray-700 mb-2 flex items-center gap-1">
                     <Minus className="h-4 w-4" />
-                    稳定项目
+                    稳定项目 ({comparisonResult.stableItems.length}项)
                   </h4>
                   <div className="flex flex-wrap gap-2">
                     {comparisonResult.stableItems.map((item, idx) => (
                       <Badge key={idx} variant="outline" className="bg-gray-50">
-                        {item}
+                        {item.name}
                       </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-              
-              {/* 五脏状态对比 */}
-              {comparisonResult.organStatusComparison && (
-                <div>
-                  <h4 className="font-medium mb-2">五脏状态变化</h4>
-                  <div className="grid grid-cols-5 gap-2">
-                    {Object.entries(comparisonResult.organStatusComparison).map(([organ, data]) => (
-                      <div key={organ} className="text-center p-2 bg-gray-50 rounded">
-                        <p className="text-sm text-gray-500">{getOrganName(organ)}</p>
-                        <p className={`font-bold ${data.change > 0 ? 'text-green-600' : data.change < 0 ? 'text-red-600' : 'text-gray-600'}`}>
-                          {data.change > 0 ? '+' : ''}{data.change}
-                        </p>
-                        <p className="text-xs text-gray-400">{data.previous} → {data.current}</p>
-                      </div>
                     ))}
                   </div>
                 </div>
@@ -696,9 +739,9 @@ export default function FaceDiagnosisHistoryManager({
               
               {/* 建议 */}
               {comparisonResult.recommendations.length > 0 && (
-                <div>
-                  <h4 className="font-medium mb-2">健康建议</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm text-gray-600">
+                <div className="bg-blue-50 rounded-lg p-4">
+                  <h4 className="font-medium text-blue-700 mb-2">💡 健康建议</h4>
+                  <ul className="space-y-1 text-sm text-gray-700">
                     {comparisonResult.recommendations.map((rec, idx) => (
                       <li key={idx}>{rec}</li>
                     ))}
@@ -715,6 +758,42 @@ export default function FaceDiagnosisHistoryManager({
         </DialogContent>
       </Dialog>
     </Card>
+  );
+}
+
+// 对比分类卡片组件
+function ComparisonCategoryCard({ title, items }: { title: string; items: ComparisonItem[] }) {
+  return (
+    <div className="bg-white rounded-lg border">
+      <div className="px-4 py-2 bg-gray-50 border-b rounded-t-lg">
+        <h4 className="font-medium text-gray-700">{title}</h4>
+      </div>
+      <div className="p-3 space-y-2">
+        {items.map((item, idx) => (
+          <div key={idx} className={`flex items-center justify-between p-2 rounded ${
+            item.change === 'improved' ? 'bg-green-50' :
+            item.change === 'declined' ? 'bg-red-50' : 'bg-gray-50'
+          }`}>
+            <div>
+              <span className="font-medium">{item.name}</span>
+              {item.detail && (
+                <p className="text-xs text-gray-500 mt-0.5">{item.detail}</p>
+              )}
+            </div>
+            <div className="text-sm">
+              <span className="text-gray-500">{item.previous}</span>
+              <span className="mx-2">→</span>
+              <span className={`font-medium ${
+                item.change === 'improved' ? 'text-green-600' :
+                item.change === 'declined' ? 'text-red-600' : 'text-gray-600'
+              }`}>
+                {item.current}
+              </span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 

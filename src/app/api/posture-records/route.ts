@@ -129,13 +129,13 @@ export async function GET(request: NextRequest) {
     if (action === 'users') {
       const result = await pool.query(`
         SELECT 
-          u.id, u.name, u.phone, u.created_at,
+          u.id, u.name, u.phone, u.age, u.gender, u.created_at,
           COUNT(a.id) as assessment_count,
           MAX(a.assessment_date) as last_assessment_date,
           AVG(a.overall_score) as avg_score
         FROM posture_users u
         LEFT JOIN posture_assessments a ON u.id = a.user_id
-        GROUP BY u.id, u.name, u.phone, u.created_at
+        GROUP BY u.id, u.name, u.phone, u.age, u.gender, u.created_at
         ORDER BY u.created_at DESC
       `);
       
@@ -206,7 +206,10 @@ export async function GET(request: NextRequest) {
     // 获取单条记录详情
     if (action === 'detail' && recordId) {
       const result = await pool.query(`
-        SELECT * FROM posture_assessments WHERE id = $1
+        SELECT a.*, u.name, u.phone, u.age, u.gender
+        FROM posture_assessments a
+        JOIN posture_users u ON a.user_id = u.id
+        WHERE a.id = $1
       `, [recordId]);
       
       if (result.rows.length === 0) {
@@ -245,7 +248,7 @@ export async function GET(request: NextRequest) {
       SELECT 
         a.id, a.user_id, a.assessment_date, a.overall_score, a.grade,
         a.issues, a.ai_summary,
-        u.name, u.phone
+        u.name, u.phone, u.age, u.gender
       FROM posture_assessments a
       JOIN posture_users u ON a.user_id = u.id
       ORDER BY a.assessment_date DESC

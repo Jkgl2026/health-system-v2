@@ -119,12 +119,12 @@ export async function GET(request: NextRequest) {
       if (action === 'users') {
         const result = await client.query(`
           SELECT 
-            u.id, u.name, u.phone, u.created_at,
+            u.id, u.name, u.phone, u.age, u.gender, u.created_at,
             COUNT(r.id) as diagnosis_count,
             MAX(r.diagnosis_date) as last_diagnosis_date
           FROM face_diagnosis_users u
           LEFT JOIN face_diagnosis_records r ON u.id = r.user_id
-          GROUP BY u.id, u.name, u.phone, u.created_at
+          GROUP BY u.id, u.name, u.phone, u.age, u.gender, u.created_at
           ORDER BY u.created_at DESC
         `);
         
@@ -168,7 +168,7 @@ export async function GET(request: NextRequest) {
       // 获取记录详情
       if (action === 'detail' && recordId) {
         const result = await client.query(`
-          SELECT r.*, u.name, u.phone
+          SELECT r.*, u.name, u.phone, u.age, u.gender
           FROM face_diagnosis_records r
           JOIN face_diagnosis_users u ON r.user_id = u.id
           WHERE r.id = $1
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
           SELECT 
             r.id, r.diagnosis_date, r.constitution, r.face_color,
             r.health_hints, r.ai_analysis,
-            u.id as user_id, u.name, u.phone
+            u.id as user_id, u.name, u.phone, u.age, u.gender
           FROM face_diagnosis_records r
           JOIN face_diagnosis_users u ON r.user_id = u.id
           ORDER BY r.diagnosis_date DESC
