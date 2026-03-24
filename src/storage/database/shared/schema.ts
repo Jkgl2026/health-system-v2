@@ -557,6 +557,89 @@ export const insertReminderSchema = createCoercedInsertSchema(reminders).pick({
   isActive: true,
 });
 
+// ============================================================
+// 诊断表影子定义
+// 
+// 这些表已存在于生产数据库中，由各自的 API 使用原始 SQL 管理。
+// 此处定义仅用于让 Drizzle 知道这些表的结构，避免迁移时尝试修改。
+// 
+// 重要：这些定义必须与生产数据库结构完全匹配！
+// - 使用 VARCHAR(36) UUID 作为主键
+// - 不添加任何索引定义（索引由原始 SQL 管理）
+// ============================================================
+
+// 面诊用户表影子定义
+export const faceDiagnosisUsers = pgTable("face_diagnosis_users", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  phone: varchar("phone", { length: 20 }),
+  age: integer("age"),
+  gender: varchar("gender", { length: 10 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// 面诊记录表影子定义
+export const faceDiagnosisRecords = pgTable("face_diagnosis_records", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: varchar("user_id", { length: 36 }),
+  imageUrl: text("image_url"),
+  score: integer("score"),
+  faceColor: jsonb("face_color"),
+  faceLuster: jsonb("face_luster"),
+  facialFeatures: jsonb("facial_features"),
+  facialCharacteristics: jsonb("facial_characteristics"),
+  constitution: jsonb("constitution"),
+  organStatus: jsonb("organ_status"),
+  suggestions: jsonb("suggestions"),
+  fullReport: text("full_report"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// 舌诊用户表影子定义
+export const tongueDiagnosisUsers = pgTable("tongue_diagnosis_users", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  phone: varchar("phone", { length: 20 }),
+  age: integer("age"),
+  gender: varchar("gender", { length: 10 }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// 舌诊记录表影子定义
+export const tongueDiagnosisRecords = pgTable("tongue_diagnosis_records", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: varchar("user_id", { length: 36 }),
+  imageUrl: text("image_url"),
+  score: integer("score"),
+  tongueBody: jsonb("tongue_body"),
+  tongueCoating: jsonb("tongue_coating"),
+  constitution: jsonb("constitution"),
+  organStatus: jsonb("organ_status"),
+  suggestions: jsonb("suggestions"),
+  fullReport: text("full_report"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// 健康档案表影子定义
+export const healthProfiles = pgTable("health_profiles", {
+  id: varchar("id", { length: 36 }).primaryKey(),
+  userId: varchar("user_id", { length: 36 }).notNull(),
+  latestScore: integer("latest_score"),
+  constitution: varchar("constitution", { length: 50 }),
+  constitutionConfidence: integer("constitution_confidence"),
+  latestFaceScore: integer("latest_face_score"),
+  faceDiagnosisCount: integer("face_diagnosis_count").default(0),
+  lastFaceDiagnosisAt: timestamp("last_face_diagnosis_at", { withTimezone: true }),
+  latestTongueScore: integer("latest_tongue_score"),
+  tongueDiagnosisCount: integer("tongue_diagnosis_count").default(0),
+  lastTongueDiagnosisAt: timestamp("last_tongue_diagnosis_at", { withTimezone: true }),
+  organStatusTrend: jsonb("organ_status_trend"),
+  comprehensiveConclusion: jsonb("comprehensive_conclusion"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
+
 // TypeScript 类型导出
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
