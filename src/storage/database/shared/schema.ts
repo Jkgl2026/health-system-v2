@@ -314,9 +314,7 @@ export const courses = pgTable(
 export const faceDiagnosisUsersShadow = pgTable(
   "face_diagnosis_users",
   {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
     name: varchar("name", { length: 100 }),
     phone: varchar("phone", { length: 20 }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -331,10 +329,8 @@ export const faceDiagnosisUsersShadow = pgTable(
 export const faceDiagnosisRecordsShadow = pgTable(
   "face_diagnosis_records",
   {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => faceDiagnosisUsersShadow.id, { onDelete: "cascade" }),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id").references(() => faceDiagnosisUsersShadow.id, { onDelete: "cascade" }),
     imageUrl: text("image_url"),
     score: integer("score"),
     faceColor: jsonb("face_color"),
@@ -358,9 +354,7 @@ export const faceDiagnosisRecordsShadow = pgTable(
 export const tongueDiagnosisUsersShadow = pgTable(
   "tongue_diagnosis_users",
   {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
     name: varchar("name", { length: 100 }),
     phone: varchar("phone", { length: 20 }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -375,10 +369,8 @@ export const tongueDiagnosisUsersShadow = pgTable(
 export const tongueDiagnosisRecordsShadow = pgTable(
   "tongue_diagnosis_records",
   {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => tongueDiagnosisUsersShadow.id, { onDelete: "cascade" }),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id").references(() => tongueDiagnosisUsersShadow.id, { onDelete: "cascade" }),
     imageUrl: text("image_url"),
     score: integer("score"),
     tongueColor: jsonb("tongue_color"),
@@ -402,12 +394,10 @@ export const tongueDiagnosisRecordsShadow = pgTable(
 export const healthProfilesShadow = pgTable(
   "health_profiles",
   {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }),
-    faceDiagnosisId: varchar("face_diagnosis_id", { length: 36 }),
-    tongueDiagnosisId: varchar("tongue_diagnosis_id", { length: 36 }),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id"),
+    faceDiagnosisId: integer("face_diagnosis_id"),
+    tongueDiagnosisId: integer("tongue_diagnosis_id"),
     healthScore: integer("health_score"),
     constitution: jsonb("constitution"),
     organAnalysis: jsonb("organ_analysis"),
@@ -425,9 +415,7 @@ export const healthProfilesShadow = pgTable(
 export const postureUsersShadow = pgTable(
   "posture_users",
   {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
     name: varchar("name", { length: 100 }),
     phone: varchar("phone", { length: 20 }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -442,10 +430,8 @@ export const postureUsersShadow = pgTable(
 export const postureAssessmentsShadow = pgTable(
   "posture_assessments",
   {
-    id: varchar("id", { length: 36 })
-      .primaryKey()
-      .default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }).references(() => postureUsersShadow.id, { onDelete: "cascade" }),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id").references(() => postureUsersShadow.id, { onDelete: "cascade" }),
     imageUrl: text("image_url"),
     overallScore: integer("overall_score"),
     postureAngles: jsonb("posture_angles"),
