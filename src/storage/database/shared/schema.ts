@@ -317,71 +317,69 @@ export const courses = pgTable(
 // 类型定义请导入: import { FaceDiagnosisRecord, ... } from "./diagnosis-types"
 // ============================================================
 
-// 面诊用户表（影子定义 - 匹配生产数据库结构）
+// 面诊用户表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
 export const faceDiagnosisUsers = pgTable(
   "face_diagnosis_users",
   {
-    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
     name: varchar("name", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }),
     age: integer("age"),
     gender: varchar("gender", { length: 10 }),
-    createdAt: timestamp("created_at").defaultNow(),
-    updatedAt: timestamp("updated_at").defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   }
 );
 
-// 面诊记录表（影子定义 - 匹配生产数据库结构）
+// 面诊记录表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
 export const faceDiagnosisRecords = pgTable(
   "face_diagnosis_records",
   {
-    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-    userId: integer("user_id"),
-    diagnosisDate: timestamp("diagnosis_date").defaultNow(),
-    constitution: varchar("constitution", { length: 50 }),
-    faceColor: text("face_color"),
-    features: jsonb("features").default({}),
-    healthHints: jsonb("health_hints").default([]),
-    aiAnalysis: text("ai_analysis"),
-    recommendations: jsonb("recommendations").default([]),
-    imageThumbnail: text("image_thumbnail"),
+    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }),
+    imageUrl: text("image_url"),
+    score: integer("score"),
+    faceColor: jsonb("face_color"),
+    faceLuster: jsonb("face_luster"),
+    facialFeatures: jsonb("facial_features"),
+    facialCharacteristics: jsonb("facial_characteristics"),
+    constitution: jsonb("constitution"),
+    organStatus: jsonb("organ_status"),
+    suggestions: jsonb("suggestions"),
     fullReport: text("full_report"),
-    createdAt: timestamp("created_at").defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   }
 );
 
-// 舌诊用户表（影子定义 - 匹配生产数据库结构）
+// 舌诊用户表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
 export const tongueDiagnosisUsers = pgTable(
   "tongue_diagnosis_users",
   {
-    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
     name: varchar("name", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }),
     age: integer("age"),
     gender: varchar("gender", { length: 10 }),
-    createdAt: timestamp("created_at").defaultNow(),
-    updatedAt: timestamp("updated_at").defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   }
 );
 
-// 舌诊记录表（影子定义 - 匹配生产数据库结构）
+// 舌诊记录表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
 export const tongueDiagnosisRecords = pgTable(
   "tongue_diagnosis_records",
   {
-    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-    userId: integer("user_id"),
-    diagnosisDate: timestamp("diagnosis_date").defaultNow(),
-    tongueColor: varchar("tongue_color", { length: 50 }),
-    tongueCoating: varchar("tongue_coating", { length: 50 }),
-    tongueShape: varchar("tongue_shape", { length: 50 }),
-    constitution: varchar("constitution", { length: 50 }),
-    features: jsonb("features").default({}),
-    healthHints: jsonb("health_hints").default([]),
-    aiAnalysis: text("ai_analysis"),
-    recommendations: jsonb("recommendations").default([]),
-    imageThumbnail: text("image_thumbnail"),
+    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }),
+    imageUrl: text("image_url"),
+    score: integer("score"),
+    tongueBody: jsonb("tongue_body"),
+    tongueCoating: jsonb("tongue_coating"),
+    constitution: jsonb("constitution"),
+    organStatus: jsonb("organ_status"),
+    suggestions: jsonb("suggestions"),
     fullReport: text("full_report"),
-    createdAt: timestamp("created_at").defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   }
 );
 
@@ -406,29 +404,29 @@ export const healthProfiles = pgTable(
   }
 );
 
-// 体态用户表（影子定义 - 匹配生产数据库结构）
+// 体态用户表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
 export const postureUsers = pgTable(
   "posture_users",
   {
-    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
     name: varchar("name", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }),
     age: integer("age"),
     gender: varchar("gender", { length: 10 }),
-    createdAt: timestamp("created_at").defaultNow(),
-    updatedAt: timestamp("updated_at").defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
   }
 );
 
-// 体态评估记录表（影子定义 - 匹配生产数据库结构）
+// 体态评估记录表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
 export const postureAssessments = pgTable(
   "posture_assessments",
   {
-    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
-    userId: integer("user_id"),
-    assessmentDate: timestamp("assessment_date").defaultNow(),
+    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }),
+    assessmentDate: timestamp("assessment_date", { withTimezone: true }).defaultNow(),
     overallScore: integer("overall_score"),
-    grade: varchar("grade", { length: 1 }),
+    grade: varchar("grade", { length: 2 }),
     issues: jsonb("issues").default([]),
     angles: jsonb("angles").default({}),
     muscles: jsonb("muscles").default({}),
@@ -446,7 +444,7 @@ export const postureAssessments = pgTable(
     annotationRight: text("annotation_right"),
     annotationBack: text("annotation_back"),
     notes: text("notes"),
-    createdAt: timestamp("created_at").defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   }
 );
 
