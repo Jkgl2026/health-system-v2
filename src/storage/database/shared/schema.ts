@@ -317,69 +317,71 @@ export const courses = pgTable(
 // 类型定义请导入: import { FaceDiagnosisRecord, ... } from "./diagnosis-types"
 // ============================================================
 
-// 面诊用户表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
+// 面诊用户表（影子定义 - 匹配生产数据库结构，使用 INTEGER 自增）
 export const faceDiagnosisUsers = pgTable(
   "face_diagnosis_users",
   {
-    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
     name: varchar("name", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }),
     age: integer("age"),
     gender: varchar("gender", { length: 10 }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
   }
 );
 
-// 面诊记录表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
+// 面诊记录表（影子定义 - 匹配生产数据库结构，使用 INTEGER 自增）
 export const faceDiagnosisRecords = pgTable(
   "face_diagnosis_records",
   {
-    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }),
-    imageUrl: text("image_url"),
-    score: integer("score"),
-    faceColor: jsonb("face_color"),
-    faceLuster: jsonb("face_luster"),
-    facialFeatures: jsonb("facial_features"),
-    facialCharacteristics: jsonb("facial_characteristics"),
-    constitution: jsonb("constitution"),
-    organStatus: jsonb("organ_status"),
-    suggestions: jsonb("suggestions"),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id"),
+    diagnosisDate: timestamp("diagnosis_date").defaultNow(),
+    constitution: varchar("constitution", { length: 50 }),
+    faceColor: text("face_color"),
+    features: jsonb("features").default({}),
+    healthHints: jsonb("health_hints").default([]),
+    aiAnalysis: text("ai_analysis"),
+    recommendations: jsonb("recommendations").default([]),
+    imageThumbnail: text("image_thumbnail"),
     fullReport: text("full_report"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
   }
 );
 
-// 舌诊用户表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
+// 舌诊用户表（影子定义 - 匹配生产数据库结构，使用 INTEGER 自增）
 export const tongueDiagnosisUsers = pgTable(
   "tongue_diagnosis_users",
   {
-    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
     name: varchar("name", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }),
     age: integer("age"),
     gender: varchar("gender", { length: 10 }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
   }
 );
 
-// 舌诊记录表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
+// 舌诊记录表（影子定义 - 匹配生产数据库结构，使用 INTEGER 自增）
 export const tongueDiagnosisRecords = pgTable(
   "tongue_diagnosis_records",
   {
-    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }),
-    imageUrl: text("image_url"),
-    score: integer("score"),
-    tongueBody: jsonb("tongue_body"),
-    tongueCoating: jsonb("tongue_coating"),
-    constitution: jsonb("constitution"),
-    organStatus: jsonb("organ_status"),
-    suggestions: jsonb("suggestions"),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id"),
+    diagnosisDate: timestamp("diagnosis_date").defaultNow(),
+    tongueColor: varchar("tongue_color", { length: 50 }),
+    tongueCoating: varchar("tongue_coating", { length: 50 }),
+    tongueShape: varchar("tongue_shape", { length: 50 }),
+    constitution: varchar("constitution", { length: 50 }),
+    features: jsonb("features").default({}),
+    healthHints: jsonb("health_hints").default([]),
+    aiAnalysis: text("ai_analysis"),
+    recommendations: jsonb("recommendations").default([]),
+    imageThumbnail: text("image_thumbnail"),
     fullReport: text("full_report"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
   }
 );
 
@@ -404,29 +406,29 @@ export const healthProfiles = pgTable(
   }
 );
 
-// 体态用户表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
+// 体态用户表（影子定义 - 匹配生产数据库结构，使用 INTEGER 自增）
 export const postureUsers = pgTable(
   "posture_users",
   {
-    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
     name: varchar("name", { length: 100 }).notNull(),
     phone: varchar("phone", { length: 20 }),
     age: integer("age"),
     gender: varchar("gender", { length: 10 }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    createdAt: timestamp("created_at").defaultNow(),
+    updatedAt: timestamp("updated_at").defaultNow(),
   }
 );
 
-// 体态评估记录表（影子定义 - 匹配生产数据库结构，使用 VARCHAR(36) UUID）
+// 体态评估记录表（影子定义 - 匹配生产数据库结构，使用 INTEGER 自增）
 export const postureAssessments = pgTable(
   "posture_assessments",
   {
-    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }),
-    assessmentDate: timestamp("assessment_date", { withTimezone: true }).defaultNow(),
+    id: integer("id").primaryKey().generatedAlwaysAsIdentity(),
+    userId: integer("user_id"),
+    assessmentDate: timestamp("assessment_date").defaultNow(),
     overallScore: integer("overall_score"),
-    grade: varchar("grade", { length: 2 }),
+    grade: varchar("grade", { length: 1 }),
     issues: jsonb("issues").default([]),
     angles: jsonb("angles").default({}),
     muscles: jsonb("muscles").default({}),
@@ -444,50 +446,7 @@ export const postureAssessments = pgTable(
     annotationRight: text("annotation_right"),
     annotationBack: text("annotation_back"),
     notes: text("notes"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  }
-);
-
-// 体态诊断记录表（影子定义 - 匹配生产数据库结构）
-export const postureDiagnosisRecords = pgTable(
-  "posture_diagnosis_records",
-  {
-    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }),
-    frontImageUrl: text("front_image_url"),
-    leftSideImageUrl: text("left_side_image_url"),
-    rightSideImageUrl: text("right_side_image_url"),
-    backImageUrl: text("back_image_url"),
-    score: integer("score"),
-    grade: varchar("grade", { length: 2 }),
-    bodyStructure: jsonb("body_structure"),
-    fasciaChainAnalysis: jsonb("fascia_chain_analysis"),
-    muscleAnalysis: jsonb("muscle_analysis"),
-    breathingAssessment: jsonb("breathing_assessment"),
-    alignmentAssessment: jsonb("alignment_assessment"),
-    compensationPatterns: jsonb("compensation_patterns"),
-    healthImpact: jsonb("health_impact"),
-    healthPrediction: jsonb("health_prediction"),
-    treatmentPlan: jsonb("treatment_plan"),
-    fullReport: text("full_report"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  }
-);
-
-// 体态对比记录表（影子定义 - 匹配生产数据库结构）
-export const postureComparisons = pgTable(
-  "posture_comparisons",
-  {
-    id: varchar("id", { length: 36 }).primaryKey().default(sql`gen_random_uuid()`),
-    userId: varchar("user_id", { length: 36 }),
-    currentRecordId: varchar("current_record_id", { length: 36 }),
-    previousRecordId: varchar("previous_record_id", { length: 36 }),
-    scoreChange: integer("score_change"),
-    improvements: jsonb("improvements"),
-    deteriorations: jsonb("deteriorations"),
-    stableItems: jsonb("stable_items"),
-    comparisonImages: jsonb("comparison_images"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdAt: timestamp("created_at").defaultNow(),
   }
 );
 
@@ -774,8 +733,8 @@ export type {
   InsertTongueDiagnosisRecord,
   HealthProfile,
   InsertHealthProfile,
-  PostureDiagnosisRecord,
-  InsertPostureDiagnosisRecord,
-  PostureComparison,
-  InsertPostureComparison,
+  PostureUser,
+  InsertPostureUser,
+  PostureAssessment,
+  InsertPostureAssessment,
 } from "./diagnosis-types";
