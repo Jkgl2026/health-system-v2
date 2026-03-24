@@ -302,17 +302,169 @@ export const courses = pgTable(
 );
 
 // ============================================================
-// 诊断相关表 - 不由 Drizzle 管理
+// 诊断相关表 - 影子定义（匹配生产数据库结构）
 // 
-// 这些表由各自的 API 路由使用原始 SQL 创建和管理：
-// - face_diagnosis_users / face_diagnosis_records: 由 face-diagnosis-records API 管理
-// - tongue_diagnosis_users / tongue_diagnosis_records: 由 tongue-diagnosis-records API 管理
-// - health_profiles: 由 migrate-diagnosis-tables API 管理
-// - posture_users / posture_assessments: 由 posture-records API 管理
+// 这些表由各自的 API 路由使用原始 SQL 创建和管理。
+// 此处定义仅用于让 Drizzle 检测到 schema 与数据库一致，避免迁移冲突。
 // 
-// 类型定义请导入: import { FaceDiagnosisRecord, ... } from "./diagnosis-types"
-// 
-// 注意：这些表已从 Drizzle schema 中完全移除，避免部署时迁移冲突。
+// ⚠️ 不要在代码中使用这些定义，请使用 diagnosis-types.ts 中的类型
+// ============================================================
+
+// 面诊用户表
+export const faceDiagnosisUsersShadow = pgTable(
+  "face_diagnosis_users",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: varchar("name", { length: 100 }),
+    phone: varchar("phone", { length: 20 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    phoneIdx: index("face_diagnosis_users_phone_idx").on(table.phone),
+    createdAtIdx: index("face_diagnosis_users_created_at_idx").on(table.createdAt),
+  })
+);
+
+// 面诊记录表
+export const faceDiagnosisRecordsShadow = pgTable(
+  "face_diagnosis_records",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }).references(() => faceDiagnosisUsersShadow.id, { onDelete: "cascade" }),
+    imageUrl: text("image_url"),
+    score: integer("score"),
+    faceColor: jsonb("face_color"),
+    faceLuster: jsonb("face_luster"),
+    facialFeatures: jsonb("facial_features"),
+    facialCharacteristics: jsonb("facial_characteristics"),
+    constitution: jsonb("constitution"),
+    organStatus: jsonb("organ_status"),
+    suggestions: jsonb("suggestions"),
+    fullReport: text("full_report"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("face_diagnosis_records_user_id_idx").on(table.userId),
+    createdAtIdx: index("face_diagnosis_records_created_at_idx").on(table.createdAt),
+    scoreIdx: index("face_diagnosis_records_score_idx").on(table.score),
+  })
+);
+
+// 舌诊用户表
+export const tongueDiagnosisUsersShadow = pgTable(
+  "tongue_diagnosis_users",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: varchar("name", { length: 100 }),
+    phone: varchar("phone", { length: 20 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    phoneIdx: index("tongue_diagnosis_users_phone_idx").on(table.phone),
+    createdAtIdx: index("tongue_diagnosis_users_created_at_idx").on(table.createdAt),
+  })
+);
+
+// 舌诊记录表
+export const tongueDiagnosisRecordsShadow = pgTable(
+  "tongue_diagnosis_records",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }).references(() => tongueDiagnosisUsersShadow.id, { onDelete: "cascade" }),
+    imageUrl: text("image_url"),
+    score: integer("score"),
+    tongueColor: jsonb("tongue_color"),
+    tongueCoating: jsonb("tongue_coating"),
+    tongueShape: jsonb("tongue_shape"),
+    tongueMoisture: jsonb("tongue_moisture"),
+    constitution: jsonb("constitution"),
+    organStatus: jsonb("organ_status"),
+    suggestions: jsonb("suggestions"),
+    fullReport: text("full_report"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("tongue_diagnosis_records_user_id_idx").on(table.userId),
+    createdAtIdx: index("tongue_diagnosis_records_created_at_idx").on(table.createdAt),
+    scoreIdx: index("tongue_diagnosis_records_score_idx").on(table.score),
+  })
+);
+
+// 健康档案表
+export const healthProfilesShadow = pgTable(
+  "health_profiles",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }),
+    faceDiagnosisId: varchar("face_diagnosis_id", { length: 36 }),
+    tongueDiagnosisId: varchar("tongue_diagnosis_id", { length: 36 }),
+    healthScore: integer("health_score"),
+    constitution: jsonb("constitution"),
+    organAnalysis: jsonb("organ_analysis"),
+    suggestions: jsonb("suggestions"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+  },
+  (table) => ({
+    userIdIdx: index("health_profiles_user_id_idx").on(table.userId),
+    createdAtIdx: index("health_profiles_created_at_idx").on(table.createdAt),
+  })
+);
+
+// 体态用户表
+export const postureUsersShadow = pgTable(
+  "posture_users",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    name: varchar("name", { length: 100 }),
+    phone: varchar("phone", { length: 20 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    phoneIdx: index("posture_users_phone_idx").on(table.phone),
+    createdAtIdx: index("posture_users_created_at_idx").on(table.createdAt),
+  })
+);
+
+// 体态评估记录表
+export const postureAssessmentsShadow = pgTable(
+  "posture_assessments",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 }).references(() => postureUsersShadow.id, { onDelete: "cascade" }),
+    imageUrl: text("image_url"),
+    overallScore: integer("overall_score"),
+    postureAngles: jsonb("posture_angles"),
+    issues: jsonb("issues"),
+    riskLevel: varchar("risk_level", { length: 20 }),
+    suggestions: jsonb("suggestions"),
+    exercisePlan: jsonb("exercise_plan"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("posture_assessments_user_id_idx").on(table.userId),
+    createdAtIdx: index("posture_assessments_created_at_idx").on(table.createdAt),
+    scoreIdx: index("posture_assessments_overall_score_idx").on(table.overallScore),
+  })
+);
+
+// ============================================================
+// 以上影子定义仅用于防止 Drizzle 迁移冲突
+// 实际类型定义请使用: import { FaceDiagnosisRecord, ... } from "./diagnosis-types"
 // ============================================================
 
 // 训练动作库表 (与 migrate-posture-tables API 结构一致)
