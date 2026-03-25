@@ -1,6 +1,9 @@
 [project]
 requires = ["nodejs-24"]
 
+[database]
+auto_migrate = false
+
 [dev]
 build = ["bash", "./scripts/prepare.sh"]
 run = ["bash", "./scripts/dev.sh"]
