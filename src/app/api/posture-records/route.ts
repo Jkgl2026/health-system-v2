@@ -21,13 +21,13 @@ async function ensureTables() {
     // 用户表
     await client.query(`
       CREATE TABLE IF NOT EXISTS posture_users (
-        id SERIAL PRIMARY KEY,
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(100) NOT NULL,
         phone VARCHAR(20),
         age INTEGER,
         gender VARCHAR(10),
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         UNIQUE(name, phone)
       )
     `);
@@ -48,9 +48,9 @@ async function ensureTables() {
     // 评估记录表
     await client.query(`
       CREATE TABLE IF NOT EXISTS posture_assessments (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES posture_users(id),
-        assessment_date TIMESTAMP DEFAULT NOW(),
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR(36) REFERENCES posture_users(id),
+        assessment_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         overall_score INTEGER,
         grade VARCHAR(1),
         
@@ -93,7 +93,7 @@ async function ensureTables() {
         -- 备注
         notes TEXT,
         
-        created_at TIMESTAMP DEFAULT NOW()
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       )
     `);
 
