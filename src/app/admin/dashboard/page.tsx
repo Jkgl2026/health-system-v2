@@ -646,44 +646,48 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen bg-gray-50">
       {/* 顶部导航栏 */}
       <div className="bg-white border-b sticky top-0 z-40 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Activity className="h-6 w-6 text-white" />
+        <div className="container mx-auto px-3 md:px-4 py-3 md:py-4">
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 md:gap-0">
+            <div className="flex items-center gap-2 md:gap-3 w-full md:w-auto">
+              <div className="bg-blue-600 p-1.5 md:p-2 rounded-lg flex-shrink-0">
+                <Activity className="h-5 w-5 md:h-6 md:w-6 text-white" />
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">健康自检管理后台</h1>
-                <p className="text-sm text-gray-500">用户数据管理系统</p>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-base md:text-xl font-bold text-gray-900 truncate">健康自检管理后台</h1>
+                <p className="text-xs md:text-sm text-gray-500 hidden sm:block">用户数据管理系统</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 md:gap-2 flex-wrap w-full md:w-auto">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
                 disabled={loading}
+                className="flex-1 md:flex-none min-w-[60px]"
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                刷新
+                <RefreshCw className={`h-4 w-4 md:mr-2 ${loading ? 'animate-spin' : ''}`} />
+                <span className="hidden md:inline">刷新</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowSearchBar(!showSearchBar)}>
-                <Search className="h-4 w-4 mr-2" />
-                {showSearchBar ? '隐藏' : '搜索'}
+              <Button variant="outline" size="sm" onClick={() => setShowSearchBar(!showSearchBar)} className="flex-1 md:flex-none min-w-[60px]">
+                <Search className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">{showSearchBar ? '隐藏' : '搜索'}</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleExport(false)}
+                className="flex-1 md:flex-none min-w-[80px]"
               >
-                <Download className="h-4 w-4 mr-2" />
-                导出CSV
+                <Download className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">导出CSV</span>
               </Button>
-              <Button variant="outline" size="sm" onClick={() => router.push('/admin/seven-questions-manager')}>
+              {/* 七问管理按钮已隐藏 */}
+              {/* <Button variant="outline" size="sm" onClick={() => router.push('/admin/seven-questions-manager')}>
                 <HelpCircle className="h-4 w-4 mr-2" />
                 七问管理
-              </Button>
-              <Button
+              </Button> */}
+              {/* 自动修复按钮已隐藏 */}
+              {/* <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/auto-fix-seven-questions')}
@@ -691,48 +695,49 @@ export default function AdminDashboardPage() {
               >
                 <RefreshCw className="h-4 w-4 mr-2 text-green-600" />
                 自动修复
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => router.push('/admin/compare')}>
-                <Activity className="h-4 w-4 mr-2" />
-                数据对比
+              </Button> */}
+              <Button variant="outline" size="sm" onClick={() => router.push('/admin/compare')} className="flex-1 md:flex-none min-w-[70px]">
+                <Activity className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">数据对比</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/admin/analytics')}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 flex-1 md:flex-none min-w-[70px]"
               >
-                <PieChart className="h-4 w-4 mr-2" />
-                数据分析
+                <PieChart className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">数据分析</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/admin/charts')}
-                className="border-purple-400 text-purple-700"
+                className="border-purple-400 text-purple-700 flex-1 md:flex-none min-w-[70px] hidden lg:inline-flex"
               >
-                <Activity className="h-4 w-4 mr-2" />
-                图表对比
+                <Activity className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">图表对比</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/admin/abnormal')}
-                className="border-orange-400 text-orange-700"
+                className="border-orange-400 text-orange-700 flex-1 md:flex-none min-w-[70px] hidden xl:inline-flex"
               >
-                <AlertTriangle className="h-4 w-4 mr-2" />
-                异常筛选
+                <AlertTriangle className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">异常筛选</span>
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/admin/tags')}
-                className="border-violet-400 text-violet-700"
+                className="border-violet-400 text-violet-700 flex-1 md:flex-none min-w-[70px] hidden xl:inline-flex"
               >
-                <Tags className="h-4 w-4 mr-2" />
-                标签管理
+                <Tags className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">标签管理</span>
               </Button>
-              <Button
+              {/* AI舌诊按钮已隐藏 */}
+              {/* <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/admin/tongue-diagnosis')}
@@ -740,8 +745,9 @@ export default function AdminDashboardPage() {
               >
                 <Sparkles className="h-4 w-4 mr-2" />
                 AI舌诊
-              </Button>
-              <Button
+              </Button> */}
+              {/* 体态评估按钮已隐藏 */}
+              {/* <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/admin/posture-records')}
@@ -749,8 +755,9 @@ export default function AdminDashboardPage() {
               >
                 <Activity className="h-4 w-4 mr-2" />
                 体态评估
-              </Button>
-              <Button
+              </Button> */}
+              {/* 训练管理按钮已隐藏 */}
+              {/* <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/admin/exercises')}
@@ -758,30 +765,31 @@ export default function AdminDashboardPage() {
               >
                 <Target className="h-4 w-4 mr-2" />
                 训练管理
-              </Button>
+              </Button> */}
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => router.push('/admin/settings')}
-                className="border-slate-400 text-slate-700"
+                className="border-slate-400 text-slate-700 flex-1 md:flex-none min-w-[70px]"
               >
-                <Shield className="h-4 w-4 mr-2" />
-                系统设置
+                <Shield className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">系统设置</span>
               </Button>
               <Button
                 variant="destructive"
                 size="sm"
                 onClick={handleLogout}
+                className="flex-1 md:flex-none min-w-[70px]"
               >
-                <LogOut className="h-4 w-4 mr-2" />
-                退出登录
+                <LogOut className="h-4 w-4 md:mr-2" />
+                <span className="hidden md:inline">退出登录</span>
               </Button>
             </div>
           </div>
 
           {/* 搜索栏 */}
           {showSearchBar && (
-            <div className="mt-4 pt-4 border-t">
+            <div className="mt-3 md:mt-4 pt-3 md:pt-4 border-t">
               <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex gap-2">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -791,7 +799,7 @@ export default function AdminDashboardPage() {
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onKeyDown={handleSearchKeyDown}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full pl-10 pr-10 py-2 text-sm md:text-base border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {searchQuery && (
                     <button
@@ -803,11 +811,11 @@ export default function AdminDashboardPage() {
                     </button>
                   )}
                 </div>
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                  搜索
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700 flex-1 md:flex-none min-w-[60px]">
+                  <span className="hidden md:inline">搜索</span>
                 </Button>
-                <Button type="button" variant="outline" onClick={handleClearSearch}>
-                  重置
+                <Button type="button" variant="outline" onClick={handleClearSearch} className="flex-1 md:flex-none min-w-[60px]">
+                  <span className="hidden md:inline">重置</span>
                 </Button>
               </form>
             </div>
@@ -816,56 +824,56 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* 主内容区 */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-3 md:px-4 py-4 md:py-6">
         {/* 统计卡片 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-6">
           <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardDescription>总用户数</CardDescription>
-              <CardTitle className="text-3xl">{pagination.total}</CardTitle>
+            <CardHeader className="pb-2 md:pb-3 px-3 md:px-6">
+              <CardDescription className="text-xs md:text-sm">总用户数</CardDescription>
+              <CardTitle className="text-2xl md:text-3xl">{pagination.total}</CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex items-center text-sm text-gray-600">
-                <Users className="h-4 w-4 mr-1" />
+            <CardContent className="pt-0 px-3 md:px-6">
+              <div className="flex items-center text-xs md:text-sm text-gray-600">
+                <Users className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                 活跃用户
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardDescription>已完成自检</CardDescription>
-              <CardTitle className="text-3xl">
+            <CardHeader className="pb-2 md:pb-3 px-3 md:px-6">
+              <CardDescription className="text-xs md:text-sm">已完成自检</CardDescription>
+              <CardTitle className="text-2xl md:text-3xl">
                 {users.filter(u => u.latestSymptomCheck).length}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex items-center text-sm text-gray-600">
-                <FileText className="h-4 w-4 mr-1" />
+            <CardContent className="pt-0 px-3 md:px-6">
+              <div className="flex items-center text-xs md:text-sm text-gray-600">
+                <FileText className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                 {pagination.total > 0 ? ((users.filter(u => u.latestSymptomCheck).length / pagination.total) * 100).toFixed(1) : 0}%
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardDescription>已完成要求</CardDescription>
-              <CardTitle className="text-3xl">
+            <CardHeader className="pb-2 md:pb-3 px-3 md:px-6">
+              <CardDescription className="text-xs md:text-sm">已完成要求</CardDescription>
+              <CardTitle className="text-2xl md:text-3xl">
                 {users.filter(u => u.requirements && calculateRequirementsProgress(u.requirements) === 100).length}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex items-center text-sm text-gray-600">
-                <CheckCircle className="h-4 w-4 mr-1" />
+            <CardContent className="pt-0 px-3 md:px-6">
+              <div className="flex items-center text-xs md:text-sm text-gray-600">
+                <CheckCircle className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                 完成率 100%
               </div>
             </CardContent>
           </Card>
 
           <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <CardDescription>平均健康分数</CardDescription>
-              <CardTitle className="text-3xl">
+            <CardHeader className="pb-2 md:pb-3 px-3 md:px-6">
+              <CardDescription className="text-xs md:text-sm">平均健康分数</CardDescription>
+              <CardTitle className="text-2xl md:text-3xl">
                 {(() => {
                   const scores = users
                     .filter(u => u.latestHealthAnalysis && u.latestHealthAnalysis.overallHealth !== null)
@@ -876,9 +884,9 @@ export default function AdminDashboardPage() {
                 })()}
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="flex items-center text-sm text-gray-600">
-                <Activity className="h-4 w-4 mr-1" />
+            <CardContent className="pt-0 px-3 md:px-6">
+              <div className="flex items-center text-xs md:text-sm text-gray-600">
+                <Activity className="h-3 w-3 md:h-4 md:w-4 mr-1" />
                 整体健康水平
               </div>
             </CardContent>
@@ -899,7 +907,8 @@ export default function AdminDashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            {/* 桌面端表格显示 */}
+            <div className="hidden md:block overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50">
@@ -1019,6 +1028,113 @@ export default function AdminDashboardPage() {
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* 移动端卡片式布局 */}
+            <div className="md:hidden space-y-3">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="h-6 w-6 animate-spin text-blue-600 mr-2" />
+                  加载中...
+                </div>
+              ) : users.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  {searchQuery ? '未找到匹配的用户' : '暂无用户数据'}
+                </div>
+              ) : (
+                users.map((userSummary) => {
+                  const latestAnalysis = userSummary.latestHealthAnalysis;
+                  const healthStatus = latestAnalysis
+                    ? getHealthStatus(latestAnalysis.overallHealth)
+                    : { label: '未检测', color: 'bg-gray-500' };
+
+                  return (
+                    <Card key={userSummary.user.id} className="shadow-sm">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-gray-900 text-lg">
+                              {userSummary.user.name || '未命名'}
+                            </h3>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-gray-500 font-mono">
+                                ID: {userSummary.user.id.slice(0, 8)}...
+                              </span>
+                              {userSummary.user.phone && (
+                                <span className="text-xs text-gray-600 font-mono">
+                                  {userSummary.user.phone}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <Badge className={`${healthStatus.color} text-white`}>
+                            {healthStatus.label}
+                          </Badge>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2 mb-3">
+                          <div className="text-center p-2 bg-gray-50 rounded">
+                            <div className="text-xs text-gray-600 mb-1">年龄</div>
+                            <div className="font-semibold">{userSummary.user.age || '-'}</div>
+                          </div>
+                          <div className="text-center p-2 bg-gray-50 rounded">
+                            <div className="text-xs text-gray-600 mb-1">性别</div>
+                            <div className="font-semibold">{userSummary.user.gender || '-'}</div>
+                          </div>
+                          <div className="text-center p-2 bg-gray-50 rounded">
+                            <div className="text-xs text-gray-600 mb-1">完成度</div>
+                            <div className="font-semibold">
+                              {calculateRequirementsProgress(userSummary.requirements).toFixed(0)}%
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mb-3">
+                          <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-gray-600">完成进度</span>
+                            <span className="text-xs font-semibold">
+                              {calculateRequirementsProgress(userSummary.requirements).toFixed(0)}%
+                            </span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div
+                              className="bg-blue-600 h-2 rounded-full transition-all"
+                              style={{ width: `${calculateRequirementsProgress(userSummary.requirements)}%` }}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="text-xs text-gray-500 mb-3">
+                          注册时间: {formatDate(userSummary.user.createdAt)}
+                        </div>
+
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewDetail(userSummary.user.id)}
+                            className="flex-1"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            查看详情
+                          </Button>
+                          {userSummary.user.phone && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleViewHistory(userSummary.user.phone!)}
+                              className="flex-1"
+                            >
+                              <Activity className="h-4 w-4 mr-1" />
+                              历史
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
+              )}
             </div>
 
             {/* 分页组件 */}
