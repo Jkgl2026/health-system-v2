@@ -23,17 +23,17 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
     const results: string[] = [];
 
-    // 创建面诊用户表
+    // 创建面诊用户表（注意：远端数据库使用 INTEGER 主键）
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS face_diagnosis_users (
-          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+          id SERIAL PRIMARY KEY,
           name VARCHAR(100) NOT NULL,
           phone VARCHAR(20),
           age INTEGER,
           gender VARCHAR(10),
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
           UNIQUE(name, phone)
         );
       `);
@@ -55,23 +55,22 @@ export async function POST(request: NextRequest) {
       results.push('面诊用户索引已存在或创建失败（可忽略）');
     }
 
-    // 创建面诊记录表
+    // 创建面诊记录表（注意：远端数据库使用 INTEGER 主键）
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS face_diagnosis_records (
-          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR(36) REFERENCES face_diagnosis_users(id) ON DELETE CASCADE,
-          image_url TEXT,
-          score INTEGER,
-          face_color JSONB,
-          face_luster JSONB,
-          facial_features JSONB,
-          facial_characteristics JSONB,
-          constitution JSONB,
-          organ_status JSONB,
-          suggestions JSONB,
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES face_diagnosis_users(id) ON DELETE CASCADE,
+          diagnosis_date TIMESTAMP DEFAULT NOW(),
+          constitution VARCHAR(50),
+          face_color TEXT,
+          features JSONB DEFAULT '{}',
+          health_hints JSONB DEFAULT '[]',
+          ai_analysis TEXT,
+          recommendations JSONB DEFAULT '[]',
+          image_thumbnail TEXT,
           full_report TEXT,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+          created_at TIMESTAMP DEFAULT NOW() NOT NULL
         );
       `);
       results.push('面诊记录表创建成功');
@@ -83,27 +82,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 创建面诊记录索引
+    // 创建面诊记录索引（移除 score 索引，因为远端数据库中没有这个字段）
     try {
       await db.execute(`CREATE INDEX IF NOT EXISTS face_diagnosis_records_user_id_idx ON face_diagnosis_records(user_id);`);
       await db.execute(`CREATE INDEX IF NOT EXISTS face_diagnosis_records_created_at_idx ON face_diagnosis_records(created_at);`);
-      await db.execute(`CREATE INDEX IF NOT EXISTS face_diagnosis_records_score_idx ON face_diagnosis_records(score);`);
       results.push('面诊记录索引创建成功');
     } catch (e) {
       results.push('面诊记录索引已存在或创建失败（可忽略）');
     }
 
-    // 创建舌诊用户表
+    // 创建舌诊用户表（注意：远端数据库使用 INTEGER 主键）
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS tongue_diagnosis_users (
-          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+          id SERIAL PRIMARY KEY,
           name VARCHAR(100) NOT NULL,
           phone VARCHAR(20),
           age INTEGER,
           gender VARCHAR(10),
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-          updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW(),
           UNIQUE(name, phone)
         );
       `);
@@ -125,21 +123,24 @@ export async function POST(request: NextRequest) {
       results.push('舌诊用户索引已存在或创建失败（可忽略）');
     }
 
-    // 创建舌诊记录表
+    // 创建舌诊记录表（注意：远端数据库使用 INTEGER 主键）
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS tongue_diagnosis_records (
-          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR(36) REFERENCES tongue_diagnosis_users(id) ON DELETE CASCADE,
-          image_url TEXT,
-          score INTEGER,
-          tongue_body JSONB,
-          tongue_coating JSONB,
-          constitution JSONB,
-          organ_status JSONB,
-          suggestions JSONB,
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES tongue_diagnosis_users(id) ON DELETE CASCADE,
+          diagnosis_date TIMESTAMP DEFAULT NOW(),
+          tongue_color VARCHAR(50),
+          tongue_coating VARCHAR(50),
+          tongue_shape VARCHAR(50),
+          constitution VARCHAR(50),
+          features JSONB DEFAULT '{}',
+          health_hints JSONB DEFAULT '[]',
+          ai_analysis TEXT,
+          recommendations JSONB DEFAULT '[]',
+          image_thumbnail TEXT,
           full_report TEXT,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+          created_at TIMESTAMP DEFAULT NOW() NOT NULL
         );
       `);
       results.push('舌诊记录表创建成功');
@@ -151,11 +152,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 创建舌诊记录索引
+    // 创建舌诊记录索引（移除 score 索引，因为远端数据库中没有这个字段）
     try {
       await db.execute(`CREATE INDEX IF NOT EXISTS tongue_diagnosis_records_user_id_idx ON tongue_diagnosis_records(user_id);`);
       await db.execute(`CREATE INDEX IF NOT EXISTS tongue_diagnosis_records_created_at_idx ON tongue_diagnosis_records(created_at);`);
-      await db.execute(`CREATE INDEX IF NOT EXISTS tongue_diagnosis_records_score_idx ON tongue_diagnosis_records(score);`);
       results.push('舌诊记录索引创建成功');
     } catch (e) {
       results.push('舌诊记录索引已存在或创建失败（可忽略）');
