@@ -18,16 +18,16 @@ function getPool(): Pool {
 async function ensureTables() {
   const client = await getPool().connect();
   try {
-    // 舌诊用户表 - 使用 UUID 主键
+    // 舌诊用户表 - 使用 INTEGER 主键（与远端数据库一致）
     await client.query(`
       CREATE TABLE IF NOT EXISTS tongue_diagnosis_users (
-        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+        id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         phone VARCHAR(20),
         age INTEGER,
         gender VARCHAR(10),
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW(),
         UNIQUE(name, phone)
       )
     `);
@@ -36,11 +36,11 @@ async function ensureTables() {
     await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_users_name ON tongue_diagnosis_users(name)`);
     await client.query(`CREATE INDEX IF NOT EXISTS idx_tongue_users_phone ON tongue_diagnosis_users(phone)`);
 
-    // 舌诊记录表 - 使用 UUID 以与 migrate-diagnosis-tables 结构一致
+    // 舌诊记录表 - 使用 INTEGER 主键（与远端数据库一致）
     await client.query(`
       CREATE TABLE IF NOT EXISTS tongue_diagnosis_records (
-        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-        user_id VARCHAR(36) REFERENCES tongue_diagnosis_users(id) ON DELETE CASCADE,
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES tongue_diagnosis_users(id) ON DELETE CASCADE,
         image_url TEXT,
         score INTEGER,
         tongue_body JSONB,
@@ -49,14 +49,13 @@ async function ensureTables() {
         organ_status JSONB,
         suggestions JSONB,
         full_report TEXT,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL
       )
     `);
 
-    // 创建索引
+    // 创建索引（注意：远端数据库中的表可能没有 score 字段）
     await client.query(`CREATE INDEX IF NOT EXISTS tongue_diagnosis_records_user_id_idx ON tongue_diagnosis_records(user_id)`);
     await client.query(`CREATE INDEX IF NOT EXISTS tongue_diagnosis_records_created_at_idx ON tongue_diagnosis_records(created_at)`);
-    await client.query(`CREATE INDEX IF NOT EXISTS tongue_diagnosis_records_score_idx ON tongue_diagnosis_records(score)`);
 
     console.log('[TongueDiagnosisRecords] 表结构检查完成');
   } finally {

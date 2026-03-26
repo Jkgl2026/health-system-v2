@@ -16,12 +16,12 @@ export async function GET(request: NextRequest) {
     let records: any[] = [];
 
     if (type === 'all' || type === 'face') {
-      // 使用原始SQL查询面诊记录
+      // 使用原始SQL查询面诊记录（注意：远端数据库中使用 diagnosis_date 而不是 created_at）
       const faceResult = await db.execute(sql`
-        SELECT id, user_id, score, constitution, created_at 
-        FROM face_diagnosis_records 
+        SELECT id, user_id, constitution, diagnosis_date as created_at
+        FROM face_diagnosis_records
         ${userId ? sql`WHERE user_id = ${userId}` : sql``}
-        ORDER BY created_at DESC 
+        ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `);
 
@@ -29,12 +29,12 @@ export async function GET(request: NextRequest) {
     }
 
     if (type === 'all' || type === 'tongue') {
-      // 使用原始SQL查询舌诊记录
+      // 使用原始SQL查询舌诊记录（注意：远端数据库中使用 diagnosis_date 而不是 created_at）
       const tongueResult = await db.execute(sql`
-        SELECT id, user_id, score, constitution, created_at 
-        FROM tongue_diagnosis_records 
+        SELECT id, user_id, constitution, diagnosis_date as created_at
+        FROM tongue_diagnosis_records
         ${userId ? sql`WHERE user_id = ${userId}` : sql``}
-        ORDER BY created_at DESC 
+        ORDER BY created_at DESC
         LIMIT ${limit} OFFSET ${offset}
       `);
 

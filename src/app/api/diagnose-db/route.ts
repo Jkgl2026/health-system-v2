@@ -36,6 +36,66 @@ export async function GET(request: NextRequest) {
     `);
     diagnosis.usersCount = usersCount.rows?.[0]?.count || 0;
 
+    // 检查面诊表结构
+    const faceDiagnosisUsersStructure = await db.execute(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'face_diagnosis_users'
+      ORDER BY ordinal_position;
+    `);
+    diagnosis.faceDiagnosisUsersStructure = faceDiagnosisUsersStructure.rows || [];
+
+    const faceDiagnosisRecordsStructure = await db.execute(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'face_diagnosis_records'
+      ORDER BY ordinal_position;
+    `);
+    diagnosis.faceDiagnosisRecordsStructure = faceDiagnosisRecordsStructure.rows || [];
+
+    // 检查舌诊表结构
+    const tongueDiagnosisUsersStructure = await db.execute(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'tongue_diagnosis_users'
+      ORDER BY ordinal_position;
+    `);
+    diagnosis.tongueDiagnosisUsersStructure = tongueDiagnosisUsersStructure.rows || [];
+
+    const tongueDiagnosisRecordsStructure = await db.execute(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'tongue_diagnosis_records'
+      ORDER BY ordinal_position;
+    `);
+    diagnosis.tongueDiagnosisRecordsStructure = tongueDiagnosisRecordsStructure.rows || [];
+
+    // 检查体态表结构
+    const postureUsersStructure = await db.execute(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'posture_users'
+      ORDER BY ordinal_position;
+    `);
+    diagnosis.postureUsersStructure = postureUsersStructure.rows || [];
+
+    const postureAssessmentsStructure = await db.execute(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'posture_assessments'
+      ORDER BY ordinal_position;
+    `);
+    diagnosis.postureAssessmentsStructure = postureAssessmentsStructure.rows || [];
+
+    // 检查 health_profiles 表结构
+    const healthProfilesStructure = await db.execute(`
+      SELECT column_name, data_type, is_nullable, column_default
+      FROM information_schema.columns
+      WHERE table_name = 'health_profiles'
+      ORDER BY ordinal_position;
+    `);
+    diagnosis.healthProfilesStructure = healthProfilesStructure.rows || [];
+
     return NextResponse.json({
       success: true,
       diagnosis,

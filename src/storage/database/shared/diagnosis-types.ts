@@ -11,9 +11,9 @@
  * 并且生产数据库中已存在数据。
  */
 
-// 面诊用户表类型（VARCHAR(36) UUID）
+// 面诊用户表类型（INTEGER 主键）
 export interface FaceDiagnosisUser {
-  id: string;
+  id: number;
   name: string;
   phone: string | null;
   age: number | null;
@@ -29,10 +29,10 @@ export interface InsertFaceDiagnosisUser {
   gender?: string | null;
 }
 
-// 面诊记录表类型（VARCHAR(36) UUID）
+// 面诊记录表类型（INTEGER 主键）
 export interface FaceDiagnosisRecord {
-  id: string;
-  userId: string | null;
+  id: number;
+  userId: number | null;
   imageUrl: string | null;
   score: number | null;
   faceColor: Record<string, unknown> | null;
@@ -47,7 +47,7 @@ export interface FaceDiagnosisRecord {
 }
 
 export interface InsertFaceDiagnosisRecord {
-  userId?: string | null;
+  userId?: number | null;
   imageUrl?: string | null;
   score?: number | null;
   faceColor?: Record<string, unknown> | null;
@@ -60,9 +60,9 @@ export interface InsertFaceDiagnosisRecord {
   fullReport?: string | null;
 }
 
-// 舌诊用户表类型（VARCHAR(36) UUID）
+// 舌诊用户表类型（INTEGER 主键）
 export interface TongueDiagnosisUser {
-  id: string;
+  id: number;
   name: string;
   phone: string | null;
   age: number | null;
@@ -78,10 +78,10 @@ export interface InsertTongueDiagnosisUser {
   gender?: string | null;
 }
 
-// 舌诊记录表类型（VARCHAR(36) UUID）
+// 舌诊记录表类型（INTEGER 主键）
 export interface TongueDiagnosisRecord {
-  id: string;
-  userId: string | null;
+  id: number;
+  userId: number | null;
   imageUrl: string | null;
   score: number | null;
   tongueBody: Record<string, unknown> | null;
@@ -94,7 +94,7 @@ export interface TongueDiagnosisRecord {
 }
 
 export interface InsertTongueDiagnosisRecord {
-  userId?: string | null;
+  userId?: number | null;
   imageUrl?: string | null;
   score?: number | null;
   tongueBody?: Record<string, unknown> | null;
@@ -105,10 +105,10 @@ export interface InsertTongueDiagnosisRecord {
   fullReport?: string | null;
 }
 
-// 健康档案表类型（VARCHAR(36) UUID）
+// 健康档案表类型（INTEGER 主键）
 export interface HealthProfile {
-  id: string;
-  userId: string;
+  id: number;
+  userId: number;
   latestScore: number | null;
   constitution: string | null;
   constitutionConfidence: number | null;
@@ -124,7 +124,7 @@ export interface HealthProfile {
 }
 
 export interface InsertHealthProfile {
-  userId: string;
+  userId: number;
   latestScore?: number | null;
   constitution?: string | null;
   constitutionConfidence?: number | null;
@@ -138,9 +138,9 @@ export interface InsertHealthProfile {
   comprehensiveConclusion?: Record<string, unknown> | null;
 }
 
-// 体态用户表类型（VARCHAR(36) UUID）
+// 体态用户表类型（INTEGER 主键）
 export interface PostureUser {
-  id: string;
+  id: number;
   name: string;
   phone: string | null;
   age: number | null;
@@ -156,10 +156,10 @@ export interface InsertPostureUser {
   gender?: string | null;
 }
 
-// 体态评估记录表类型（VARCHAR(36) UUID）
+// 体态评估记录表类型（INTEGER 主键）
 export interface PostureAssessment {
-  id: string;
-  userId: string | null;
+  id: number;
+  userId: number | null;
   assessmentDate: Date | null;
   overallScore: number | null;
   grade: string | null;
@@ -184,7 +184,7 @@ export interface PostureAssessment {
 }
 
 export interface InsertPostureAssessment {
-  userId?: string | null;
+  userId?: number | null;
   assessmentDate?: Date | null;
   overallScore?: number | null;
   grade?: string | null;

@@ -13,20 +13,20 @@ export async function GET(request: NextRequest) {
 
     // 获取面诊记录（按时间排序）- 使用原始SQL
     const faceResult = await db.execute(sql`
-      SELECT id, score, organ_status, constitution, created_at 
-      FROM face_diagnosis_records 
+      SELECT id, constitution, diagnosis_date as created_at, features, recommendations
+      FROM face_diagnosis_records
       ${userId ? sql`WHERE user_id = ${userId}` : sql``}
-      ORDER BY created_at ASC 
+      ORDER BY created_at ASC
       LIMIT 20
     `);
     const faceRecords = faceResult.rows;
 
     // 获取舌诊记录（按时间排序）- 使用原始SQL
     const tongueResult = await db.execute(sql`
-      SELECT id, score, organ_status, constitution, created_at 
-      FROM tongue_diagnosis_records 
+      SELECT id, constitution, diagnosis_date as created_at, features, recommendations
+      FROM tongue_diagnosis_records
       ${userId ? sql`WHERE user_id = ${userId}` : sql``}
-      ORDER BY created_at ASC 
+      ORDER BY created_at ASC
       LIMIT 20
     `);
     const tongueRecords = tongueResult.rows;
@@ -37,23 +37,22 @@ export async function GET(request: NextRequest) {
       ...(tongueRecords || []).map((r: any) => ({ ...r, type: 'tongue', created_at: r.created_at })),
     ].sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime());
 
-    // 计算评分趋势
+    // 计算评分趋势（注意：远端数据库中没有 score 字段，使用 features 字段计算）
     const scoreTrend = allRecords.map((r: any) => ({
       date: new Date(r.created_at).toLocaleDateString('zh-CN'),
-      score: r.score,
+      score: r.features && typeof r.features === 'object' ? r.features.score || 0 : 0,
       type: r.type,
     }));
 
-    // 计算五脏状态趋势（取最近的记录）
+    // 计算五脏状态趋势（取最近的记录，注意：远端数据库中使用 features 字段）
     const organTrend: any = { heart: [], liver: [], spleen: [], lung: [], kidney: [] };
     allRecords.forEach((r: any) => {
-      if (r.organ_status) {
-        const organStatus = typeof r.organ_status === 'string' ? JSON.parse(r.organ_status) : r.organ_status;
+      if (r.features && typeof r.features === 'object') {
         Object.keys(organTrend).forEach(organ => {
-          if (organStatus && organStatus[organ]) {
+          if (r.features && r.features[organ]) {
             organTrend[organ].push({
               date: new Date(r.created_at).toLocaleDateString('zh-CN'),
-              value: organStatus[organ],
+              value: r.features[organ],
             });
           }
         });
@@ -64,14 +63,14 @@ export async function GET(request: NextRequest) {
     const constitutionCount: Record<string, number> = {};
     allRecords.forEach((r: any) => {
       if (r.constitution) {
-        const constitution = typeof r.constitution === 'string' ? JSON.parse(r.constitution) : r.constitution;
-        if (constitution && constitution.type) {
-          constitutionCount[constitution.type] = (constitutionCount[constitution.type] || 0) + 1;
+        const constitution = typeof r.constitution === 'string' ? r.constitution : r.constitution.type;
+        if (constitution) {
+          constitutionCount[constitution] = (constitutionCount[constitution] || 0) + 1;
         }
       }
     });
 
-    // 获取最新评分
+    // 获取最新评分（注意：远端数据库中没有 score 字段，使用 features 字段计算）
     const latestFace = faceRecords && faceRecords.length > 0 ? faceRecords[faceRecords.length - 1] : null;
     const latestTongue = tongueRecords && tongueRecords.length > 0 ? tongueRecords[tongueRecords.length - 1] : null;
 
@@ -80,12 +79,14 @@ export async function GET(request: NextRequest) {
     if (allRecords.length >= 2) {
       const firstRecord = allRecords[0];
       const lastRecord = allRecords[allRecords.length - 1];
-      if (firstRecord.score && lastRecord.score) {
+      const firstScore = firstRecord.features && typeof firstRecord.features === 'object' ? firstRecord.features.score || 0 : 0;
+      const lastScore = lastRecord.features && typeof lastRecord.features === 'object' ? lastRecord.features.score || 0 : 0;
+      if (firstScore || lastScore) {
         improvement = {
-          from: firstRecord.score,
-          to: lastRecord.score,
-          change: lastRecord.score - firstRecord.score,
-          percent: Math.round(((lastRecord.score - firstRecord.score) / firstRecord.score) * 100),
+          from: firstScore,
+          to: lastScore,
+          change: lastScore - firstScore,
+          percent: firstScore ? Math.round(((lastScore - firstScore) / firstScore) * 100) : 0,
         };
       }
     }
@@ -100,11 +101,9 @@ export async function GET(request: NextRequest) {
         organTrend,
         constitutionDistribution: Object.entries(constitutionCount).map(([type, count]) => ({ type, count })),
         latestScores: {
-          face: latestFace?.score || null,
-          tongue: latestTongue?.score || null,
-          overall: latestFace?.score && latestTongue?.score 
-            ? Math.round((Number(latestFace.score) + Number(latestTongue.score)) / 2) 
-            : (latestFace?.score || latestTongue?.score || null),
+          face: latestFace?.features && typeof latestFace.features === 'object' ? (latestFace.features as any).score || null : null,
+          tongue: latestTongue?.features && typeof latestTongue.features === 'object' ? (latestTongue.features as any).score || null : null,
+          overall: null, // 需要根据实际业务逻辑计算
         },
         improvement,
       },
