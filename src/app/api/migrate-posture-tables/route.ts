@@ -22,13 +22,13 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
     const results: string[] = [];
 
-    // 创建体态诊断记录表（注意：远端数据库中使用 posture_assessments 表名，INTEGER 主键）
+    // 创建体态诊断记录表（注意：远端数据库中使用 posture_assessments 表名，UUID 主键）
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS posture_assessments (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-          assessment_date TIMESTAMP DEFAULT NOW(),
+          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE,
+          assessment_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
           overall_score INTEGER,
           grade VARCHAR(2),
           issues JSONB DEFAULT '[]',
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
           annotation_right TEXT,
           annotation_back TEXT,
           notes TEXT,
-          created_at TIMESTAMP DEFAULT NOW()
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
       `);
       results.push('体态评估记录表创建成功');
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS exercise_library (
-          id SERIAL PRIMARY KEY,
+          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
           name VARCHAR(100) NOT NULL,
           category VARCHAR(20) NOT NULL,
           sub_category VARCHAR(50),
@@ -101,8 +101,8 @@ export async function POST(request: NextRequest) {
           related_acupoints JSONB,
           sort_order INTEGER DEFAULT 0,
           is_active BOOLEAN DEFAULT TRUE,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+          updated_at TIMESTAMP WITH TIME ZONE
         );
       `);
       results.push('训练动作库表创建成功');
@@ -128,16 +128,16 @@ export async function POST(request: NextRequest) {
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS posture_comparisons (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL,
-          current_record_id INTEGER NOT NULL,
-          previous_record_id INTEGER NOT NULL,
+          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE,
+          current_record_id VARCHAR(36) REFERENCES posture_assessments(id) ON DELETE CASCADE,
+          previous_record_id VARCHAR(36) REFERENCES posture_assessments(id) ON DELETE CASCADE,
           score_change INTEGER,
           improvements JSONB,
           deteriorations JSONB,
           stable_items JSONB,
           comparison_images JSONB,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         );
       `);
       results.push('体态历史对比表创建成功');
@@ -163,16 +163,16 @@ export async function POST(request: NextRequest) {
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS check_in_records (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL,
+          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE NOT NULL,
           type VARCHAR(20) NOT NULL,
           content JSONB,
           notes TEXT,
           exercise_ids JSONB,
           completed BOOLEAN DEFAULT TRUE,
           duration INTEGER,
-          check_in_date TIMESTAMP NOT NULL,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+          check_in_date TIMESTAMP WITH TIME ZONE NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
         );
       `);
       results.push('打卡记录表创建成功');
@@ -198,8 +198,8 @@ export async function POST(request: NextRequest) {
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS reminders (
-          id SERIAL PRIMARY KEY,
-          user_id INTEGER NOT NULL,
+          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE NOT NULL,
           type VARCHAR(20) NOT NULL,
           title VARCHAR(100) NOT NULL,
           message TEXT,
@@ -207,9 +207,9 @@ export async function POST(request: NextRequest) {
           frequency VARCHAR(20),
           days_of_week JSONB,
           is_active BOOLEAN DEFAULT TRUE,
-          last_triggered_at TIMESTAMP,
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP
+          last_triggered_at TIMESTAMP WITH TIME ZONE,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+          updated_at TIMESTAMP WITH TIME ZONE
         );
       `);
       results.push('提醒设置表创建成功');

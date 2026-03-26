@@ -22,16 +22,16 @@ async function ensureTables() {
     // 这里只创建 face_diagnosis_users 表（如果需要的话）
     // 实际的面诊记录应该使用 migrate-diagnosis-tables 创建的表
     
-    // 面诊用户表 - 使用 INTEGER 主键（与远端数据库一致）
+    // 面诊用户表 - 使用 UUID 主键（与远端数据库一致）
     await client.query(`
       CREATE TABLE IF NOT EXISTS face_diagnosis_users (
-        id SERIAL PRIMARY KEY,
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
         name VARCHAR(100) NOT NULL,
         phone VARCHAR(20),
         age INTEGER,
         gender VARCHAR(10),
-        created_at TIMESTAMP DEFAULT NOW(),
-        updated_at TIMESTAMP DEFAULT NOW(),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+        updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
         UNIQUE(name, phone)
       )
     `);
@@ -44,12 +44,12 @@ async function ensureTables() {
       CREATE INDEX IF NOT EXISTS idx_face_users_phone ON face_diagnosis_users(phone);
     `);
 
-    // 检查 face_diagnosis_records 表是否存在，如果不存在则创建（使用 INTEGER 主键）
-    // 注意：远端数据库中已存在此表，使用 INTEGER 主键
+    // 检查 face_diagnosis_records 表是否存在，如果不存在则创建（使用 UUID 主键）
+    // 注意：远端数据库中已存在此表，使用 UUID 主键
     await client.query(`
       CREATE TABLE IF NOT EXISTS face_diagnosis_records (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER REFERENCES face_diagnosis_users(id) ON DELETE CASCADE,
+        id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+        user_id VARCHAR(36) REFERENCES face_diagnosis_users(id) ON DELETE CASCADE,
         image_url TEXT,
         score INTEGER,
         face_color JSONB,
@@ -60,7 +60,7 @@ async function ensureTables() {
         organ_status JSONB,
         suggestions JSONB,
         full_report TEXT,
-        created_at TIMESTAMP DEFAULT NOW() NOT NULL
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
       )
     `);
 

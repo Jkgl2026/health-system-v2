@@ -46,16 +46,16 @@ const POSTURE_COMPARISON_SYSTEM_PROMPT = `你是一位专业的体态评估专�
 async function ensurePostureComparisonsTable(db: any) {
   await db.execute(sql`
     CREATE TABLE IF NOT EXISTS posture_comparisons (
-      id SERIAL PRIMARY KEY,
-      user_id VARCHAR(255) NOT NULL,
-      current_record_id INTEGER NOT NULL,
-      previous_record_id INTEGER NOT NULL,
+      id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+      user_id VARCHAR(36) NOT NULL,
+      current_record_id VARCHAR(36) NOT NULL,
+      previous_record_id VARCHAR(36) NOT NULL,
       score_change INTEGER,
       improvements JSONB,
       deteriorations JSONB,
       stable_items JSONB,
       comparison_images JSONB,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     )
   `);
 }

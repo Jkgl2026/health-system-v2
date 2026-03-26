@@ -9,11 +9,13 @@
  * 
  * 注意：这些表不应该通过 Drizzle 迁移管理，因为它们使用原始 SQL 创建，
  * 并且生产数据库中已存在数据。
+ * 
+ * 重要：所有诊断表都使用 UUID (VARCHAR(36)) 作为主键，以匹配远端数据库结构。
  */
 
-// 面诊用户表类型（INTEGER 主键）
+// 面诊用户表类型（UUID 主键）
 export interface FaceDiagnosisUser {
-  id: number;
+  id: string;
   name: string;
   phone: string | null;
   age: number | null;
@@ -29,10 +31,10 @@ export interface InsertFaceDiagnosisUser {
   gender?: string | null;
 }
 
-// 面诊记录表类型（INTEGER 主键）
+// 面诊记录表类型（UUID 主键）
 export interface FaceDiagnosisRecord {
-  id: number;
-  userId: number | null;
+  id: string;
+  userId: string | null;
   imageUrl: string | null;
   score: number | null;
   faceColor: Record<string, unknown> | null;
@@ -47,7 +49,7 @@ export interface FaceDiagnosisRecord {
 }
 
 export interface InsertFaceDiagnosisRecord {
-  userId?: number | null;
+  userId?: string | null;
   imageUrl?: string | null;
   score?: number | null;
   faceColor?: Record<string, unknown> | null;
@@ -60,9 +62,9 @@ export interface InsertFaceDiagnosisRecord {
   fullReport?: string | null;
 }
 
-// 舌诊用户表类型（INTEGER 主键）
+// 舌诊用户表类型（UUID 主键）
 export interface TongueDiagnosisUser {
-  id: number;
+  id: string;
   name: string;
   phone: string | null;
   age: number | null;
@@ -78,10 +80,10 @@ export interface InsertTongueDiagnosisUser {
   gender?: string | null;
 }
 
-// 舌诊记录表类型（INTEGER 主键）
+// 舌诊记录表类型（UUID 主键）
 export interface TongueDiagnosisRecord {
-  id: number;
-  userId: number | null;
+  id: string;
+  userId: string | null;
   imageUrl: string | null;
   score: number | null;
   tongueBody: Record<string, unknown> | null;
@@ -94,7 +96,7 @@ export interface TongueDiagnosisRecord {
 }
 
 export interface InsertTongueDiagnosisRecord {
-  userId?: number | null;
+  userId?: string | null;
   imageUrl?: string | null;
   score?: number | null;
   tongueBody?: Record<string, unknown> | null;
@@ -105,10 +107,10 @@ export interface InsertTongueDiagnosisRecord {
   fullReport?: string | null;
 }
 
-// 健康档案表类型（INTEGER 主键）
+// 健康档案表类型（UUID 主键）
 export interface HealthProfile {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   latestScore: number | null;
   constitution: string | null;
   constitutionConfidence: number | null;
@@ -124,7 +126,7 @@ export interface HealthProfile {
 }
 
 export interface InsertHealthProfile {
-  userId: number;
+  userId: string;
   latestScore?: number | null;
   constitution?: string | null;
   constitutionConfidence?: number | null;
@@ -138,9 +140,9 @@ export interface InsertHealthProfile {
   comprehensiveConclusion?: Record<string, unknown> | null;
 }
 
-// 体态用户表类型（INTEGER 主键）
+// 体态用户表类型（UUID 主键）
 export interface PostureUser {
-  id: number;
+  id: string;
   name: string;
   phone: string | null;
   age: number | null;
@@ -156,10 +158,10 @@ export interface InsertPostureUser {
   gender?: string | null;
 }
 
-// 体态评估记录表类型（INTEGER 主键）
+// 体态评估记录表类型（UUID 主键）
 export interface PostureAssessment {
-  id: number;
-  userId: number | null;
+  id: string;
+  userId: string | null;
   assessmentDate: Date | null;
   overallScore: number | null;
   grade: string | null;
@@ -184,7 +186,7 @@ export interface PostureAssessment {
 }
 
 export interface InsertPostureAssessment {
-  userId?: number | null;
+  userId?: string | null;
   assessmentDate?: Date | null;
   overallScore?: number | null;
   grade?: string | null;
