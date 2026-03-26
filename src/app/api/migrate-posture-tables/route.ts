@@ -22,35 +22,39 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
     const results: string[] = [];
 
-    // 创建体态诊断记录表
+    // 创建体态诊断记录表（注意：远端数据库中使用 posture_assessments 表名，INTEGER 主键）
     try {
       await db.execute(`
-        CREATE TABLE IF NOT EXISTS posture_diagnosis_records (
-          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE,
-          front_image_url TEXT,
-          left_side_image_url TEXT,
-          right_side_image_url TEXT,
-          back_image_url TEXT,
-          score INTEGER,
+        CREATE TABLE IF NOT EXISTS posture_assessments (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          assessment_date TIMESTAMP DEFAULT NOW(),
+          overall_score INTEGER,
           grade VARCHAR(2),
-          body_structure JSONB,
-          fascia_chain_analysis JSONB,
-          muscle_analysis JSONB,
-          breathing_assessment JSONB,
-          alignment_assessment JSONB,
-          compensation_patterns JSONB,
-          health_impact JSONB,
-          health_prediction JSONB,
-          treatment_plan JSONB,
-          full_report TEXT,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+          issues JSONB DEFAULT '[]',
+          angles JSONB DEFAULT '{}',
+          muscles JSONB DEFAULT '{}',
+          health_risks JSONB DEFAULT '[]',
+          ai_summary TEXT,
+          ai_detailed_analysis JSONB DEFAULT '{}',
+          tcm_analysis JSONB DEFAULT '{}',
+          training_plan JSONB DEFAULT '{}',
+          image_front TEXT,
+          image_left TEXT,
+          image_right TEXT,
+          image_back TEXT,
+          annotation_front TEXT,
+          annotation_left TEXT,
+          annotation_right TEXT,
+          annotation_back TEXT,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT NOW()
         );
       `);
-      results.push('体态诊断记录表创建成功');
+      results.push('体态评估记录表创建成功');
     } catch (e: any) {
       if (e.message?.includes('already exists')) {
-        results.push('体态诊断记录表已存在，跳过');
+        results.push('体态评估记录表已存在，跳过');
       } else {
         throw e;
       }
@@ -58,19 +62,19 @@ export async function POST(request: NextRequest) {
 
     // 创建体态诊断记录索引
     try {
-      await db.execute(`CREATE INDEX IF NOT EXISTS posture_diagnosis_records_user_id_idx ON posture_diagnosis_records(user_id);`);
-      await db.execute(`CREATE INDEX IF NOT EXISTS posture_diagnosis_records_created_at_idx ON posture_diagnosis_records(created_at);`);
-      await db.execute(`CREATE INDEX IF NOT EXISTS posture_diagnosis_records_score_idx ON posture_diagnosis_records(score);`);
-      results.push('体态诊断记录索引创建成功');
+      await db.execute(`CREATE INDEX IF NOT EXISTS posture_assessments_user_id_idx ON posture_assessments(user_id);`);
+      await db.execute(`CREATE INDEX IF NOT EXISTS posture_assessments_date_idx ON posture_assessments(assessment_date);`);
+      await db.execute(`CREATE INDEX IF NOT EXISTS posture_assessments_score_idx ON posture_assessments(overall_score);`);
+      results.push('体态评估记录索引创建成功');
     } catch (e) {
-      results.push('体态诊断记录索引已存在或创建失败（可忽略）');
+      results.push('体态评估记录索引已存在或创建失败（可忽略）');
     }
 
     // 创建训练动作库表
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS exercise_library (
-          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
+          id SERIAL PRIMARY KEY,
           name VARCHAR(100) NOT NULL,
           category VARCHAR(20) NOT NULL,
           sub_category VARCHAR(50),
@@ -97,8 +101,8 @@ export async function POST(request: NextRequest) {
           related_acupoints JSONB,
           sort_order INTEGER DEFAULT 0,
           is_active BOOLEAN DEFAULT TRUE,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-          updated_at TIMESTAMP WITH TIME ZONE
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP
         );
       `);
       results.push('训练动作库表创建成功');
@@ -124,16 +128,16 @@ export async function POST(request: NextRequest) {
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS posture_comparisons (
-          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE,
-          current_record_id VARCHAR(36) REFERENCES posture_diagnosis_records(id) ON DELETE CASCADE,
-          previous_record_id VARCHAR(36) REFERENCES posture_diagnosis_records(id) ON DELETE CASCADE,
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL,
+          current_record_id INTEGER NOT NULL,
+          previous_record_id INTEGER NOT NULL,
           score_change INTEGER,
           improvements JSONB,
           deteriorations JSONB,
           stable_items JSONB,
           comparison_images JSONB,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
       results.push('体态历史对比表创建成功');
@@ -159,16 +163,16 @@ export async function POST(request: NextRequest) {
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS check_in_records (
-          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL,
           type VARCHAR(20) NOT NULL,
           content JSONB,
           notes TEXT,
           exercise_ids JSONB,
           completed BOOLEAN DEFAULT TRUE,
           duration INTEGER,
-          check_in_date TIMESTAMP WITH TIME ZONE NOT NULL,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL
+          check_in_date TIMESTAMP NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
       `);
       results.push('打卡记录表创建成功');
@@ -194,8 +198,8 @@ export async function POST(request: NextRequest) {
     try {
       await db.execute(`
         CREATE TABLE IF NOT EXISTS reminders (
-          id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
-          user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE NOT NULL,
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER NOT NULL,
           type VARCHAR(20) NOT NULL,
           title VARCHAR(100) NOT NULL,
           message TEXT,
@@ -203,9 +207,9 @@ export async function POST(request: NextRequest) {
           frequency VARCHAR(20),
           days_of_week JSONB,
           is_active BOOLEAN DEFAULT TRUE,
-          last_triggered_at TIMESTAMP WITH TIME ZONE,
-          created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
-          updated_at TIMESTAMP WITH TIME ZONE
+          last_triggered_at TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP
         );
       `);
       results.push('提醒设置表创建成功');
@@ -232,7 +236,7 @@ export async function POST(request: NextRequest) {
       message: '数据库迁移完成',
       results,
       tables: [
-        'posture_diagnosis_records',
+        'posture_assessments',
         'exercise_library',
         'posture_comparisons',
         'check_in_records',
