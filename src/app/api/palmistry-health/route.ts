@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
+import { sql } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,28 +60,13 @@ export async function POST(request: NextRequest) {
     const recordId = crypto.randomUUID();
     const userId = userInfo.phone || userInfo.name || 'anonymous';
     
-    await db.execute(`
+    await db.execute(sql`
       INSERT INTO palmistry_records (
         id, user_id, name, gender, phone,
         score, constitution, organ_health, longevity_assessment,
         health_trends, recommendations, summary, full_report, created_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-    `, [
-      recordId,
-      userId,
-      userInfo.name || '未填写',
-      userInfo.gender || '未知',
-      userInfo.phone || '',
-      result.score || 75,
-      result.constitution || '未知',
-      JSON.stringify(result.organHealth || {}),
-      JSON.stringify(result.longevityAssessment || {}),
-      JSON.stringify(result.healthTrends || []),
-      JSON.stringify(result.recommendations || []),
-      result.summary || '',
-      fullReport,
-      new Date(),
-    ]);
+      ) VALUES (${recordId}, ${userId}, ${userInfo.name || '未填写'}, ${userInfo.gender || '未知'}, ${userInfo.phone || ''}, ${result.score || 75}, ${result.constitution || '未知'}, ${JSON.stringify(result.organHealth || {})}, ${JSON.stringify(result.longevityAssessment || {})}, ${JSON.stringify(result.healthTrends || [])}, ${JSON.stringify(result.recommendations || [])}, ${result.summary || ''}, ${fullReport}, NOW())
+    `);
 
     // 添加 recordId 到返回数据
     (result as any).id = recordId;

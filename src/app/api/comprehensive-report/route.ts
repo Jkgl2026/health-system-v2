@@ -14,84 +14,84 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
 
     // 1. 查询面诊记录
-    const faceRecords = await db.execute(`
+    const faceRecords = await db.execute(sql`
       SELECT 
         COUNT(*) as count,
         COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 80 ELSE 70 END), 75) as avg_score,
-        COALESCE(MAX(CASE WHEN created_at >= ALL(SELECT created_at FROM face_diagnosis_records WHERE user_id = $1) THEN 80 ELSE 70 END), 75) as latest_score
+        COALESCE(MAX(CASE WHEN created_at >= ALL(SELECT created_at FROM face_diagnosis_records WHERE user_id = ${userId}) THEN 80 ELSE 70 END), 75) as latest_score
       FROM face_diagnosis_records
-      WHERE user_id = $1
-    `, [userId]);
+      WHERE user_id = ${userId}
+    `);
 
     // 2. 查询舌诊记录
-    const tongueRecords = await db.execute(`
+    const tongueRecords = await db.execute(sql`
       SELECT 
         COUNT(*) as count,
         COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as avg_score,
-        COALESCE(MAX(CASE WHEN created_at >= ALL(SELECT created_at FROM tongue_diagnosis_records WHERE user_id = $1) THEN 75 ELSE 70 END), 70) as latest_score
+        COALESCE(MAX(CASE WHEN created_at >= ALL(SELECT created_at FROM tongue_diagnosis_records WHERE user_id = ${userId}) THEN 75 ELSE 70 END), 70) as latest_score
       FROM tongue_diagnosis_records
-      WHERE user_id = $1
-    `, [userId]);
+      WHERE user_id = ${userId}
+    `);
 
     // 3. 查询体态评估记录
-    const postureRecords = await db.execute(`
+    const postureRecords = await db.execute(sql`
       SELECT 
         COUNT(*) as count,
         COALESCE(AVG(overall_score), 70) as avg_score,
         COALESCE(MAX(overall_score), 70) as latest_score
       FROM posture_assessments
-      WHERE user_id = $1
-    `, [userId]);
+      WHERE user_id = ${userId}
+    `);
 
     // 4. 查询生理年龄记录
-    const biologicalAgeRecords = await db.execute(`
+    const biologicalAgeRecords = await db.execute(sql`
       SELECT 
         COUNT(*) as count,
         COALESCE(AVG(CASE WHEN biological_age IS NOT NULL THEN 80 ELSE 70 END), 75) as avg_score,
         COALESCE(MAX(CASE WHEN biological_age IS NOT NULL THEN 80 ELSE 70 END), 75) as latest_score
       FROM biological_age_records
-      WHERE user_id = $1
-    `, [userId]);
+      WHERE user_id = ${userId}
+    `);
 
     // 5. 查询声音健康记录
-    const voiceHealthRecords = await db.execute(`
+    const voiceHealthRecords = await db.execute(sql`
       SELECT 
         COUNT(*) as count,
         COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 80 ELSE 70 END), 75) as avg_score,
         COALESCE(MAX(CASE WHEN full_report IS NOT NULL THEN 80 ELSE 70 END), 75) as latest_score
       FROM voice_health_records
-      WHERE user_id = $1
-    `, [userId]);
+      WHERE user_id = ${userId}
+    `);
 
     // 6. 查询手相记录
-    const palmistryRecords = await db.execute(`
+    const palmistryRecords = await db.execute(sql`
       SELECT 
         COUNT(*) as count,
         COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as avg_score,
         COALESCE(MAX(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as latest_score
       FROM palmistry_records
-      WHERE user_id = $1
-    `, [userId]);
+      WHERE user_id = ${userId}
+    `);
 
     // 7. 查询呼吸分析记录
-    const breathingRecords = await db.execute(`
+    const breathingRecords = await db.execute(sql`
       SELECT 
         COUNT(*) as count,
         COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as avg_score,
         COALESCE(MAX(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as latest_score
       FROM breathing_analysis_records
-      WHERE user_id = $1
-    `, [userId]);
+      WHERE user_id = ${userId}
+    `);
 
     // 8. 查询眼部健康记录
-    const eyeHealthRecords = await db.execute(`
+    const eyeHealthRecords = await db.execute(sql`
       SELECT 
         COUNT(*) as count,
         COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as avg_score,
         COALESCE(MAX(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as latest_score
       FROM eye_health_records
-      WHERE user_id = $1
-    `, [userId]);
+      WHERE user_id = ${userId}
+    `);
 
     // 构建记录数据
     const faceRow = faceRecords.rows?.[0] as any || {};
