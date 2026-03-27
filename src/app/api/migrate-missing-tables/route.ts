@@ -77,30 +77,40 @@ export async function POST(request: NextRequest) {
         CREATE TABLE IF NOT EXISTS voice_health_records (
           id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
           user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE,
+          name VARCHAR(100),
+          gender VARCHAR(10),
+          phone VARCHAR(20),
+          age INTEGER,
           audio_url TEXT NOT NULL,
           audio_duration INTEGER,
-          
+
+          -- 综合评分
+          overall_score INTEGER,
+          health_status VARCHAR(20),
+
           -- 声学特征
           acoustic_features JSONB DEFAULT '{}',
-          
+
           -- 心理状态
           psychological_state JSONB DEFAULT '{}',
-          
+
           -- 身体健康
           physical_health JSONB DEFAULT '{}',
-          
+
           -- 健康风险评估
           health_risk_assessment JSONB DEFAULT '{}',
-          
+
           -- 建议
           recommendations JSONB DEFAULT '[]',
+          voice_care_tips JSONB DEFAULT '[]',
           improvement_plan JSONB DEFAULT '{}',
-          
+
+          summary TEXT,
           full_report TEXT,
-          
+
           -- 原始数据
           raw_data JSONB DEFAULT '{}',
-          
+
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );
@@ -190,36 +200,44 @@ export async function POST(request: NextRequest) {
         CREATE TABLE IF NOT EXISTS breathing_analysis_records (
           id VARCHAR(36) PRIMARY KEY DEFAULT gen_random_uuid(),
           user_id VARCHAR(36) REFERENCES users(id) ON DELETE CASCADE,
-          video_url TEXT NOT NULL,
+          name VARCHAR(100),
+          gender VARCHAR(10),
+          phone VARCHAR(20),
+          video_url TEXT,
           video_duration INTEGER,
-          
+
+          -- 评分
+          score INTEGER,
+          breathing_quality VARCHAR(20),
+
           -- 呼吸模式
           breathing_pattern JSONB DEFAULT '{}',
-          
+
           -- 胸廓运动
           chest_movement JSONB DEFAULT '{}',
-          
+
           -- 呼吸系统
           respiratory_health JSONB DEFAULT '{}',
-          
+
           -- 压力水平
           stress_level JSONB DEFAULT '{}',
-          
+
           -- 神经系统
           nervous_system JSONB DEFAULT '{}',
-          
+
           -- 健康风险评估
           health_risk_assessment JSONB DEFAULT '{}',
-          
+
           -- 建议
           recommendations JSONB DEFAULT '[]',
           improvement_plan JSONB DEFAULT '{}',
-          
+
+          summary TEXT,
           full_report TEXT,
-          
+
           -- 原始数据
           raw_data JSONB DEFAULT '{}',
-          
+
           created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
           updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
         );

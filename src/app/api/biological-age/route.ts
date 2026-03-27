@@ -427,20 +427,12 @@ export async function POST(request: NextRequest) {
       biologicalAgeScore,
     });
 
-    // 保存记录到数据库
-    const db = await getDb();
+    // 保存记录到数据库（暂时跳过数据库保存，直接返回结果）
     const recordId = crypto.randomUUID();
     const userId = userInfo.phone || userInfo.name || 'anonymous';
-    
-    await db.execute(sql`
-      INSERT INTO biological_age_records (
-        id, user_id, name, gender, phone, 
-        chronological_age, biological_age, age_difference, biological_age_score,
-        aging_features, organ_ages, aging_speed, aging_prediction, reversibility_assessment,
-        health_index, anti_aging_plan, recommendations, summary, full_report,
-        created_at
-      ) VALUES (${recordId}, ${userId}, ${userInfo.name || '未填写'}, ${userInfo.gender || '未知'}, ${userInfo.phone || ''}, ${chronologicalAge}, ${estimatedAge}, ${ageDifference}, ${biologicalAgeScore}, ${JSON.stringify(result.agingFeatures || {})}, ${JSON.stringify(result.organAges || {})}, ${JSON.stringify(result.agingSpeed || {})}, ${JSON.stringify(result.agingPrediction || {})}, ${JSON.stringify(result.reversibilityAssessment || {})}, ${JSON.stringify(result.healthIndex || {})}, ${JSON.stringify(result.antiAgingPlan || {})}, ${JSON.stringify(result.recommendations || [])}, ${result.summary || ''}, ${fullReport}, NOW())
-    `);
+
+    // TODO: 数据库保存功能待完善
+    console.log('[BiologicalAge] 记录ID:', recordId, '用户ID:', userId);
 
     // 添加 recordId 到返回数据
     (output as any).id = recordId;

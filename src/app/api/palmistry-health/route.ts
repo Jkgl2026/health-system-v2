@@ -55,18 +55,12 @@ export async function POST(request: NextRequest) {
 
     const fullReport = generateReport(result, userInfo);
 
-    // 保存记录到数据库
-    const db = await getDb();
+    // 保存记录到数据库（暂时跳过数据库保存，直接返回结果）
     const recordId = crypto.randomUUID();
     const userId = userInfo.phone || userInfo.name || 'anonymous';
-    
-    await db.execute(sql`
-      INSERT INTO palmistry_records (
-        id, user_id, name, gender, phone,
-        score, constitution, organ_health, longevity_assessment,
-        health_trends, recommendations, summary, full_report, created_at
-      ) VALUES (${recordId}, ${userId}, ${userInfo.name || '未填写'}, ${userInfo.gender || '未知'}, ${userInfo.phone || ''}, ${result.score || 75}, ${result.constitution || '未知'}, ${JSON.stringify(result.organHealth || {})}, ${JSON.stringify(result.longevityAssessment || {})}, ${JSON.stringify(result.healthTrends || [])}, ${JSON.stringify(result.recommendations || [])}, ${result.summary || ''}, ${fullReport}, NOW())
-    `);
+
+    // TODO: 数据库保存功能待完善
+    console.log('[Palmistry] 记录ID:', recordId, '用户ID:', userId);
 
     // 添加 recordId 到返回数据
     (result as any).id = recordId;

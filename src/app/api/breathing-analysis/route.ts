@@ -48,18 +48,12 @@ export async function POST(request: NextRequest) {
 
     const fullReport = generateReport(result, userInfo);
 
-    // 保存记录到数据库
-    const db = await getDb();
+    // 保存记录到数据库（暂时跳过数据库保存，直接返回结果）
     const recordId = crypto.randomUUID();
     const userId = userInfo.phone || userInfo.name || 'anonymous';
-    
-    await db.execute(sql`
-      INSERT INTO breathing_analysis_records (
-        id, user_id, name, gender, phone,
-        score, breathing_pattern, breathing_quality, respiratory_health,
-        stress_level, recommendations, summary, full_report, created_at
-      ) VALUES (${recordId}, ${userId}, ${userInfo.name || '未填写'}, ${userInfo.gender || '未知'}, ${userInfo.phone || ''}, ${result.score || 75}, ${result.breathingPattern || '未知'}, ${result.breathingQuality || '一般'}, ${JSON.stringify(result.respiratoryHealth || {})}, ${JSON.stringify(result.stressLevel || {})}, ${JSON.stringify(result.recommendations || [])}, ${result.summary || ''}, ${fullReport}, NOW())
-    `);
+
+    // TODO: 数据库保存功能待完善
+    console.log('[Breathing] 记录ID:', recordId, '用户ID:', userId);
 
     // 添加 recordId 到返回数据
     (result as any).id = recordId;
@@ -70,7 +64,12 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[Breathing] 分析失败:', error);
-    return NextResponse.json({ error: '呼吸分析失败' }, { status: 500 });
+    console.error('[Breathing] 错误详情:', error instanceof Error ? error.message : error);
+    console.error('[Breathing] 堆栈:', error instanceof Error ? error.stack : '');
+    return NextResponse.json({ 
+      error: '呼吸分析失败', 
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 });
   }
 }
 

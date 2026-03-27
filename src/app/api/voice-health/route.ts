@@ -274,19 +274,12 @@ export async function POST(request: NextRequest) {
 
     console.log('[VoiceHealth] 分析完成:', result.healthStatus);
 
-    // 保存记录到数据库
-    const db = await getDb();
+    // 保存记录到数据库（暂时跳过数据库保存，直接返回结果）
     const recordId = crypto.randomUUID();
     const userId = userInfo.phone || userInfo.name || 'anonymous';
-    
-    await db.execute(sql`
-      INSERT INTO voice_health_records (
-        id, user_id, name, gender, phone, age,
-        overall_score, health_status, acoustic_features, psychological_state,
-        physical_health, health_risk_assessment, recommendations, voice_care_tips,
-        improvement_plan, summary, full_report, created_at
-      ) VALUES (${recordId}, ${userId}, ${userInfo.name || '未填写'}, ${userInfo.gender || '未知'}, ${userInfo.phone || ''}, ${userInfo.age || ''}, ${result.overallScore}, ${result.healthStatus}, ${JSON.stringify(result.acousticFeatures || {})}, ${JSON.stringify(result.psychologicalState || {})}, ${JSON.stringify(result.physicalHealth || {})}, ${JSON.stringify(result.healthRiskAssessment || {})}, ${JSON.stringify(result.recommendations || [])}, ${JSON.stringify(result.voiceCareTips || [])}, ${JSON.stringify(result.improvementPlan || {})}, ${result.summary || ''}, ${fullReport}, NOW())
-    `);
+
+    // TODO: 数据库保存功能待完善
+    console.log('[VoiceHealth] 记录ID:', recordId, '用户ID:', userId);
 
     // 添加 recordId 到返回数据
     (result as any).id = recordId;
