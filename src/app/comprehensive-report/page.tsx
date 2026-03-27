@@ -3,14 +3,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Loader2, Download, FileSpreadsheet, FileJson } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { FileText, Loader2, Download } from 'lucide-react';
 
 export default function ComprehensiveReportPage() {
   const [analyzing, setAnalyzing] = useState(false);
@@ -19,7 +12,6 @@ export default function ComprehensiveReportPage() {
     name: '',
     userId: '',
   });
-  const [exportFormat, setExportFormat] = useState('word');
   const [exporting, setExporting] = useState(false);
 
   const handleGenerate = async () => {
@@ -54,7 +46,6 @@ export default function ComprehensiveReportPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           exportType: 'comprehensive',
-          exportFormat: exportFormat,
           userName: userInfo.name,
           comprehensiveData: result,
         }),
@@ -65,7 +56,7 @@ export default function ComprehensiveReportPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${userInfo.name || '用户'}_综合健康报告_${new Date().toISOString().split('T')[0]}.${exportFormat === 'word' ? 'docx' : exportFormat === 'excel' ? 'xlsx' : 'json'}`;
+        a.download = `${userInfo.name || '用户'}_综合健康报告_${new Date().toISOString().split('T')[0]}.docx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -146,55 +137,27 @@ export default function ComprehensiveReportPage() {
             <Card>
               <CardHeader>
                 <CardTitle>导出报告</CardTitle>
-                <CardDescription>选择格式导出报告</CardDescription>
+                <CardDescription>将报告导出为Word文档</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-4 items-center">
-                  <div className="flex-1">
-                    <Select value={exportFormat} onValueChange={setExportFormat}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="选择导出格式" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="word">
-                          <div className="flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            Word 文档
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="excel">
-                          <div className="flex items-center gap-2">
-                            <FileSpreadsheet className="h-4 w-4" />
-                            Excel 表格
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="json">
-                          <div className="flex items-center gap-2">
-                            <FileJson className="h-4 w-4" />
-                            JSON 数据
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    onClick={handleExport}
-                    disabled={exporting}
-                    size="lg"
-                  >
-                    {exporting ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        导出中...
-                      </>
-                    ) : (
-                      <>
-                        <Download className="mr-2 h-4 w-4" />
-                        导出报告
-                      </>
-                    )}
-                  </Button>
-                </div>
+              <CardContent>
+                <Button
+                  onClick={handleExport}
+                  disabled={exporting}
+                  size="lg"
+                  className="w-full"
+                >
+                  {exporting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      导出中...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="mr-2 h-4 w-4" />
+                      导出Word文档
+                    </>
+                  )}
+                </Button>
               </CardContent>
             </Card>
 

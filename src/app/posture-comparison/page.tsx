@@ -8,16 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   ArrowLeft, Calendar, TrendingUp, TrendingDown, Minus,
   Activity, Award, Clock, ChevronRight, Eye, GitCompare,
-  Download, Maximize2, Image as ImageIcon, FileText, FileSpreadsheet, FileJson, Loader2
+  Download, Maximize2, Image as ImageIcon, FileText, Loader2
 } from 'lucide-react';
 import PostureAnnotationCanvas from '@/components/PostureAnnotationCanvas';
 
@@ -51,7 +44,6 @@ export default function PostureComparisonPage() {
   const [loading, setLoading] = useState(true);
   const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
   const [comparisonResult, setComparisonResult] = useState<any>(null);
-  const [exportFormat, setExportFormat] = useState('word');
   const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
@@ -127,7 +119,6 @@ export default function PostureComparisonPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           exportType: 'comparison',
-          exportFormat: exportFormat,
           userName: userName,
           comparisonResult: comparisonData,
         }),
@@ -138,7 +129,7 @@ export default function PostureComparisonPage() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${userName}_历史对比报告_${new Date().toISOString().split('T')[0]}.${exportFormat === 'word' ? 'docx' : exportFormat === 'excel' ? 'xlsx' : 'json'}`;
+        a.download = `${userName}_历史对比报告_${new Date().toISOString().split('T')[0]}.docx`;
         document.body.appendChild(a);
         a.click();
         window.URL.revokeObjectURL(url);
@@ -473,55 +464,26 @@ export default function PostureComparisonPage() {
                   <Card>
                     <CardHeader>
                       <CardTitle>导出报告</CardTitle>
-                      <CardDescription>选择格式导出对比报告</CardDescription>
+                      <CardDescription>将对比报告导出为Word文档</CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex gap-4 items-center">
-                        <div className="flex-1">
-                          <Select value={exportFormat} onValueChange={setExportFormat}>
-                            <SelectTrigger>
-                              <SelectValue placeholder="选择导出格式" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="word">
-                                <div className="flex items-center gap-2">
-                                  <FileText className="h-4 w-4" />
-                                  Word 文档
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="excel">
-                                <div className="flex items-center gap-2">
-                                  <FileSpreadsheet className="h-4 w-4" />
-                                  Excel 表格
-                                </div>
-                              </SelectItem>
-                              <SelectItem value="json">
-                                <div className="flex items-center gap-2">
-                                  <FileJson className="h-4 w-4" />
-                                  JSON 数据
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <Button
-                          onClick={handleExport}
-                          disabled={exporting}
-                          className="bg-gradient-to-r from-purple-500 to-purple-600"
-                        >
-                          {exporting ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              导出中...
-                            </>
-                          ) : (
-                            <>
-                              <Download className="mr-2 h-4 w-4" />
-                              导出报告
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                    <CardContent>
+                      <Button
+                        onClick={handleExport}
+                        disabled={exporting}
+                        className="w-full bg-gradient-to-r from-purple-500 to-purple-600"
+                      >
+                        {exporting ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            导出中...
+                          </>
+                        ) : (
+                          <>
+                            <FileText className="mr-2 h-4 w-4" />
+                            导出Word文档
+                          </>
+                        )}
+                      </Button>
                     </CardContent>
                   </Card>
                 </>

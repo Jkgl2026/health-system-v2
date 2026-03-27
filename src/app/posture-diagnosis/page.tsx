@@ -41,7 +41,6 @@ import {
 import { EXERCISE_DATABASE, SuitableIssue } from '@/lib/exercise-database';
 import { generateTrainingPlan, getPhaseWeeklyPlans, PHASE_DETAILS, TrainingPhase, TrainingPlan } from '@/lib/training-planner';
 import { saveRecord, getAllRecords, AssessmentRecord, getStatistics } from '@/lib/progress-tracker';
-import { generatePDFReport, downloadPDF, generateReportFilename, ReportData } from '@/lib/pdf-generator';
 import { generatePostureDiagnosisReport, PostureDiagnosisData, UserInfo } from '@/lib/report-generator';
 import { compressImage, getImageInfo } from '@/lib/image-compress';
 import { initPoseDetector, getPoseStatus, destroyPoseDetector } from '@/lib/pose-manager';
@@ -203,7 +202,6 @@ export default function PostureDiagnosisPageV2() {
   const [showComparison, setShowComparison] = useState(false);
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
   const [showTrainingPlan, setShowTrainingPlan] = useState(false);
-  const [exportingPDF, setExportingPDF] = useState(false);
   const [assessmentHistory, setAssessmentHistory] = useState<AssessmentRecord[]>([]);
   
   // 用户信息
@@ -305,151 +303,6 @@ export default function PostureDiagnosisPageV2() {
     setAssessmentHistory(prev => [record, ...prev]);
   }, [result, images]);
 
-  // 导出PDF报告
-  const handleExportPDF = async () => {
-    if (!result) return;
-    
-    setExportingPDF(true);
-    
-    try {
-      const trainingPlan = result.semanticAnalysis?.trainingPlan || 
-        generateTrainingPlan(result.allIssues.map(i => i.type as any));
-      
-      // 构建详细问题数据
-      const detailedIssues = result.allIssues.map(i => ({
-        type: i.type,
-        name: i.name,
-        severity: i.severity,
-        angle: i.angle,
-        description: i.description,
-        cause: i.healthImpact?.shortTerm?.join('、') || '',
-        impact: i.healthImpact?.longTerm?.join('、') || '',
-        recommendation: '',
-      }));
-      
-      // 构建健康风险数据
-      const detailedRisks = result.allHealthRisks.map(r => ({
-        category: r.category,
-        risk: r.risk,
-        condition: r.condition,
-        cause: '',
-        prevention: '',
-      }));
-      
-      // 构建推荐动作数据
-      const exercises: { name: string; category: string; purpose: string; method: string }[] = [];
-      
-      const reportData: ReportData = {
-        userName: userInfo.name || undefined,
-        assessmentDate: new Date().toLocaleDateString('zh-CN'),
-        overallScore: result.overallScore,
-        grade: result.grade,
-        issues: detailedIssues,
-        angles: result.mediaPipeResults.front?.extendedAngles ? 
-          Object.fromEntries(Object.entries(result.mediaPipeResults.front.extendedAngles)) : {},
-        muscles: {
-          tight: result.allMuscles.filter(m => m.status === 'tight').map(m => m.name),
-          weak: result.allMuscles.filter(m => m.status === 'weak').map(m => m.name),
-        },
-        risks: detailedRisks,
-        recommendations: {
-          immediate: result.semanticAnalysis?.recommendations?.immediate || 
-            result.allIssues.filter(i => i.severity === 'severe').map(i => 
-              `及时就医检查${i.name}，避免进一步恶化`
-            ),
-          shortTerm: result.semanticAnalysis?.recommendations?.shortTerm ||
-            result.allIssues.filter(i => i.severity === 'moderate').map(i => 
-              `改善${i.name}问题，加强相关肌肉训练`
-            ),
-          longTerm: result.semanticAnalysis?.recommendations?.longTerm || [
-            '建立规律的运动习惯，每周至少3次体态矫正训练',
-            '保持良好的坐姿和站姿习惯，避免长时间保持同一姿势',
-            '定期进行体态评估复查，建议每4周一次',
-            '加强核心肌群训练，提升身体稳定性',
-          ],
-          exercises: exercises,
-        },
-        // 新增：详细部位分析
-        detailedAnalysis: result.semanticAnalysis?.detailedAnalysis ? {
-          head: result.semanticAnalysis.detailedAnalysis.head,
-          shoulders: result.semanticAnalysis.detailedAnalysis.shoulders,
-          spine: result.semanticAnalysis.detailedAnalysis.spine,
-          pelvis: result.semanticAnalysis.detailedAnalysis.pelvis,
-          knees: result.semanticAnalysis.detailedAnalysis.knees,
-          ankles: result.semanticAnalysis.detailedAnalysis.ankles,
-        } : undefined,
-        // 新增：筋膜链分析
-        fasciaChainAnalysis: result.semanticAnalysis?.fasciaChainAnalysis ? {
-          frontLine: result.semanticAnalysis.fasciaChainAnalysis.frontLine,
-          backLine: result.semanticAnalysis.fasciaChainAnalysis.backLine,
-          lateralLine: result.semanticAnalysis.fasciaChainAnalysis.lateralLine,
-          spiralLine: result.semanticAnalysis.fasciaChainAnalysis.spiralLine,
-        } : undefined,
-        // 新增：呼吸评估
-        breathingAssessment: result.semanticAnalysis?.breathingAssessment ? {
-          pattern: result.semanticAnalysis.breathingAssessment.pattern,
-          diaphragm: result.semanticAnalysis.breathingAssessment.diaphragm,
-          ribcageMobility: result.semanticAnalysis.breathingAssessment.ribcageMobility,
-          impact: result.semanticAnalysis.breathingAssessment.impact,
-        } : undefined,
-        // 新增：健康预测
-        healthPrediction: result.semanticAnalysis?.healthPrediction ? {
-          shortTerm: result.semanticAnalysis.healthPrediction.shortTerm,
-          midTerm: result.semanticAnalysis.healthPrediction.midTerm,
-          longTerm: result.semanticAnalysis.healthPrediction.longTerm,
-          preventiveMeasures: result.semanticAnalysis.healthPrediction.preventiveMeasures,
-        } : undefined,
-        tcmAnalysis: result.semanticAnalysis?.tcmPerspective ? {
-          constitution: result.semanticAnalysis.tcmPerspective.constitution || '',
-          constitutionType: result.semanticAnalysis.tcmPerspective.constitutionType,
-          constitutionFeatures: result.semanticAnalysis.tcmPerspective.constitutionFeatures || [],
-          meridians: result.semanticAnalysis.tcmPerspective.meridians?.map((m: any) => ({
-            name: typeof m === 'string' ? m : m.name,
-            status: typeof m === 'object' && m.status ? m.status : '失衡',
-            reason: typeof m === 'object' && m.reason ? m.reason : '',
-          })) || [],
-          acupoints: result.semanticAnalysis.tcmPerspective.acupoints?.map((a: any) => ({
-            name: typeof a === 'string' ? a : a.name,
-            location: typeof a === 'object' && a.location ? a.location : '',
-            benefit: typeof a === 'object' && a.benefit ? a.benefit : '',
-          })) || [],
-          dietSuggestions: result.semanticAnalysis.tcmPerspective.dietaryAdvice?.suitable || 
-            result.semanticAnalysis.tcmPerspective.dietSuggestions || [],
-          daoyinSuggestions: result.semanticAnalysis.tcmPerspective.daoyinSuggestions || [],
-        } : undefined,
-        trainingPlan: trainingPlan ? {
-          phases: Object.entries(PHASE_DETAILS).map(([key, phase]) => {
-            const weeklyPlans = getPhaseWeeklyPlans(trainingPlan, key as TrainingPhase);
-            return {
-              name: phase.name,
-              duration: phase.duration,
-              focus: phase.objective,
-              exercises: weeklyPlans.flatMap(wp => 
-                wp.sessions.flatMap(s => 
-                  s.exercises.map(e => typeof e === 'string' ? e : e.name)
-                )
-              ).slice(0, 5),
-            };
-          }),
-        } : undefined,
-        images: {
-          front: images.front || undefined,
-          left: images.left || undefined,
-          right: images.right || undefined,
-          back: images.back || undefined,
-        },
-      };
-      
-      const blob = await generatePDFReport(reportData);
-      downloadPDF(blob, generateReportFilename(result.overallScore));
-    } catch (error) {
-      console.error('PDF导出失败:', error);
-      setError('PDF导出失败，请稍后重试');
-    } finally {
-      setExportingPDF(false);
-    }
-  };
-
   // 导出Word报告
   const [exportingWord, setExportingWord] = useState(false);
   const handleExportWord = async () => {
@@ -537,81 +390,10 @@ export default function PostureDiagnosisPageV2() {
     }
   };
 
-  // 从历史记录导出PDF报告
+  // 从历史记录查看
   const handleViewRecordFromHistory = useCallback(async (record: any) => {
-    setExportingPDF(true);
-    
-    try {
-      // 构建问题数据
-      const issues = record.issues?.map((i: any) => ({
-        type: i.type || '',
-        name: i.name || '',
-        severity: i.severity || 'mild',
-        angle: i.angle || 0,
-        description: i.description || '',
-        cause: '',
-        impact: '',
-        recommendation: '',
-      })) || [];
-
-      // 构建报告数据
-      const reportData: ReportData = {
-        userName: record.name || undefined,
-        assessmentDate: record.assessment_date ? 
-          new Date(record.assessment_date).toLocaleDateString('zh-CN') : 
-          new Date().toLocaleDateString('zh-CN'),
-        overallScore: record.overall_score || 0,
-        grade: record.grade || 'C',
-        issues: issues,
-        angles: record.angles || {},
-        muscles: record.muscles || { tight: [], weak: [] },
-        risks: record.health_risks?.map((r: any) => ({
-          category: r.category || '',
-          risk: r.risk || 'low',
-          condition: r.condition || '',
-          cause: '',
-          prevention: '',
-        })) || [],
-        recommendations: {
-          immediate: issues.filter((i: any) => i.severity === 'severe').map((i: any) => 
-            `及时就医检查${i.name}，避免进一步恶化`
-          ),
-          shortTerm: issues.filter((i: any) => i.severity === 'moderate').map((i: any) => 
-            `改善${i.name}问题，加强相关肌肉训练`
-          ),
-          longTerm: [
-            '建立规律的运动习惯，每周至少3次体态矫正训练',
-            '保持良好的坐姿和站姿习惯，避免长时间保持同一姿势',
-            '定期进行体态评估复查，建议每4周一次',
-          ],
-        },
-        detailedAnalysis: record.ai_detailed_analysis?.detailedAnalysis,
-        fasciaChainAnalysis: record.ai_detailed_analysis?.fasciaChainAnalysis,
-        breathingAssessment: record.ai_detailed_analysis?.breathingAssessment,
-        healthPrediction: record.ai_detailed_analysis?.healthPrediction,
-        tcmAnalysis: record.tcm_analysis ? {
-          constitution: record.tcm_analysis.constitution || '',
-          meridians: record.tcm_analysis.meridians || [],
-          acupoints: record.tcm_analysis.acupoints || [],
-          dietSuggestions: record.tcm_analysis.dietSuggestions || [],
-          daoyinSuggestions: record.tcm_analysis.daoyinSuggestions || [],
-        } : undefined,
-        trainingPlan: record.training_plan ? {
-          phases: record.training_plan.phases || [],
-        } : undefined,
-        images: {
-          front: record.image_front || record.annotation_front || undefined,
-        },
-      };
-      
-      const blob = await generatePDFReport(reportData);
-      downloadPDF(blob, generateReportFilename(record.overall_score || 0));
-    } catch (error) {
-      console.error('历史记录PDF导出失败:', error);
-      setError('PDF导出失败，请稍后重试');
-    } finally {
-      setExportingPDF(false);
-    }
+    // TODO: 实现历史记录查看功能，加载记录数据到页面
+    console.log('查看历史记录:', record);
   }, []);
 
   // ==================== Canvas绘制 ====================
@@ -2274,21 +2056,8 @@ export default function PostureDiagnosisPageV2() {
                       保存记录
                     </Button>
                     
-                    <Button 
-                      variant="outline" 
-                      onClick={handleExportPDF}
-                      disabled={exportingPDF}
-                    >
-                      {exportingPDF ? (
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      ) : (
-                        <FileDown className="h-4 w-4 mr-2" />
-                      )}
-                      导出PDF
-                    </Button>
-                    
-                    <Button 
-                      variant="default" 
+                    <Button
+                      variant="default"
                       onClick={handleExportWord}
                       disabled={exportingWord}
                       className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600"

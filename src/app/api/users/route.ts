@@ -1,5 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
+import { getDb } from 'coze-coding-dev-sdk';
+import { sql, and, desc, like, eq } from 'drizzle-orm';
+import { pgTable, uuid, text, integer, timestamp } from 'drizzle-orm/pg-core';
+
+// 用户表定义
+const usersTable = pgTable('users', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  phone: text('phone'),
+  age: integer('age'),
+  gender: text('gender'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
 
 interface User {
   id: string;
@@ -26,9 +40,6 @@ interface UpdateUserRequest {
   gender?: 'male' | 'female' | 'other';
 }
 
-// 内存存储（实际应用中应该使用数据库）
-const usersStore: Map<string, User> = new Map();
-
 // POST /api/users - 创建用户
 export async function POST(request: NextRequest) {
   try {
@@ -42,25 +53,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 生成用户ID
-    const id = uuidv4();
-    const now = new Date().toISOString();
+    const db = await getDb();
 
-    // 创建用户
-    const user: User = {
-      id,
-      name,
-      phone,
-      age,
-      gender,
-      created_at: now,
-      updated_at: now,
-    };
+    // 插入用户到数据库
+    const result = await db.execute(sql`
+      INSERT INTO users (id, name, phone, age, gender)
+      VALUES (${uuidv4()}, ${name}, ${phone || null}, ${age || null}, ${gender || null})
+      RETURNING id, name, phone, age, gender, created_at, updated_at
+    `);
 
-    // 存储用户
-    usersStore.set(id, user);
+    const user = result.rows[0];
 
-    console.log('[Users] 创建用户:', { id, name });
+    console.log('[Users] 创建用户:', { id: user.id, name: user.name });
 
     return NextResponse.json({
       success: true,
@@ -83,26 +87,49 @@ export async function GET(request: NextRequest) {
     const name = searchParams.get('name');
     const phone = searchParams.get('phone');
 
-    let users = Array.from(usersStore.values());
+    const db = await getDb();
 
-    // 按姓名筛选
-    if (name) {
-      users = users.filter(user => 
-        user.name.toLowerCase().includes(name.toLowerCase())
-      );
+    let result: any;
+
+    if (name || phone) {
+      // 有搜索条件 - 使用Drizzle查询构建器
+      const conditions: any[] = [];
+
+      if (name) {
+        conditions.push(like(usersTable.name, `%${name}%`));
+      }
+      if (phone) {
+        conditions.push(like(usersTable.phone, `%${phone}%`));
+      }
+
+      const query = db
+        .select({
+          id: usersTable.id,
+          name: usersTable.name,
+          phone: usersTable.phone,
+          age: usersTable.age,
+          gender: usersTable.gender,
+          created_at: usersTable.createdAt,
+          updated_at: usersTable.updatedAt,
+        })
+        .from(usersTable)
+        .orderBy(desc(usersTable.createdAt));
+
+      if (conditions.length > 0) {
+        query.where(and(...conditions));
+      }
+
+      result = await query;
+    } else {
+      // 无搜索条件
+      result = await db.execute(sql`
+        SELECT id, name, phone, age, gender, created_at, updated_at
+        FROM users
+        ORDER BY created_at DESC
+      `);
     }
 
-    // 按电话筛选
-    if (phone) {
-      users = users.filter(user => 
-        user.phone && user.phone.includes(phone)
-      );
-    }
-
-    // 按创建时间排序（最新的在前）
-    users.sort((a, b) => 
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-    );
+    const users = result.rows;
 
     console.log('[Users] 获取用户列表:', { count: users.length });
 
@@ -134,26 +161,51 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // 查找用户
-    const user = usersStore.get(id);
-    if (!user) {
+    const db = await getDb();
+
+    // 构建更新数据对象
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
+
+    if (name !== undefined) {
+      updateData.name = name;
+    }
+    if (phone !== undefined) {
+      updateData.phone = phone || null;
+    }
+    if (age !== undefined) {
+      updateData.age = age || null;
+    }
+    if (gender !== undefined) {
+      updateData.gender = gender || null;
+    }
+
+    // 执行更新
+    const result = await db
+      .update(usersTable)
+      .set(updateData)
+      .where(eq(usersTable.id, id))
+      .returning({
+        id: usersTable.id,
+        name: usersTable.name,
+        phone: usersTable.phone,
+        age: usersTable.age,
+        gender: usersTable.gender,
+        created_at: usersTable.createdAt,
+        updated_at: usersTable.updatedAt,
+      });
+
+    if (result.length === 0) {
       return NextResponse.json(
         { error: '用户不存在' },
         { status: 404 }
       );
     }
 
-    // 更新用户信息
-    if (name) user.name = name;
-    if (phone !== undefined) user.phone = phone;
-    if (age !== undefined) user.age = age;
-    if (gender !== undefined) user.gender = gender;
-    user.updated_at = new Date().toISOString();
+    const user = result[0];
 
-    // 更新存储
-    usersStore.set(id, user);
-
-    console.log('[Users] 更新用户:', { id, name: user.name });
+    console.log('[Users] 更新用户:', { id: user.id, name: user.name });
 
     return NextResponse.json({
       success: true,
@@ -182,17 +234,21 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // 查找用户
-    const user = usersStore.get(id);
-    if (!user) {
+    const db = await getDb();
+
+    // 删除用户
+    const result = await db.execute(sql`
+      DELETE FROM users
+      WHERE id = ${id}
+      RETURNING id
+    `);
+
+    if (result.rows.length === 0) {
       return NextResponse.json(
         { error: '用户不存在' },
         { status: 404 }
       );
     }
-
-    // 删除用户
-    usersStore.delete(id);
 
     console.log('[Users] 删除用户:', { id });
 

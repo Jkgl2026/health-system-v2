@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle } from 'docx';
-import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, WidthType } from 'docx';
 
 interface ExportRequest {
   exportType: 'single' | 'multiple' | 'comparison' | 'comprehensive';
-  exportFormat: 'word' | 'pdf' | 'excel' | 'json';
   recordIds?: string[];
   userId?: string;
   userName?: string;
@@ -17,112 +14,58 @@ interface ExportRequest {
 export async function POST(request: NextRequest) {
   try {
     const body: ExportRequest = await request.json();
-    const { exportType, exportFormat, recordIds, userId, userName, records, comparisonResult, comprehensiveData } = body;
+    const { exportType, recordIds, userId, userName, records, comparisonResult, comprehensiveData } = body;
 
-    if (!exportType || !exportFormat) {
+    if (!exportType) {
       return NextResponse.json(
-        { error: '请指定导出类型和格式' },
+        { error: '请指定导出类型' },
         { status: 400 }
       );
     }
 
-    console.log('[Export] 开始导出:', { exportType, exportFormat });
+    console.log('[Export] 开始导出Word:', { exportType });
 
-    let buffer: Buffer | string;
-    let contentType: string;
+    let doc: Document | null = null;
     let fileName = '';
 
-    // 根据导出格式和类型生成文档
-    if (exportFormat === 'json') {
-      // JSON导出
-      const jsonData = await generateJsonExport(exportType, { recordIds, userId, userName, records, comparisonResult, comprehensiveData });
-      buffer = JSON.stringify(jsonData, null, 2);
-      contentType = 'application/json';
-      fileName = `${userName || '用户'}_数据导出_${new Date().toISOString().split('T')[0]}.json`;
-    } else if (exportFormat === 'excel') {
-      // Excel导出
-      const excelBuffer = await generateExcelExport(exportType, { recordIds, userId, userName, records, comparisonResult, comprehensiveData });
-      buffer = excelBuffer;
-      contentType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-      fileName = `${userName || '用户'}_数据导出_${new Date().toISOString().split('T')[0]}.xlsx`;
-    } else if (exportFormat === 'pdf') {
-      // PDF导出（先生成Word，返回后转换）
-      let doc: Document | null = null;
-      switch (exportType) {
-        case 'multiple':
-          if (!records || records.length === 0) {
-            return NextResponse.json({ error: '请提供要导出的记录' }, { status: 400 });
-          }
-          doc = await generateMultipleRecordsWord(records, userName || '用户');
-          fileName = `${userName || '用户'}_多次检测记录_${new Date().toISOString().split('T')[0]}.docx`;
-          break;
-        case 'comparison':
-          if (!comparisonResult) {
-            return NextResponse.json({ error: '请提供对比结果' }, { status: 400 });
-          }
-          doc = await generateComparisonWord(comparisonResult, userName || '用户');
-          fileName = `${userName || '用户'}_历史对比报告_${new Date().toISOString().split('T')[0]}.docx`;
-          break;
-        case 'comprehensive':
-          if (!comprehensiveData) {
-            return NextResponse.json({ error: '请提供综合数据' }, { status: 400 });
-          }
-          doc = await generateComprehensiveWord(comprehensiveData, userName || '用户');
-          fileName = `${userName || '用户'}_综合健康报告_${new Date().toISOString().split('T')[0]}.docx`;
-          break;
-        default:
-          return NextResponse.json({ error: '不支持的导出类型' }, { status: 400 });
-      }
-
-      if (!doc) {
-        return NextResponse.json({ error: '文档生成失败' }, { status: 500 });
-      }
-
-      buffer = await Packer.toBuffer(doc);
-      contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-      fileName = fileName.replace('.pdf', '.docx'); // PDF暂返回Word格式
-    } else {
-      // Word导出
-      let doc: Document | null = null;
-      switch (exportType) {
-        case 'multiple':
-          if (!records || records.length === 0) {
-            return NextResponse.json({ error: '请提供要导出的记录' }, { status: 400 });
-          }
-          doc = await generateMultipleRecordsWord(records, userName || '用户');
-          fileName = `${userName || '用户'}_多次检测记录_${new Date().toISOString().split('T')[0]}.docx`;
-          break;
-        case 'comparison':
-          if (!comparisonResult) {
-            return NextResponse.json({ error: '请提供对比结果' }, { status: 400 });
-          }
-          doc = await generateComparisonWord(comparisonResult, userName || '用户');
-          fileName = `${userName || '用户'}_历史对比报告_${new Date().toISOString().split('T')[0]}.docx`;
-          break;
-        case 'comprehensive':
-          if (!comprehensiveData) {
-            return NextResponse.json({ error: '请提供综合数据' }, { status: 400 });
-          }
-          doc = await generateComprehensiveWord(comprehensiveData, userName || '用户');
-          fileName = `${userName || '用户'}_综合健康报告_${new Date().toISOString().split('T')[0]}.docx`;
-          break;
-        default:
-          return NextResponse.json({ error: '不支持的导出类型' }, { status: 400 });
-      }
-
-      if (!doc) {
-        return NextResponse.json({ error: '文档生成失败' }, { status: 500 });
-      }
-
-      buffer = await Packer.toBuffer(doc);
-      contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    switch (exportType) {
+      case 'multiple':
+        if (!records || records.length === 0) {
+          return NextResponse.json({ error: '请提供要导出的记录' }, { status: 400 });
+        }
+        doc = await generateMultipleRecordsWord(records, userName || '用户');
+        fileName = `${userName || '用户'}_多次检测记录_${new Date().toISOString().split('T')[0]}.docx`;
+        break;
+      case 'comparison':
+        if (!comparisonResult) {
+          return NextResponse.json({ error: '请提供对比结果' }, { status: 400 });
+        }
+        doc = await generateComparisonWord(comparisonResult, userName || '用户');
+        fileName = `${userName || '用户'}_历史对比报告_${new Date().toISOString().split('T')[0]}.docx`;
+        break;
+      case 'comprehensive':
+        if (!comprehensiveData) {
+          return NextResponse.json({ error: '请提供综合数据' }, { status: 400 });
+        }
+        doc = await generateComprehensiveWord(comprehensiveData, userName || '用户');
+        fileName = `${userName || '用户'}_综合健康报告_${new Date().toISOString().split('T')[0]}.docx`;
+        break;
+      default:
+        return NextResponse.json({ error: '不支持的导出类型' }, { status: 400 });
     }
+
+    if (!doc) {
+      return NextResponse.json({ error: '文档生成失败' }, { status: 500 });
+    }
+
+    // 生成Word文档
+    const buffer = await Packer.toBuffer(doc);
 
     // 返回文件
     return new NextResponse(buffer as any, {
       status: 200,
       headers: {
-        'Content-Type': contentType,
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
       },
     });
@@ -136,112 +79,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// 生成JSON导出
-async function generateJsonExport(exportType: string, data: any): Promise<any> {
-  const baseData = {
-    exportType,
-    exportTime: new Date().toISOString(),
-    userName: data.userName || '未填写',
-  };
 
-  switch (exportType) {
-    case 'multiple':
-      return {
-        ...baseData,
-        records: data.records?.map((r: any) => ({
-          id: r.id,
-          type: r.type,
-          typeName: getTypeName(r.type),
-          score: r.score,
-          healthStatus: r.healthStatus,
-          summary: r.summary,
-          createdAt: r.created_at,
-          fullReport: r.fullReport,
-        })) || [],
-      };
-    case 'comparison':
-      return {
-        ...baseData,
-        comparison: data.comparisonResult,
-      };
-    case 'comprehensive':
-      return {
-        ...baseData,
-        comprehensive: data.comprehensiveData,
-      };
-    default:
-      return baseData;
-  }
-}
 
-// 生成Excel导出
-async function generateExcelExport(exportType: string, data: any): Promise<Buffer> {
-  const workbook = XLSX.utils.book_new();
 
-  if (exportType === 'multiple' && data.records && data.records.length > 0) {
-    const worksheetData = [
-      ['序号', '检测类型', '检测时间', '健康评分', '健康状态', '摘要', '详情'],
-      ...data.records.map((r: any, i: number) => [
-        i + 1,
-        getTypeName(r.type),
-        new Date(r.created_at).toLocaleString('zh-CN'),
-        r.score || '-',
-        r.healthStatus || '-',
-        r.summary || '-',
-        r.fullReport || '-',
-      ]),
-    ];
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-    XLSX.utils.book_append_sheet(workbook, worksheet, '检测记录');
-  } else if (exportType === 'comparison' && data.comparisonResult) {
-    const comp = data.comparisonResult;
-    const worksheetData = [
-      ['项目', '内容'],
-      ['用户姓名', data.userName || '未填写'],
-      ['导出时间', new Date().toLocaleString('zh-CN')],
-      ['评分变化', comp.comparison?.scoreChange || '-'],
-      ['变化趋势', comp.comparison?.scoreTrend === 'improving' ? '改善' : comp.comparison?.scoreTrend === 'declining' ? '下降' : '稳定'],
-      ['趋势分析', comp.trendAnalysis?.trend || '-'],
-      ['详细分析', comp.trendAnalysis?.analysis || '-'],
-      ['总结', comp.summary || '-'],
-    ];
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-    XLSX.utils.book_append_sheet(workbook, worksheet, '对比报告');
-  } else if (exportType === 'comprehensive' && data.comprehensiveData) {
-    const comp = data.comprehensiveData;
-    const worksheetData = [
-      ['项目', '内容'],
-      ['用户姓名', data.userName || '未填写'],
-      ['导出时间', new Date().toLocaleString('zh-CN')],
-      ['综合得分', comp.overallScore || '-'],
-      ['健康状态', comp.healthStatus || '-'],
-      ['完整报告', comp.fullReport || '-'],
-    ];
-
-    // 添加各项检测
-    if (comp.records) {
-      Object.entries(comp.records).forEach(([key, value]: [string, any]) => {
-        worksheetData.push([
-          `${getTypeName(key)} - 检测次数`,
-          value.count,
-        ]);
-        worksheetData.push([
-          `${getTypeName(key)} - 平均评分`,
-          value.avgScore,
-        ]);
-        worksheetData.push([
-          `${getTypeName(key)} - 最新评分`,
-          value.latestScore,
-        ]);
-      });
-    }
-
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-    XLSX.utils.book_append_sheet(workbook, worksheet, '综合报告');
-  }
-
-  return XLSX.write(workbook, { type: 'buffer' }) as Buffer;
-}
 
 // 生成多次记录Word文档
 async function generateMultipleRecordsWord(records: any[], userName: string): Promise<Document> {
