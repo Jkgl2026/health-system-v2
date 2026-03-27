@@ -98,7 +98,7 @@ const healthTools: HealthTool[] = [
     description: '整合所有检测数据，生成全面的健康报告',
     icon: <FileText className="h-8 w-8" />,
     path: '/comprehensive-report',
-    status: 'developing',
+    status: 'available',
     category: '报告管理',
   },
 ];
@@ -133,10 +133,15 @@ export default function HealthToolsPage() {
                 <p className="text-sm text-gray-500">全方位智能健康评估系统</p>
               </div>
             </div>
-            <Badge variant="outline" className="bg-blue-50 text-blue-700">
-              <Shield className="h-3 w-3 mr-1" />
-              医疗级AI分析
-            </Badge>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={() => router.push('/user-management')}>
+                用户管理
+              </Button>
+              <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                <Shield className="h-3 w-3 mr-1" />
+                医疗级AI分析
+              </Badge>
+            </div>
           </div>
         </div>
       </header>
