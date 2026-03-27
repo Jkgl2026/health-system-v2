@@ -427,12 +427,34 @@ export async function POST(request: NextRequest) {
       biologicalAgeScore,
     });
 
-    // 保存记录到数据库（暂时跳过数据库保存，直接返回结果）
+    // 保存记录到数据库
+    const db = await getDb();
     const recordId = crypto.randomUUID();
     const userId = userInfo.phone || userInfo.name || 'anonymous';
 
-    // TODO: 数据库保存功能待完善
-    console.log('[BiologicalAge] 记录ID:', recordId, '用户ID:', userId);
+    try {
+      // 步骤0: 确保用户存在
+      await (db.execute as any)(
+        sql`INSERT INTO users (id, name, phone, gender) VALUES (${userId}, ${userInfo.name || '未填写'}, ${userInfo.phone || ''}, ${userInfo.gender || '未知'}) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, phone = EXCLUDED.phone, gender = EXCLUDED.gender, updated_at = NOW()`
+      );
+
+      // 步骤1: 插入基本字段（包括必填的 image_url 字段）
+      await (db.execute as any)(
+        sql`INSERT INTO biological_age_records (id, user_id, image_url, name, gender, phone, actual_age, biological_age, age_difference, summary, full_report, created_at) VALUES (${recordId}, ${userId}, ${image || ''}, ${userInfo.name || '未填写'}, ${userInfo.gender || '未知'}, ${userInfo.phone || ''}, ${chronologicalAge}, ${estimatedAge}, ${ageDifference}, ${result.summary || ''}, ${fullReport}, NOW())`
+      );
+
+      console.log('[BiologicalAge] 基本字段保存成功');
+
+      // 步骤2: 更新JSON字段
+      await (db.execute as any)(
+        sql`UPDATE biological_age_records SET aging_features = ${JSON.stringify(result.agingFeatures || {})}, organ_ages = ${JSON.stringify(result.organAges || {})}, aging_speed = ${JSON.stringify(result.agingSpeed || {})}, aging_prediction = ${JSON.stringify(result.agingPrediction || {})}, reversibility_assessment = ${JSON.stringify(result.reversibilityAssessment || {})}, anti_aging_plan = ${JSON.stringify(result.antiAgingPlan || {})}, recommendations = ${JSON.stringify(result.recommendations || [])} WHERE id = ${recordId}`
+      );
+
+      console.log('[BiologicalAge] JSON字段保存成功，记录ID:', recordId);
+    } catch (dbError) {
+      console.error('[BiologicalAge] 数据库保存失败:', dbError);
+      // 即使数据库保存失败，也返回分析结果
+    }
 
     // 添加 recordId 到返回数据
     (output as any).id = recordId;

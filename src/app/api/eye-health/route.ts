@@ -52,12 +52,34 @@ export async function POST(request: NextRequest) {
 
     const fullReport = generateReport(result, userInfo);
 
-    // 保存记录到数据库（暂时跳过数据库保存，直接返回结果）
+    // 保存记录到数据库
+    const db = await getDb();
     const recordId = crypto.randomUUID();
     const userId = userInfo.phone || userInfo.name || 'anonymous';
 
-    // TODO: 数据库保存功能待完善
-    console.log('[EyeHealth] 记录ID:', recordId, '用户ID:', userId);
+    try {
+      // 步骤0: 确保用户存在
+      await (db.execute as any)(
+        sql`INSERT INTO users (id, name, phone, gender) VALUES (${userId}, ${userInfo.name || '未填写'}, ${userInfo.phone || ''}, ${userInfo.gender || '未知'}) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, phone = EXCLUDED.phone, gender = EXCLUDED.gender, updated_at = NOW()`
+      );
+
+      // 步骤1: 插入基本字段（包括必填的 image_url 字段）
+      await (db.execute as any)(
+        sql`INSERT INTO eye_health_records (id, user_id, image_url, name, gender, phone, score, summary, full_report, created_at) VALUES (${recordId}, ${userId}, ${image || ''}, ${userInfo.name || '未填写'}, ${userInfo.gender || '未知'}, ${userInfo.phone || ''}, ${result.score || 75}, ${result.summary || ''}, ${fullReport}, NOW())`
+      );
+
+      console.log('[EyeHealth] 基本字段保存成功');
+
+      // 步骤2: 更新JSON字段
+      await (db.execute as any)(
+        sql`UPDATE eye_health_records SET sclera_analysis = ${JSON.stringify(result.scleraAnalysis || {})}, dark_circles = ${JSON.stringify(result.darkCircles || {})}, eye_bags = ${JSON.stringify(result.eyeBags || {})}, eye_fatigue = ${JSON.stringify(result.eyeFatigue || {})}, liver_health = ${JSON.stringify(result.liverHealth || {})}, circulatory_health = ${JSON.stringify(result.circulatoryHealth || {})}, sleep_quality = ${JSON.stringify(result.sleepQuality || {})}, recommendations = ${JSON.stringify(result.recommendations || [])} WHERE id = ${recordId}`
+      );
+
+      console.log('[EyeHealth] JSON字段保存成功，记录ID:', recordId);
+    } catch (dbError) {
+      console.error('[EyeHealth] 数据库保存失败:', dbError);
+      // 即使数据库保存失败，也返回分析结果
+    }
 
     // 添加 recordId 到返回数据
     (result as any).id = recordId;

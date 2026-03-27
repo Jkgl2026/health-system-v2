@@ -274,12 +274,34 @@ export async function POST(request: NextRequest) {
 
     console.log('[VoiceHealth] 分析完成:', result.healthStatus);
 
-    // 保存记录到数据库（暂时跳过数据库保存，直接返回结果）
+    // 保存记录到数据库
+    const db = await getDb();
     const recordId = crypto.randomUUID();
     const userId = userInfo.phone || userInfo.name || 'anonymous';
 
-    // TODO: 数据库保存功能待完善
-    console.log('[VoiceHealth] 记录ID:', recordId, '用户ID:', userId);
+    try {
+      // 步骤0: 确保用户存在
+      await (db.execute as any)(
+        sql`INSERT INTO users (id, name, phone, gender, age) VALUES (${userId}, ${userInfo.name || '未填写'}, ${userInfo.phone || ''}, ${userInfo.gender || '未知'}, ${userInfo.age || null}) ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, phone = EXCLUDED.phone, gender = EXCLUDED.gender, age = EXCLUDED.age, updated_at = NOW()`
+      );
+
+      // 步骤1: 插入基本字段（包括必填的 audio_url 字段）
+      await (db.execute as any)(
+        sql`INSERT INTO voice_health_records (id, user_id, audio_url, name, gender, phone, age, overall_score, health_status, summary, full_report, created_at) VALUES (${recordId}, ${userId}, ${audioUrl || ''}, ${userInfo.name || '未填写'}, ${userInfo.gender || '未知'}, ${userInfo.phone || ''}, ${userInfo.age || null}, ${result.overallScore}, ${result.healthStatus}, ${result.summary || ''}, ${fullReport}, NOW())`
+      );
+
+      console.log('[VoiceHealth] 基本字段保存成功');
+
+      // 步骤2: 更新JSON字段
+      await (db.execute as any)(
+        sql`UPDATE voice_health_records SET acoustic_features = ${JSON.stringify(result.acousticFeatures || {})}, psychological_state = ${JSON.stringify(result.psychologicalState || {})}, physical_health = ${JSON.stringify(result.physicalHealth || {})}, health_risk_assessment = ${JSON.stringify(result.healthRiskAssessment || {})}, recommendations = ${JSON.stringify(result.recommendations || [])}, voice_care_tips = ${JSON.stringify(result.voiceCareTips || [])}, improvement_plan = ${JSON.stringify(result.improvementPlan || {})} WHERE id = ${recordId}`
+      );
+
+      console.log('[VoiceHealth] JSON字段保存成功，记录ID:', recordId);
+    } catch (dbError) {
+      console.error('[VoiceHealth] 数据库保存失败:', dbError);
+      // 即使数据库保存失败，也返回分析结果
+    }
 
     // 添加 recordId 到返回数据
     (result as any).id = recordId;
