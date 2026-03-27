@@ -3,25 +3,40 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Loader2 } from 'lucide-react';
+import { Upload, Loader2 } from 'lucide-react';
 
-export default function ComprehensiveReportPage() {
+export default function BreathingAnalysisPage() {
+  const [image, setImage] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [userInfo, setUserInfo] = useState({
     name: '',
-    userId: '',
+    age: '',
+    gender: '',
   });
+  const [description, setDescription] = useState('');
 
-  const handleGenerate = async () => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleAnalyze = async () => {
     setAnalyzing(true);
     try {
-      const response = await fetch('/api/comprehensive-report', {
+      const response = await fetch('/api/breathing-analysis', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: userInfo.userId || 'default',
+          image,
           userInfo,
+          description,
         }),
       });
       const data = await response.json();
@@ -29,7 +44,7 @@ export default function ComprehensiveReportPage() {
         setResult(data.data);
       }
     } catch (error) {
-      console.error('生成失败:', error);
+      console.error('分析失败:', error);
     } finally {
       setAnalyzing(false);
     }
@@ -39,15 +54,15 @@ export default function ComprehensiveReportPage() {
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">综合健康报告</h1>
-          <p className="text-muted-foreground">整合所有检测结果生成综合报告</p>
+          <h1 className="text-3xl font-bold mb-2">呼吸分析</h1>
+          <p className="text-muted-foreground">分析呼吸模式和健康状况</p>
         </div>
 
         {!result ? (
           <Card>
             <CardHeader>
-              <CardTitle>生成综合报告</CardTitle>
-              <CardDescription>基于所有检测结果生成综合健康评估</CardDescription>
+              <CardTitle>呼吸分析</CardTitle>
+              <CardDescription>上传视频或描述呼吸情况</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
@@ -61,8 +76,19 @@ export default function ComprehensiveReportPage() {
                 />
               </div>
 
+              <div>
+                <label className="block text-sm font-medium mb-2">呼吸情况描述（可选）</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full px-4 py-2 border rounded-md"
+                  rows={4}
+                  placeholder="描述您的呼吸情况..."
+                />
+              </div>
+
               <Button
-                onClick={handleGenerate}
+                onClick={handleAnalyze}
                 disabled={analyzing || !userInfo.name}
                 className="w-full"
                 size="lg"
@@ -70,13 +96,10 @@ export default function ComprehensiveReportPage() {
                 {analyzing ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    生成中...
+                    分析中...
                   </>
                 ) : (
-                  <>
-                    <FileText className="mr-2 h-4 w-4" />
-                    生成报告
-                  </>
+                  '开始分析'
                 )}
               </Button>
             </CardContent>
@@ -85,17 +108,14 @@ export default function ComprehensiveReportPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>综合健康报告</CardTitle>
-                <CardDescription>
-                  综合评分：{result.overallScore}分 - {result.healthStatus === 'excellent' ? '优秀' : result.healthStatus === 'good' ? '良好' : result.healthStatus === 'fair' ? '一般' : '需关注'}
-                </CardDescription>
+                <CardTitle>检测结果</CardTitle>
               </CardHeader>
               <CardContent>
                 <pre className="whitespace-pre-wrap text-sm">{result.fullReport}</pre>
               </CardContent>
             </Card>
             <Button onClick={() => setResult(null)} variant="outline" className="w-full">
-              重新生成
+              重新分析
             </Button>
           </div>
         )}
