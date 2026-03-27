@@ -7,10 +7,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   ArrowLeft, Calendar, TrendingUp, TrendingDown, Minus,
   Activity, Award, Clock, ChevronRight, Eye, GitCompare,
-  Download, Maximize2, Image as ImageIcon
+  Download, Maximize2, Image as ImageIcon, FileText, FileSpreadsheet, FileJson, Loader2
 } from 'lucide-react';
 import PostureAnnotationCanvas from '@/components/PostureAnnotationCanvas';
 
@@ -44,6 +51,8 @@ export default function PostureComparisonPage() {
   const [loading, setLoading] = useState(true);
   const [selectedRecords, setSelectedRecords] = useState<string[]>([]);
   const [comparisonResult, setComparisonResult] = useState<any>(null);
+  const [exportFormat, setExportFormat] = useState('word');
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     fetchRecords();
@@ -73,6 +82,76 @@ export default function PostureComparisonPage() {
       console.error('Failed to fetch comparisons:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleExport = async () => {
+    if (!comparisonResult || selectedRecords.length !== 2) return;
+
+    setExporting(true);
+    try {
+      // 构建对比结果数据
+      const comparisonData = {
+        comparison: {
+          scoreChange: comparisonResult.scoreChange,
+          scoreTrend: comparisonResult.scoreChange > 0 ? 'improving' : comparisonResult.scoreChange < 0 ? 'declining' : 'stable',
+          keyChanges: [
+            ...(comparisonResult.improvements?.map((item: any) => ({
+              category: item.item,
+              before: item.previous,
+              after: item.current,
+              change: item.change,
+            })) || []),
+            ...(comparisonResult.deteriorations?.map((item: any) => ({
+              category: item.item,
+              before: item.previous,
+              after: item.current,
+              change: item.change,
+            })) || []),
+          ],
+        },
+        trendAnalysis: {
+          period: `${formatDate(records.find(r => r.id === selectedRecords[1])?.createdAt || '')} - ${formatDate(records.find(r => r.id === selectedRecords[0])?.createdAt || '')}`,
+          trend: comparisonResult.scoreChange > 0 ? '改善趋势' : comparisonResult.scoreChange < 0 ? '下降趋势' : '稳定趋势',
+          analysis: comparisonResult.overallAssessment || '对比分析完成',
+          recommendations: comparisonResult.recommendations || [],
+        },
+        summary: `评分变化：${comparisonResult.scoreChange > 0 ? '+' : ''}${comparisonResult.scoreChange}分。${comparisonResult.overallAssessment}`,
+      };
+
+      const currentRecord = records.find(r => r.id === selectedRecords[0]);
+      const userName = currentRecord?.id || '用户';
+
+      const response = await fetch('/api/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          exportType: 'comparison',
+          exportFormat: exportFormat,
+          userName: userName,
+          comparisonResult: comparisonData,
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${userName}_历史对比报告_${new Date().toISOString().split('T')[0]}.${exportFormat === 'word' ? 'docx' : exportFormat === 'excel' ? 'xlsx' : 'json'}`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        const error = await response.json();
+        alert('导出失败：' + error.error);
+      }
+    } catch (error) {
+      console.error('导出失败:', error);
+      alert('导出失败');
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -387,6 +466,62 @@ export default function PostureComparisonPage() {
                           </ul>
                         </div>
                       )}
+                    </CardContent>
+                  </Card>
+
+                  {/* 导出功能 */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>导出报告</CardTitle>
+                      <CardDescription>选择格式导出对比报告</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex gap-4 items-center">
+                        <div className="flex-1">
+                          <Select value={exportFormat} onValueChange={setExportFormat}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="选择导出格式" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="word">
+                                <div className="flex items-center gap-2">
+                                  <FileText className="h-4 w-4" />
+                                  Word 文档
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="excel">
+                                <div className="flex items-center gap-2">
+                                  <FileSpreadsheet className="h-4 w-4" />
+                                  Excel 表格
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="json">
+                                <div className="flex items-center gap-2">
+                                  <FileJson className="h-4 w-4" />
+                                  JSON 数据
+                                </div>
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <Button
+                          onClick={handleExport}
+                          disabled={exporting}
+                          className="bg-gradient-to-r from-purple-500 to-purple-600"
+                        >
+                          {exporting ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              导出中...
+                            </>
+                          ) : (
+                            <>
+                              <Download className="mr-2 h-4 w-4" />
+                              导出报告
+                            </>
+                          )}
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </>
