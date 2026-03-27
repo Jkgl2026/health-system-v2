@@ -218,6 +218,221 @@ const FACE_DIAGNOSIS_SYSTEM_PROMPT = `你是一位专业的中医面诊专家，
       "content": "<具体的穴位按摩建议>"
     }
   ],
+  "tripleHighRisk": {
+    "overallRisk": {
+      "level": "低/中/高",
+      "score": <0-100的综合风险评分>,
+      "confidence": <0-100的置信度>,
+      "primaryRisk": "高血压/高血糖/高血脂/综合"
+    },
+    "hypertension": {
+      "riskLevel": "低/中/高",
+      "riskScore": <0-100的风险评分>,
+      "indicators": [
+        {
+          "name": "面部潮红",
+          "detected": true/false,
+          "severity": "无/轻度/中度/重度",
+          "location": "颧骨/面颊/额头/全脸",
+          "confidence": <0-100>,
+          "description": "详细描述"
+        },
+        {
+          "name": "红血丝",
+          "detected": true/false,
+          "severity": "无/轻度/中度/重度",
+          "location": "眼部/面部",
+          "confidence": <0-100>,
+          "description": "详细描述"
+        }
+      ],
+      "riskFactors": [
+        {
+          "factor": "遗传因素",
+          "weight": <0-100>,
+          "description": "描述"
+        }
+      ],
+      "shortTermPrediction": {
+        "likelihood": <0-100>,
+        "timeFrame": "3个月内",
+        "possibleSymptoms": ["头晕", "头痛", "心悸"]
+      },
+      "midTermPrediction": {
+        "likelihood": <0-100>,
+        "timeFrame": "1年内",
+        "possibleSymptoms": ["血压升高", "心功能受损"]
+      },
+      "longTermPrediction": {
+        "likelihood": <0-100>,
+        "timeFrame": "3年以上",
+        "possibleSymptoms": ["心血管疾病", "肾脏损害"]
+      },
+      "preventiveMeasures": [
+        {
+          "type": "饮食",
+          "content": "低盐饮食",
+          "importance": "高/中/低",
+          "implementation": "具体实施方案"
+        }
+      ],
+      "medicalRecommendations": [
+        "建议定期监测血压",
+        "建议血脂检查",
+        "建议心电图检查"
+      ]
+    },
+    "hyperglycemia": {
+      "riskLevel": "低/中/高",
+      "riskScore": <0-100>,
+      "indicators": [
+        {
+          "name": "面色发黄",
+          "detected": true/false,
+          "severity": "无/轻度/中度/重度",
+          "confidence": <0-100>,
+          "description": "详细描述"
+        },
+        {
+          "name": "皮肤干燥",
+          "detected": true/false,
+          "severity": "无/轻度/中度/重度",
+          "confidence": <0-100>,
+          "description": "详细描述"
+        }
+      ],
+      "riskFactors": [
+        {
+          "factor": "饮食因素",
+          "weight": <0-100>,
+          "description": "描述"
+        }
+      ],
+      "shortTermPrediction": {
+        "likelihood": <0-100>,
+        "timeFrame": "3个月内",
+        "possibleSymptoms": ["口渴", "多尿", "疲劳"]
+      },
+      "midTermPrediction": {
+        "likelihood": <0-100>,
+        "timeFrame": "1年内",
+        "possibleSymptoms": ["血糖升高", "视力模糊"]
+      },
+      "longTermPrediction": {
+        "likelihood": <0-100>,
+        "timeFrame": "3年以上",
+        "possibleSymptoms": ["糖尿病并发症", "神经病变"]
+      },
+      "preventiveMeasures": [
+        {
+          "type": "饮食",
+          "content": "控糖饮食",
+          "importance": "高/中/低",
+          "implementation": "具体实施方案"
+        }
+      ],
+      "medicalRecommendations": [
+        "建议血糖检查",
+        "建议糖化血红蛋白检查",
+        "建议眼科检查"
+      ]
+    },
+    "hyperlipidemia": {
+      "riskLevel": "低/中/高",
+      "riskScore": <0-100>,
+      "indicators": [
+        {
+          "name": "眼睑黄色瘤",
+          "detected": true/false,
+          "severity": "无/轻度/中度/重度",
+          "location": "眼睑",
+          "confidence": <0-100>,
+          "description": "详细描述"
+        },
+        {
+          "name": "面色油腻",
+          "detected": true/false,
+          "severity": "无/轻度/中度/重度",
+          "confidence": <0-100>,
+          "description": "详细描述"
+        }
+      ],
+      "riskFactors": [
+        {
+          "factor": "饮食因素",
+          "weight": <0-100>,
+          "description": "描述"
+        }
+      ],
+      "shortTermPrediction": {
+        "likelihood": <0-100>,
+        "timeFrame": "3个月内",
+        "possibleSymptoms": ["头晕", "乏力"]
+      },
+      "midTermPrediction": {
+        "likelihood": <0-100>,
+        "timeFrame": "1年内",
+        "possibleSymptoms": ["血脂升高", "动脉硬化"]
+      },
+      "longTermPrediction": {
+        "likelihood": <0-100>,
+        "timeFrame": "3年以上",
+        "possibleSymptoms": ["冠心病", "脑卒中"]
+      },
+      "preventiveMeasures": [
+        {
+          "type": "饮食",
+          "content": "低脂饮食",
+          "importance": "高/中/低",
+          "implementation": "具体实施方案"
+        }
+      ],
+      "medicalRecommendations": [
+        "建议血脂检查",
+        "建议肝功能检查",
+        "建议心血管检查"
+      ]
+    },
+    "comprehensiveRecommendations": {
+      "immediate": [
+        "建议立即就医检查",
+        "调整饮食结构",
+        "规律作息"
+      ],
+      "shortTerm": [
+        "3个月后复查",
+        "建立健康档案",
+        "监测生理指标"
+      ],
+      "longTerm": [
+        "定期体检",
+        "健康管理",
+        "生活方式干预"
+      ]
+    },
+    "lifestyleFactors": {
+      "diet": {
+        "status": "良好/一般/较差",
+        "issues": ["高盐", "高糖", "高脂"],
+        "recommendations": ["低盐饮食", "控制糖分", "减少脂肪"]
+      },
+      "exercise": {
+        "status": "良好/一般/较差",
+        "issues": ["缺乏运动", "运动不足"],
+        "recommendations": ["有氧运动", "力量训练", "日常活动"]
+      },
+      "sleep": {
+        "status": "良好/一般/较差",
+        "issues": ["睡眠不足", "质量差"],
+        "recommendations": ["规律作息", "充足睡眠", "改善环境"]
+      },
+      "stress": {
+        "status": "良好/一般/较差",
+        "issues": ["压力大", "焦虑"],
+        "recommendations": ["放松练习", "心理调适", "兴趣爱好"]
+      }
+    }
+  },
   "summary": "<一段话总结面诊结论>"
 }
 
@@ -460,6 +675,204 @@ function generateFullReport(result: any): string {
     sections.push(`  肺：${organs.lung || '-'}分`);
     sections.push(`  肾：${organs.kidney || '-'}分`);
     sections.push('');
+  }
+
+  // 三高风险评估（新增）
+  if (result.tripleHighRisk) {
+    sections.push('🔬 三高风险评估\n');
+    
+    // 总体风险
+    if (result.tripleHighRisk.overallRisk) {
+      sections.push('总体风险');
+      sections.push(`  风险等级：${result.tripleHighRisk.overallRisk.level || '未评估'}`);
+      sections.push(`  风险评分：${result.tripleHighRisk.overallRisk.score || 0}分`);
+      sections.push(`  主要风险：${result.tripleHighRisk.overallRisk.primaryRisk || '无'}`);
+      sections.push('');
+    }
+
+    // 高血压风险
+    if (result.tripleHighRisk.hypertension) {
+      sections.push('💓 高血压风险评估');
+      sections.push(`  风险等级：${result.tripleHighRisk.hypertension.riskLevel || '未评估'}`);
+      sections.push(`  风险评分：${result.tripleHighRisk.hypertension.riskScore || 0}分`);
+      
+      // 检测指标
+      if (result.tripleHighRisk.hypertension.indicators && result.tripleHighRisk.hypertension.indicators.length > 0) {
+        sections.push('  检测指标：');
+        result.tripleHighRisk.hypertension.indicators.forEach((ind: any) => {
+          if (ind.detected) {
+            sections.push(`    • ${ind.name}：${ind.severity}（置信度${ind.confidence}%）`);
+            if (ind.description) sections.push(`      ${ind.description}`);
+          }
+        });
+      }
+
+      // 预测
+      if (result.tripleHighRisk.hypertension.shortTermPrediction) {
+        sections.push(`  短期预测（${result.tripleHighRisk.hypertension.shortTermPrediction.timeFrame}）：可能性${result.tripleHighRisk.hypertension.shortTermPrediction.likelihood}%`);
+        if (result.tripleHighRisk.hypertension.shortTermPrediction.possibleSymptoms) {
+          sections.push(`    可能症状：${result.tripleHighRisk.hypertension.shortTermPrediction.possibleSymptoms.join('、')}`);
+        }
+      }
+
+      // 预防措施
+      if (result.tripleHighRisk.hypertension.preventiveMeasures && result.tripleHighRisk.hypertension.preventiveMeasures.length > 0) {
+        sections.push('  预防措施：');
+        result.tripleHighRisk.hypertension.preventiveMeasures.forEach((pm: any) => {
+          sections.push(`    【${pm.type}】${pm.content}（${pm.importance}重要性）`);
+          if (pm.implementation) sections.push(`      ${pm.implementation}`);
+        });
+      }
+
+      // 医疗建议
+      if (result.tripleHighRisk.hypertension.medicalRecommendations && result.tripleHighRisk.hypertension.medicalRecommendations.length > 0) {
+        sections.push('  医疗建议：');
+        result.tripleHighRisk.hypertension.medicalRecommendations.forEach((mr: string) => {
+          sections.push(`    • ${mr}`);
+        });
+      }
+
+      sections.push('');
+    }
+
+    // 高血糖风险
+    if (result.tripleHighRisk.hyperglycemia) {
+      sections.push('🍬 高血糖风险评估');
+      sections.push(`  风险等级：${result.tripleHighRisk.hyperglycemia.riskLevel || '未评估'}`);
+      sections.push(`  风险评分：${result.tripleHighRisk.hyperglycemia.riskScore || 0}分`);
+      
+      // 检测指标
+      if (result.tripleHighRisk.hyperglycemia.indicators && result.tripleHighRisk.hyperglycemia.indicators.length > 0) {
+        sections.push('  检测指标：');
+        result.tripleHighRisk.hyperglycemia.indicators.forEach((ind: any) => {
+          if (ind.detected) {
+            sections.push(`    • ${ind.name}：${ind.severity}（置信度${ind.confidence}%）`);
+            if (ind.description) sections.push(`      ${ind.description}`);
+          }
+        });
+      }
+
+      // 预防措施
+      if (result.tripleHighRisk.hyperglycemia.preventiveMeasures && result.tripleHighRisk.hyperglycemia.preventiveMeasures.length > 0) {
+        sections.push('  预防措施：');
+        result.tripleHighRisk.hyperglycemia.preventiveMeasures.forEach((pm: any) => {
+          sections.push(`    【${pm.type}】${pm.content}（${pm.importance}重要性）`);
+        });
+      }
+
+      // 医疗建议
+      if (result.tripleHighRisk.hyperglycemia.medicalRecommendations && result.tripleHighRisk.hyperglycemia.medicalRecommendations.length > 0) {
+        sections.push('  医疗建议：');
+        result.tripleHighRisk.hyperglycemia.medicalRecommendations.forEach((mr: string) => {
+          sections.push(`    • ${mr}`);
+        });
+      }
+
+      sections.push('');
+    }
+
+    // 高血脂风险
+    if (result.tripleHighRisk.hyperlipidemia) {
+      sections.push('🥓 高血脂风险评估');
+      sections.push(`  风险等级：${result.tripleHighRisk.hyperlipidemia.riskLevel || '未评估'}`);
+      sections.push(`  风险评分：${result.tripleHighRisk.hyperlipidemia.riskScore || 0}分`);
+      
+      // 检测指标
+      if (result.tripleHighRisk.hyperlipidemia.indicators && result.tripleHighRisk.hyperlipidemia.indicators.length > 0) {
+        sections.push('  检测指标：');
+        result.tripleHighRisk.hyperlipidemia.indicators.forEach((ind: any) => {
+          if (ind.detected) {
+            sections.push(`    • ${ind.name}：${ind.severity}（置信度${ind.confidence}%）`);
+            if (ind.description) sections.push(`      ${ind.description}`);
+          }
+        });
+      }
+
+      // 预防措施
+      if (result.tripleHighRisk.hyperlipidemia.preventiveMeasures && result.tripleHighRisk.hyperlipidemia.preventiveMeasures.length > 0) {
+        sections.push('  预防措施：');
+        result.tripleHighRisk.hyperlipidemia.preventiveMeasures.forEach((pm: any) => {
+          sections.push(`    【${pm.type}】${pm.content}（${pm.importance}重要性）`);
+        });
+      }
+
+      // 医疗建议
+      if (result.tripleHighRisk.hyperlipidemia.medicalRecommendations && result.tripleHighRisk.hyperlipidemia.medicalRecommendations.length > 0) {
+        sections.push('  医疗建议：');
+        result.tripleHighRisk.hyperlipidemia.medicalRecommendations.forEach((mr: string) => {
+          sections.push(`    • ${mr}`);
+        });
+      }
+
+      sections.push('');
+    }
+
+    // 综合建议
+    if (result.tripleHighRisk.comprehensiveRecommendations) {
+      sections.push('💡 综合建议');
+      
+      if (result.tripleHighRisk.comprehensiveRecommendations.immediate) {
+        sections.push('  立即行动：');
+        result.tripleHighRisk.comprehensiveRecommendations.immediate.forEach((rec: string) => {
+          sections.push(`    • ${rec}`);
+        });
+      }
+
+      if (result.tripleHighRisk.comprehensiveRecommendations.shortTerm) {
+        sections.push('  短期目标：');
+        result.tripleHighRisk.comprehensiveRecommendations.shortTerm.forEach((rec: string) => {
+          sections.push(`    • ${rec}`);
+        });
+      }
+
+      if (result.tripleHighRisk.comprehensiveRecommendations.longTerm) {
+        sections.push('  长期规划：');
+        result.tripleHighRisk.comprehensiveRecommendations.longTerm.forEach((rec: string) => {
+          sections.push(`    • ${rec}`);
+        });
+      }
+
+      sections.push('');
+    }
+
+    // 生活方式因素
+    if (result.tripleHighRisk.lifestyleFactors) {
+      sections.push('🏃 生活方式因素分析');
+      const lifestyle = result.tripleHighRisk.lifestyleFactors;
+      
+      if (lifestyle.diet) {
+        sections.push(`  饮食：${lifestyle.diet.status}`);
+        if (lifestyle.diet.issues && lifestyle.diet.issues.length > 0) {
+          sections.push(`    存在问题：${lifestyle.diet.issues.join('、')}`);
+        }
+        if (lifestyle.diet.recommendations && lifestyle.diet.recommendations.length > 0) {
+          sections.push(`    建议：${lifestyle.diet.recommendations.join('、')}`);
+        }
+      }
+
+      if (lifestyle.exercise) {
+        sections.push(`  运动：${lifestyle.exercise.status}`);
+        if (lifestyle.exercise.recommendations && lifestyle.exercise.recommendations.length > 0) {
+          sections.push(`    建议：${lifestyle.exercise.recommendations.join('、')}`);
+        }
+      }
+
+      if (lifestyle.sleep) {
+        sections.push(`  睡眠：${lifestyle.sleep.status}`);
+        if (lifestyle.sleep.recommendations && lifestyle.sleep.recommendations.length > 0) {
+          sections.push(`    建议：${lifestyle.sleep.recommendations.join('、')}`);
+        }
+      }
+
+      if (lifestyle.stress) {
+        sections.push(`  压力：${lifestyle.stress.status}`);
+        if (lifestyle.stress.recommendations && lifestyle.stress.recommendations.length > 0) {
+          sections.push(`    建议：${lifestyle.stress.recommendations.join('、')}`);
+        }
+      }
+
+      sections.push('');
+    }
   }
 
   // 健康建议

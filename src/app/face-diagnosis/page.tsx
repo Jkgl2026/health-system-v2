@@ -17,6 +17,7 @@ import {
   History, User, Save, FileDown
 } from 'lucide-react';
 import { generateFaceDiagnosisReport, FaceDiagnosisData, UserInfo } from '@/lib/report-generator';
+import { TripleHighRiskAssessment } from '@/components/TripleHighRiskAssessment';
 import dynamic from 'next/dynamic';
 
 // 动态导入历史记录组件
@@ -225,6 +226,7 @@ export default function FaceDiagnosisPage() {
         summary: result.summary,
         fullReport: result.fullReport,
         timestamp: result.timestamp,
+        tripleHighRisk: result.tripleHighRisk, // 添加三高风险数据
       };
       
       const reportUserInfo: UserInfo = {
@@ -517,6 +519,13 @@ export default function FaceDiagnosisPage() {
                             </div>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* 三高风险评估（新增） */}
+                    {result.tripleHighRisk && (
+                      <div className="mb-4">
+                        <TripleHighRiskAssessment data={result.tripleHighRisk} />
                       </div>
                     )}
 

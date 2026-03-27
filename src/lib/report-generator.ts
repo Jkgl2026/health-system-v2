@@ -70,6 +70,8 @@ export interface FaceDiagnosisData {
   summary?: string;
   fullReport?: string;
   timestamp?: string;
+  // 三高风险评估（新增）
+  tripleHighRisk?: any;
 }
 
 export interface TongueDiagnosisData {
@@ -102,6 +104,8 @@ export interface TongueDiagnosisData {
   summary?: string;
   fullReport?: string;
   timestamp?: string;
+  // 三高风险评估（新增）
+  tripleHighRisk?: any;
 }
 
 export interface PostureDiagnosisData {
@@ -666,6 +670,250 @@ function createFaceDiagnosisContent(data: FaceDiagnosisData): (Paragraph | Table
     elements.push(createDivider());
   }
 
+  // 三高风险评估（新增）
+  if (data.tripleHighRisk) {
+    elements.push(createSectionTitle('八、三高风险综合评估（面诊）\n'));
+
+    const thr = data.tripleHighRisk;
+
+    // 总体风险
+    if (thr.overallRisk) {
+      elements.push(createParagraph('8.1 总体风险评估'));
+      elements.push(
+        createSimpleTable(
+          ['评估项目', '结果'],
+          [
+            ['风险等级', thr.overallRisk.level || '未评估'],
+            ['风险评分', (thr.overallRisk.score || 0) + '分/100'],
+            ['置信度', (thr.overallRisk.confidence || 0) + '%'],
+            ['主要风险', thr.overallRisk.primaryRisk || '未识别'],
+          ],
+          [3000, 5000]
+        )
+      );
+      elements.push(new Paragraph({ spacing: { before: 150 } }));
+    }
+
+    // 高血压风险
+    if (thr.hypertension) {
+      elements.push(createSectionTitle('8.2 高血压风险评估'));
+
+      const htn = thr.hypertension;
+      elements.push(
+        createLabeledParagraph('  风险等级：', htn.riskLevel || '未评估')
+      );
+      elements.push(
+        createLabeledParagraph('  风险评分：', (htn.riskScore || 0) + '分/100')
+      );
+
+      // 检测指标
+      if (htn.indicators && htn.indicators.length > 0) {
+        const indData: string[][] = [];
+        htn.indicators.forEach((ind: any) => {
+          if (ind.detected) {
+            indData.push([ind.name, ind.severity, ind.confidence + '%']);
+          }
+        });
+        if (indData.length > 0) {
+          elements.push(new Paragraph({ spacing: { before: 150 } }));
+          elements.push(createParagraph('检测指标：'));
+          elements.push(
+            createSimpleTable(
+              ['指标名称', '严重程度', '置信度'],
+              indData,
+              [3000, 3000, 2000]
+            )
+          );
+        }
+      }
+
+      // 医疗建议
+      if (htn.medicalRecommendations && htn.medicalRecommendations.length > 0) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(createParagraph('医疗建议：'));
+        htn.medicalRecommendations.forEach((rec: string) => {
+          elements.push(createParagraph(`  • ${rec}`));
+        });
+      }
+
+      elements.push(createDivider());
+    }
+
+    // 高血糖风险
+    if (thr.hyperglycemia) {
+      elements.push(createSectionTitle('8.3 高血糖风险评估'));
+
+      const hgly = thr.hyperglycemia;
+      elements.push(
+        createLabeledParagraph('  风险等级：', hgly.riskLevel || '未评估')
+      );
+      elements.push(
+        createLabeledParagraph('  风险评分：', (hgly.riskScore || 0) + '分/100')
+      );
+
+      // 检测指标
+      if (hgly.indicators && hgly.indicators.length > 0) {
+        const indData: string[][] = [];
+        hgly.indicators.forEach((ind: any) => {
+          if (ind.detected) {
+            indData.push([ind.name, ind.severity, ind.confidence + '%']);
+          }
+        });
+        if (indData.length > 0) {
+          elements.push(new Paragraph({ spacing: { before: 150 } }));
+          elements.push(createParagraph('检测指标：'));
+          elements.push(
+            createSimpleTable(
+              ['指标名称', '严重程度', '置信度'],
+              indData,
+              [3000, 3000, 2000]
+            )
+          );
+        }
+      }
+
+      // 医疗建议
+      if (hgly.medicalRecommendations && hgly.medicalRecommendations.length > 0) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(createParagraph('医疗建议：'));
+        hgly.medicalRecommendations.forEach((rec: string) => {
+          elements.push(createParagraph(`  • ${rec}`));
+        });
+      }
+
+      elements.push(createDivider());
+    }
+
+    // 高血脂风险
+    if (thr.hyperlipidemia) {
+      elements.push(createSectionTitle('8.4 高血脂风险评估'));
+
+      const hlip = thr.hyperlipidemia;
+      elements.push(
+        createLabeledParagraph('  风险等级：', hlip.riskLevel || '未评估')
+      );
+      elements.push(
+        createLabeledParagraph('  风险评分：', (hlip.riskScore || 0) + '分/100')
+      );
+
+      // 检测指标
+      if (hlip.indicators && hlip.indicators.length > 0) {
+        const indData: string[][] = [];
+        hlip.indicators.forEach((ind: any) => {
+          if (ind.detected) {
+            indData.push([ind.name, ind.severity, ind.confidence + '%']);
+          }
+        });
+        if (indData.length > 0) {
+          elements.push(new Paragraph({ spacing: { before: 150 } }));
+          elements.push(createParagraph('检测指标：'));
+          elements.push(
+            createSimpleTable(
+              ['指标名称', '严重程度', '置信度'],
+              indData,
+              [3000, 3000, 2000]
+            )
+          );
+        }
+      }
+
+      // 医疗建议
+      if (hlip.medicalRecommendations && hlip.medicalRecommendations.length > 0) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(createParagraph('医疗建议：'));
+        hlip.medicalRecommendations.forEach((rec: string) => {
+          elements.push(createParagraph(`  • ${rec}`));
+        });
+      }
+
+      elements.push(createDivider());
+    }
+
+    // 综合建议
+    if (thr.comprehensiveRecommendations) {
+      elements.push(createSectionTitle('8.5 综合建议'));
+
+      if (thr.comprehensiveRecommendations.immediate) {
+        elements.push(createParagraph('立即行动：'));
+        thr.comprehensiveRecommendations.immediate.forEach((rec: string, idx: number) => {
+          elements.push(createParagraph(`  ${idx + 1}. ${rec}`));
+        });
+      }
+
+      if (thr.comprehensiveRecommendations.shortTerm) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('短期目标（1-3个月）：'));
+        thr.comprehensiveRecommendations.shortTerm.forEach((rec: string, idx: number) => {
+          elements.push(createParagraph(`  ${idx + 1}. ${rec}`));
+        });
+      }
+
+      if (thr.comprehensiveRecommendations.longTerm) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('长期规划（3年以上）：'));
+        thr.comprehensiveRecommendations.longTerm.forEach((rec: string, idx: number) => {
+          elements.push(createParagraph(`  ${idx + 1}. ${rec}`));
+        });
+      }
+
+      elements.push(createDivider());
+    }
+
+    // 生活方式因素
+    if (thr.lifestyleFactors) {
+      elements.push(createSectionTitle('8.6 生活方式因素分析'));
+
+      if (thr.lifestyleFactors.diet) {
+        elements.push(createParagraph('饮食因素：'));
+        elements.push(createLabeledParagraph('  状态：', thr.lifestyleFactors.diet.status || '未评估'));
+        if (thr.lifestyleFactors.diet.recommendations) {
+          elements.push(createParagraph('  建议：'));
+          thr.lifestyleFactors.diet.recommendations.forEach((rec: string) => {
+            elements.push(createParagraph(`    • ${rec}`));
+          });
+        }
+      }
+
+      if (thr.lifestyleFactors.exercise) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('运动因素：'));
+        elements.push(createLabeledParagraph('  状态：', thr.lifestyleFactors.exercise.status || '未评估'));
+        if (thr.lifestyleFactors.exercise.recommendations) {
+          elements.push(createParagraph('  建议：'));
+          thr.lifestyleFactors.exercise.recommendations.forEach((rec: string) => {
+            elements.push(createParagraph(`    • ${rec}`));
+          });
+        }
+      }
+
+      if (thr.lifestyleFactors.sleep) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('睡眠因素：'));
+        elements.push(createLabeledParagraph('  状态：', thr.lifestyleFactors.sleep.status || '未评估'));
+        if (thr.lifestyleFactors.sleep.recommendations) {
+          elements.push(createParagraph('  建议：'));
+          thr.lifestyleFactors.sleep.recommendations.forEach((rec: string) => {
+            elements.push(createParagraph(`    • ${rec}`));
+          });
+        }
+      }
+
+      if (thr.lifestyleFactors.stress) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('压力因素：'));
+        elements.push(createLabeledParagraph('  状态：', thr.lifestyleFactors.stress.status || '未评估'));
+        if (thr.lifestyleFactors.stress.recommendations) {
+          elements.push(createParagraph('  建议：'));
+          thr.lifestyleFactors.stress.recommendations.forEach((rec: string) => {
+            elements.push(createParagraph(`    • ${rec}`));
+          });
+        }
+      }
+
+      elements.push(createDivider());
+    }
+  }
+
   return elements;
 }
 
@@ -777,6 +1025,327 @@ function createTongueDiagnosisContent(data: TongueDiagnosisData): (Paragraph | T
       elements.push(createParagraph(`   ${suggestion.content}`));
     });
     elements.push(createDivider());
+  }
+
+  // 三高风险评估（新增 - 舌诊专用，包含中医深度分析）
+  if (data.tripleHighRisk) {
+    elements.push(createSectionTitle('七、三高风险综合评估（舌诊）\n'));
+
+    const thr = data.tripleHighRisk;
+
+    // 总体风险
+    if (thr.overallRisk) {
+      elements.push(createParagraph('7.1 总体风险评估'));
+      elements.push(
+        createSimpleTable(
+          ['评估项目', '结果'],
+          [
+            ['风险等级', thr.overallRisk.level || '未评估'],
+            ['风险评分', (thr.overallRisk.score || 0) + '分/100'],
+            ['中医证型', thr.overallRisk.tcmPattern || '未识别'],
+            ['置信度', (thr.overallRisk.confidence || 0) + '%'],
+          ],
+          [3000, 5000]
+        )
+      );
+      elements.push(new Paragraph({ spacing: { before: 150 } }));
+    }
+
+    // 高血压风险（舌诊版本，包含中医深度分析）
+    if (thr.hypertension) {
+      elements.push(createSectionTitle('7.2 高血压风险评估'));
+
+      const htn = thr.hypertension;
+      elements.push(
+        createLabeledParagraph('  风险等级：', htn.riskLevel || '未评估')
+      );
+      elements.push(
+        createLabeledParagraph('  风险评分：', (htn.riskScore || 0) + '分/100')
+      );
+
+      // 舌象指标
+      if (htn.tongueIndicators && htn.tongueIndicators.length > 0) {
+        const indData: string[][] = [];
+        htn.tongueIndicators.forEach((ind: any) => {
+          if (ind.detected) {
+            indData.push([ind.name, ind.severity, ind.confidence + '%', ind.tcmMeaning || '-']);
+          }
+        });
+        if (indData.length > 0) {
+          elements.push(new Paragraph({ spacing: { before: 150 } }));
+          elements.push(createParagraph('舌象指标：'));
+          elements.push(
+            createSimpleTable(
+              ['指标名称', '严重程度', '置信度', '中医含义'],
+              indData,
+              [2500, 2000, 1500, 4000]
+            )
+          );
+        }
+      }
+
+      // 中医证型分析
+      if (htn.tcmPatterns && htn.tcmPatterns.length > 0) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(createParagraph('中医证型分析：'));
+        htn.tcmPatterns.forEach((pattern: any) => {
+          elements.push(createParagraph(`  • ${pattern.pattern}（匹配度${pattern.matchScore}%）`));
+          elements.push(createParagraph(`    病机：${pattern.pathology}`));
+          elements.push(createParagraph(`    治则：${pattern.treatmentPrinciple}`));
+        });
+      }
+
+      // 脏腑关系
+      if (htn.organInvolvement && htn.organInvolvement.length > 0) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(createParagraph('脏腑关系：'));
+        elements.push(
+          createSimpleTable(
+            ['脏腑', '状态', '描述'],
+            htn.organInvolvement.map((org: any) => [org.organ, org.status, org.description]),
+            [2000, 2000, 5000]
+          )
+        );
+      }
+
+      // 中医治疗方案
+      if (htn.treatmentPlan) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(createParagraph('中医治疗方案：'));
+        const tp = htn.treatmentPlan;
+        if (tp.dietaryTherapy) {
+          elements.push(createParagraph('  食疗：' + tp.dietaryTherapy.join('、')));
+        }
+        if (tp.acupuncturePoints) {
+          elements.push(createParagraph('  穴位：' + tp.acupuncturePoints.join('、')));
+        }
+        if (tp.herbalFormulas) {
+          elements.push(createParagraph('  方剂：' + tp.herbalFormulas.join('、')));
+        }
+        if (tp.lifestyle) {
+          elements.push(createParagraph('  调摄：' + tp.lifestyle.join('、')));
+        }
+      }
+
+      elements.push(createDivider());
+    }
+
+    // 高血糖风险（舌诊版本，包含中医深度分析）
+    if (thr.hyperglycemia) {
+      elements.push(createSectionTitle('7.3 高血糖风险评估'));
+
+      const hgly = thr.hyperglycemia;
+      elements.push(
+        createLabeledParagraph('  风险等级：', hgly.riskLevel || '未评估')
+      );
+      elements.push(
+        createLabeledParagraph('  风险评分：', (hgly.riskScore || 0) + '分/100')
+      );
+
+      // 舌象指标
+      if (hgly.tongueIndicators && hgly.tongueIndicators.length > 0) {
+        const indData: string[][] = [];
+        hgly.tongueIndicators.forEach((ind: any) => {
+          if (ind.detected) {
+            indData.push([ind.name, ind.severity, ind.confidence + '%', ind.tcmMeaning || '-']);
+          }
+        });
+        if (indData.length > 0) {
+          elements.push(new Paragraph({ spacing: { before: 150 } }));
+          elements.push(createParagraph('舌象指标：'));
+          elements.push(
+            createSimpleTable(
+              ['指标名称', '严重程度', '置信度', '中医含义'],
+              indData,
+              [2500, 2000, 1500, 4000]
+            )
+          );
+        }
+      }
+
+      // 中医证型分析
+      if (hgly.tcmPatterns && hgly.tcmPatterns.length > 0) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(createParagraph('中医证型分析：'));
+        hgly.tcmPatterns.forEach((pattern: any) => {
+          elements.push(createParagraph(`  • ${pattern.pattern}（匹配度${pattern.matchScore}%）`));
+          elements.push(createParagraph(`    病机：${pattern.pathology}`));
+          elements.push(createParagraph(`    治则：${pattern.treatmentPrinciple}`));
+        });
+      }
+
+      elements.push(createDivider());
+    }
+
+    // 高血脂风险（舌诊版本，包含中医深度分析）
+    if (thr.hyperlipidemia) {
+      elements.push(createSectionTitle('7.4 高血脂风险评估'));
+
+      const hlip = thr.hyperlipidemia;
+      elements.push(
+        createLabeledParagraph('  风险等级：', hlip.riskLevel || '未评估')
+      );
+      elements.push(
+        createLabeledParagraph('  风险评分：', (hlip.riskScore || 0) + '分/100')
+      );
+
+      // 舌象指标
+      if (hlip.tongueIndicators && hlip.tongueIndicators.length > 0) {
+        const indData: string[][] = [];
+        hlip.tongueIndicators.forEach((ind: any) => {
+          if (ind.detected) {
+            indData.push([ind.name, ind.severity, ind.confidence + '%', ind.tcmMeaning || '-']);
+          }
+        });
+        if (indData.length > 0) {
+          elements.push(new Paragraph({ spacing: { before: 150 } }));
+          elements.push(createParagraph('舌象指标：'));
+          elements.push(
+            createSimpleTable(
+              ['指标名称', '严重程度', '置信度', '中医含义'],
+              indData,
+              [2500, 2000, 1500, 4000]
+            )
+          );
+        }
+      }
+
+      // 中医证型分析
+      if (hlip.tcmPatterns && hlip.tcmPatterns.length > 0) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(createParagraph('中医证型分析：'));
+        hlip.tcmPatterns.forEach((pattern: any) => {
+          elements.push(createParagraph(`  • ${pattern.pattern}（匹配度${pattern.matchScore}%）`));
+          elements.push(createParagraph(`    病机：${pattern.pathology}`));
+          elements.push(createParagraph(`    治则：${pattern.treatmentPrinciple}`));
+        });
+      }
+
+      elements.push(createDivider());
+    }
+
+    // 综合中医分析
+    if (thr.comprehensiveTCMAnalysis) {
+      elements.push(createSectionTitle('7.5 综合中医分析'));
+
+      const tcm = thr.comprehensiveTCMAnalysis;
+
+      if (tcm.constitution) {
+        elements.push(
+          createLabeledParagraph('  体质：', tcm.constitution.primary || '未识别')
+        );
+        if (tcm.constitution.secondary) {
+          elements.push(
+            createLabeledParagraph('  次要体质：', tcm.constitution.secondary)
+          );
+        }
+        if (tcm.constitution.trend) {
+          elements.push(
+            createLabeledParagraph('  体质趋势：', tcm.constitution.trend)
+          );
+        }
+      }
+
+      if (tcm.qiBloodStatus) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(
+          createLabeledParagraph('  气血：', `${tcm.qiBloodStatus.qi}、${tcm.qiBloodStatus.blood}（${tcm.qiBloodStatus.balance}）`)
+        );
+      }
+
+      if (tcm.yinYangStatus) {
+        elements.push(new Paragraph({ spacing: { before: 150 } }));
+        elements.push(
+          createLabeledParagraph('  阴阳：', `${tcm.yinYangStatus.yin}、${tcm.yinYangStatus.yang}（${tcm.yinYangStatus.balance}）`)
+        );
+      }
+
+      elements.push(createDivider());
+    }
+
+    // 综合建议
+    if (thr.comprehensiveRecommendations) {
+      elements.push(createSectionTitle('7.6 综合建议'));
+
+      if (thr.comprehensiveRecommendations.immediate) {
+        elements.push(createParagraph('立即行动：'));
+        thr.comprehensiveRecommendations.immediate.forEach((rec: string, idx: number) => {
+          elements.push(createParagraph(`  ${idx + 1}. ${rec}`));
+        });
+      }
+
+      if (thr.comprehensiveRecommendations.shortTerm) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('短期目标（1-3个月）：'));
+        thr.comprehensiveRecommendations.shortTerm.forEach((rec: string, idx: number) => {
+          elements.push(createParagraph(`  ${idx + 1}. ${rec}`));
+        });
+      }
+
+      if (thr.comprehensiveRecommendations.longTerm) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('长期规划（3年以上）：'));
+        thr.comprehensiveRecommendations.longTerm.forEach((rec: string, idx: number) => {
+          elements.push(createParagraph(`  ${idx + 1}. ${rec}`));
+        });
+      }
+
+      elements.push(createDivider());
+    }
+
+    // 生活方式因素
+    if (thr.lifestyleFactors) {
+      elements.push(createSectionTitle('7.7 生活方式因素分析'));
+
+      if (thr.lifestyleFactors.diet) {
+        elements.push(createParagraph('饮食因素：'));
+        elements.push(createLabeledParagraph('  状态：', thr.lifestyleFactors.diet.status || '未评估'));
+        if (thr.lifestyleFactors.diet.recommendations) {
+          elements.push(createParagraph('  建议：'));
+          thr.lifestyleFactors.diet.recommendations.forEach((rec: string) => {
+            elements.push(createParagraph(`    • ${rec}`));
+          });
+        }
+      }
+
+      if (thr.lifestyleFactors.exercise) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('运动因素：'));
+        elements.push(createLabeledParagraph('  状态：', thr.lifestyleFactors.exercise.status || '未评估'));
+        if (thr.lifestyleFactors.exercise.recommendations) {
+          elements.push(createParagraph('  建议：'));
+          thr.lifestyleFactors.exercise.recommendations.forEach((rec: string) => {
+            elements.push(createParagraph(`    • ${rec}`));
+          });
+        }
+      }
+
+      if (thr.lifestyleFactors.sleep) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('睡眠因素：'));
+        elements.push(createLabeledParagraph('  状态：', thr.lifestyleFactors.sleep.status || '未评估'));
+        if (thr.lifestyleFactors.sleep.recommendations) {
+          elements.push(createParagraph('  建议：'));
+          thr.lifestyleFactors.sleep.recommendations.forEach((rec: string) => {
+            elements.push(createParagraph(`    • ${rec}`));
+          });
+        }
+      }
+
+      if (thr.lifestyleFactors.stress) {
+        elements.push(new Paragraph({ spacing: { before: 100 } }));
+        elements.push(createParagraph('压力因素：'));
+        elements.push(createLabeledParagraph('  状态：', thr.lifestyleFactors.stress.status || '未评估'));
+        if (thr.lifestyleFactors.stress.recommendations) {
+          elements.push(createParagraph('  建议：'));
+          thr.lifestyleFactors.stress.recommendations.forEach((rec: string) => {
+            elements.push(createParagraph(`    • ${rec}`));
+          });
+        }
+      }
+
+      elements.push(createDivider());
+    }
   }
 
   return elements;

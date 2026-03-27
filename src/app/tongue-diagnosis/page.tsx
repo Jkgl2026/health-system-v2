@@ -12,9 +12,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Camera, Loader2, FileText, AlertCircle, CheckCircle2, RotateCcw,
-  Download, Copy, Sparkles, ArrowLeft, Heart, History, User, FileDown
+  Download, Copy, Sparkles, ArrowLeft, Heart, History, User, FileDown, Shield
 } from 'lucide-react';
 import { generateTongueDiagnosisReport, TongueDiagnosisData, UserInfo } from '@/lib/report-generator';
+import { TripleHighRiskAssessment } from '@/components/TripleHighRiskAssessment';
 import dynamic from 'next/dynamic';
 
 // 动态导入历史记录组件
@@ -241,6 +242,7 @@ ${result}
         summary: resultData.summary,
         fullReport: resultData.diagnosis || resultData.fullReport,
         timestamp: resultData.timestamp,
+        tripleHighRisk: resultData.tripleHighRisk, // 添加三高风险数据
       };
       
       const reportUserInfo: UserInfo = {
@@ -427,37 +429,54 @@ ${result}
 
             {/* 分析结果 */}
             {result && (
-              <Card className="border-green-200 dark:border-green-800">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
+              <>
+                {/* 三高风险评估（新增） */}
+                {resultData?.tripleHighRisk && (
+                  <Card className="border-green-200 dark:border-green-800 mb-4">
+                    <CardHeader>
                       <CardTitle className="text-lg flex items-center gap-2">
-                        <CheckCircle2 className="h-5 w-5 text-green-500" />
-                        舌诊分析报告
+                        <Shield className="h-5 w-5 text-green-500" />
+                        三高风险综合评估
                       </CardTitle>
-                      <CardDescription>分析完成于 {new Date().toLocaleString('zh-CN')}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <TripleHighRiskAssessment data={resultData.tripleHighRisk} />
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card className="border-green-200 dark:border-green-800">
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg flex items-center gap-2">
+                          <CheckCircle2 className="h-5 w-5 text-green-500" />
+                          舌诊分析报告
+                        </CardTitle>
+                        <CardDescription>分析完成于 {new Date().toLocaleString('zh-CN')}</CardDescription>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={handleCopy}>
+                          {copySuccess ? (<><CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />已复制</>) : (<><Copy className="mr-2 h-4 w-4" />复制</>)}
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handleDownload}>
+                          <Download className="mr-2 h-4 w-4" />下载
+                        </Button>
+                        <Button variant="default" size="sm" onClick={handleExportReport} disabled={exporting}>
+                          {exporting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />导出中...</>) : (<><FileDown className="mr-2 h-4 w-4" />导出报告</>)}
+                        </Button>
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={handleCopy}>
-                        {copySuccess ? (<><CheckCircle2 className="mr-2 h-4 w-4 text-green-500" />已复制</>) : (<><Copy className="mr-2 h-4 w-4" />复制</>)}
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={handleDownload}>
-                        <Download className="mr-2 h-4 w-4" />下载
-                      </Button>
-                      <Button variant="default" size="sm" onClick={handleExportReport} disabled={exporting}>
-                        {exporting ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />导出中...</>) : (<><FileDown className="mr-2 h-4 w-4" />导出报告</>)}
-                      </Button>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                      <div className="whitespace-pre-wrap bg-gray-50 dark:bg-gray-900 p-4 rounded-lg text-sm leading-relaxed">
+                        {result}
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <div className="whitespace-pre-wrap bg-gray-50 dark:bg-gray-900 p-4 rounded-lg text-sm leading-relaxed">
-                      {result}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </>
             )}
 
             {/* 使用说明 */}
