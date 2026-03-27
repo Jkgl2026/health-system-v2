@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk';
+import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
+import { sql } from 'drizzle-orm';
 
 interface BiologicalAgeRequest {
   image: string;
@@ -425,6 +426,24 @@ export async function POST(request: NextRequest) {
       ageDifference,
       biologicalAgeScore,
     });
+
+    // 保存记录到数据库
+    const db = await getDb();
+    const recordId = crypto.randomUUID();
+    const userId = userInfo.phone || userInfo.name || 'anonymous';
+    
+    await db.execute(sql`
+      INSERT INTO biological_age_records (
+        id, user_id, name, gender, phone, 
+        chronological_age, biological_age, age_difference, biological_age_score,
+        aging_features, organ_ages, aging_speed, aging_prediction, reversibility_assessment,
+        health_index, anti_aging_plan, recommendations, summary, full_report,
+        created_at
+      ) VALUES (${recordId}, ${userId}, ${userInfo.name || '未填写'}, ${userInfo.gender || '未知'}, ${userInfo.phone || ''}, ${chronologicalAge}, ${estimatedAge}, ${ageDifference}, ${biologicalAgeScore}, ${JSON.stringify(result.agingFeatures || {})}, ${JSON.stringify(result.organAges || {})}, ${JSON.stringify(result.agingSpeed || {})}, ${JSON.stringify(result.agingPrediction || {})}, ${JSON.stringify(result.reversibilityAssessment || {})}, ${JSON.stringify(result.healthIndex || {})}, ${JSON.stringify(result.antiAgingPlan || {})}, ${JSON.stringify(result.recommendations || [])}, ${result.summary || ''}, ${fullReport}, NOW())
+    `);
+
+    // 添加 recordId 到返回数据
+    (output as any).id = recordId;
 
     return NextResponse.json({
       success: true,

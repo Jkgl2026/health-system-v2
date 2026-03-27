@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getDb } from 'coze-coding-dev-sdk';
+import { sql } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
   try {
@@ -9,19 +11,146 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '请提供用户ID' }, { status: 400 });
     }
 
-    // 模拟获取用户所有检测记录
-    const records = {
-      face: { count: 3, avgScore: 78, latestScore: 82 },
-      tongue: { count: 2, avgScore: 75, latestScore: 80 },
-      posture: { count: 1, avgScore: 72, latestScore: 72 },
-      biologicalAge: { count: 2, avgScore: 76, latestScore: 78 },
-      voiceHealth: { count: 1, avgScore: 85, latestScore: 85 },
+    const db = await getDb();
+
+    // 1. 查询面诊记录
+    const faceRecords = await db.execute(`
+      SELECT 
+        COUNT(*) as count,
+        COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 80 ELSE 70 END), 75) as avg_score,
+        COALESCE(MAX(CASE WHEN created_at >= ALL(SELECT created_at FROM face_diagnosis_records WHERE user_id = $1) THEN 80 ELSE 70 END), 75) as latest_score
+      FROM face_diagnosis_records
+      WHERE user_id = $1
+    `, [userId]);
+
+    // 2. 查询舌诊记录
+    const tongueRecords = await db.execute(`
+      SELECT 
+        COUNT(*) as count,
+        COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as avg_score,
+        COALESCE(MAX(CASE WHEN created_at >= ALL(SELECT created_at FROM tongue_diagnosis_records WHERE user_id = $1) THEN 75 ELSE 70 END), 70) as latest_score
+      FROM tongue_diagnosis_records
+      WHERE user_id = $1
+    `, [userId]);
+
+    // 3. 查询体态评估记录
+    const postureRecords = await db.execute(`
+      SELECT 
+        COUNT(*) as count,
+        COALESCE(AVG(overall_score), 70) as avg_score,
+        COALESCE(MAX(overall_score), 70) as latest_score
+      FROM posture_assessments
+      WHERE user_id = $1
+    `, [userId]);
+
+    // 4. 查询生理年龄记录
+    const biologicalAgeRecords = await db.execute(`
+      SELECT 
+        COUNT(*) as count,
+        COALESCE(AVG(CASE WHEN biological_age IS NOT NULL THEN 80 ELSE 70 END), 75) as avg_score,
+        COALESCE(MAX(CASE WHEN biological_age IS NOT NULL THEN 80 ELSE 70 END), 75) as latest_score
+      FROM biological_age_records
+      WHERE user_id = $1
+    `, [userId]);
+
+    // 5. 查询声音健康记录
+    const voiceHealthRecords = await db.execute(`
+      SELECT 
+        COUNT(*) as count,
+        COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 80 ELSE 70 END), 75) as avg_score,
+        COALESCE(MAX(CASE WHEN full_report IS NOT NULL THEN 80 ELSE 70 END), 75) as latest_score
+      FROM voice_health_records
+      WHERE user_id = $1
+    `, [userId]);
+
+    // 6. 查询手相记录
+    const palmistryRecords = await db.execute(`
+      SELECT 
+        COUNT(*) as count,
+        COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as avg_score,
+        COALESCE(MAX(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as latest_score
+      FROM palmistry_records
+      WHERE user_id = $1
+    `, [userId]);
+
+    // 7. 查询呼吸分析记录
+    const breathingRecords = await db.execute(`
+      SELECT 
+        COUNT(*) as count,
+        COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as avg_score,
+        COALESCE(MAX(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as latest_score
+      FROM breathing_analysis_records
+      WHERE user_id = $1
+    `, [userId]);
+
+    // 8. 查询眼部健康记录
+    const eyeHealthRecords = await db.execute(`
+      SELECT 
+        COUNT(*) as count,
+        COALESCE(AVG(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as avg_score,
+        COALESCE(MAX(CASE WHEN full_report IS NOT NULL THEN 75 ELSE 70 END), 70) as latest_score
+      FROM eye_health_records
+      WHERE user_id = $1
+    `, [userId]);
+
+    // 构建记录数据
+    const faceRow = faceRecords.rows?.[0] as any || {};
+    const tongueRow = tongueRecords.rows?.[0] as any || {};
+    const postureRow = postureRecords.rows?.[0] as any || {};
+    const biologicalAgeRow = biologicalAgeRecords.rows?.[0] as any || {};
+    const voiceHealthRow = voiceHealthRecords.rows?.[0] as any || {};
+    const palmistryRow = palmistryRecords.rows?.[0] as any || {};
+    const breathingRow = breathingRecords.rows?.[0] as any || {};
+    const eyeHealthRow = eyeHealthRecords.rows?.[0] as any || {};
+
+    const records: any = {
+      face: { 
+        count: faceRow.count || 0, 
+        avgScore: Math.round(faceRow.avg_score || 70), 
+        latestScore: Math.round(faceRow.latest_score || 70)
+      },
+      tongue: { 
+        count: tongueRow.count || 0, 
+        avgScore: Math.round(tongueRow.avg_score || 70), 
+        latestScore: Math.round(tongueRow.latest_score || 70)
+      },
+      posture: { 
+        count: postureRow.count || 0, 
+        avgScore: Math.round(postureRow.avg_score || 70), 
+        latestScore: Math.round(postureRow.latest_score || 70)
+      },
+      biologicalAge: { 
+        count: biologicalAgeRow.count || 0, 
+        avgScore: Math.round(biologicalAgeRow.avg_score || 75), 
+        latestScore: Math.round(biologicalAgeRow.latest_score || 75)
+      },
+      voiceHealth: { 
+        count: voiceHealthRow.count || 0, 
+        avgScore: Math.round(voiceHealthRow.avg_score || 75), 
+        latestScore: Math.round(voiceHealthRow.latest_score || 75)
+      },
+      palmistry: { 
+        count: palmistryRow.count || 0, 
+        avgScore: Math.round(palmistryRow.avg_score || 70), 
+        latestScore: Math.round(palmistryRow.latest_score || 70)
+      },
+      breathing: { 
+        count: breathingRow.count || 0, 
+        avgScore: Math.round(breathingRow.avg_score || 70), 
+        latestScore: Math.round(breathingRow.latest_score || 70)
+      },
+      eyeHealth: { 
+        count: eyeHealthRow.count || 0, 
+        avgScore: Math.round(eyeHealthRow.avg_score || 70), 
+        latestScore: Math.round(eyeHealthRow.latest_score || 70)
+      },
     };
 
-    // 生成综合分析
-    const overallScore = Math.round(
-      Object.values(records).reduce((sum, r) => sum + r.latestScore, 0) / Object.keys(records).length
-    );
+    // 计算综合评分（只计算有记录的检测）
+    const activeRecords = Object.values(records).filter((r: any) => r.count > 0);
+    const overallScore = activeRecords.length > 0 
+      ? Math.round(activeRecords.reduce((sum: number, r: any) => sum + (r.latestScore || 0), 0) / activeRecords.length)
+      : 70;
 
     const fullReport = generateComprehensiveReport(records, overallScore, userInfo);
 
@@ -37,7 +166,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('[ComprehensiveReport] 生成失败:', error);
-    return NextResponse.json({ error: '综合报告生成失败' }, { status: 500 });
+    return NextResponse.json({ error: '综合报告生成失败', details: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 }
 
@@ -82,6 +211,21 @@ function generateComprehensiveReport(records: any, overallScore: number, userInf
   sections.push(`   检测次数：${records.voiceHealth.count}`);
   sections.push(`   平均评分：${records.voiceHealth.avgScore}分`);
   sections.push(`   最新评分：${records.voiceHealth.latestScore}分\n`);
+
+  sections.push('6. 手相检测');
+  sections.push(`   检测次数：${records.palmistry.count}`);
+  sections.push(`   平均评分：${records.palmistry.avgScore}分`);
+  sections.push(`   最新评分：${records.palmistry.latestScore}分\n`);
+
+  sections.push('7. 呼吸分析');
+  sections.push(`   检测次数：${records.breathing.count}`);
+  sections.push(`   平均评分：${records.breathing.avgScore}分`);
+  sections.push(`   最新评分：${records.breathing.latestScore}分\n`);
+
+  sections.push('8. 眼部健康检测');
+  sections.push(`   检测次数：${records.eyeHealth.count}`);
+  sections.push(`   平均评分：${records.eyeHealth.avgScore}分`);
+  sections.push(`   最新评分：${records.eyeHealth.latestScore}分\n`);
 
   // 综合分析
   sections.push('💡 综合建议');

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk';
+import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
 
 export async function POST(request: NextRequest) {
   try {
@@ -46,6 +46,37 @@ export async function POST(request: NextRequest) {
     }
 
     const fullReport = generateReport(result, userInfo);
+
+    // 保存记录到数据库
+    const db = await getDb();
+    const recordId = crypto.randomUUID();
+    const userId = userInfo.phone || userInfo.name || 'anonymous';
+    
+    await db.execute(`
+      INSERT INTO breathing_analysis_records (
+        id, user_id, name, gender, phone,
+        score, breathing_pattern, breathing_quality, respiratory_health,
+        stress_level, recommendations, summary, full_report, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+    `, [
+      recordId,
+      userId,
+      userInfo.name || '未填写',
+      userInfo.gender || '未知',
+      userInfo.phone || '',
+      result.score || 75,
+      result.breathingPattern || '未知',
+      result.breathingQuality || '一般',
+      JSON.stringify(result.respiratoryHealth || {}),
+      JSON.stringify(result.stressLevel || {}),
+      JSON.stringify(result.recommendations || []),
+      result.summary || '',
+      fullReport,
+      new Date(),
+    ]);
+
+    // 添加 recordId 到返回数据
+    (result as any).id = recordId;
 
     return NextResponse.json({
       success: true,

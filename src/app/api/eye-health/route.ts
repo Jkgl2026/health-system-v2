@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { LLMClient, Config, HeaderUtils } from 'coze-coding-dev-sdk';
+import { LLMClient, Config, HeaderUtils, getDb } from 'coze-coding-dev-sdk';
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,6 +50,41 @@ export async function POST(request: NextRequest) {
     }
 
     const fullReport = generateReport(result, userInfo);
+
+    // 保存记录到数据库
+    const db = await getDb();
+    const recordId = crypto.randomUUID();
+    const userId = userInfo.phone || userInfo.name || 'anonymous';
+    
+    await db.execute(`
+      INSERT INTO eye_health_records (
+        id, user_id, name, gender, phone,
+        score, sclera_analysis, dark_circles, eye_bags, eye_fatigue,
+        liver_health, circulatory_health, sleep_quality,
+        recommendations, summary, full_report, created_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+    `, [
+      recordId,
+      userId,
+      userInfo.name || '未填写',
+      userInfo.gender || '未知',
+      userInfo.phone || '',
+      result.score || 75,
+      JSON.stringify(result.scleraAnalysis || {}),
+      JSON.stringify(result.darkCircles || {}),
+      JSON.stringify(result.eyeBags || {}),
+      JSON.stringify(result.eyeFatigue || {}),
+      JSON.stringify(result.liverHealth || {}),
+      JSON.stringify(result.circulatoryHealth || {}),
+      JSON.stringify(result.sleepQuality || {}),
+      JSON.stringify(result.recommendations || []),
+      result.summary || '',
+      fullReport,
+      new Date(),
+    ]);
+
+    // 添加 recordId 到返回数据
+    (result as any).id = recordId;
 
     return NextResponse.json({
       success: true,
