@@ -282,6 +282,15 @@ export default function Home() {
                 <Activity className="w-4 h-4 mr-1" />
                 AI体态
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/health-tools')}
+                size="sm"
+                className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <Sparkles className="w-4 h-4 mr-1" />
+                健康工具
+              </Button>
               {!hasHealthData && !isDemoMode && (
                 <Button
                   variant="outline"
