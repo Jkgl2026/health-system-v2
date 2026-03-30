@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
+import { sql } from 'drizzle-orm';
 
 // POST /api/health-questionnaire - 提交健康问卷
 export async function POST(request: NextRequest) {
@@ -70,57 +71,42 @@ export async function POST(request: NextRequest) {
     }
 
     // 确保用户存在
-    await db.execute(
-      'INSERT INTO users (id) VALUES ($1) ON CONFLICT (id) DO UPDATE SET id = $1',
-      [userId]
+    await (db.execute as any)(
+      sql`INSERT INTO users (id) VALUES (${userId}) ON CONFLICT (id) DO UPDATE SET id = ${userId}`
     );
 
     // 插入健康问卷
-    const result = await db.execute(`
-      INSERT INTO health_questionnaires (
-        user_id, age, gender, height, weight, bmi,
-        has_hypertension, hypertension_years, hypertension_medications,
-        has_diabetes, diabetes_years, diabetes_type, diabetes_medications,
-        has_hyperlipidemia, hyperlipidemia_years, hyperlipidemia_medications,
-        other_diseases, symptoms, symptom_duration, symptom_severity,
-        smoking_status, smoking_years, smoking_per_day,
-        drinking_status, drinking_frequency, drinking_type,
-        exercise_frequency, exercise_duration, exercise_type,
-        sleep_hours, sleep_quality, sleep_issues,
-        diet_habits, diet_issues, stress_level, stress_source,
-        family_hypertension, family_diabetes, family_cardiovascular, family_other,
-        notes
-      ) VALUES (
-        $1, $2, $3, $4, $5, $6,
-        $7, $8, $9,
-        $10, $11, $12, $13,
-        $14, $15, $16,
-        $17, $18, $19, $20,
-        $21, $22, $23,
-        $24, $25, $26,
-        $27, $28, $29,
-        $30, $31, $32,
-        $33, $34, $35, $36,
-        $37, $38, $39, $40,
-        $41
-      )
-      RETURNING id
-    `, [
-      userId, age, gender, height, weight, bmi,
-      hasHypertension, hypertensionYears, hypertensionMedications,
-      hasDiabetes, diabetesYears, diabetesType, diabetesMedications,
-      hasHyperlipidemia, hyperlipidemiaYears, hyperlipidemiaMedications,
-      otherDiseases, symptoms, symptomDuration, symptomSeverity,
-      smokingStatus, smokingYears, smokingPerDay,
-      drinkingStatus, drinkingFrequency, drinkingType,
-      exerciseFrequency, exerciseDuration, exerciseType,
-      sleepHours, sleepQuality, sleepIssues,
-      dietHabits, dietIssues, stressLevel, stressSource,
-      familyHypertension, familyDiabetes, familyCardiovascular, familyOther,
-      notes
-    ]);
+    const questionnaireId = crypto.randomUUID();
 
-    const questionnaireId = result.rows[0]?.id;
+    // 步骤1: 插入基本字段
+    await (db.execute as any)(
+      sql`INSERT INTO health_questionnaires (id, user_id, age, gender, height, weight, bmi, notes) VALUES (${questionnaireId}, ${userId}, ${age}, ${gender}, ${height}, ${weight}, ${bmi}, ${notes})`
+    );
+
+    // 步骤2: 更新疾病史字段
+    await (db.execute as any)(
+      sql`UPDATE health_questionnaires SET has_hypertension = ${hasHypertension}, hypertension_years = ${hypertensionYears}, hypertension_medications = ${hypertensionMedications}, has_diabetes = ${hasDiabetes}, diabetes_years = ${diabetesYears}, diabetes_type = ${diabetesType}, diabetes_medications = ${diabetesMedications}, has_hyperlipidemia = ${hasHyperlipidemia}, hyperlipidemia_years = ${hyperlipidemiaYears}, hyperlipidemia_medications = ${hyperlipidemiaMedications}, other_diseases = ${otherDiseases} WHERE id = ${questionnaireId}`
+    );
+
+    // 步骤3: 更新症状史字段
+    await (db.execute as any)(
+      sql`UPDATE health_questionnaires SET symptoms = ${symptoms}, symptom_duration = ${symptomDuration}, symptom_severity = ${symptomSeverity} WHERE id = ${questionnaireId}`
+    );
+
+    // 步骤4: 更新生活习惯字段
+    await (db.execute as any)(
+      sql`UPDATE health_questionnaires SET smoking_status = ${smokingStatus}, smoking_years = ${smokingYears}, smoking_per_day = ${smokingPerDay}, drinking_status = ${drinkingStatus}, drinking_frequency = ${drinkingFrequency}, drinking_type = ${drinkingType}, exercise_frequency = ${exerciseFrequency}, exercise_duration = ${exerciseDuration}, exercise_type = ${exerciseType} WHERE id = ${questionnaireId}`
+    );
+
+    // 步骤5: 更新睡眠和饮食字段
+    await (db.execute as any)(
+      sql`UPDATE health_questionnaires SET sleep_hours = ${sleepHours}, sleep_quality = ${sleepQuality}, sleep_issues = ${sleepIssues}, diet_habits = ${dietHabits}, diet_issues = ${dietIssues} WHERE id = ${questionnaireId}`
+    );
+
+    // 步骤6: 更新压力和家族史字段
+    await (db.execute as any)(
+      sql`UPDATE health_questionnaires SET stress_level = ${stressLevel}, stress_source = ${stressSource}, family_hypertension = ${familyHypertension}, family_diabetes = ${familyDiabetes}, family_cardiovascular = ${familyCardiovascular}, family_other = ${familyOther} WHERE id = ${questionnaireId}`
+    );
 
     return NextResponse.json({
       success: true,
@@ -162,19 +148,16 @@ export async function GET(request: NextRequest) {
     const db = await getDb();
 
     // 查询健康问卷历史
-    const recordsResult = await db.execute(`
-      SELECT * FROM health_questionnaires 
-      WHERE user_id = $1
-      ORDER BY created_at DESC 
-      LIMIT $2 OFFSET $3
-    `, [userId, limit, offset]);
+    const recordsResult = await (db.execute as any)(
+      sql`SELECT * FROM health_questionnaires WHERE user_id = ${userId} ORDER BY created_at DESC LIMIT ${limit} OFFSET ${offset}`
+    );
 
     const records = recordsResult.rows;
 
     // 查询总数
-    const countResult = await db.execute(`
-      SELECT COUNT(*) as count FROM health_questionnaires WHERE user_id = $1
-    `, [userId]);
+    const countResult = await (db.execute as any)(
+      sql`SELECT COUNT(*) as count FROM health_questionnaires WHERE user_id = ${userId}`
+    );
 
     const total = Number(countResult.rows[0]?.count) || 0;
 

@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
+import { sql } from 'drizzle-orm';
 
 // GET /api/health-questionnaire/[id] - 获取单个健康问卷详情
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const { id } = params;
 
     if (!id) {
@@ -19,10 +21,9 @@ export async function GET(
     const db = await getDb();
 
     // 查询健康问卷详情
-    const result = await db.execute(`
-      SELECT * FROM health_questionnaires 
-      WHERE id = $1
-    `, [id]);
+    const result = await (db.execute as any)(
+      sql`SELECT * FROM health_questionnaires WHERE id = ${id}`
+    );
 
     if (result.rows.length === 0) {
       return NextResponse.json(
@@ -54,9 +55,10 @@ export async function GET(
 // DELETE /api/health-questionnaire/[id] - 删除健康问卷
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const params = await context.params;
     const { id } = params;
 
     if (!id) {
@@ -69,11 +71,9 @@ export async function DELETE(
     const db = await getDb();
 
     // 删除健康问卷
-    const result = await db.execute(`
-      DELETE FROM health_questionnaires 
-      WHERE id = $1
-      RETURNING id
-    `, [id]);
+    const result = await (db.execute as any)(
+      sql`DELETE FROM health_questionnaires WHERE id = ${id} RETURNING id`
+    );
 
     if (result.rows.length === 0) {
       return NextResponse.json(

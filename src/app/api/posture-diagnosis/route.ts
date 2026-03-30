@@ -668,6 +668,7 @@ const POSTURE_DIAGNOSIS_SYSTEM_PROMPT = `你是一位中西医结合的资深体
    - 凡高风险结论必须建议就医
    - 凡明确征象必须标注医学依据
    - 凡严重体态问题必须建议专业康复治疗
+`;
 
 // POST /api/posture-diagnosis - 体态评估分析
 export async function POST(request: NextRequest) {
