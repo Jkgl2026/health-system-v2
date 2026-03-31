@@ -291,6 +291,33 @@ export default function Home() {
                 <Sparkles className="w-4 h-4 mr-1" />
                 健康工具
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/health-profile')}
+                size="sm"
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <User className="w-4 h-4 mr-1" />
+                健康档案
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/risk-assessment')}
+                size="sm"
+                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <Shield className="w-4 h-4 mr-1" />
+                风险评估
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/trend-analysis')}
+                size="sm"
+                className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <TrendingUp className="w-4 h-4 mr-1" />
+                趋势分析
+              </Button>
               {!hasHealthData && !isDemoMode && (
                 <Button
                   variant="outline"
