@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info, AlertCircle, ArrowRight, Eye, User, Flame, Droplets, Zap, Sparkles, Award, TrendingUp } from 'lucide-react';
@@ -12,6 +12,7 @@ import { calculateComprehensiveHealthScore } from '@/lib/health-score-calculator
 
 export default function Home() {
   const router = useRouter();
+  const pathname = usePathname();
   const [showIntro, setShowIntro] = useState(true);
   const [healthData, setHealthData] = useState<any>(null);
   const [hasHealthData, setHasHealthData] = useState(false);
@@ -19,6 +20,17 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1); // 1 = 健康评分页，2 = 介绍页
   const [expandedCard, setExpandedCard] = useState<string | null>(null); // 展开的卡片
+  const [isMobile, setIsMobile] = useState(false);
+
+  // 检测是否为移动端
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // 加载演示数据
   const loadDemoData = () => {
@@ -215,7 +227,7 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 pb-16 md:pb-0">
       {/* 头部 */}
       <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-b sticky top-0 z-10">
         <div className="container mx-auto px-3 md:px-4 py-4 md:py-6">
@@ -237,33 +249,50 @@ export default function Home() {
               </div>
             </div>
             <div className="flex gap-2 md:gap-3 flex-wrap">
-              <Button
-                variant="outline"
-                onClick={() => router.push('/face-diagnosis')}
-                size="sm"
-                className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <Eye className="w-4 h-4 mr-1" />
-                AI面诊
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/tongue-diagnosis')}
-                size="sm"
-                className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <Sparkles className="w-4 h-4 mr-1" />
-                AI舌诊
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/health-progress')}
-                size="sm"
-                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <TrendingUp className="w-4 h-4 mr-1" />
-                健康进度
-              </Button>
+              {/* 移动端隐藏的按钮 - 通过健康工具访问 */}
+              {!isMobile && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/face-diagnosis')}
+                    size="sm"
+                    className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+                  >
+                    <Eye className="w-4 h-4 mr-1" />
+                    AI面诊
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/tongue-diagnosis')}
+                    size="sm"
+                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+                  >
+                    <Sparkles className="w-4 h-4 mr-1" />
+                    AI舌诊
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/posture-diagnosis')}
+                    size="sm"
+                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+                  >
+                    <Activity className="w-4 h-4 mr-1" />
+                    AI体态
+                  </Button>
+                </>
+              )}
+              {/* 移动端和桌面端都显示的核心按钮 */}
+              {!isMobile && (
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/health-progress')}
+                  size="sm"
+                  className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+                >
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  健康进度
+                </Button>
+              )}
               <Button
                 variant="outline"
                 onClick={() => router.push('/comprehensive-report')}
@@ -272,15 +301,6 @@ export default function Home() {
               >
                 <Award className="w-4 h-4 mr-1" />
                 综合报告
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/posture-diagnosis')}
-                size="sm"
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <Activity className="w-4 h-4 mr-1" />
-                AI体态
               </Button>
               <Button
                 variant="outline"
@@ -300,25 +320,29 @@ export default function Home() {
                 <User className="w-4 h-4 mr-1" />
                 健康档案
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/risk-assessment')}
-                size="sm"
-                className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <Shield className="w-4 h-4 mr-1" />
-                风险评估
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/trend-analysis')}
-                size="sm"
-                className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <TrendingUp className="w-4 h-4 mr-1" />
-                趋势分析
-              </Button>
-              {!hasHealthData && !isDemoMode && (
+              {!isMobile && (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/risk-assessment')}
+                    size="sm"
+                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+                  >
+                    <Shield className="w-4 h-4 mr-1" />
+                    风险评估
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/trend-analysis')}
+                    size="sm"
+                    className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+                  >
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                    趋势分析
+                  </Button>
+                </>
+              )}
+              {!hasHealthData && !isDemoMode && !isMobile && (
                 <Button
                   variant="outline"
                   onClick={loadDemoData}
@@ -328,20 +352,22 @@ export default function Home() {
                   演示模式
                 </Button>
               )}
-              <Button
-                variant="outline"
-                onClick={() => router.push('/install-guide')}
-                size="sm"
-                className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-xs md:text-sm min-h-[36px]"
-              >
-                如何安装到桌面
-              </Button>
+              {!isMobile && (
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/install-guide')}
+                  size="sm"
+                  className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-xs md:text-sm min-h-[36px]"
+                >
+                  如何安装到桌面
+                </Button>
+              )}
               <Button
                 size="sm"
                 onClick={() => router.push('/personal-info')}
                 className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 min-h-[36px]"
               >
-                开始自检
+                {isMobile ? '开始自检' : '开始自检'}
               </Button>
             </div>
           </div>
@@ -910,6 +936,81 @@ export default function Home() {
       {/* 主内容 - 没有健康数据时显示，或者有健康数据且在第二页时显示 */}
       {(!hasHealthData || currentPage === 2) && (
       <main className="container mx-auto px-4 py-12">
+        {/* 移动端核心功能滑动卡片 */}
+        {isMobile && !hasHealthData && (
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 px-1">
+              快速开始
+            </h3>
+            <div className="flex overflow-x-auto gap-3 pb-3 px-1 scrollbar-hide snap-x">
+              <Card
+                onClick={() => router.push('/health-tools')}
+                className="flex-shrink-0 w-36 cursor-pointer hover:shadow-lg transition-shadow snap-start"
+              >
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl flex items-center justify-center mb-3">
+                    <Sparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">健康工具</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">9个AI检测</p>
+                </CardContent>
+              </Card>
+
+              <Card
+                onClick={() => router.push('/comprehensive-report')}
+                className="flex-shrink-0 w-36 cursor-pointer hover:shadow-lg transition-shadow snap-start"
+              >
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-violet-500 to-purple-500 rounded-xl flex items-center justify-center mb-3">
+                    <Award className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">综合报告</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">全面健康分析</p>
+                </CardContent>
+              </Card>
+
+              <Card
+                onClick={() => router.push('/health-profile')}
+                className="flex-shrink-0 w-36 cursor-pointer hover:shadow-lg transition-shadow snap-start"
+              >
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-3">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">健康档案</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">个人健康管理</p>
+                </CardContent>
+              </Card>
+
+              <Card
+                onClick={() => router.push('/risk-assessment')}
+                className="flex-shrink-0 w-36 cursor-pointer hover:shadow-lg transition-shadow snap-start"
+              >
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center mb-3">
+                    <Shield className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">风险评估</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">风险识别分析</p>
+                </CardContent>
+              </Card>
+
+              <Card
+                onClick={() => router.push('/trend-analysis')}
+                className="flex-shrink-0 w-36 cursor-pointer hover:shadow-lg transition-shadow snap-start"
+              >
+                <CardContent className="p-4 flex flex-col items-center text-center">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-500 rounded-xl flex items-center justify-center mb-3">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                  <h4 className="font-semibold text-sm text-gray-900 dark:text-white mb-1">趋势分析</h4>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">健康数据追踪</p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        )}
+
         {/* 手机版页面切换提示（有数据时显示） */}
         {hasHealthData && (
           <div className="md:hidden mb-6 px-4">
@@ -1127,6 +1228,42 @@ export default function Home() {
 
       {/* PWA 启动重定向 */}
       <PWARedirect />
+
+      {/* 移动端底部导航栏 */}
+      {isMobile && (
+        <nav className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-50 shadow-lg">
+          <div className="flex justify-around items-center py-2">
+            <button
+              onClick={() => router.push('/')}
+              className={`flex flex-col items-center justify-center p-2 min-w-[64px] ${pathname === '/' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400'}`}
+            >
+              <Activity className="w-6 h-6 mb-1" />
+              <span className="text-xs">首页</span>
+            </button>
+            <button
+              onClick={() => router.push('/health-tools')}
+              className="flex flex-col items-center justify-center p-2 min-w-[64px] text-gray-600 dark:text-gray-400"
+            >
+              <Sparkles className="w-6 h-6 mb-1" />
+              <span className="text-xs">检测</span>
+            </button>
+            <button
+              onClick={() => router.push('/health-profile')}
+              className="flex flex-col items-center justify-center p-2 min-w-[64px] text-gray-600 dark:text-gray-400"
+            >
+              <User className="w-6 h-6 mb-1" />
+              <span className="text-xs">档案</span>
+            </button>
+            <button
+              onClick={() => router.push('/comprehensive-report')}
+              className="flex flex-col items-center justify-center p-2 min-w-[64px] text-gray-600 dark:text-gray-400"
+            >
+              <Award className="w-6 h-6 mb-1" />
+              <span className="text-xs">报告</span>
+            </button>
+          </div>
+        </nav>
+      )}
 
       {/* 页脚 */}
       <footer className="bg-white dark:bg-gray-800 border-t mt-12">
