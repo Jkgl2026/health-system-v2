@@ -44,11 +44,12 @@ export default function RiskAssessmentPage() {
   const router = useRouter();
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<RiskAssessmentResult | null>(null);
-  const [questionnaireId, setQuestionnaireId] = useState('');
 
   const handleAnalyze = async () => {
-    if (!questionnaireId) {
-      alert('请先填写健康问卷');
+    // 从localStorage获取用户ID
+    let userId = localStorage.getItem('userId');
+    if (!userId) {
+      alert('请先进行健康自检或填写健康问卷');
       router.push('/health-questionnaire');
       return;
     }
@@ -58,7 +59,13 @@ export default function RiskAssessmentPage() {
       const response = await fetch('/api/risk-assessment', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ questionnaireId }),
+        body: JSON.stringify({
+          userId,
+          userInfo: {
+            age: localStorage.getItem('age'),
+            gender: localStorage.getItem('gender')
+          }
+        }),
       });
       const data = await response.json();
       if (data.success) {

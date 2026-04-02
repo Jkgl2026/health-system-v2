@@ -6,7 +6,7 @@ import { sql } from 'drizzle-orm';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { userId, profileData, latestScores, healthGoals, riskAssessment } = body;
+    const { userId, bloodPressure, heartRate, bloodSugar, cholesterol, notes } = body;
 
     if (!userId) {
       return NextResponse.json({ error: '请提供用户ID' }, { status: 400 });
@@ -14,27 +14,35 @@ export async function POST(request: NextRequest) {
 
     const db = await getDb();
 
+    // 构建健康数据对象
+    const healthData = {
+      bloodPressure: bloodPressure || null,
+      heartRate: heartRate || null,
+      bloodSugar: bloodSugar || null,
+      cholesterol: cholesterol || null,
+      notes: notes || null,
+      updatedAt: new Date().toISOString()
+    };
+
     // 检查档案是否已存在
     const existingProfile = await db.execute(
-      sql`SELECT id FROM health_profiles WHERE user_id = ${userId}`
+      sql`SELECT id, constitution FROM health_profiles WHERE user_id = ${userId}`
     );
 
     if (existingProfile.rows?.length > 0) {
       // 更新现有档案
       await db.execute(sql`
-        UPDATE health_profiles 
-        SET profile_data = COALESCE(${JSON.stringify(profileData || {})}, profile_data),
-            latest_scores = COALESCE(${JSON.stringify(latestScores || {})}, latest_scores),
-            health_goals = COALESCE(${JSON.stringify(healthGoals || {})}, health_goals),
-            risk_assessment = COALESCE(${JSON.stringify(riskAssessment || {})}, risk_assessment),
+        UPDATE health_profiles
+        SET constitution = COALESCE(${JSON.stringify(healthData)}, constitution),
             updated_at = NOW()
         WHERE user_id = ${userId}
       `);
     } else {
       // 创建新档案
+      const profileId = crypto.randomUUID();
       await db.execute(sql`
-        INSERT INTO health_profiles (user_id, profile_data, latest_scores, health_goals, risk_assessment)
-        VALUES (${userId}, ${JSON.stringify(profileData || {})}, ${JSON.stringify(latestScores || {})}, ${JSON.stringify(healthGoals || {})}, ${JSON.stringify(riskAssessment || {})})
+        INSERT INTO health_profiles (id, user_id, constitution, updated_at)
+        VALUES (${profileId}, ${userId}, ${JSON.stringify(healthData)}, NOW())
       `);
     }
 
