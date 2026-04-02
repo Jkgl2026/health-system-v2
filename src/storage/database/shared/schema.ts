@@ -557,6 +557,37 @@ export const insertReminderSchema = createCoercedInsertSchema(reminders).pick({
   isActive: true,
 });
 
+// 健康评估会话表 - 关联健康问卷、体质问卷、健康分析、风险评估
+export const assessmentSessions = pgTable(
+  "assessment_sessions",
+  {
+    id: varchar("id", { length: 36 })
+      .primaryKey()
+      .default(sql`gen_random_uuid()`),
+    userId: varchar("user_id", { length: 36 })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    sessionName: varchar("session_name", { length: 255 }), // 会话名称，如"2024年春季健康评估"
+    status: varchar("status", { length: 20 }).notNull().default("in_progress"), // 状态：in_progress, completed
+    personalInfo: jsonb("personal_info"), // 个人信息快照
+    healthQuestionnaireId: varchar("health_questionnaire_id", { length: 36 }), // 关联健康问卷
+    constitutionQuestionnaireId: varchar("constitution_questionnaire_id", { length: 36 }), // 关联体质问卷
+    healthAnalysisId: varchar("health_analysis_id", { length: 36 }), // 关联健康分析
+    riskAssessmentId: varchar("risk_assessment_id", { length: 36 }), // 关联风险评估
+    currentStep: varchar("current_step", { length: 50 }).default("personal_info"), // 当前步骤
+    completedAt: timestamp("completed_at", { withTimezone: true }), // 完成时间
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
+  },
+  (table) => ({
+    userIdIdx: index("assessment_sessions_user_id_idx").on(table.userId),
+    userIdStatusIdx: index("assessment_sessions_user_id_status_idx").on(table.userId, table.status),
+    createdAtIdx: index("assessment_sessions_created_at_idx").on(table.createdAt),
+  })
+);
+
 // TypeScript 类型导出
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
@@ -584,6 +615,8 @@ export type CheckInRecord = typeof checkInRecords.$inferSelect;
 export type InsertCheckInRecord = typeof checkInRecords.$inferInsert;
 export type Reminder = typeof reminders.$inferSelect;
 export type InsertReminder = typeof reminders.$inferInsert;
+export type AssessmentSession = typeof assessmentSessions.$inferSelect;
+export type InsertAssessmentSession = typeof assessmentSessions.$inferInsert;
 
 // 诊断表类型从单独的类型文件导出
 // 这些表不由 Drizzle 管理，类型定义在 diagnosis-types.ts
