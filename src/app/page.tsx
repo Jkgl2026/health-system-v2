@@ -297,6 +297,15 @@ export default function Home() {
                 <User className="w-4 h-4 mr-1" />
                 健康档案
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/constitution-analysis')}
+                size="sm"
+                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <Flame className="w-4 h-4 mr-1" />
+                体质分析
+              </Button>
               {!isMobile && (
                 <>
                   <Button
