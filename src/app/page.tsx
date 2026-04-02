@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info, AlertCircle, ArrowRight, Eye, User, Flame, Droplets, Zap, Sparkles, Award, TrendingUp } from 'lucide-react';
+import { CheckCircle2, Activity, Heart, Shield, Target, BookOpen, ClipboardCheck, Settings, Info, AlertCircle, ArrowRight, Eye, User, Flame, Droplets, Zap, Sparkles, Award, TrendingUp, FileText } from 'lucide-react';
 import { PWAInstallPrompt } from '@/components/PWAInstallPrompt';
 import { PWARedirect } from './page-pwa-redirect';
 import { BODY_SYMPTOMS, BAD_HABITS_CHECKLIST, BODY_SYMPTOMS_300 } from '@/lib/health-data';
@@ -269,6 +269,15 @@ export default function Home() {
               >
                 <Award className="w-4 h-4 mr-1" />
                 综合报告
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/health-questionnaire')}
+                size="sm"
+                className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <FileText className="w-4 h-4 mr-1" />
+                健康问卷
               </Button>
               <Button
                 variant="outline"
