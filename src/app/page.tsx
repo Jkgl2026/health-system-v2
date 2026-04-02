@@ -249,38 +249,6 @@ export default function Home() {
               </div>
             </div>
             <div className="flex gap-2 md:gap-3 flex-wrap">
-              {/* 移动端隐藏的按钮 - 通过健康工具访问 */}
-              {!isMobile && (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/face-diagnosis')}
-                    size="sm"
-                    className="bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-                  >
-                    <Eye className="w-4 h-4 mr-1" />
-                    AI面诊
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/tongue-diagnosis')}
-                    size="sm"
-                    className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-                  >
-                    <Sparkles className="w-4 h-4 mr-1" />
-                    AI舌诊
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/posture-diagnosis')}
-                    size="sm"
-                    className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-                  >
-                    <Activity className="w-4 h-4 mr-1" />
-                    AI体态
-                  </Button>
-                </>
-              )}
               {/* 移动端和桌面端都显示的核心按钮 */}
               {!isMobile && (
                 <Button
@@ -306,7 +274,7 @@ export default function Home() {
                 variant="outline"
                 onClick={() => router.push('/health-tools')}
                 size="sm"
-                className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
               >
                 <Sparkles className="w-4 h-4 mr-1" />
                 健康工具
@@ -315,7 +283,7 @@ export default function Home() {
                 variant="outline"
                 onClick={() => router.push('/health-profile')}
                 size="sm"
-                className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
               >
                 <User className="w-4 h-4 mr-1" />
                 健康档案
@@ -342,32 +310,13 @@ export default function Home() {
                   </Button>
                 </>
               )}
-              {!hasHealthData && !isDemoMode && !isMobile && (
-                <Button
-                  variant="outline"
-                  onClick={loadDemoData}
-                  size="sm"
-                  className="border-purple-500 text-purple-600 hover:bg-purple-50 text-xs md:text-sm min-h-[36px]"
-                >
-                  演示模式
-                </Button>
-              )}
-              {!isMobile && (
-                <Button
-                  variant="outline"
-                  onClick={() => router.push('/install-guide')}
-                  size="sm"
-                  className="border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-xs md:text-sm min-h-[36px]"
-                >
-                  如何安装到桌面
-                </Button>
-              )}
               <Button
-                size="sm"
+                size="lg"
                 onClick={() => router.push('/personal-info')}
-                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600 min-h-[36px]"
+                className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-bold text-base py-4 rounded-full shadow-lg hover:shadow-xl transition-all group min-h-[44px] px-6"
               >
-                {isMobile ? '开始自检' : '开始自检'}
+                <Activity className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                {isMobile ? '开始健康自检' : '开始健康自检'}
               </Button>
             </div>
           </div>

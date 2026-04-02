@@ -5,8 +5,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Heart, Activity, Camera, Clock, Mic, Eye, Hand,
-  Wind, FileText, ArrowRight, Sparkles, Shield
+  Heart, Activity, Camera, Eye, 
+  ArrowRight, Sparkles, Shield, ClipboardCheck,
+  TrendingUp, Target
 } from 'lucide-react';
 
 interface HealthTool {
@@ -17,9 +18,20 @@ interface HealthTool {
   path: string;
   status: 'available' | 'developing';
   category: string;
+  featured?: boolean;
 }
 
 const healthTools: HealthTool[] = [
+  {
+    id: 'health-self-check',
+    title: '症状自检',
+    description: '通过100项身体语言简表、252项不良生活习惯、300项症状表全面评估健康状况',
+    icon: <ClipboardCheck className="h-8 w-8" />,
+    path: '/personal-info',
+    status: 'available',
+    category: '症状评估',
+    featured: true,
+  },
   {
     id: 'face-diagnosis',
     title: 'AI 面诊',
@@ -27,7 +39,7 @@ const healthTools: HealthTool[] = [
     icon: <Camera className="h-8 w-8" />,
     path: '/face-diagnosis',
     status: 'available',
-    category: '中医诊断',
+    category: 'AI检测',
   },
   {
     id: 'tongue-diagnosis',
@@ -36,7 +48,7 @@ const healthTools: HealthTool[] = [
     icon: <Heart className="h-8 w-8" />,
     path: '/tongue-diagnosis',
     status: 'available',
-    category: '中医诊断',
+    category: 'AI检测',
   },
   {
     id: 'posture-diagnosis',
@@ -45,65 +57,20 @@ const healthTools: HealthTool[] = [
     icon: <Activity className="h-8 w-8" />,
     path: '/posture-diagnosis',
     status: 'available',
-    category: '体态评估',
+    category: 'AI检测',
   },
   {
-    id: 'biological-age',
-    title: '生理年龄评估',
-    description: '基于面部特征分析您的生理年龄，评估衰老因素',
-    icon: <Clock className="h-8 w-8" />,
-    path: '/biological-age',
+    id: 'health-progress',
+    title: '健康进度',
+    description: '查看健康管理方案执行进度，持续跟踪改善效果',
+    icon: <TrendingUp className="h-8 w-8" />,
+    path: '/health-progress',
     status: 'available',
-    category: '健康评估',
-  },
-  {
-    id: 'voice-health',
-    title: '声音健康评估',
-    description: '通过声音分析呼吸系统和声带健康状态',
-    icon: <Mic className="h-8 w-8" />,
-    path: '/voice-health',
-    status: 'available',
-    category: '健康评估',
-  },
-  {
-    id: 'palm-diagnosis',
-    title: 'AI 手相',
-    description: '通过手相分析健康运势和体质特征',
-    icon: <Hand className="h-8 w-8" />,
-    path: '/palmistry-health',
-    status: 'available',
-    category: '中医诊断',
-  },
-  {
-    id: 'breathing-analysis',
-    title: '呼吸分析',
-    description: '分析呼吸模式和深度，评估呼吸系统健康',
-    icon: <Wind className="h-8 w-8" />,
-    path: '/breathing-analysis',
-    status: 'available',
-    category: '健康评估',
-  },
-  {
-    id: 'eye-health',
-    title: '眼部健康',
-    description: '通过眼部特征分析视力和眼部健康状态',
-    icon: <Eye className="h-8 w-8" />,
-    path: '/eye-health',
-    status: 'available',
-    category: '健康评估',
-  },
-  {
-    id: 'comprehensive-report',
-    title: '综合报告',
-    description: '整合所有检测数据，生成全面的健康报告',
-    icon: <FileText className="h-8 w-8" />,
-    path: '/comprehensive-report',
-    status: 'available',
-    category: '报告管理',
+    category: '进度管理',
   },
 ];
 
-const categories = ['中医诊断', '健康评估', '体态评估', '报告管理'];
+const categories = ['症状评估', 'AI检测', '进度管理'];
 
 export default function HealthToolsPage() {
   const router = useRouter();
@@ -129,14 +96,11 @@ export default function HealthToolsPage() {
                 <Sparkles className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">AI 健康检测工具</h1>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">健康工具</h1>
                 <p className="text-sm text-gray-500">全方位智能健康评估系统</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => router.push('/user-management')}>
-                用户管理
-              </Button>
               <Badge variant="outline" className="bg-blue-50 text-blue-700">
                 <Shield className="h-3 w-3 mr-1" />
                 医疗级AI分析
@@ -166,61 +130,146 @@ export default function HealthToolsPage() {
           ))}
         </div>
 
+        {/* 重点工具 - 症状自检 */}
+        <div className="mb-8">
+          <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer group"
+                onClick={() => router.push('/personal-info')}>
+            <CardContent className="p-8">
+              <div className="flex items-center gap-6">
+                <div className="flex-shrink-0 w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                  <ClipboardCheck className="h-10 w-10 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Badge className="bg-white/20 text-white border-0">
+                      <Target className="h-3 w-3 mr-1" />
+                      推荐优先使用
+                    </Badge>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">症状自检</h3>
+                  <p className="text-white/90 text-sm max-w-2xl">
+                    通过100项身体语言简表、252项不良生活习惯、300项症状表，全面评估您的健康状况，生成个性化健康方案
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <ArrowRight className="h-8 w-8 text-white" />
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* AI检测工具标题 */}
+        <div className="mb-4">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-600" />
+            AI 智能检测
+          </h3>
+        </div>
+
         {/* 工具卡片网格 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {healthTools.map((tool) => (
-            <Card
-              key={tool.id}
-              className={`group hover:shadow-lg transition-all duration-300 cursor-pointer ${
-                tool.status === 'available'
-                  ? 'hover:border-blue-300 hover:scale-[1.02]'
-                  : 'opacity-70'
-              }`}
-              onClick={() => handleToolClick(tool)}
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className={`p-3 rounded-lg ${
-                    tool.status === 'available'
-                      ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white'
-                      : 'bg-gray-200 text-gray-400'
-                  }`}>
-                    {tool.icon}
-                  </div>
-                  <Badge
-                    variant={tool.status === 'available' ? 'default' : 'secondary'}
-                    className={
+          {healthTools.map((tool) => {
+            if (tool.id === 'health-self-check' || tool.id === 'health-progress') return null;
+            
+            return (
+              <Card
+                key={tool.id}
+                className={`group hover:shadow-lg transition-all duration-300 cursor-pointer ${
+                  tool.status === 'available'
+                    ? 'hover:border-blue-300 hover:scale-[1.02]'
+                    : 'opacity-70'
+                }`}
+                onClick={() => handleToolClick(tool)}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className={`p-3 rounded-lg ${
                       tool.status === 'available'
-                        ? 'bg-green-500 hover:bg-green-600'
-                        : 'bg-yellow-100 text-yellow-700'
-                    }
-                  >
-                    {tool.status === 'available' ? '可用' : '开发中'}
-                  </Badge>
-                </div>
-                <CardTitle className="mt-4 group-hover:text-blue-600 transition-colors">
-                  {tool.title}
-                </CardTitle>
-                <CardDescription className="text-sm">
-                  {tool.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline" className="text-xs">
-                    {tool.category}
-                  </Badge>
-                  {tool.status === 'available' && (
-                    <Button variant="ghost" size="sm" className="group-hover:bg-blue-50">
-                      立即使用
-                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                        ? 'bg-gradient-to-br from-blue-500 to-purple-500 text-white'
+                        : 'bg-gray-200 text-gray-400'
+                    }`}>
+                      {tool.icon}
+                    </div>
+                    <Badge
+                      variant={tool.status === 'available' ? 'default' : 'secondary'}
+                      className={
+                        tool.status === 'available'
+                          ? 'bg-green-500 hover:bg-green-600'
+                          : 'bg-yellow-100 text-yellow-700'
+                      }
+                    >
+                      {tool.status === 'available' ? '可用' : '开发中'}
+                    </Badge>
+                  </div>
+                  <CardTitle className="mt-4 group-hover:text-blue-600 transition-colors">
+                    {tool.title}
+                  </CardTitle>
+                  <CardDescription className="text-sm">
+                    {tool.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="outline" className="text-xs">
+                      {tool.category}
+                    </Badge>
+                    {tool.status === 'available' && (
+                      <Button variant="ghost" size="sm" className="group-hover:bg-blue-50">
+                        立即使用
+                        <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
+
+        {/* 进度管理工具标题 */}
+        <div className="mb-4 mt-8">
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-green-600" />
+            进度管理
+          </h3>
+        </div>
+
+        {/* 健康进度卡片 */}
+        <Card 
+          className="group hover:shadow-lg transition-all duration-300 cursor-pointer hover:border-green-300 hover:scale-[1.02]"
+          onClick={() => router.push('/health-progress')}
+        >
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div className="p-3 rounded-lg bg-gradient-to-br from-green-500 to-teal-500 text-white">
+                <TrendingUp className="h-8 w-8" />
+              </div>
+              <Badge className="bg-green-500 hover:bg-green-600">
+                可用
+              </Badge>
+            </div>
+            <CardTitle className="mt-4 group-hover:text-green-600 transition-colors">
+              健康进度
+            </CardTitle>
+            <CardDescription className="text-sm">
+              查看健康管理方案执行进度，持续跟踪改善效果
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-between">
+              <Badge variant="outline" className="text-xs">
+                进度管理
+              </Badge>
+              <Button variant="ghost" size="sm" className="group-hover:bg-green-50">
+                查看进度
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* 功能说明 */}
         <Card className="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950 dark:to-purple-950 border-blue-200 dark:border-blue-800">
@@ -234,29 +283,29 @@ export default function HealthToolsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <Heart className="h-4 w-4 text-red-500" />
-                  三高风险评估
+                  <ClipboardCheck className="h-4 w-4 text-blue-500" />
+                  全面症状评估
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  面诊和舌诊均支持高血压、高血糖、高血脂的深度风险评估，提供中医证型分析和预防建议
+                  100项身体语言简表 + 252项不良生活习惯 + 300项症状表，全方位健康数据采集
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <Activity className="h-4 w-4 text-blue-500" />
-                  体态智能分析
+                  <Camera className="h-4 w-4 text-purple-500" />
+                  AI 智能检测
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  基于MediaPipe骨骼点检测，精准测量体态角度，提供专业的矫正训练建议
+                  面诊、舌诊、体态评估，结合中医理论和现代医学，提供精准健康分析
                 </p>
               </div>
               <div>
                 <h3 className="font-semibold mb-2 flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-green-500" />
-                  专业报告导出
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  持续进度跟踪
                 </h3>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  支持Word格式报告导出，完整的健康分析和建议，方便保存和分享
+                  健康进度追踪，持续监控改善效果，动态调整健康管理方案
                 </p>
               </div>
             </div>
