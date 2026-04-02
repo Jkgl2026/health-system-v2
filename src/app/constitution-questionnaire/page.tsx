@@ -7,23 +7,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, ArrowRight, CheckCircle, Clock, AlertCircle } from 'lucide-react';
-import {
-  CONSTITUTION_QUESTIONS,
-  CONSTITUTION_NAMES,
-  calculateConstitutionScore,
-  determineConstitutionType,
-  getAllQuestions
-} from '@/lib/constitution-questions';
+import { ArrowLeft, ArrowRight, CheckCircle, Clock, AlertCircle, Activity, Info } from 'lucide-react';
+import { CONSTITUTION_QUESTIONS, CONSTITUTION_NAMES, calculateConstitutionScore, determineConstitutionType } from '@/lib/constitution-questions';
 
 export default function ConstitutionQuestionnairePage() {
   const router = useRouter();
-  const [currentTab, setCurrentTab] = useState('PINGHE');
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [showResult, setShowResult] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+
+  // 获取所有问题（平铺）
+  const allQuestions = Object.entries(CONSTITUTION_QUESTIONS).flatMap(([type, questions]) =>
+    questions.map(q => ({ ...q, constitutionType: type }))
+  );
+
+  // 随机打乱问题顺序（让用户不知道属于哪种体质）
+  const [shuffledQuestions, setShuffledQuestions] = useState<any[]>([]);
+
+  // 初始化时打乱问题顺序
+  useEffect(() => {
+    const shuffled = [...allQuestions];
+    // Fisher-Yates 洗牌算法
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setShuffledQuestions(shuffled);
+  }, []);
 
   // 加载已保存的答案
   useEffect(() => {
@@ -40,9 +52,8 @@ export default function ConstitutionQuestionnairePage() {
 
   // 计算完成进度
   const calculateProgress = () => {
-    const totalQuestions = getAllQuestions().length;
     const answeredCount = Object.keys(answers).length;
-    return Math.round((answeredCount / totalQuestions) * 100);
+    return Math.round((answeredCount / allQuestions.length) * 100);
   };
 
   // 处理答案变化
@@ -51,11 +62,19 @@ export default function ConstitutionQuestionnairePage() {
       ...prev,
       [questionId]: score
     }));
+
+    // 自动跳到下一题
+    if (currentQuestionIndex < shuffledQuestions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    }
   };
 
   // 提交问卷
   const handleSubmit = async () => {
     setIsLoading(true);
+
+    // 模拟分析延迟
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     const scores = calculateConstitutionScore(answers);
     const constitutionType = determineConstitutionType(scores);
@@ -73,28 +92,15 @@ export default function ConstitutionQuestionnairePage() {
     setAnswers({});
     setShowResult(false);
     setResult(null);
+    setCurrentQuestionIndex(0);
     localStorage.removeItem('constitutionQuestionnaire');
   };
 
   // 查看详细分析
   const handleViewDetails = () => {
-    // 将结果保存到体质分析
     localStorage.setItem('constitutionQuestionnaireResult', JSON.stringify(result));
     router.push('/constitution-analysis');
   };
-
-  // 问卷标签
-  const tabList = [
-    { value: 'PINGHE', label: '平和质' },
-    { value: 'QIXU', label: '气虚质' },
-    { value: 'YANGXU', label: '阳虚质' },
-    { value: 'YINXU', label: '阴虚质' },
-    { value: 'TANSHI', label: '痰湿质' },
-    { value: 'SHIRE', label: '湿热质' },
-    { value: 'XUEYU', label: '血瘀质' },
-    { value: 'QIYU', label: '气郁质' },
-    { value: 'TEBING', label: '特禀质' }
-  ];
 
   if (showResult && result) {
     return (
@@ -116,127 +122,111 @@ export default function ConstitutionQuestionnairePage() {
         <div className="container mx-auto px-4 py-8 max-w-4xl">
           {/* 结果标题 */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-orange-500 to-amber-500 rounded-full mb-4 animate-pulse">
               <CheckCircle className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              体质辨识结果
+              您的中医体质是：<span className="text-orange-600 dark:text-orange-400">{result.constitutionType.primary}</span>
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              基于中医体质分类与判定标准
+              基于中医体质分类与判定标准，共分析 {allQuestions.length} 个维度
             </p>
           </div>
 
           {/* 主要体质 */}
-          <Card className="mb-6 border-2 border-orange-200 dark:border-orange-800">
+          <Card className="mb-6 border-4 border-orange-300 dark:border-orange-700 shadow-xl">
             <CardHeader className="bg-gradient-to-r from-orange-500 to-amber-500 text-white">
-              <CardTitle className="text-2xl">
-                您的主要体质：{result.constitutionType.primary}
+              <CardTitle className="text-2xl flex items-center gap-3">
+                <CheckCircle className="w-8 h-8" />
+                {result.constitutionType.primary}
               </CardTitle>
-              <CardDescription className="text-orange-100">
+              <CardDescription className="text-orange-100 text-base">
                 {result.constitutionType.isBalanced
-                  ? '恭喜您！您的体质类型为平和质，属于健康的体质状态。'
-                  : '您属于偏颇体质，建议进行针对性的调理。'}
+                  ? '恭喜您！您的体质类型为平和质，这是健康的体质状态。继续保持良好的生活习惯！'
+                  : '您属于偏颇体质，建议按照以下调理方案进行针对性调理。'}
               </CardDescription>
             </CardHeader>
+            <CardContent className="pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">体质得分</div>
+                  <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                    {result.scores[Object.keys(result.scores).find(key =>
+                      CONSTITUTION_NAMES[key as keyof typeof CONSTITUTION_NAMES] === result.constitutionType.primary
+                    ) || 0]}分
+                  </div>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg">
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">问题回答</div>
+                  <div className="text-3xl font-bold text-amber-600 dark:text-amber-400">
+                    {Object.keys(answers).length}/{allQuestions.length}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
           </Card>
 
           {/* 次要体质 */}
           {result.constitutionType.secondary.length > 0 && (
             <Card className="mb-6">
               <CardHeader>
-                <CardTitle className="text-xl">兼夹体质</CardTitle>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Activity className="w-5 h-5 text-amber-500" />
+                  兼夹体质
+                </CardTitle>
                 <CardDescription>
                   除了主要体质外，您还兼有以下体质特征
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {result.constitutionType.secondary.map((type: string, index: number) => (
-                    <span
+                    <div
                       key={index}
-                      className="px-4 py-2 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-100 rounded-full text-sm font-medium"
+                      className="px-6 py-3 bg-gradient-to-r from-orange-100 to-amber-100 dark:from-orange-900/30 dark:to-amber-900/30 text-orange-800 dark:text-orange-100 rounded-full text-base font-semibold shadow-md"
                     >
                       {type}
-                    </span>
+                    </div>
                   ))}
                 </div>
               </CardContent>
             </Card>
           )}
 
-          {/* 评分详情 */}
-          <Card className="mb-6">
+          {/* 详细分析提示 */}
+          <Card className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-800">
             <CardHeader>
-              <CardTitle className="text-xl">各项体质得分</CardTitle>
-              <CardDescription>
-                得分越高，该体质特征越明显（转化分）
-              </CardDescription>
+              <CardTitle className="text-xl flex items-center gap-2">
+                <Info className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                超级详细分析
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {Object.entries(result.scores).map(([type, score]) => {
-                  const constitutionName = CONSTITUTION_NAMES[type as keyof typeof CONSTITUTION_NAMES];
-                  const isPrimary = constitutionName === result.constitutionType.primary;
-                  const isSecondary = result.constitutionType.secondary.includes(constitutionName);
-
-                  return (
-                    <div key={type} className="space-y-2">
-                      <div className="flex justify-between items-center">
-                        <span className={`font-medium ${isPrimary ? 'text-orange-600 dark:text-orange-400 font-bold' : ''}`}>
-                          {constitutionName}
-                          {isPrimary && ' (主要)'}
-                          {isSecondary && ' (兼夹)'}
-                        </span>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{score}分</span>
-                      </div>
-                      <Progress
-                        value={score}
-                        className={isPrimary ? 'h-3' : 'h-2'}
-                      />
+                <p className="text-gray-700 dark:text-gray-300">
+                  我们为您准备了超级详细的体质分析报告，包括：
+                </p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    '体质特征详解',
+                    '成因分析',
+                    '典型症状',
+                    '易患疾病',
+                    '心理特征',
+                    '适应能力',
+                    '饮食调理方案',
+                    '运动指导',
+                    '生活习惯建议',
+                    '情绪管理',
+                    '中医调理',
+                    '预防措施'
+                  ].map((item, index) => (
+                    <div key={index} className="flex items-center gap-2 text-sm">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      {item}
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* 体质解读 */}
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="text-xl">体质解读</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4 text-gray-700 dark:text-gray-300">
-                {result.constitutionType.isBalanced ? (
-                  <div>
-                    <p className="mb-3">
-                      <strong className="text-green-600 dark:text-green-400">平和质</strong>是健康的体质状态，表现为：
-                    </p>
-                    <ul className="list-disc list-inside space-y-2 ml-4">
-                      <li>阴阳气血调和</li>
-                      <li>体态适中，面色红润</li>
-                      <li>精力充沛，不易疲劳</li>
-                      <li>适应能力强，耐受寒热</li>
-                      <li>睡眠良好，饮食正常</li>
-                    </ul>
-                    <p className="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                      建议继续保持良好的生活习惯，定期进行健康检查。
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    <p className="mb-3">
-                      <strong>偏颇体质</strong>提示您的身体处于亚健康状态或容易患某种疾病的风险较高。
-                    </p>
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mt-3">
-                      <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-2">温馨提示</h4>
-                      <p className="text-sm text-blue-700 dark:text-blue-300">
-                        建议您查看详细的体质分析报告，了解您的体质特征、成因、易患疾病，并获取个性化的调理方案。
-                      </p>
-                    </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -246,18 +236,31 @@ export default function ConstitutionQuestionnairePage() {
             <Button
               variant="outline"
               onClick={handleReset}
-              className="flex-1"
+              className="flex-1 h-14 text-base"
             >
               重新测试
             </Button>
             <Button
               onClick={handleViewDetails}
-              className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
+              className="flex-1 h-14 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-base"
             >
-              查看详细分析
-              <ArrowRight className="w-4 h-4 ml-2" />
+              查看超级详细分析
+              <ArrowRight className="w-5 h-5 ml-2" />
             </Button>
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  const currentQuestion = shuffledQuestions[currentQuestionIndex];
+
+  if (!currentQuestion) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Activity className="h-12 w-12 animate-spin mx-auto mb-4 text-blue-500" />
+          <p className="text-gray-600">加载问卷中...</p>
         </div>
       </div>
     );
@@ -280,25 +283,25 @@ export default function ConstitutionQuestionnairePage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                中医体质辨识问卷
+                中医体质辨识
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                基于《中医体质分类与判定》标准
+                基于标准中医体质分类，共 {allQuestions.length} 个问题
               </p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {calculateProgress()}%
+              <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                {currentQuestionIndex + 1}/{allQuestions.length}
               </div>
-              <div className="text-xs text-gray-600 dark:text-gray-400">完成进度</div>
+              <div className="text-xs text-gray-600 dark:text-gray-400">进度</div>
             </div>
           </div>
 
-          <Progress value={calculateProgress()} className="h-2" />
+          <Progress value={calculateProgress()} className="h-3" />
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-3xl">
         {/* 说明卡片 */}
         <Card className="mb-6 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
           <CardHeader>
@@ -312,8 +315,8 @@ export default function ConstitutionQuestionnairePage() {
                   <div className="space-y-2 text-sm">
                     <p>• 请根据您<strong>最近3个月</strong>的实际感受进行回答</p>
                     <p>• 每个问题有5个选项，请选择最符合您情况的选项</p>
-                    <p>• <strong>没有</strong> = 1分，<strong>很少</strong> = 2分，<strong>有时</strong> = 3分，<strong>经常</strong> = 4分，<strong>总是</strong> = 5分</p>
-                    <p>• 回答完所有问题后，点击"提交分析"查看结果</p>
+                    <p>• 问题会自动跳转，无需手动操作</p>
+                    <p>• 回答完所有问题后，系统会自动分析您的体质</p>
                   </div>
                 </CardDescription>
               </div>
@@ -321,106 +324,105 @@ export default function ConstitutionQuestionnairePage() {
           </CardHeader>
         </Card>
 
-        {/* 问卷标签 */}
-        <Tabs value={currentTab} onValueChange={setCurrentTab} className="mb-6">
-          <TabsList className="grid w-full grid-cols-3 lg:grid-cols-9 gap-1 h-auto">
-            {tabList.map(tab => (
-              <TabsTrigger
-                key={tab.value}
-                value={tab.value}
-                className="text-xs py-2 data-[state=active]:bg-orange-500 data-[state=active]:text-white"
-              >
-                {tab.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        {/* 问题卡片 */}
+        <Card className="border-2 border-orange-200 dark:border-orange-800 shadow-lg">
+          <CardContent className="pt-8 pb-8">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-full mb-4">
+                <Activity className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                问题 {currentQuestionIndex + 1}
+              </h2>
+              <p className="text-2xl text-gray-800 dark:text-gray-200 leading-relaxed">
+                {currentQuestion?.question}
+              </p>
+            </div>
 
-          {/* 问卷内容 */}
-          {tabList.map(tab => {
-            const questions = CONSTITUTION_QUESTIONS[tab.value as keyof typeof CONSTITUTION_QUESTIONS];
-
-            return (
-              <TabsContent key={tab.value} value={tab.value}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{tab.label}</CardTitle>
-                    <CardDescription>
-                      共 {questions.length} 个问题
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {questions.map((question, index) => (
-                        <div key={question.id} className="space-y-3">
-                          <Label className="text-base font-medium">
-                            {index + 1}. {question.question}
-                          </Label>
-                          <RadioGroup
-                            value={answers[question.id]?.toString() || ''}
-                            onValueChange={(value) =>
-                              handleAnswerChange(question.id, parseInt(value))
-                            }
-                          >
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-                              {[1, 2, 3, 4, 5].map(score => (
-                                <div key={score} className="flex items-center space-x-2">
-                                  <RadioGroupItem value={score.toString()} id={`${question.id}_${score}`} />
-                                  <Label
-                                    htmlFor={`${question.id}_${score}`}
-                                    className="cursor-pointer text-sm"
-                                  >
-                                    {score === 1 ? '没有' :
-                                     score === 2 ? '很少' :
-                                     score === 3 ? '有时' :
-                                     score === 4 ? '经常' : '总是'}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
-                          </RadioGroup>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            );
-          })}
-        </Tabs>
-
-        {/* 底部操作栏 */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t shadow-lg p-4">
-          <div className="container mx-auto max-w-4xl flex gap-3">
-            <Button
-              variant="outline"
-              onClick={handleReset}
-              disabled={Object.keys(answers).length === 0}
-              className="flex-1"
+            <RadioGroup
+              value={answers[currentQuestion?.id]?.toString() || ''}
+              onValueChange={(value) =>
+                handleAnswerChange(currentQuestion.id, parseInt(value))
+              }
+              className="space-y-3"
             >
-              重置问卷
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={Object.keys(answers).length < getAllQuestions().length || isLoading}
-              className="flex-1 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600"
-            >
-              {isLoading ? (
-                <>
-                  <Clock className="w-4 h-4 mr-2 animate-spin" />
-                  分析中...
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="w-4 h-4 mr-2" />
-                  提交分析
-                </>
-              )}
-            </Button>
-          </div>
+              {[
+                { value: 1, label: '没有', description: '完全没有这种情况' },
+                { value: 2, label: '很少', description: '偶尔出现，频率很低' },
+                { value: 3, label: '有时', description: '有时会出现，一般情况' },
+                { value: 4, label: '经常', description: '经常出现，较为频繁' },
+                { value: 5, label: '总是', description: '总是如此，持续存在' }
+              ].map((option) => (
+                <div
+                  key={option.value}
+                  className={`relative flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-all
+                    ${answers[currentQuestion?.id] === option.value
+                      ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-700'
+                    }`}
+                  onClick={() => handleAnswerChange(currentQuestion.id, option.value)}
+                >
+                  <RadioGroupItem
+                    value={option.value.toString()}
+                    id={`${currentQuestion.id}_${option.value}`}
+                    className="mt-1"
+                  />
+                  <div className="flex-1">
+                    <Label
+                      htmlFor={`${currentQuestion.id}_${option.value}`}
+                      className="cursor-pointer font-semibold text-gray-900 dark:text-white"
+                    >
+                      {option.label}
+                    </Label>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {option.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </RadioGroup>
+          </CardContent>
+        </Card>
+
+        {/* 导航按钮 */}
+        <div className="flex justify-between mt-6">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentQuestionIndex(Math.max(0, currentQuestionIndex - 1))}
+            disabled={currentQuestionIndex === 0}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            上一题
+          </Button>
+          <Button
+            onClick={() => setCurrentQuestionIndex(Math.min(shuffledQuestions.length - 1, currentQuestionIndex + 1))}
+            disabled={currentQuestionIndex === shuffledQuestions.length - 1}
+          >
+            下一题
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
         </div>
 
-        {/* 底部占位，避免内容被操作栏遮挡 */}
-        <div className="h-24"></div>
+        {/* 提交按钮 */}
+        {Object.keys(answers).length === allQuestions.length && (
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="w-full mt-6 h-14 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-lg"
+          >
+            {isLoading ? (
+              <>
+                <Clock className="w-5 h-5 mr-2 animate-spin" />
+                分析中...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-5 h-5 mr-2" />
+                提交分析
+              </>
+            )}
+          </Button>
+        )}
       </div>
     </div>
   );
