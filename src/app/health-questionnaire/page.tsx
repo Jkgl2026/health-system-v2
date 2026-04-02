@@ -145,8 +145,37 @@ export default function HealthQuestionnairePage() {
     setMessage(null);
 
     try {
-      // 这里需要获取 userId，暂时使用临时值
-      const userId = 'temp-user-id'; // TODO: 从用户认证获取真实 userId
+      // 尝试从 localStorage 获取用户ID
+      let userId = localStorage.getItem('userId');
+      
+      // 如果没有用户ID，则创建新用户
+      if (!userId) {
+        const createResponse = await fetch('/api/user', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: '问卷用户',
+            age: formData.age ? parseInt(formData.age) : null,
+            gender: formData.gender || null,
+            height: formData.height ? parseFloat(formData.height) : null,
+            weight: formData.weight ? parseFloat(formData.weight) : null,
+          })
+        });
+        const createUserResult = await createResponse.json();
+        if (createUserResult.success && createUserResult.user) {
+          userId = createUserResult.user.id;
+          if (userId) {
+            localStorage.setItem('userId', userId);
+          }
+        } else {
+          throw new Error('创建用户失败');
+        }
+      }
+
+      // 确保userId存在
+      if (!userId) {
+        throw new Error('无法获取用户ID');
+      }
 
       const response = await fetch('/api/health-questionnaire', {
         method: 'POST',

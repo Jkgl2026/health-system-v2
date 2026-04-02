@@ -84,28 +84,75 @@ export async function POST(request: NextRequest) {
     );
 
     // 步骤2: 更新疾病史字段
+    const hasHypertensionValue = hasHypertension !== undefined ? hasHypertension : false;
+    const hasDiabetesValue = hasDiabetes !== undefined ? hasDiabetes : false;
+    const hasHyperlipidemiaValue = hasHyperlipidemia !== undefined ? hasHyperlipidemia : false;
+    
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET has_hypertension = ${hasHypertension}, hypertension_years = ${hypertensionYears}, hypertension_medications = ${hypertensionMedications}, has_diabetes = ${hasDiabetes}, diabetes_years = ${diabetesYears}, diabetes_type = ${diabetesType}, diabetes_medications = ${diabetesMedications}, has_hyperlipidemia = ${hasHyperlipidemia}, hyperlipidemia_years = ${hyperlipidemiaYears}, hyperlipidemia_medications = ${hyperlipidemiaMedications}, other_diseases = ${otherDiseases} WHERE id = ${questionnaireId}`
+      sql`UPDATE health_questionnaires SET 
+        has_hypertension = COALESCE(${hasHypertensionValue}, false),
+        hypertension_years = ${hypertensionYears || null},
+        hypertension_medications = ${hypertensionMedications || null},
+        has_diabetes = COALESCE(${hasDiabetesValue}, false),
+        diabetes_years = ${diabetesYears || null},
+        diabetes_type = ${diabetesType || null},
+        diabetes_medications = ${diabetesMedications || null},
+        has_hyperlipidemia = COALESCE(${hasHyperlipidemiaValue}, false),
+        hyperlipidemia_years = ${hyperlipidemiaYears || null},
+        hyperlipidemia_medications = ${hyperlipidemiaMedications || null},
+        other_diseases = ${otherDiseases || null}
+        WHERE id = ${questionnaireId}`
     );
 
     // 步骤3: 更新症状史字段
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET symptoms = ${symptoms}, symptom_duration = ${symptomDuration}, symptom_severity = ${symptomSeverity} WHERE id = ${questionnaireId}`
+      sql`UPDATE health_questionnaires SET 
+        symptoms = ${symptoms || null},
+        symptom_duration = ${symptomDuration || null},
+        symptom_severity = ${symptomSeverity || null}
+        WHERE id = ${questionnaireId}`
     );
 
     // 步骤4: 更新生活习惯字段
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET smoking_status = ${smokingStatus}, smoking_years = ${smokingYears}, smoking_per_day = ${smokingPerDay}, drinking_status = ${drinkingStatus}, drinking_frequency = ${drinkingFrequency}, drinking_type = ${drinkingType}, exercise_frequency = ${exerciseFrequency}, exercise_duration = ${exerciseDuration}, exercise_type = ${exerciseType} WHERE id = ${questionnaireId}`
+      sql`UPDATE health_questionnaires SET 
+        smoking_status = ${smokingStatus || null},
+        smoking_years = ${smokingYears || null},
+        smoking_per_day = ${smokingPerDay || null},
+        drinking_status = ${drinkingStatus || null},
+        drinking_frequency = ${drinkingFrequency || null},
+        drinking_type = ${drinkingType || null},
+        exercise_frequency = ${exerciseFrequency || null},
+        exercise_duration = ${exerciseDuration || null},
+        exercise_type = ${exerciseType || null}
+        WHERE id = ${questionnaireId}`
     );
 
     // 步骤5: 更新睡眠和饮食字段
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET sleep_hours = ${sleepHours}, sleep_quality = ${sleepQuality}, sleep_issues = ${sleepIssues}, diet_habits = ${dietHabits}, diet_issues = ${dietIssues} WHERE id = ${questionnaireId}`
+      sql`UPDATE health_questionnaires SET 
+        sleep_hours = ${sleepHours || null},
+        sleep_quality = ${sleepQuality || null},
+        sleep_issues = ${sleepIssues || null},
+        diet_habits = ${dietHabits || null},
+        diet_issues = ${dietIssues || null}
+        WHERE id = ${questionnaireId}`
     );
 
     // 步骤6: 更新压力和家族史字段
+    const familyHypertensionValue = familyHypertension !== undefined ? familyHypertension : false;
+    const familyDiabetesValue = familyDiabetes !== undefined ? familyDiabetes : false;
+    const familyCardiovascularValue = familyCardiovascular !== undefined ? familyCardiovascular : false;
+    
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET stress_level = ${stressLevel}, stress_source = ${stressSource}, family_hypertension = ${familyHypertension}, family_diabetes = ${familyDiabetes}, family_cardiovascular = ${familyCardiovascular}, family_other = ${familyOther} WHERE id = ${questionnaireId}`
+      sql`UPDATE health_questionnaires SET 
+        stress_level = ${stressLevel || null},
+        stress_source = ${stressSource || null},
+        family_hypertension = COALESCE(${familyHypertensionValue}, false),
+        family_diabetes = COALESCE(${familyDiabetesValue}, false),
+        family_cardiovascular = COALESCE(${familyCardiovascularValue}, false),
+        family_other = ${familyOther || null}
+        WHERE id = ${questionnaireId}`
     );
 
     return NextResponse.json({
