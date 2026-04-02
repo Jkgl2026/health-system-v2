@@ -84,30 +84,37 @@ export async function POST(request: NextRequest) {
     );
 
     // 步骤2: 更新疾病史字段
-    const hasHypertensionValue = hasHypertension !== undefined ? hasHypertension : false;
-    const hasDiabetesValue = hasDiabetes !== undefined ? hasDiabetes : false;
-    const hasHyperlipidemiaValue = hasHyperlipidemia !== undefined ? hasHyperlipidemia : false;
-    
+    const hasHypertensionValue = hasHypertension === true;
+    const hasDiabetesValue = hasDiabetes === true;
+    const hasHyperlipidemiaValue = hasHyperlipidemia === true;
+
+    // 处理数组字段 - 将数组转换为PostgreSQL JSONB格式
+    const formatArray = (arr: any[] | null | undefined) => {
+      if (!Array.isArray(arr) || arr.length === 0) return null;
+      // jsonb类型字段需要JSON字符串格式
+      return JSON.stringify(arr);
+    };
+
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET 
-        has_hypertension = COALESCE(${hasHypertensionValue}, false),
+      sql`UPDATE health_questionnaires SET
+        has_hypertension = ${hasHypertensionValue},
         hypertension_years = ${hypertensionYears || null},
-        hypertension_medications = ${hypertensionMedications || null},
-        has_diabetes = COALESCE(${hasDiabetesValue}, false),
+        hypertension_medications = ${formatArray(hypertensionMedications)},
+        has_diabetes = ${hasDiabetesValue},
         diabetes_years = ${diabetesYears || null},
         diabetes_type = ${diabetesType || null},
-        diabetes_medications = ${diabetesMedications || null},
-        has_hyperlipidemia = COALESCE(${hasHyperlipidemiaValue}, false),
+        diabetes_medications = ${formatArray(diabetesMedications)},
+        has_hyperlipidemia = ${hasHyperlipidemiaValue},
         hyperlipidemia_years = ${hyperlipidemiaYears || null},
-        hyperlipidemia_medications = ${hyperlipidemiaMedications || null},
-        other_diseases = ${otherDiseases || null}
+        hyperlipidemia_medications = ${formatArray(hyperlipidemiaMedications)},
+        other_diseases = ${formatArray(otherDiseases)}
         WHERE id = ${questionnaireId}`
     );
 
     // 步骤3: 更新症状史字段
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET 
-        symptoms = ${symptoms || null},
+      sql`UPDATE health_questionnaires SET
+        symptoms = ${formatArray(symptoms)},
         symptom_duration = ${symptomDuration || null},
         symptom_severity = ${symptomSeverity || null}
         WHERE id = ${questionnaireId}`
@@ -115,43 +122,43 @@ export async function POST(request: NextRequest) {
 
     // 步骤4: 更新生活习惯字段
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET 
+      sql`UPDATE health_questionnaires SET
         smoking_status = ${smokingStatus || null},
         smoking_years = ${smokingYears || null},
         smoking_per_day = ${smokingPerDay || null},
         drinking_status = ${drinkingStatus || null},
         drinking_frequency = ${drinkingFrequency || null},
-        drinking_type = ${drinkingType || null},
+        drinking_type = ${formatArray(drinkingType)},
         exercise_frequency = ${exerciseFrequency || null},
         exercise_duration = ${exerciseDuration || null},
-        exercise_type = ${exerciseType || null}
+        exercise_type = ${formatArray(exerciseType)}
         WHERE id = ${questionnaireId}`
     );
 
     // 步骤5: 更新睡眠和饮食字段
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET 
+      sql`UPDATE health_questionnaires SET
         sleep_hours = ${sleepHours || null},
         sleep_quality = ${sleepQuality || null},
-        sleep_issues = ${sleepIssues || null},
+        sleep_issues = ${formatArray(sleepIssues)},
         diet_habits = ${dietHabits || null},
-        diet_issues = ${dietIssues || null}
+        diet_issues = ${formatArray(dietIssues)}
         WHERE id = ${questionnaireId}`
     );
 
     // 步骤6: 更新压力和家族史字段
-    const familyHypertensionValue = familyHypertension !== undefined ? familyHypertension : false;
-    const familyDiabetesValue = familyDiabetes !== undefined ? familyDiabetes : false;
-    const familyCardiovascularValue = familyCardiovascular !== undefined ? familyCardiovascular : false;
-    
+    const familyHypertensionValue = familyHypertension === true;
+    const familyDiabetesValue = familyDiabetes === true;
+    const familyCardiovascularValue = familyCardiovascular === true;
+
     await (db.execute as any)(
-      sql`UPDATE health_questionnaires SET 
+      sql`UPDATE health_questionnaires SET
         stress_level = ${stressLevel || null},
-        stress_source = ${stressSource || null},
-        family_hypertension = COALESCE(${familyHypertensionValue}, false),
-        family_diabetes = COALESCE(${familyDiabetesValue}, false),
-        family_cardiovascular = COALESCE(${familyCardiovascularValue}, false),
-        family_other = ${familyOther || null}
+        stress_source = ${formatArray(stressSource)},
+        family_hypertension = ${familyHypertensionValue},
+        family_diabetes = ${familyDiabetesValue},
+        family_cardiovascular = ${familyCardiovascularValue},
+        family_other = ${formatArray(familyOther)}
         WHERE id = ${questionnaireId}`
     );
 

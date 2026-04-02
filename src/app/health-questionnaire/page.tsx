@@ -182,28 +182,49 @@ export default function HealthQuestionnairePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
-          ...formData,
           age: formData.age ? parseInt(formData.age) : null,
+          gender: formData.gender || null,
           height: formData.height ? parseFloat(formData.height) : null,
           weight: formData.weight ? parseFloat(formData.weight) : null,
+          // 疾病史
+          hasHypertension: formData.hasHypertension ?? false,
           hypertensionYears: formData.hypertensionYears ? parseInt(formData.hypertensionYears) : null,
-          diabetesYears: formData.diabetesYears ? parseInt(formData.diabetesYears) : null,
-          hyperlipidemiaYears: formData.hyperlipidemiaYears ? parseInt(formData.hyperlipidemiaYears) : null,
-          smokingYears: formData.smokingYears ? parseInt(formData.smokingYears) : null,
-          smokingPerDay: formData.smokingPerDay ? parseInt(formData.smokingPerDay) : null,
-          exerciseDuration: formData.exerciseDuration ? parseInt(formData.exerciseDuration) : null,
-          sleepHours: formData.sleepHours ? parseFloat(formData.sleepHours) : null,
           hypertensionMedications: formData.hypertensionMedications.length > 0 ? formData.hypertensionMedications : null,
+          hasDiabetes: formData.hasDiabetes ?? false,
+          diabetesYears: formData.diabetesYears ? parseInt(formData.diabetesYears) : null,
+          diabetesType: formData.diabetesType || null,
           diabetesMedications: formData.diabetesMedications.length > 0 ? formData.diabetesMedications : null,
+          hasHyperlipidemia: formData.hasHyperlipidemia ?? false,
+          hyperlipidemiaYears: formData.hyperlipidemiaYears ? parseInt(formData.hyperlipidemiaYears) : null,
           hyperlipidemiaMedications: formData.hyperlipidemiaMedications.length > 0 ? formData.hyperlipidemiaMedications : null,
           otherDiseases: formData.otherDiseases.length > 0 ? formData.otherDiseases : null,
+          // 症状史
           symptoms: formData.symptoms.length > 0 ? formData.symptoms : null,
+          symptomDuration: formData.symptomDuration || null,
+          symptomSeverity: formData.symptomSeverity || null,
+          // 生活习惯
+          smokingStatus: formData.smokingStatus || null,
+          smokingYears: formData.smokingYears ? parseInt(formData.smokingYears) : null,
+          smokingPerDay: formData.smokingPerDay ? parseInt(formData.smokingPerDay) : null,
+          drinkingStatus: formData.drinkingStatus || null,
+          drinkingFrequency: formData.drinkingFrequency || null,
           drinkingType: formData.drinkingType.length > 0 ? formData.drinkingType : null,
+          exerciseFrequency: formData.exerciseFrequency || null,
+          exerciseDuration: formData.exerciseDuration ? parseInt(formData.exerciseDuration) : null,
           exerciseType: formData.exerciseType.length > 0 ? formData.exerciseType : null,
+          sleepHours: formData.sleepHours ? parseFloat(formData.sleepHours) : null,
+          sleepQuality: formData.sleepQuality || null,
           sleepIssues: formData.sleepIssues.length > 0 ? formData.sleepIssues : null,
+          dietHabits: formData.dietHabits || null,
           dietIssues: formData.dietIssues.length > 0 ? formData.dietIssues : null,
+          stressLevel: formData.stressLevel || null,
           stressSource: formData.stressSource.length > 0 ? formData.stressSource : null,
+          // 家族病史
+          familyHypertension: formData.familyHypertension ?? false,
+          familyDiabetes: formData.familyDiabetes ?? false,
+          familyCardiovascular: formData.familyCardiovascular ?? false,
           familyOther: formData.familyOther.length > 0 ? formData.familyOther : null,
+          notes: formData.notes || null
         })
       });
 
@@ -212,7 +233,10 @@ export default function HealthQuestionnairePage() {
       if (result.success) {
         setMessage({ type: 'success', text: '健康问卷提交成功！' });
       } else {
-        setMessage({ type: 'error', text: result.error || '提交失败，请重试' });
+        console.error('问卷提交失败:', result);
+        const errorMessage = result.error || '提交失败，请重试';
+        const detailMessage = result.details ? ` (${result.details})` : '';
+        setMessage({ type: 'error', text: errorMessage + detailMessage });
       }
     } catch (error) {
       setMessage({ type: 'error', text: '网络错误，请稍后重试' });
