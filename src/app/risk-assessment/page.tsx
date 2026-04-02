@@ -199,34 +199,13 @@ export default function RiskAssessmentPage() {
                 </AlertDescription>
               </Alert>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    问卷ID（可选）
-                  </label>
-                  <input
-                    type="text"
-                    value={questionnaireId}
-                    onChange={(e) => setQuestionnaireId(e.target.value)}
-                    className="w-full px-4 py-2 border rounded-md"
-                    placeholder="如未填写，系统将使用最新问卷数据"
-                  />
-                </div>
-
-                {!questionnaireId && (
-                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <p className="text-sm text-blue-800 dark:text-blue-300">
-                      💡 提示：建议先完成健康问卷以获得更准确的评估结果
-                    </p>
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto text-blue-600"
-                      onClick={() => router.push('/health-questionnaire')}
-                    >
-                      前往填写健康问卷 →
-                    </Button>
-                  </div>
-                )}
+              <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <p className="text-sm text-blue-800 dark:text-blue-300 mb-2">
+                  💡 提示：系统将基于您的历史健康数据进行评估
+                </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400">
+                  建议先完成健康问卷或进行AI检测以获得更准确的评估结果
+                </p>
               </div>
 
               <Button
@@ -326,7 +305,8 @@ export default function RiskAssessmentPage() {
                               <div
                                 className={`h-2 rounded-full ${getRiskLevelColor(
                                   data.level === '低风险' ? 'low' :
-                                  data.level === '中等风险' ? 'medium' : 'high'
+                                  data.level === '中等风险' ? 'medium' :
+                                  data.level === '高风险' ? 'high' : 'low'
                                 )}`}
                                 style={{ width: `${data.score}%` }}
                               />
@@ -500,7 +480,6 @@ export default function RiskAssessmentPage() {
               <Button
                 onClick={() => {
                   setResult(null);
-                  setQuestionnaireId('');
                 }}
               >
                 重新评估

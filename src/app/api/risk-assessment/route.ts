@@ -40,14 +40,83 @@ export async function POST(request: NextRequest) {
       await db.execute(sql`
         INSERT INTO risk_factors (user_id, risk_type, risk_name, risk_level, likelihood, impact, risk_score, detected_from, notes)
         VALUES (${userId}, ${risk.riskType}, ${risk.riskName}, ${risk.riskLevel}, ${risk.likelihood}, ${risk.impact}, ${risk.riskScore}, ${risk.detectedFrom}, ${risk.notes})
-        ON CONFLICT (user_id, risk_type, risk_name) DO UPDATE 
+        ON CONFLICT (user_id, risk_type, risk_name) DO UPDATE
         SET risk_level = EXCLUDED.risk_level, risk_score = EXCLUDED.risk_score, updated_at = NOW()
       `);
     }
 
+    // 转换数据格式以匹配前端期望
+    const transformRiskLevel = (level: string) => {
+      if (level === '低' || level === 'low') return '低';
+      if (level === '中' || level === 'medium') return '中';
+      if (level === '高' || level === 'high') return '高';
+      return '低';
+    };
+
+    const getRiskLevelText = (level: string) => {
+      const l = transformRiskLevel(level);
+      if (l === '低') return '低风险';
+      if (l === '中') return '中等风险';
+      if (l === '高') return '高风险';
+      return '低风险';
+    };
+
+    const transformedData = {
+      overallRisk: {
+        score: riskAssessment.overallRiskScore || 0,
+        level: getRiskLevelText(riskAssessment.overallRiskLevel || 'low'),
+        summary: riskAssessment.summary || '风险评估完成'
+      },
+      systemRisks: {
+        cardiovascular: {
+          score: riskAssessment.systemRisks?.cardiovascular?.score || 0,
+          level: getRiskLevelText(riskAssessment.systemRisks?.cardiovascular?.level || 'low'),
+          factors: riskAssessment.systemRisks?.cardiovascular?.factors || []
+        },
+        respiratory: {
+          score: riskAssessment.systemRisks?.respiratory?.score || 0,
+          level: getRiskLevelText(riskAssessment.systemRisks?.respiratory?.level || 'low'),
+          factors: riskAssessment.systemRisks?.respiratory?.factors || []
+        },
+        digestive: {
+          score: riskAssessment.systemRisks?.digestive?.score || 0,
+          level: getRiskLevelText(riskAssessment.systemRisks?.digestive?.level || 'low'),
+          factors: riskAssessment.systemRisks?.digestive?.factors || []
+        },
+        endocrine: {
+          score: riskAssessment.systemRisks?.endocrine?.score || 0,
+          level: getRiskLevelText(riskAssessment.systemRisks?.endocrine?.level || 'low'),
+          factors: riskAssessment.systemRisks?.endocrine?.factors || []
+        },
+        nervous: {
+          score: riskAssessment.systemRisks?.nervous?.score || 0,
+          level: getRiskLevelText(riskAssessment.systemRisks?.nervous?.level || 'low'),
+          factors: riskAssessment.systemRisks?.nervous?.factors || []
+        },
+        musculoskeletal: {
+          score: riskAssessment.systemRisks?.musculoskeletal?.score || 0,
+          level: getRiskLevelText(riskAssessment.systemRisks?.musculoskeletal?.level || 'low'),
+          factors: riskAssessment.systemRisks?.musculoskeletal?.factors || []
+        }
+      },
+      riskFactors: (riskAssessment.riskFactors || []).map((factor: any) => ({
+        category: factor.riskType || '未知',
+        riskName: factor.riskName || '未知风险',
+        severity: transformRiskLevel(factor.riskLevel || 'low') as 'low' | 'medium' | 'high',
+        description: factor.impact || '暂无描述',
+        recommendation: factor.notes || '建议关注'
+      })),
+      priorityRecommendations: (riskAssessment.priorityRisks || []).map((risk: any) => risk.recommendation || risk.risk || '关注健康风险'),
+      lifestyleRecommendations: (riskAssessment.preventiveMeasures || [])
+        .filter((item: any) => item.category === '生活方式')
+        .flatMap((item: any) => item.measures || []),
+      medicalRecommendations: riskAssessment.medicalAdvice?.departments?.map((dept: string) => `建议就诊：${dept}`) || [],
+      disclaimer: '本评估结果仅供参考，不能替代专业医疗诊断。如有不适，请及时就医。'
+    };
+
     return NextResponse.json({
       success: true,
-      data: riskAssessment,
+      data: transformedData,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
