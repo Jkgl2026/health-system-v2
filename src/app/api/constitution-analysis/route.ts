@@ -838,7 +838,7 @@ export async function POST(request: NextRequest) {
         ${JSON.stringify(analysisResult.secondaryConstitutions)},
         ${analysisResult.confidence}, ${JSON.stringify(analysisResult.scores)},
         ${JSON.stringify(analysisResult.features)},
-        ${sql.raw(analysisResult.riskFactors.length > 0 ? `ARRAY[${analysisResult.riskFactors.map(r => `'${r}'`).join(',')}]` : 'ARRAY[]::TEXT[]')},
+        ${sql.raw(analysisResult.riskFactors.length > 0 ? `ARRAY[${analysisResult.riskFactors.map((r: string) => `'${r}'`).join(',')}]` : 'ARRAY[]::TEXT[]')},
         ${analysisResult.improvementPotential},
         ${JSON.stringify(analysisResult.dataSources)},
         NOW()
