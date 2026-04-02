@@ -29,12 +29,12 @@ export async function POST(request: NextRequest) {
       email: data.email || null,
       age: data.age || null,
       gender: data.gender || null,
-      weight: data.weight || null,
-      height: data.height || null,
+      weight: data.weight !== null && data.weight !== undefined ? String(data.weight) : null,
+      height: data.height !== null && data.height !== undefined ? String(data.height) : null,
       bloodPressure: data.bloodPressure || null,
       occupation: data.occupation || null,
       address: data.address || null,
-      bmi: data.bmi || null,
+      bmi: data.bmi !== null && data.bmi !== undefined ? String(data.bmi) : null,
     };
 
     // 每次都创建新用户，不管手机号是否存在
@@ -87,12 +87,12 @@ export async function PATCH(request: NextRequest) {
     if (data.email !== undefined) userData.email = data.email;
     if (data.age !== undefined) userData.age = data.age;
     if (data.gender !== undefined) userData.gender = data.gender;
-    if (data.weight !== undefined) userData.weight = data.weight;
-    if (data.height !== undefined) userData.height = data.height;
+    if (data.weight !== undefined) userData.weight = data.weight !== null ? String(data.weight) : null;
+    if (data.height !== undefined) userData.height = data.height !== null ? String(data.height) : null;
     if (data.bloodPressure !== undefined) userData.bloodPressure = data.bloodPressure;
     if (data.occupation !== undefined) userData.occupation = data.occupation;
     if (data.address !== undefined) userData.address = data.address;
-    if (data.bmi !== undefined) userData.bmi = data.bmi;
+    if (data.bmi !== undefined) userData.bmi = data.bmi !== null ? String(data.bmi) : null;
 
     // 优先使用 userId 更新
     if (userId) {
