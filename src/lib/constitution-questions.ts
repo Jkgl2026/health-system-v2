@@ -1,7 +1,17 @@
 // 中医体质辨识问卷（基于《中医体质分类与判定》标准）
 // 每种体质7-8个问题，采用5级评分制（1=没有，2=很少，3=有时，4=经常，5=总是）
 
-export const CONSTITUTION_QUESTIONS = {
+export interface ConstitutionQuestion {
+  id: string;
+  question: string;
+  score: number;
+  maxScore: number;
+  reverse?: boolean; // 是否为反向题（分数越高体质越差）
+  femaleOnly?: boolean; // 是否仅适用于女性
+  maleOnly?: boolean; // 是否仅适用于男性
+}
+
+export const CONSTITUTION_QUESTIONS: Record<string, ConstitutionQuestion[]> = {
   // 平和质 - 参照组，8个问题
   PINGHE: [
     {

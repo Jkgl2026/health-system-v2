@@ -4,6 +4,13 @@
  */
 
 /**
+ * 检查是否在浏览器环境中
+ */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+}
+
+/**
  * 本地存储键名常量
  */
 export const STORAGE_KEYS = {
@@ -24,6 +31,9 @@ export const STORAGE_KEYS = {
  * 保存数据到 localStorage
  */
 export function saveToStorage(key: string, data: any): void {
+  if (!isBrowser()) {
+    return;
+  }
   try {
     localStorage.setItem(key, JSON.stringify(data));
     console.log(`[FormDataManager] 保存数据: ${key}`);
@@ -36,6 +46,9 @@ export function saveToStorage(key: string, data: any): void {
  * 从 localStorage 加载数据
  */
 export function loadFromStorage<T>(key: string, defaultValue?: T): T | null {
+  if (!isBrowser()) {
+    return defaultValue || null;
+  }
   try {
     const data = localStorage.getItem(key);
     if (data) {
@@ -52,6 +65,9 @@ export function loadFromStorage<T>(key: string, defaultValue?: T): T | null {
  * 从 localStorage 删除数据
  */
 export function removeFromStorage(key: string): void {
+  if (!isBrowser()) {
+    return;
+  }
   try {
     localStorage.removeItem(key);
     console.log(`[FormDataManager] 删除数据: ${key}`);
@@ -96,6 +112,9 @@ export function getFormDataSummary(): Record<string, any> {
  * 检查是否有任何已保存的表单数据
  */
 export function hasAnyFormData(): boolean {
+  if (!isBrowser()) {
+    return false;
+  }
   return Object.values(STORAGE_KEYS).some(key => {
     const data = localStorage.getItem(key);
     return data !== null && data !== '';

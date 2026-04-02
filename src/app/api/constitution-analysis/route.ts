@@ -993,7 +993,7 @@ async function performConstitutionAnalysis(data: any): Promise<any> {
       if (CONSTITUTION_TYPES[type as keyof typeof CONSTITUTION_TYPES]) {
         const constitutionName = CONSTITUTION_TYPES[type as keyof typeof CONSTITUTION_TYPES];
         // 体质问卷权重50%（比其他检测方式更高）
-        scores[constitutionName] += score * 0.5;
+        scores[constitutionName] += (score as number) * 0.5;
       }
     });
   }

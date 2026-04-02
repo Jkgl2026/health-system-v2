@@ -19,6 +19,13 @@ const DEFAULT_OPTIONS: StorageOptions = {
   prefix: 'health_app_',
 };
 
+/**
+ * 检查是否在浏览器环境中
+ */
+function isBrowser(): boolean {
+  return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+}
+
 class StorageManager {
   /**
    * 获取完整的键名
@@ -31,6 +38,9 @@ class StorageManager {
    * 设置数据
    */
   set<T>(key: string, data: T, options?: StorageOptions): void {
+    if (!isBrowser()) {
+      return;
+    }
     try {
       const fullKey = this.getFullKey(key, options?.prefix);
       const now = Date.now();
@@ -52,6 +62,9 @@ class StorageManager {
    * 获取数据
    */
   get<T>(key: string, defaultValue: T, options?: StorageOptions): T {
+    if (!isBrowser()) {
+      return defaultValue;
+    }
     try {
       const fullKey = this.getFullKey(key, options?.prefix);
       const raw = localStorage.getItem(fullKey);
@@ -79,6 +92,9 @@ class StorageManager {
    * 删除数据
    */
   remove(key: string, prefix?: string): void {
+    if (!isBrowser()) {
+      return;
+    }
     try {
       const fullKey = this.getFullKey(key, prefix);
       localStorage.removeItem(fullKey);
@@ -91,6 +107,9 @@ class StorageManager {
    * 清空所有带前缀的数据
    */
   clear(prefix?: string): void {
+    if (!isBrowser()) {
+      return;
+    }
     try {
       const actualPrefix = this.getFullKey('', prefix);
       const keys = Object.keys(localStorage);
@@ -109,6 +128,9 @@ class StorageManager {
    * 检查数据是否存在且未过期
    */
   has(key: string, options?: StorageOptions): boolean {
+    if (!isBrowser()) {
+      return false;
+    }
     try {
       const fullKey = this.getFullKey(key, options?.prefix);
       const raw = localStorage.getItem(fullKey);
@@ -136,6 +158,9 @@ class StorageManager {
    * 获取数据大小（字节）
    */
   getSize(key: string, prefix?: string): number {
+    if (!isBrowser()) {
+      return 0;
+    }
     try {
       const fullKey = this.getFullKey(key, prefix);
       const raw = localStorage.getItem(fullKey);
@@ -150,6 +175,9 @@ class StorageManager {
    * 获取所有数据的大小
    */
   getTotalSize(prefix?: string): number {
+    if (!isBrowser()) {
+      return 0;
+    }
     try {
       const actualPrefix = this.getFullKey('', prefix);
       const keys = Object.keys(localStorage);
@@ -175,6 +203,9 @@ class StorageManager {
    * 清理过期的数据
    */
   cleanExpired(prefix?: string): number {
+    if (!isBrowser()) {
+      return 0;
+    }
     try {
       const actualPrefix = this.getFullKey('', prefix);
       const keys = Object.keys(localStorage);
