@@ -809,12 +809,21 @@ export async function POST(request: NextRequest) {
       LIMIT 1
     `);
 
+    // 获取体质问卷数据
+    const constitutionQuestionnaireData = await db.execute(sql`
+      SELECT * FROM constitution_questionnaires
+      WHERE user_id = ${userId}
+      ORDER BY questionnaire_date DESC
+      LIMIT 1
+    `);
+
     // 执行体质分析
     const analysisResult = await performConstitutionAnalysis({
       face: faceRecords.rows || [],
       tongue: tongueRecords.rows || [],
       posture: postureRecords.rows || [],
-      questionnaire: questionnaireData.rows?.[0] || null
+      questionnaire: questionnaireData.rows?.[0] || null,
+      constitutionQuestionnaire: constitutionQuestionnaireData.rows?.[0] || null
     });
 
     // 保存分析结果
@@ -946,31 +955,47 @@ async function performConstitutionAnalysis(data: any): Promise<any> {
   // 基于健康问卷进行补充评分
   if (data.questionnaire) {
     const q = data.questionnaire;
-    
+
     // 气虚质特征
     if (q.symptoms && q.symptoms.some((s: string) => s.includes('乏力') || s.includes('疲劳'))) {
       scores[CONSTITUTION_TYPES.QIXU] += 20;
     }
-    
+
     // 阳虚质特征
     if (q.symptoms && q.symptoms.some((s: string) => s.includes('怕冷') || s.includes('手脚冰凉'))) {
       scores[CONSTITUTION_TYPES.YANGXU] += 20;
     }
-    
+
     // 阴虚质特征
     if (q.symptoms && q.symptoms.some((s: string) => s.includes('盗汗') || s.includes('口干'))) {
       scores[CONSTITUTION_TYPES.YINXU] += 20;
     }
-    
+
     // 痰湿质特征
     if (q.hasHypertension || q.hasHyperlipidemia) {
       scores[CONSTITUTION_TYPES.TANSHI] += 15;
     }
-    
+
     // 湿热质特征
     if (q.symptoms && q.symptoms.some((s: string) => s.includes('油腻') || s.includes('口苦'))) {
       scores[CONSTITUTION_TYPES.SHIRE] += 15;
     }
+  }
+
+  // 基于体质问卷进行评分（权重最高）
+  if (data.constitutionQuestionnaire) {
+    const cq = data.constitutionQuestionnaire;
+    const cqScores = cq.scores || {};
+
+    // 体质问卷的得分已经是转化分（0-100），直接使用
+    // 但由于这是最准确的数据，给予更高的权重
+    Object.entries(cqScores).forEach(([type, score]) => {
+      if (CONSTITUTION_TYPES[type as keyof typeof CONSTITUTION_TYPES]) {
+        const constitutionName = CONSTITUTION_TYPES[type as keyof typeof CONSTITUTION_TYPES];
+        // 体质问卷权重50%（比其他检测方式更高）
+        scores[constitutionName] += score * 0.5;
+      }
+    });
   }
 
   // 归一化评分到0-100
@@ -1022,7 +1047,8 @@ async function performConstitutionAnalysis(data: any): Promise<any> {
     面诊: data.face && data.face.length > 0,
     舌诊: data.tongue && data.tongue.length > 0,
     体态: data.posture && data.posture.length > 0,
-    问卷: !!data.questionnaire
+    健康问卷: !!data.questionnaire,
+    体质问卷: !!data.constitutionQuestionnaire
   };
 
   return {

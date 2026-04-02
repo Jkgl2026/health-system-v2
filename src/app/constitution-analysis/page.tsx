@@ -14,7 +14,8 @@ import {
   Dumbbell, Smile, Moon, Sparkles, Shield, AlertTriangle,
   CheckCircle2, Info, Zap, Flame, Snowflake, Sun,
   Leaf, Cherry, Apple, Fish, Wheat, Coffee, Cookie,
-  Thermometer, Clock, MapPin, Users, FileText, Database
+  Thermometer, Clock, MapPin, Users, FileText, Database,
+  ClipboardCheck
 } from 'lucide-react';
 
 // 九大体质定义
@@ -246,6 +247,7 @@ export default function ConstitutionAnalysisPage() {
                 <AlertDescription>
                   本系统将通过以下维度综合分析您的体质：
                   <ul className="list-disc list-inside mt-2 space-y-1 text-sm">
+                    <li>体质问卷：标准中医体质辨识问卷（权重最高）</li>
                     <li>AI面诊：通过面部特征识别体质征象</li>
                     <li>AI舌诊：通过舌象判断体质倾向</li>
                     <li>AI体态：通过体态特征分析体质</li>
@@ -254,6 +256,45 @@ export default function ConstitutionAnalysisPage() {
                   </ul>
                 </AlertDescription>
               </Alert>
+
+              <Alert className="bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                <ClipboardCheck className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <AlertTitle className="text-amber-800 dark:text-amber-200">推荐：先完成体质问卷</AlertTitle>
+                <AlertDescription className="text-amber-700 dark:text-amber-300">
+                  为了获得更准确的体质分析结果，建议您先完成标准中医体质辨识问卷。
+                  体质问卷是基于《中医体质分类与判定》标准设计的专业问卷，能够为您提供最准确的体质判断。
+                </AlertDescription>
+              </Alert>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Button
+                  onClick={() => router.push('/constitution-questionnaire')}
+                  className="h-auto py-6 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600"
+                  variant="default"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <ClipboardCheck className="h-8 w-8" />
+                    <div className="text-left">
+                      <div className="font-bold text-lg">体质问卷</div>
+                      <div className="text-xs opacity-90">标准中医体质辨识（推荐）</div>
+                    </div>
+                  </div>
+                </Button>
+                <Button
+                  onClick={handleAnalyze}
+                  disabled={analyzing}
+                  className="h-auto py-6 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  variant="default"
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Sparkles className="h-8 w-8" />
+                    <div className="text-left">
+                      <div className="font-bold text-lg">综合分析</div>
+                      <div className="text-xs opacity-90">基于AI检测数据分析</div>
+                    </div>
+                  </div>
+                </Button>
+              </div>
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -302,25 +343,6 @@ export default function ConstitutionAnalysisPage() {
                   <div className="text-xs text-gray-600">健康体质</div>
                 </div>
               </div>
-
-              <Button
-                onClick={handleAnalyze}
-                disabled={analyzing}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                size="lg"
-              >
-                {analyzing ? (
-                  <>
-                    <Activity className="mr-2 h-4 w-4 animate-spin" />
-                    分析中...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="mr-2 h-4 w-4" />
-                    开始体质分析
-                  </>
-                )}
-              </Button>
             </CardContent>
           </Card>
         ) : (

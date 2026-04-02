@@ -306,6 +306,15 @@ export default function Home() {
                 <Flame className="w-4 h-4 mr-1" />
                 体质分析
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => router.push('/constitution-questionnaire')}
+                size="sm"
+                className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <ClipboardCheck className="w-4 h-4 mr-1" />
+                体质问卷
+              </Button>
               {!isMobile && (
                 <>
                   <Button

@@ -1,0 +1,123 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getDb } from 'coze-coding-dev-sdk';
+import { sql } from 'drizzle-orm';
+
+// GET /api/constitution-questionnaire - 获取用户的体质问卷记录
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get('userId');
+
+    if (!userId) {
+      return NextResponse.json({
+        success: false,
+        error: '请提供用户ID'
+      }, { status: 400 });
+    }
+
+    const db = await getDb();
+
+    // 获取最新的问卷记录
+    const latestResult = await db.execute(sql`
+      SELECT * FROM constitution_questionnaires
+      WHERE user_id = ${userId}
+      ORDER BY questionnaire_date DESC
+      LIMIT 1
+    `);
+
+    // 获取历史记录
+    const historyResult = await db.execute(sql`
+      SELECT * FROM constitution_questionnaires
+      WHERE user_id = ${userId}
+      ORDER BY questionnaire_date DESC
+      LIMIT 10
+    `);
+
+    const questionnaire = latestResult.rows?.[0];
+    const history = historyResult.rows || [];
+
+    return NextResponse.json({
+      success: true,
+      questionnaire: questionnaire ? {
+        id: questionnaire.id,
+        answers: questionnaire.answers,
+        scores: questionnaire.scores,
+        primaryConstitution: questionnaire.primary_constitution,
+        secondaryConstitutions: questionnaire.secondary_constituents,
+        isBalanced: questionnaire.is_balanced,
+        questionnaireDate: questionnaire.questionnaire_date
+      } : null,
+      history: history.map((h: any) => ({
+        primaryConstitution: h.primary_constitution,
+        secondaryConstitutions: h.secondary_constituents,
+        isBalanced: h.is_balanced,
+        scores: h.scores,
+        questionnaireDate: h.questionnaire_date
+      }))
+    });
+  } catch (error) {
+    console.error('[ConstitutionQuestionnaire] 获取失败:', error);
+    return NextResponse.json(
+      { error: '获取体质问卷失败', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/constitution-questionnaire - 保存体质问卷结果
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { userId, answers, scores, primaryConstitution, secondaryConstitutions, isBalanced } = body;
+
+    if (!userId || !answers || !scores || !primaryConstitution) {
+      return NextResponse.json(
+        { success: false, error: '缺少必要参数' },
+        { status: 400 }
+      );
+    }
+
+    const db = await getDb();
+    const questionnaireId = crypto.randomUUID();
+
+    // 保存问卷结果
+    await db.execute(sql`
+      INSERT INTO constitution_questionnaires (
+        id, user_id, answers, scores, primary_constitution,
+        secondary_constituents, is_balanced, questionnaire_date
+      ) VALUES (
+        ${questionnaireId}, ${userId}, ${JSON.stringify(answers)},
+        ${JSON.stringify(scores)}, ${primaryConstitution},
+        ${JSON.stringify(secondaryConstitutions || [])}, ${isBalanced || false},
+        NOW()
+      )
+    `);
+
+    // 保存后，自动触发体质分析
+    const analysisResponse = await fetch(`${process.env.CONGREGATE_CORS_ALLOWED_ORIGINS || 'http://localhost:5000'}/api/constitution-analysis`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    let analysisData = null;
+    if (analysisResponse.ok) {
+      analysisData = await analysisResponse.json();
+    }
+
+    return NextResponse.json({
+      success: true,
+      questionnaireId,
+      message: '体质问卷保存成功',
+      analysis: analysisData?.success ? analysisData : null
+    });
+  } catch (error) {
+    console.error('[ConstitutionQuestionnaire] 保存失败:', error);
+    return NextResponse.json(
+      { error: '保存体质问卷失败', details: error instanceof Error ? error.message : 'Unknown error' },
+      { status: 500 }
+    );
+  }
+}
