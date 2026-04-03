@@ -272,6 +272,15 @@ export default function Home() {
               </Button>
               <Button
                 variant="outline"
+                onClick={() => router.push('/comprehensive-report')}
+                size="sm"
+                className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+              >
+                <Award className="w-4 h-4 mr-1" />
+                综合报告
+              </Button>
+              <Button
+                variant="outline"
                 onClick={() => router.push('/health-tools')}
                 size="sm"
                 className="bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
@@ -301,10 +310,18 @@ export default function Home() {
               )}
               <Button
                 size="lg"
-                onClick={() => router.push('/health-assessment')}
+                onClick={() => router.push('/personal-info')}
                 className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-bold text-base py-4 rounded-full shadow-lg hover:shadow-xl transition-all group min-h-[44px] px-6"
               >
                 <Activity className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                {isMobile ? '开始健康自检' : '开始健康自检'}
+              </Button>
+              <Button
+                size="lg"
+                onClick={() => router.push('/health-assessment')}
+                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-base py-4 rounded-full shadow-lg hover:shadow-xl transition-all group min-h-[44px] px-6"
+              >
+                <Sparkles className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
                 {isMobile ? '健康评估' : '健康评估'}
               </Button>
             </div>
