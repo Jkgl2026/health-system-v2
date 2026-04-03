@@ -68,9 +68,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+    console.log('[ConstitutionQuestionnaire POST] Received request body:', JSON.stringify(body, null, 2));
+
     const { userId, answers, scores, primaryConstitution, secondaryConstitutions, isBalanced } = body;
 
     if (!userId || !answers || !scores || !primaryConstitution) {
+      console.error('[ConstitutionQuestionnaire POST] 缺少必要参数:', {
+        hasUserId: !!userId,
+        hasAnswers: !!answers,
+        hasScores: !!scores,
+        hasPrimaryConstitution: !!primaryConstitution
+      });
       return NextResponse.json(
         { success: false, error: '缺少必要参数' },
         { status: 400 }
@@ -80,11 +88,17 @@ export async function POST(request: NextRequest) {
     const db = await getDb();
 
     // 确保用户存在
-    await (db.execute as any)(
-      sql`INSERT INTO users (id) VALUES (${userId}) ON CONFLICT (id) DO UPDATE SET id = ${userId}`
-    );
+    try {
+      await (db.execute as any)(
+        sql`INSERT INTO users (id) VALUES (${userId}) ON CONFLICT (id) DO UPDATE SET id = ${userId}`
+      );
+    } catch (userError) {
+      console.error('[ConstitutionQuestionnaire POST] 确保用户存在失败:', userError);
+      // 不阻止主流程，可能用户已存在
+    }
 
     const questionnaireId = crypto.randomUUID();
+    console.log('[ConstitutionQuestionnaire POST] 生成问卷ID:', questionnaireId);
 
     // 保存问卷结果
     await db.execute(sql`
@@ -98,19 +112,25 @@ export async function POST(request: NextRequest) {
         NOW()
       )
     `);
+    console.log('[ConstitutionQuestionnaire POST] 问卷保存成功');
 
     // 保存后，自动触发体质分析
-    const analysisResponse = await fetch(`${process.env.CONGREGATE_CORS_ALLOWED_ORIGINS || 'http://localhost:5000'}/api/constitution-analysis`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
-    });
-
     let analysisData = null;
-    if (analysisResponse.ok) {
-      analysisData = await analysisResponse.json();
+    try {
+      const analysisResponse = await fetch(`${process.env.CONGREGATE_CORS_ALLOWED_ORIGINS || 'http://localhost:5000'}/api/constitution-analysis`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId }),
+      });
+
+      if (analysisResponse.ok) {
+        analysisData = await analysisResponse.json();
+        console.log('[ConstitutionQuestionnaire POST] 体质分析完成');
+      }
+    } catch (analysisError) {
+      console.warn('[ConstitutionQuestionnaire POST] 体质分析失败，但不影响主流程:', analysisError);
     }
 
     return NextResponse.json({
@@ -120,7 +140,7 @@ export async function POST(request: NextRequest) {
       analysis: analysisData?.success ? analysisData : null
     });
   } catch (error) {
-    console.error('[ConstitutionQuestionnaire] 保存失败:', error);
+    console.error('[ConstitutionQuestionnaire POST] 保存失败:', error);
     return NextResponse.json(
       { error: '保存体质问卷失败', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

@@ -25,10 +25,12 @@ export async function GET(
 
     const session = result.rows[0];
 
-    // 解析JSONB字段
+    // 解析JSONB字段（PostgreSQL的JSONB已经自动解析，如果是字符串才需要parse）
     const parsedSession = {
       ...session,
-      personalInfo: session.personal_info ? JSON.parse(session.personal_info) : null,
+      personalInfo: typeof session.personal_info === 'string'
+        ? JSON.parse(session.personal_info)
+        : session.personal_info,
     };
 
     return NextResponse.json({
@@ -59,53 +61,105 @@ export async function PUT(
     const body = await request.json();
 
     const {
-      sessionName,
       status,
       personalInfo,
-      currentStep,
       healthQuestionnaireId,
       constitutionQuestionnaireId,
       healthAnalysisId,
       riskAssessmentId,
+      sessionName,
     } = body;
 
     const db = await getDb();
 
-    // 构建更新语句 - 简化版本，每次只更新一个字段
-    if (constitutionQuestionnaireId !== undefined && currentStep !== undefined) {
-      await (db.execute as any)(
-        sql`
-          UPDATE assessment_sessions
-          SET current_step = ${currentStep},
-              constitution_questionnaire_id = ${constitutionQuestionnaireId}
-          WHERE id = ${id}
-        `
+    // 验证 session 是否存在
+    const existingSession = await (db.execute as any)(
+      sql`SELECT id FROM assessment_sessions WHERE id = ${id}`
+    );
+
+    if (existingSession.rows.length === 0) {
+      return NextResponse.json(
+        { success: false, error: '评估会话不存在' },
+        { status: 404 }
       );
-    } else if (currentStep !== undefined) {
-      await (db.execute as any)(
-        sql`
-          UPDATE assessment_sessions
-          SET current_step = ${currentStep}
-          WHERE id = ${id}
-        `
-      );
-    } else if (constitutionQuestionnaireId !== undefined) {
-      await (db.execute as any)(
-        sql`
-          UPDATE assessment_sessions
-          SET constitution_questionnaire_id = ${constitutionQuestionnaireId}
-          WHERE id = ${id}
-        `
-      );
-    } else {
+    }
+
+    // 动态构建更新字段
+    const updateFields: string[] = [];
+
+    if (status !== undefined) {
+      updateFields.push(`status = '${status}'`);
+    }
+
+    if (personalInfo !== undefined) {
+      updateFields.push(`personal_info = '${JSON.stringify(personalInfo).replace(/'/g, "''")}'`);
+    }
+
+    if (healthQuestionnaireId !== undefined) {
+      updateFields.push(`health_questionnaire_id = '${healthQuestionnaireId}'`);
+    }
+
+    if (constitutionQuestionnaireId !== undefined) {
+      updateFields.push(`constitution_questionnaire_id = '${constitutionQuestionnaireId}'`);
+    }
+
+    if (healthAnalysisId !== undefined) {
+      updateFields.push(`health_analysis_id = '${healthAnalysisId}'`);
+    }
+
+    if (riskAssessmentId !== undefined) {
+      updateFields.push(`risk_assessment_id = '${riskAssessmentId}'`);
+    }
+
+    if (sessionName !== undefined) {
+      updateFields.push(`session_name = '${sessionName.replace(/'/g, "''")}'`);
+    }
+
+    // 如果有状态更新为 completed，设置 completedAt
+    if (status === 'completed') {
+      updateFields.push(`completed_at = NOW()`);
+    }
+
+    // 添加 updatedAt
+    updateFields.push(`updated_at = NOW()`);
+
+    if (updateFields.length === 0) {
       return NextResponse.json(
         { success: false, error: '没有提供有效的更新字段' },
         { status: 400 }
       );
     }
 
+    // 执行更新
+    const query = sql`
+      UPDATE assessment_sessions
+      SET ${sql.raw(updateFields.join(', '))}
+      WHERE id = ${id}
+      RETURNING *
+    `;
+
+    const result = await (db.execute as any)(query);
+
+    if (result.rows.length === 0) {
+      return NextResponse.json(
+        { success: false, error: '更新评估会话失败' },
+        { status: 500 }
+      );
+    }
+
+    const session = result.rows[0];
+
+    // 解析JSONB字段（PostgreSQL的JSONB已经自动解析，如果是字符串才需要parse）
+    const parsedSession = {
+      ...session,
+      personalInfo: typeof session.personal_info === 'string'
+        ? JSON.parse(session.personal_info)
+        : session.personal_info,
+    };
+
     return NextResponse.json({
       success: true,
+      data: parsedSession,
       message: '评估会话更新成功'
     });
 

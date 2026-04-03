@@ -92,7 +92,9 @@ export async function GET(request: NextRequest) {
 
     const records = recordsResult.rows.map((row: any) => ({
       ...row,
-      personalInfo: row.personal_info ? JSON.parse(row.personal_info) : null,
+      personalInfo: typeof row.personal_info === 'string'
+        ? JSON.parse(row.personal_info)
+        : row.personal_info,
     }));
 
     // 查询总数

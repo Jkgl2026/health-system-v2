@@ -513,6 +513,15 @@ export function determineConstitutionType(scores: Record<string, number>): {
 } {
   const scoreEntries = Object.entries(scores).sort((a, b) => b[1] - a[1]);
 
+  // 如果没有有效得分，返回默认值
+  if (scoreEntries.length === 0) {
+    return {
+      primary: '平和质',
+      secondary: [],
+      isBalanced: true
+    };
+  }
+
   // 平和质判断标准：平和质转化分 ≥ 60分，且其他8种体质转化分均 < 30分
   const pingheScore = scores['PINGHE'] || 0;
   const isBalanced = pingheScore >= 60 && scoreEntries.slice(1).every(([_, score]) => score < 30);
@@ -529,13 +538,19 @@ export function determineConstitutionType(scores: Record<string, number>): {
   const secondary = scoreEntries
     .filter(([type, score]) => type !== 'PINGHE' && score >= 40)
     .slice(0, 3)
-    .map(([type]) => CONSTITUTION_NAMES[type as keyof typeof CONSTITUTION_NAMES]);
+    .map(([type]) => {
+      const name = CONSTITUTION_NAMES[type as keyof typeof CONSTITUTION_NAMES];
+      return name || type; // 如果找不到映射，使用原始键名
+    });
 
   const primaryType = scoreEntries[0][0];
-  const primaryName = CONSTITUTION_NAMES[primaryType as keyof typeof CONSTITUTION_NAMES];
+  const primaryName = CONSTITUTION_NAMES[primaryType as keyof typeof CONSTITUTION_NAMES] || primaryType;
+
+  // 确保 primaryName 不是 undefined
+  const safePrimaryName = primaryName || '平和质';
 
   return {
-    primary: primaryName,
+    primary: safePrimaryName,
     secondary,
     isBalanced: false
   };
