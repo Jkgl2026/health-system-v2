@@ -78,6 +78,12 @@ export async function POST(request: NextRequest) {
     }
 
     const db = await getDb();
+
+    // 确保用户存在
+    await (db.execute as any)(
+      sql`INSERT INTO users (id) VALUES (${userId}) ON CONFLICT (id) DO UPDATE SET id = ${userId}`
+    );
+
     const questionnaireId = crypto.randomUUID();
 
     // 保存问卷结果

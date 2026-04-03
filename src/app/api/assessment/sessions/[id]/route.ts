@@ -71,60 +71,38 @@ export async function PUT(
 
     const db = await getDb();
 
-    // 构建更新语句
-    const updates: string[] = [];
-    const values: any[] = [];
-
-    if (sessionName !== undefined) {
-      updates.push('session_name = $' + (updates.length + 1));
-      values.push(sessionName);
-    }
-    if (status !== undefined) {
-      updates.push('status = $' + (updates.length + 1));
-      values.push(status);
-      // 如果状态变为completed，设置完成时间
-      if (status === 'completed') {
-        updates.push('completed_at = NOW()');
-      }
-    }
-    if (personalInfo !== undefined) {
-      updates.push('personal_info = $' + (updates.length + 1));
-      values.push(JSON.stringify(personalInfo));
-    }
-    if (currentStep !== undefined) {
-      updates.push('current_step = $' + (updates.length + 1));
-      values.push(currentStep);
-    }
-    if (healthQuestionnaireId !== undefined) {
-      updates.push('health_questionnaire_id = $' + (updates.length + 1));
-      values.push(healthQuestionnaireId);
-    }
-    if (constitutionQuestionnaireId !== undefined) {
-      updates.push('constitution_questionnaire_id = $' + (updates.length + 1));
-      values.push(constitutionQuestionnaireId);
-    }
-    if (healthAnalysisId !== undefined) {
-      updates.push('health_analysis_id = $' + (updates.length + 1));
-      values.push(healthAnalysisId);
-    }
-    if (riskAssessmentId !== undefined) {
-      updates.push('risk_assessment_id = $' + (updates.length + 1));
-      values.push(riskAssessmentId);
-    }
-
-    if (updates.length === 0) {
+    // 构建更新语句 - 简化版本，每次只更新一个字段
+    if (constitutionQuestionnaireId !== undefined && currentStep !== undefined) {
+      await (db.execute as any)(
+        sql`
+          UPDATE assessment_sessions
+          SET current_step = ${currentStep},
+              constitution_questionnaire_id = ${constitutionQuestionnaireId}
+          WHERE id = ${id}
+        `
+      );
+    } else if (currentStep !== undefined) {
+      await (db.execute as any)(
+        sql`
+          UPDATE assessment_sessions
+          SET current_step = ${currentStep}
+          WHERE id = ${id}
+        `
+      );
+    } else if (constitutionQuestionnaireId !== undefined) {
+      await (db.execute as any)(
+        sql`
+          UPDATE assessment_sessions
+          SET constitution_questionnaire_id = ${constitutionQuestionnaireId}
+          WHERE id = ${id}
+        `
+      );
+    } else {
       return NextResponse.json(
-        { success: false, error: '没有提供更新字段' },
+        { success: false, error: '没有提供有效的更新字段' },
         { status: 400 }
       );
     }
-
-    values.push(id);
-
-    await (db.execute as any)(
-      sql`UPDATE assessment_sessions SET ${sql.raw(updates.join(', '))} WHERE id = $${values.length}`,
-      values
-    );
 
     return NextResponse.json({
       success: true,

@@ -119,9 +119,19 @@ function ConstitutionContent() {
     setError('');
 
     try {
+      console.log('开始提交体质问卷...');
+
       // 计算体质得分
       const scores = calculateConstitutionScore(answers);
+      console.log('得分计算完成:', scores);
+
       const result = determineConstitutionType(scores);
+      console.log('体质类型判定完成:', result);
+
+      // 验证result对象
+      if (!result || !result.primary || result.secondary === undefined || result.isBalanced === undefined) {
+        throw new Error('体质分析结果格式错误');
+      }
 
       // 保存体质问卷
       const response = await fetch('/api/constitution-questionnaire', {
@@ -138,12 +148,20 @@ function ConstitutionContent() {
       });
 
       const data = await response.json();
+      console.log('API响应:', data);
+
       if (!data.success) {
         throw new Error(data.error || '保存失败');
       }
 
+      // 验证questionnaireId存在
+      if (!data.questionnaireId) {
+        throw new Error('服务器未返回问卷ID');
+      }
+
       // 更新会话关联
-      await fetch(`/api/assessment/sessions/${sessionId}`, {
+      console.log('更新会话关联...');
+      const sessionResponse = await fetch(`/api/assessment/sessions/${sessionId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -152,12 +170,18 @@ function ConstitutionContent() {
         }),
       });
 
+      if (!sessionResponse.ok) {
+        const sessionError = await sessionResponse.json();
+        throw new Error(sessionError.error || '更新会话失败');
+      }
+
       setSaved(true);
       setTimeout(() => {
         router.push(`/health-assessment/analysis?sessionId=${sessionId}&userId=${userId}`);
       }, 1500);
 
     } catch (err) {
+      console.error('提交失败:', err);
       setError(err instanceof Error ? err.message : '提交失败，请重试');
     } finally {
       setLoading(false);
