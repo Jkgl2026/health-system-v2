@@ -17,7 +17,8 @@ import {
 
 import {
   calculateTCMClassification,
-  TCMClassification
+  TCMClassification,
+  generateTCMRecommendations
 } from './tcm-classification';
 
 import {
@@ -189,14 +190,20 @@ export class AnalysisEngine {
   async performTCMDiagnosis(): Promise<any> {
     try {
       const tcmClassification = await this.analyzeConstitution();
-      
+
       const diagnosis = {
         eightPrinciple: tcmClassification.eightPrinciples,
-        organ: tcmClassification.organDifferentiation,
+        organ: {
+          primaryImbalance: tcmClassification.organDifferentiation.primaryImbalance,
+          organDifferentiation: tcmClassification.organDifferentiation.affectedOrgans || []
+        },
         qiBloodFluid: tcmClassification.qiBloodFluid,
-        overallPattern: tcmClassification.syndromeType || '无明显证候'
+        overallPattern: tcmClassification.syndromeType || '无明显证候',
+        treatmentPrinciple: tcmClassification.treatmentPrinciple,
+        herbalFormula: tcmClassification.herbalFormula,
+        acupuncturePoints: tcmClassification.acupuncturePoints || []
       };
-      
+
       return diagnosis;
     } catch (error) {
       console.error('TCM diagnosis error:', error);
@@ -400,11 +407,28 @@ export class AnalysisEngine {
       constitutionAnalysis
     );
 
+    // 格式化体质分析数据，供前端使用
+    const formattedConstitutionAnalysis: any = {
+      eightPrinciple: constitutionAnalysis.eightPrinciples,
+      organ: {
+        primaryImbalance: constitutionAnalysis.organDifferentiation.primaryImbalance,
+        organDifferentiation: constitutionAnalysis.organDifferentiation.affectedOrgans || []
+      },
+      qiBloodFluid: constitutionAnalysis.qiBloodFluid,
+      overallPattern: constitutionAnalysis.syndromeType,
+      syndromeType: constitutionAnalysis.syndromeType,
+      syndromeDescription: constitutionAnalysis.syndromeDescription,
+      treatmentPrinciple: constitutionAnalysis.treatmentPrinciple,
+      herbalFormula: constitutionAnalysis.herbalFormula,
+      acupuncturePoints: constitutionAnalysis.acupuncturePoints || [],
+      recommendations: generateTCMRecommendations(constitutionAnalysis)
+    };
+
     return {
       sessionId: '', // 会在API中设置
       healthScores,
       riskAssessment,
-      constitutionAnalysis,
+      constitutionAnalysis: formattedConstitutionAnalysis,
       qualityOfLife,
       lifeExpectancy,
       tcmDiagnosis,

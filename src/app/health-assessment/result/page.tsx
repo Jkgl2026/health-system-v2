@@ -487,36 +487,92 @@ function ResultContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg">
-                <span className="font-medium text-red-900">高风险因素</span>
-                <span className="text-2xl font-bold text-red-600">
-                  {analysis.riskAssessment?.highRiskFactors?.length || 0}
-                </span>
+            <div className="space-y-6">
+              {/* 整体风险等级 */}
+              <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                <div>
+                  <div className="text-sm text-gray-600 mb-1">整体风险等级</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {analysis.riskAssessment?.overallRiskLevel === 'high' && '高风险'}
+                    {analysis.riskAssessment?.overallRiskLevel === 'medium' && '中等风险'}
+                    {analysis.riskAssessment?.overallRiskLevel === 'low' && '低风险'}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-sm text-gray-600 mb-1">健康评分</div>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {analysis.riskAssessment?.healthScore}
+                  </div>
+                </div>
               </div>
-              {analysis.riskAssessment?.highRiskFactors?.length > 0 && (
-                <div className="grid gap-2">
-                  {analysis.riskAssessment.highRiskFactors.map((factor: string, idx: number) => (
-                    <Badge key={idx} variant="destructive" className="justify-start">
-                      {factor}
-                    </Badge>
-                  ))}
+
+              {/* 各维度风险评估 */}
+              {analysis.riskAssessment?.riskFactors && (
+                <div className="grid md:grid-cols-2 gap-4">
+                  {Object.entries(analysis.riskAssessment.riskFactors).map(([key, risk]: [string, any]) => {
+                    const riskName = getTermName(key);
+                    const riskLevel = risk.level === 'high' ? 'high' : risk.level === 'medium' ? 'medium' : 'low';
+                    return (
+                      <div key={key} className="p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="font-medium">{riskName}</span>
+                          <Badge
+                            className={
+                              risk.level === 'high'
+                                ? 'bg-red-100 text-red-800'
+                                : risk.level === 'medium'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-green-100 text-green-800'
+                            }
+                          >
+                            {risk.level === 'high' ? '高风险' : risk.level === 'medium' ? '中等风险' : '低风险'}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-gray-600 mb-2">{risk.description}</div>
+                        {risk.score !== undefined && (
+                          <div className="mb-2">
+                            <div className="flex justify-between text-xs text-gray-500 mb-1">
+                              <span>风险评分</span>
+                              <span>{risk.score}/100</span>
+                            </div>
+                            <Progress value={risk.score} className="h-2" />
+                          </div>
+                        )}
+                        {risk.factors && risk.factors.length > 0 && (
+                          <div className="mt-3">
+                            <div className="text-xs text-gray-500 mb-2">风险因素：</div>
+                            <div className="flex flex-wrap gap-1">
+                              {risk.factors.map((factor: string, idx: number) => (
+                                <Badge key={idx} variant="outline" className="text-xs">
+                                  {factor}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
-              <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-lg">
-                <span className="font-medium text-yellow-900">中等风险因素</span>
-                <span className="text-2xl font-bold text-yellow-600">
-                  {analysis.riskAssessment?.moderateRiskFactors?.length || 0}
-                </span>
-              </div>
-              {analysis.riskAssessment?.moderateRiskFactors?.length > 0 && (
-                <div className="grid gap-2">
-                  {analysis.riskAssessment.moderateRiskFactors.map((factor: string, idx: number) => (
-                    <Badge key={idx} variant="secondary" className="justify-start bg-yellow-100 text-yellow-800">
-                      {factor}
-                    </Badge>
-                  ))}
+              {/* 风险建议 */}
+              {analysis.riskAssessment?.recommendations && analysis.riskAssessment.recommendations.length > 0 && (
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium mb-3 flex items-center">
+                    <CheckCircle2 className="h-4 w-4 mr-2 text-blue-600" />
+                    针对性风险建议
+                  </h4>
+                  <div className="space-y-2">
+                    {analysis.riskAssessment.recommendations.map((rec: string, idx: number) => (
+                      <div key={idx} className="flex items-start text-sm">
+                        <div className="w-5 h-5 rounded-full bg-blue-200 text-blue-700 text-xs flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
+                          {idx + 1}
+                        </div>
+                        <span>{rec}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -682,31 +738,159 @@ function ResultContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="text-4xl font-bold text-indigo-600">
-                {analysis.constitutionAnalysis?.syndromeType}
-              </div>
-              <div className="flex-1">
-                <div className="text-lg font-medium">主要体质类型</div>
-                <div className="text-sm text-gray-600">
-                  {analysis.constitutionAnalysis?.syndromeDescription || '无明显倾向'}
+            <div className="space-y-6">
+              {/* 主要体质类型 */}
+              <div className="flex items-center space-x-4 p-4 bg-indigo-50 rounded-lg border-2 border-indigo-200">
+                <div className="text-4xl font-bold text-indigo-600">
+                  {analysis.constitutionAnalysis?.syndromeType}
+                </div>
+                <div className="flex-1">
+                  <div className="text-lg font-medium">主要体质类型</div>
+                  <div className="text-sm text-gray-600">
+                    {analysis.constitutionAnalysis?.syndromeDescription || '无明显倾向'}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {analysis.constitutionAnalysis?.recommendations && (
-              <div>
-                <h4 className="font-medium mb-3">调理建议</h4>
-                <div className="grid gap-2">
-                  {analysis.constitutionAnalysis.recommendations.map((rec: string, idx: number) => (
-                    <div key={idx} className="flex items-start text-sm p-3 bg-gray-50 rounded">
-                      <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" />
-                      {rec}
+              {/* 八纲辨证 */}
+              {analysis.constitutionAnalysis?.eightPrinciple && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-3 flex items-center">
+                    <Activity className="h-4 w-4 mr-2 text-gray-600" />
+                    八纲辨证
+                  </h4>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div className="flex justify-between items-center p-2 bg-white rounded">
+                      <span className="text-sm text-gray-600">阴阳</span>
+                      <Badge variant="outline">{analysis.constitutionAnalysis.eightPrinciple.yinYang}</Badge>
                     </div>
-                  ))}
+                    <div className="flex justify-between items-center p-2 bg-white rounded">
+                      <span className="text-sm text-gray-600">寒热</span>
+                      <Badge variant="outline">{analysis.constitutionAnalysis.eightPrinciple.coldHeat}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-white rounded">
+                      <span className="text-sm text-gray-600">虚实</span>
+                      <Badge variant="outline">{analysis.constitutionAnalysis.eightPrinciple.deficiencyExcess}</Badge>
+                    </div>
+                    <div className="flex justify-between items-center p-2 bg-white rounded">
+                      <span className="text-sm text-gray-600">表里</span>
+                      <Badge variant="outline">{analysis.constitutionAnalysis.eightPrinciple.interiorExterior}</Badge>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* 脏腑辨证 */}
+              {analysis.constitutionAnalysis?.organ && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-3 flex items-center">
+                    <Heart className="h-4 w-4 mr-2 text-gray-600" />
+                    脏腑辨证
+                  </h4>
+                  <div className="space-y-3">
+                    {analysis.constitutionAnalysis.organ.primaryImbalance && (
+                      <div className="p-3 bg-white rounded">
+                        <div className="text-sm text-gray-600 mb-1">主要失衡</div>
+                        <div className="font-bold text-red-600">{analysis.constitutionAnalysis.organ.primaryImbalance}</div>
+                      </div>
+                    )}
+                    {analysis.constitutionAnalysis.organ.organDifferentiation && (
+                      <div>
+                        <div className="text-sm text-gray-600 mb-2">受累脏腑</div>
+                        <div className="flex flex-wrap gap-2">
+                          {analysis.constitutionAnalysis.organ.organDifferentiation.map((organ: string, idx: number) => (
+                            <Badge key={idx} variant="secondary" className="px-3 py-1">
+                              {organ}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* 气血津液辨证 */}
+              {analysis.constitutionAnalysis?.qiBloodFluid && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-3 flex items-center">
+                    <Zap className="h-4 w-4 mr-2 text-gray-600" />
+                    气血津液辨证
+                  </h4>
+                  <div className="grid md:grid-cols-3 gap-3">
+                    <div className="p-3 bg-white rounded">
+                      <div className="text-sm text-gray-600 mb-1">气</div>
+                      <div className="font-medium">{analysis.constitutionAnalysis.qiBloodFluid.qiStatus}</div>
+                    </div>
+                    <div className="p-3 bg-white rounded">
+                      <div className="text-sm text-gray-600 mb-1">血</div>
+                      <div className="font-medium">{analysis.constitutionAnalysis.qiBloodFluid.bloodStatus}</div>
+                    </div>
+                    <div className="p-3 bg-white rounded">
+                      <div className="text-sm text-gray-600 mb-1">津液</div>
+                      <div className="font-medium">{analysis.constitutionAnalysis.qiBloodFluid.fluidStatus}</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 治疗原则 */}
+              {analysis.constitutionAnalysis?.overallPattern && (
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="font-medium mb-2 flex items-center text-blue-700">
+                    <Target className="h-4 w-4 mr-2" />
+                    治疗原则
+                  </h4>
+                  <p className="text-sm text-blue-900">{analysis.constitutionAnalysis.overallPattern}</p>
+                </div>
+              )}
+
+              {/* 推荐方剂 */}
+              {analysis.constitutionAnalysis?.herbalFormula && (
+                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <h4 className="font-medium mb-2 flex items-center text-green-700">
+                    <CheckCircle2 className="h-4 w-4 mr-2" />
+                    推荐方剂
+                  </h4>
+                  <p className="text-sm text-green-900">{analysis.constitutionAnalysis.herbalFormula}</p>
+                </div>
+              )}
+
+              {/* 推荐穴位 */}
+              {analysis.constitutionAnalysis?.acupuncturePoints && analysis.constitutionAnalysis.acupuncturePoints.length > 0 && (
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <h4 className="font-medium mb-2 flex items-center text-purple-700">
+                    <Target className="h-4 w-4 mr-2" />
+                    推荐穴位
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.constitutionAnalysis.acupuncturePoints.map((point: string, idx: number) => (
+                      <Badge key={idx} variant="secondary" className="px-3 py-1 bg-purple-100 text-purple-800">
+                        {point}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 调理建议 */}
+              {analysis.constitutionAnalysis?.recommendations && analysis.constitutionAnalysis.recommendations.length > 0 && (
+                <div>
+                  <h4 className="font-medium mb-3 flex items-center">
+                    <Smile className="h-4 w-4 mr-2 text-green-600" />
+                    调理建议
+                  </h4>
+                  <div className="grid gap-2">
+                    {analysis.constitutionAnalysis.recommendations.map((rec: string, idx: number) => (
+                      <div key={idx} className="flex items-start text-sm p-3 bg-gray-50 rounded">
+                        <CheckCircle2 className="h-4 w-4 mr-2 text-green-500 mt-0.5 flex-shrink-0" />
+                        {rec}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
