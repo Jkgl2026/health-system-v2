@@ -154,10 +154,13 @@ function ConstitutionContent() {
         throw new Error(data.error || '保存失败');
       }
 
-      // 验证questionnaireId存在
-      if (!data.questionnaireId) {
+      // 验证questionnaireId存在（注意：questionnaireId在data.data中）
+      if (!data.data || !data.data.questionnaireId) {
+        console.error('API响应数据:', data);
         throw new Error('服务器未返回问卷ID');
       }
+
+      const questionnaireId = data.data.questionnaireId;
 
       // 更新会话关联
       console.log('更新会话关联...');
@@ -165,7 +168,7 @@ function ConstitutionContent() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          constitutionQuestionnaireId: data.questionnaireId,
+          constitutionQuestionnaireId: questionnaireId,
           currentStep: 'analysis',
         }),
       });
