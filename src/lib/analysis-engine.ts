@@ -437,6 +437,20 @@ export class AnalysisEngine {
   }
 
   /**
+   * 术语映射（英文 → 中文）
+   */
+  private getRiskFactorName(key: string): string {
+    const nameMap: Record<string, string> = {
+      cardiovascular: '心血管',
+      metabolic: '代谢',
+      lifestyle: '生活方式',
+      recovery: '恢复',
+      constitution: '体质'
+    };
+    return nameMap[key] || key;
+  }
+
+  /**
    * 生成摘要
    */
   private generateSummary(
@@ -467,7 +481,7 @@ export class AnalysisEngine {
     // 高风险因素
     Object.entries(riskAssessment.riskFactors).forEach(([key, factor]: [string, any]) => {
       if (factor.level === 'high') {
-        primaryConcerns.push(`${key}风险较高`);
+        primaryConcerns.push(`${this.getRiskFactorName(key)}风险较高`);
       }
     });
     

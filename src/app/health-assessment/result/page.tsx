@@ -7,10 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { 
-  ArrowLeft, Calendar, TrendingUp, Shield, Heart, Activity, 
-  AlertTriangle, CheckCircle2, Download, Share2, Home, 
-  Clock, Target, Zap, Brain, Users, Smile, LifeBuoy
+import {
+  ArrowLeft, Calendar, TrendingUp, Shield, Heart, Activity,
+  AlertTriangle, CheckCircle2, Download, Share2, Home,
+  Clock, Target, Zap, Brain, Users, Smile, LifeBuoy, Snowflake
 } from 'lucide-react';
 
 function ResultContent() {
@@ -133,6 +133,30 @@ function ResultContent() {
       case 'severe': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  // 术语映射（英文 → 中文）
+  const getTermName = (term: string): string => {
+    const termMap: Record<string, string> = {
+      // 生活质量领域
+      physical: '身体功能',
+      mental: '心理功能',
+      social: '社会功能',
+      emotional: '情绪健康',
+      // 风险因素
+      cardiovascular: '心血管',
+      metabolic: '代谢',
+      lifestyle: '生活方式',
+      recovery: '恢复能力',
+      constitution: '体质',
+      // 其他
+      overall: '综合',
+      excellent: '优秀',
+      good: '良好',
+      fair: '一般',
+      poor: '较差'
+    };
+    return termMap[term] || term;
   };
 
   if (loading) {
@@ -290,15 +314,15 @@ function ResultContent() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-4 gap-6">
               {[
                 { label: '免疫力', value: analysis.healthScores?.immunity, icon: Shield },
                 { label: '循环系统', value: analysis.healthScores?.circulation, icon: Heart },
-                { label: '消化系统', value: analysis.healthScores?.digestion, icon: Activity },
-                { label: '神经系统', value: analysis.healthScores?.nervousSystem, icon: Brain },
-                { label: '能量水平', value: analysis.healthScores?.energyLevel, icon: Zap },
-                { label: '气血状态', value: analysis.healthScores?.qiAndBlood, icon: Target },
-              ].map((item) => (
+                { label: '毒素清理', value: analysis.healthScores?.toxins, icon: Zap },
+                { label: '血脂水平', value: analysis.healthScores?.bloodLipids, icon: Activity },
+                { label: '寒性程度', value: analysis.healthScores?.coldness, icon: Snowflake },
+                { label: '情绪状态', value: analysis.healthScores?.emotions, icon: Smile },
+              ].filter(item => item.value !== undefined).map((item) => (
                 <div key={item.label} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium flex items-center">
@@ -355,7 +379,7 @@ function ResultContent() {
                 {Object.entries(analysis.qualityOfLife.domainScores).map(([domain, score]: [string, any]) => (
                   <div key={domain} className="p-4 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium">{domain}</span>
+                      <span className="font-medium">{getTermName(domain)}</span>
                       <Badge variant={score.level === 'excellent' ? 'default' : 'secondary'}>
                         {score.level}
                       </Badge>
