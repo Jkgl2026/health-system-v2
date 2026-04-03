@@ -1,0 +1,263 @@
+'use client';
+
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
+import { ArrowLeft, ArrowRight, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { CONSTITUTION_QUESTIONS, calculateConstitutionScore, determineConstitutionType } from '@/lib/constitution-questions';
+
+function ConstitutionContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const sessionId = searchParams.get('sessionId');
+  const userId = searchParams.get('userId');
+
+  const [shuffledQuestions, setShuffledQuestions] = useState<any[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    if (!sessionId) {
+      router.push('/health-assessment');
+    }
+  }, [sessionId, router]);
+
+  useEffect(() => {
+    // Fisher-Yates 洗牌算法打乱所有问题
+    const allQuestions = Object.entries(CONSTITUTION_QUESTIONS).flatMap(([type, questions]) =>
+      questions.map((q) => ({ ...q, constitutionType: type }))
+    );
+
+    const shuffled = [...allQuestions];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    setShuffledQuestions(shuffled);
+  }, []);
+
+  const currentQuestion = shuffledQuestions[currentIndex];
+  const progress = ((currentIndex + 1) / shuffledQuestions.length) * 100;
+
+  const handleAnswer = (value: string) => {
+    const score = parseInt(value);
+    setAnswers({ ...answers, [currentQuestion.id]: score });
+
+    // 延迟跳转下一题
+    setTimeout(() => {
+      if (currentIndex < shuffledQuestions.length - 1) {
+        setCurrentIndex(currentIndex + 1);
+      } else {
+        // 所有问题回答完毕，提交
+        handleSubmit();
+      }
+    }, 300);
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      // 计算体质得分
+      const scores = calculateConstitutionScore(answers);
+      const result = determineConstitutionType(scores);
+
+      // 保存体质问卷
+      const response = await fetch('/api/constitution-questionnaire', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          answers,
+          scores,
+          result,
+        }),
+      });
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || '保存失败');
+      }
+
+      // 更新会话关联
+      await fetch(`/api/assessment/sessions/${sessionId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          constitutionQuestionnaireId: data.data.id,
+          currentStep: 'analysis',
+        }),
+      });
+
+      setSaved(true);
+      setTimeout(() => {
+        router.push(`/health-assessment/analysis?sessionId=${sessionId}`);
+      }, 1500);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '提交失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
+      <div className="max-w-3xl mx-auto">
+        {/* 头部 */}
+        <div className="flex items-center justify-between mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => router.push(`/health-assessment/health?sessionId=${sessionId}`)}
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            返回
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-900">体质问卷</h1>
+          <div className="w-24"></div>
+        </div>
+
+        {/* 步骤指示器 */}
+        <div className="flex items-center justify-center mb-8">
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">✓</div>
+            <span className="text-sm font-medium text-green-600">个人信息</span>
+          </div>
+          <div className="w-16 h-1 bg-green-600 mx-2"></div>
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold">✓</div>
+            <span className="text-sm font-medium text-green-600">健康问卷</span>
+          </div>
+          <div className="w-16 h-1 bg-blue-600 mx-2"></div>
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">3</div>
+            <span className="text-sm font-medium text-blue-600">体质问卷</span>
+          </div>
+          <div className="w-16 h-1 bg-gray-200 mx-2"></div>
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold">4</div>
+            <span className="text-sm text-gray-500">分析结果</span>
+          </div>
+        </div>
+
+        {/* 进度条 */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+            <span>进度</span>
+            <span>{currentIndex + 1} / {shuffledQuestions.length}</span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+
+        {/* 问题卡片 */}
+        {currentQuestion && (
+          <Card className="shadow-lg border-2">
+            <CardHeader>
+              <CardTitle className="text-2xl">
+                问题 {currentIndex + 1}
+              </CardTitle>
+              <CardDescription>
+                请根据您最近三个月的身体状况，选择最符合的选项
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* 问题 */}
+                <div className="text-xl font-medium text-gray-900">
+                  {currentQuestion.question}
+                </div>
+
+                {/* 选项 */}
+                <RadioGroup
+                  onValueChange={handleAnswer}
+                  disabled={loading || saved}
+                >
+                  <div className="space-y-3">
+                    {[
+                      { value: '1', label: '没有（根本不）' },
+                      { value: '2', label: '很少（有一点）' },
+                      { value: '3', label: '有时（一般）' },
+                      { value: '4', label: '经常（明显）' },
+                      { value: '5', label: '总是（非常）' },
+                    ].map((option) => (
+                      <div
+                        key={option.value}
+                        className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                        onClick={() => !loading && !saved && handleAnswer(option.value)}
+                      >
+                        <RadioGroupItem
+                          value={option.value}
+                          id={`option-${option.value}`}
+                          disabled={loading || saved}
+                        />
+                        <Label
+                          htmlFor={`option-${option.value}`}
+                          className="flex-1 cursor-pointer text-lg"
+                        >
+                          {option.label}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </RadioGroup>
+
+                {/* 错误提示 */}
+                {error && (
+                  <div className="flex items-center space-x-2 text-red-600 bg-red-50 p-3 rounded-lg">
+                    <AlertCircle className="h-5 w-5" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                {/* 加载提示 */}
+                {loading && (
+                  <div className="flex items-center justify-center space-x-2 text-blue-600">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>正在分析您的体质...</span>
+                  </div>
+                )}
+
+                {/* 成功提示 */}
+                {saved && (
+                  <div className="flex items-center justify-center space-x-2 text-green-600 bg-green-50 p-3 rounded-lg">
+                    <CheckCircle2 className="h-5 w-5" />
+                    <span>分析完成！正在生成报告...</span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* 底部提示 */}
+        <div className="mt-6 text-center text-sm text-gray-500">
+          <p>所有问题都回答完毕后，系统将自动分析您的体质类型</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ConstitutionQuestionnaireInAssessmentPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">正在加载...</p>
+        </div>
+      </div>
+    }>
+      <ConstitutionContent />
+    </Suspense>
+  );
+}

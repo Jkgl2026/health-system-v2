@@ -5,10 +5,10 @@ import { sql } from 'drizzle-orm';
 // GET /api/assessment/sessions/[id] - 获取会话详情
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const db = await getDb();
 
@@ -52,10 +52,10 @@ export async function GET(
 // PUT /api/assessment/sessions/[id] - 更新会话
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     const {
@@ -147,10 +147,10 @@ export async function PUT(
 // DELETE /api/assessment/sessions/[id] - 删除会话
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     const db = await getDb();
 

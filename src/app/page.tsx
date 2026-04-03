@@ -263,21 +263,12 @@ export default function Home() {
               )}
               <Button
                 variant="outline"
-                onClick={() => router.push('/comprehensive-report')}
+                onClick={() => router.push('/health-assessment/history')}
                 size="sm"
                 className="bg-gradient-to-r from-violet-500 to-purple-500 hover:from-violet-600 hover:to-purple-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
               >
                 <Award className="w-4 h-4 mr-1" />
-                综合报告
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/health-questionnaire')}
-                size="sm"
-                className="bg-gradient-to-r from-indigo-500 to-blue-500 hover:from-indigo-600 hover:to-blue-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <FileText className="w-4 h-4 mr-1" />
-                健康问卷
+                评估历史
               </Button>
               <Button
                 variant="outline"
@@ -297,53 +288,24 @@ export default function Home() {
                 <User className="w-4 h-4 mr-1" />
                 健康档案
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/constitution-analysis')}
-                size="sm"
-                className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <Flame className="w-4 h-4 mr-1" />
-                体质分析
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => router.push('/constitution-questionnaire')}
-                size="sm"
-                className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-              >
-                <ClipboardCheck className="w-4 h-4 mr-1" />
-                体质问卷
-              </Button>
               {!isMobile && (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/risk-assessment')}
-                    size="sm"
-                    className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-                  >
-                    <Shield className="w-4 h-4 mr-1" />
-                    风险评估
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/trend-analysis')}
-                    size="sm"
-                    className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
-                  >
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    趋势分析
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  onClick={() => router.push('/trend-analysis')}
+                  size="sm"
+                  className="bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-600 hover:to-teal-600 text-white border-transparent text-xs md:text-sm min-h-[36px]"
+                >
+                  <TrendingUp className="w-4 h-4 mr-1" />
+                  趋势分析
+                </Button>
               )}
               <Button
                 size="lg"
-                onClick={() => router.push('/personal-info')}
+                onClick={() => router.push('/health-assessment')}
                 className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-bold text-base py-4 rounded-full shadow-lg hover:shadow-xl transition-all group min-h-[44px] px-6"
               >
                 <Activity className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                {isMobile ? '开始健康自检' : '开始健康自检'}
+                {isMobile ? '健康评估' : '健康评估'}
               </Button>
             </div>
           </div>
