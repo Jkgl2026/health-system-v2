@@ -44,72 +44,66 @@ function ResultContent() {
       }
       setSessionData(sessionDataResult.data);
 
-      // 获取健康分析
-      if (sessionDataResult.data.health_analysis_id) {
-        try {
-          const healthResponse = await fetch(`/api/health-analysis?userId=${userId}`);
-          const healthData = await healthResponse.json();
-          if (healthData.success && healthData.data && healthData.data.length > 0) {
-            // 转换 snake_case 到 camelCase
-            const raw = healthData.data[0];
-            const transformed = {
-              qiAndBlood: raw.qi_and_blood,
-              circulation: raw.circulation,
-              toxins: raw.toxins,
-              bloodLipids: raw.blood_lipids,
-              coldness: raw.coldness,
-              immunity: raw.immunity,
-              emotions: raw.emotions,
-              overallHealth: raw.overall_health,
-            };
-            setHealthAnalysis(transformed);
-          }
-        } catch (err) {
-          console.error('获取健康分析失败:', err);
+      // 获取健康分析（不管会话是否关联，直接获取最新数据）
+      try {
+        const healthResponse = await fetch(`/api/health-analysis?userId=${userId}`);
+        const healthData = await healthResponse.json();
+        if (healthData.success && healthData.data && healthData.data.length > 0) {
+          // 转换 snake_case 到 camelCase
+          const raw = healthData.data[0];
+          const transformed = {
+            qiAndBlood: raw.qi_and_blood,
+            circulation: raw.circulation,
+            toxins: raw.toxins,
+            bloodLipids: raw.blood_lipids,
+            coldness: raw.coldness,
+            immunity: raw.immunity,
+            emotions: raw.emotions,
+            overallHealth: raw.overall_health,
+          };
+          setHealthAnalysis(transformed);
         }
+      } catch (err) {
+        console.error('获取健康分析失败:', err);
       }
 
-      // 获取风险评估
-      if (sessionDataResult.data.risk_assessment_id) {
-        try {
-          const riskResponse = await fetch(`/api/risk-assessment?sessionId=${sessionId}`);
-          const riskData = await riskResponse.json();
-          if (riskData.success && riskData.data && riskData.data.records && riskData.data.records.length > 0) {
-            // 转换字段名
-            const raw = riskData.data.records[0];
-            const riskFactors = raw.risk_factors ? JSON.parse(raw.risk_factors) : {};
-            const recommendations = raw.recommendations ? JSON.parse(raw.recommendations) : [];
+      // 获取风险评估（不管会话是否关联，直接获取最新数据）
+      try {
+        const riskResponse = await fetch(`/api/risk-assessment?userId=${userId}`);
+        const riskData = await riskResponse.json();
+        if (riskData.success && riskData.data && riskData.data.records && riskData.data.records.length > 0) {
+          // 转换字段名
+          const raw = riskData.data.records[0];
+          const riskFactors = raw.risk_factors ? JSON.parse(raw.risk_factors) : {};
+          const recommendations = raw.recommendations ? JSON.parse(raw.recommendations) : [];
 
-            // 计算各项风险（简化版）
-            const transformed = {
-              overallRisk: raw.overall_risk_level,
-              overallRiskLevel: raw.overall_risk_level,
-              healthScore: raw.health_score,
-              hypertensionRisk: riskFactors.cardiovascular?.level === 'high' ? 0.7 : (riskFactors.cardiovascular?.level === 'medium' ? 0.4 : 0.1),
-              diabetesRisk: riskFactors.metabolic?.level === 'high' ? 0.6 : (riskFactors.metabolic?.level === 'medium' ? 0.3 : 0.1),
-              cardiovascularRisk: riskFactors.cardiovascular?.level === 'high' ? 0.65 : (riskFactors.cardiovascular?.level === 'medium' ? 0.35 : 0.15),
-              recommendations: recommendations,
-              riskFactors: riskFactors,
-            };
-            setRiskAssessment(transformed);
-          }
-        } catch (err) {
-          console.error('获取风险评估失败:', err);
+          // 计算各项风险（简化版）
+          const transformed = {
+            overallRisk: raw.overall_risk_level,
+            overallRiskLevel: raw.overall_risk_level,
+            healthScore: raw.health_score,
+            hypertensionRisk: riskFactors.cardiovascular?.level === 'high' ? 0.7 : (riskFactors.cardiovascular?.level === 'medium' ? 0.4 : 0.1),
+            diabetesRisk: riskFactors.metabolic?.level === 'high' ? 0.6 : (riskFactors.metabolic?.level === 'medium' ? 0.3 : 0.1),
+            cardiovascularRisk: riskFactors.cardiovascular?.level === 'high' ? 0.65 : (riskFactors.cardiovascular?.level === 'medium' ? 0.35 : 0.15),
+            recommendations: recommendations,
+            riskFactors: riskFactors,
+          };
+          setRiskAssessment(transformed);
         }
+      } catch (err) {
+        console.error('获取风险评估失败:', err);
       }
 
-      // 获取体质分析
-      if (sessionDataResult.data.constitution_questionnaire_id) {
-        try {
-          const constitutionResponse = await fetch(`/api/constitution-questionnaire?userId=${userId}`);
-          const constitutionData = await constitutionResponse.json();
-          if (constitutionData.success && constitutionData.questionnaire) {
-            // 字段名已经是正确的格式
-            setConstitutionResult(constitutionData.questionnaire);
-          }
-        } catch (err) {
-          console.error('获取体质分析失败:', err);
+      // 获取体质分析（不管会话是否关联，直接获取最新数据）
+      try {
+        const constitutionResponse = await fetch(`/api/constitution-questionnaire?userId=${userId}`);
+        const constitutionData = await constitutionResponse.json();
+        if (constitutionData.success && constitutionData.questionnaire) {
+          // 字段名已经是正确的格式
+          setConstitutionResult(constitutionData.questionnaire);
         }
+      } catch (err) {
+        console.error('获取体质分析失败:', err);
       }
 
     } catch (err) {
@@ -224,11 +218,11 @@ function ResultContent() {
               </div>
               <div className="text-center">
                 <div className="text-5xl font-bold text-purple-600 mb-2">
-                  {constitutionResult?.primary || '-'}
+                  {constitutionResult?.primaryConstitution || '-'}
                 </div>
                 <p className="text-gray-600">体质类型</p>
                 <div className="flex justify-center gap-2 mt-2">
-                  {constitutionResult?.secondary?.map((sec: string, idx: number) => (
+                  {constitutionResult?.secondaryConstitutions && constitutionResult.secondaryConstitutions.map((sec: string, idx: number) => (
                     <Badge key={idx} variant="secondary">{sec}</Badge>
                   ))}
                 </div>
@@ -297,7 +291,7 @@ function ResultContent() {
                     <div
                       key={name}
                       className={`p-3 rounded-lg text-center ${
-                        name === constitutionResult.primary
+                        name === constitutionResult.primaryConstitution
                           ? 'bg-purple-100 border-2 border-purple-500'
                           : 'bg-gray-50'
                       }`}
