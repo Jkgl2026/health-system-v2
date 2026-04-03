@@ -894,6 +894,162 @@ function ResultContent() {
           </CardContent>
         </Card>
 
+        {/* 综合调理方案 */}
+        {analysis.comprehensiveRegimen && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Target className="mr-2 h-5 w-5 text-purple-600" />
+                综合调理方案
+              </CardTitle>
+              <CardDescription>
+                基于体质和健康状况的个性化调理方案（内调外治，身心调理）
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-6">
+                {/* 方案摘要 */}
+                {analysis.comprehensiveRegimen.summary && (
+                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                    <div className="text-sm text-purple-900">
+                      <strong>调理方案：</strong>{analysis.comprehensiveRegimen.summary}
+                    </div>
+                  </div>
+                )}
+
+                {/* 内调方法 */}
+                {analysis.comprehensiveRegimen.internalMethods && analysis.comprehensiveRegimen.internalMethods.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3 flex items-center text-green-700">
+                      <Heart className="h-4 w-4 mr-2" />
+                      内调方法
+                    </h4>
+                    <div className="space-y-3">
+                      {analysis.comprehensiveRegimen.internalMethods.map((method: any, idx: number) => (
+                        <div key={idx} className="p-4 bg-green-50 rounded-lg border border-green-200">
+                          <div className="flex items-start justify-between mb-2">
+                            <h5 className="font-medium text-green-900">{method.name}</h5>
+                            <Badge variant="outline" className="text-xs">
+                              {method.intensity === 'light' ? '轻度' : method.intensity === 'moderate' ? '中度' : '强度'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2">{method.description}</p>
+                          {method.frequency && (
+                            <div className="text-xs text-gray-600 mb-1">
+                              <strong>推荐频率：</strong>{method.frequency}
+                            </div>
+                          )}
+                          {method.duration && (
+                            <div className="text-xs text-gray-600 mb-2">
+                              <strong>推荐时长：</strong>{method.duration}
+                            </div>
+                          )}
+                          {method.benefits && method.benefits.length > 0 && (
+                            <div className="text-xs text-gray-600 mb-2">
+                              <strong>功效：</strong>{method.benefits.join('、')}
+                            </div>
+                          )}
+                          {method.precautions && method.precautions.length > 0 && (
+                            <div className="mt-2 text-xs text-orange-700">
+                              <strong>注意事项：</strong>
+                              <ul className="list-disc list-inside mt-1">
+                                {method.precautions.map((precaution: string, pIdx: number) => (
+                                  <li key={pIdx}>{precaution}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 外治方法 */}
+                {analysis.comprehensiveRegimen.externalMethods && analysis.comprehensiveRegimen.externalMethods.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3 flex items-center text-blue-700">
+                      <Zap className="h-4 w-4 mr-2" />
+                      外治方法
+                    </h4>
+                    <div className="space-y-3">
+                      {analysis.comprehensiveRegimen.externalMethods.map((method: any, idx: number) => (
+                        <div key={idx} className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                          <div className="flex items-start justify-between mb-2">
+                            <h5 className="font-medium text-blue-900">{method.name}</h5>
+                            <Badge variant="outline" className="text-xs">
+                              {method.intensity === 'light' ? '轻度' : method.intensity === 'moderate' ? '中度' : '强度'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2">{method.description}</p>
+                          {method.frequency && (
+                            <div className="text-xs text-gray-600 mb-1">
+                              <strong>推荐频率：</strong>{method.frequency}
+                            </div>
+                          )}
+                          {method.duration && (
+                            <div className="text-xs text-gray-600 mb-2">
+                              <strong>推荐时长：</strong>{method.duration}
+                            </div>
+                          )}
+                          {method.benefits && method.benefits.length > 0 && (
+                            <div className="text-xs text-gray-600 mb-2">
+                              <strong>功效：</strong>{method.benefits.join('、')}
+                            </div>
+                          )}
+                          {method.combineMethods && method.combineMethods.length > 0 && (
+                            <div className="mt-2 text-xs text-blue-700">
+                              <strong>配合方法：</strong>{method.combineMethods.join('、')}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 身心调理 */}
+                {analysis.comprehensiveRegimen.mindBodyMethods && analysis.comprehensiveRegimen.mindBodyMethods.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3 flex items-center text-indigo-700">
+                      <Smile className="h-4 w-4 mr-2" />
+                      身心调理
+                    </h4>
+                    <div className="space-y-3">
+                      {analysis.comprehensiveRegimen.mindBodyMethods.map((method: any, idx: number) => (
+                        <div key={idx} className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                          <div className="flex items-start justify-between mb-2">
+                            <h5 className="font-medium text-indigo-900">{method.name}</h5>
+                            <Badge variant="outline" className="text-xs">
+                              {method.intensity === 'light' ? '轻度' : method.intensity === 'moderate' ? '中度' : '强度'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-700 mb-2">{method.description}</p>
+                          {method.frequency && (
+                            <div className="text-xs text-gray-600 mb-1">
+                              <strong>推荐频率：</strong>{method.frequency}
+                            </div>
+                          )}
+                          {method.duration && (
+                            <div className="text-xs text-gray-600 mb-2">
+                              <strong>推荐时长：</strong>{method.duration}
+                            </div>
+                          )}
+                          {method.benefits && method.benefits.length > 0 && (
+                            <div className="text-xs text-gray-600 mb-2">
+                              <strong>功效：</strong>{method.benefits.join('、')}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* 改善建议 */}
         <Card>
           <CardHeader>

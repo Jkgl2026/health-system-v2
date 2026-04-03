@@ -31,6 +31,10 @@ import {
   LifeExpectancy
 } from './life-expectancy';
 
+import {
+  generateComprehensiveRegimen
+} from './tcm-methods-database';
+
 // 分析结果类型
 export interface AnalysisResult {
   sessionId: string;
@@ -72,6 +76,13 @@ export interface AnalysisResult {
     riskAssessment: number;
     constitution: number;
     overall: number;
+  };
+  comprehensiveRegimen?: {
+    internalMethods: any[];
+    externalMethods: any[];
+    mindBodyMethods: any[];
+    exerciseMethods: any[];
+    summary: string;
   };
 }
 
@@ -407,6 +418,25 @@ export class AnalysisEngine {
       constitutionAnalysis
     );
 
+    // 生成综合调理方案
+    const diseaseList: string[] = [];
+    if (this.input.healthQuestionnaire?.has_hypertension) {
+      diseaseList.push('has_hypertension');
+    }
+    if (this.input.healthQuestionnaire?.has_diabetes) {
+      diseaseList.push('has_diabetes');
+    }
+    if (this.input.healthQuestionnaire?.has_hyperlipidemia) {
+      diseaseList.push('has_hyperlipidemia');
+    }
+
+    const comprehensiveRegimen = generateComprehensiveRegimen({
+      constitution: this.input.constitutionQuestionnaire?.primaryConstitution,
+      diseases: diseaseList,
+      symptoms: this.input.healthQuestionnaire?.symptoms || [],
+      age: Number(this.input.personalInfo.age) || 0
+    });
+
     // 格式化体质分析数据，供前端使用
     const formattedConstitutionAnalysis: any = {
       eightPrinciple: constitutionAnalysis.eightPrinciples,
@@ -456,7 +486,9 @@ export class AnalysisEngine {
         scores: this.input.constitutionQuestionnaire?.scores || {}
       },
       summary,
-      confidence
+      confidence,
+      // 添加综合调理方案
+      comprehensiveRegimen
     };
   }
 
