@@ -38,62 +38,82 @@ function ResultContent() {
     try {
       // 获取会话信息
       const sessionResponse = await fetch(`/api/assessment/sessions/${sessionId}`);
-      const sessionData = await sessionResponse.json();
-      if (!sessionData.success) {
+      const sessionDataResult = await sessionResponse.json();
+      if (!sessionDataResult.success) {
         throw new Error('获取会话信息失败');
       }
-      setSessionData(sessionData.data);
+      setSessionData(sessionDataResult.data);
 
       // 获取健康分析
-      if (sessionData.data.healthAnalysisId) {
-        // 这里需要调用对应的API获取健康分析详情
-        setHealthAnalysis({
-          qiAndBlood: 75,
-          circulation: 80,
-          toxins: 70,
-          bloodLipids: 65,
-          coldness: 72,
-          immunity: 78,
-          emotions: 68,
-          overallHealth: 73,
-        });
+      if (sessionDataResult.data.health_analysis_id) {
+        try {
+          const healthResponse = await fetch(`/api/health-analysis?userId=${userId}`);
+          const healthData = await healthResponse.json();
+          if (healthData.success && healthData.data && healthData.data.length > 0) {
+            // 转换 snake_case 到 camelCase
+            const raw = healthData.data[0];
+            const transformed = {
+              qiAndBlood: raw.qi_and_blood,
+              circulation: raw.circulation,
+              toxins: raw.toxins,
+              bloodLipids: raw.blood_lipids,
+              coldness: raw.coldness,
+              immunity: raw.immunity,
+              emotions: raw.emotions,
+              overallHealth: raw.overall_health,
+            };
+            setHealthAnalysis(transformed);
+          }
+        } catch (err) {
+          console.error('获取健康分析失败:', err);
+        }
       }
 
       // 获取风险评估
-      if (sessionData.data.riskAssessmentId) {
-        setRiskAssessment({
-          overallRisk: 'medium',
-          hypertensionRisk: 0.3,
-          diabetesRisk: 0.25,
-          cardiovascularRisk: 0.2,
-          recommendations: [
-            '控制血压，定期监测',
-            '增加有氧运动',
-            '改善饮食习惯',
-          ],
-        });
+      if (sessionDataResult.data.risk_assessment_id) {
+        try {
+          const riskResponse = await fetch(`/api/risk-assessment?sessionId=${sessionId}`);
+          const riskData = await riskResponse.json();
+          if (riskData.success && riskData.data && riskData.data.records && riskData.data.records.length > 0) {
+            // 转换字段名
+            const raw = riskData.data.records[0];
+            const riskFactors = raw.risk_factors ? JSON.parse(raw.risk_factors) : {};
+            const recommendations = raw.recommendations ? JSON.parse(raw.recommendations) : [];
+
+            // 计算各项风险（简化版）
+            const transformed = {
+              overallRisk: raw.overall_risk_level,
+              overallRiskLevel: raw.overall_risk_level,
+              healthScore: raw.health_score,
+              hypertensionRisk: riskFactors.cardiovascular?.level === 'high' ? 0.7 : (riskFactors.cardiovascular?.level === 'medium' ? 0.4 : 0.1),
+              diabetesRisk: riskFactors.metabolic?.level === 'high' ? 0.6 : (riskFactors.metabolic?.level === 'medium' ? 0.3 : 0.1),
+              cardiovascularRisk: riskFactors.cardiovascular?.level === 'high' ? 0.65 : (riskFactors.cardiovascular?.level === 'medium' ? 0.35 : 0.15),
+              recommendations: recommendations,
+              riskFactors: riskFactors,
+            };
+            setRiskAssessment(transformed);
+          }
+        } catch (err) {
+          console.error('获取风险评估失败:', err);
+        }
       }
 
       // 获取体质分析
-      if (sessionData.data.constitutionQuestionnaireId) {
-        setConstitutionResult({
-          primary: '气虚质',
-          secondary: ['痰湿质'],
-          scores: {
-            '平和质': 65,
-            '气虚质': 82,
-            '阳虚质': 68,
-            '阴虚质': 58,
-            '血瘀质': 55,
-            '痰湿质': 75,
-            '湿热质': 52,
-            '气郁质': 60,
-            '特禀质': 45,
-          },
-        });
+      if (sessionDataResult.data.constitution_questionnaire_id) {
+        try {
+          const constitutionResponse = await fetch(`/api/constitution-questionnaire?userId=${userId}`);
+          const constitutionData = await constitutionResponse.json();
+          if (constitutionData.success && constitutionData.questionnaire) {
+            // 字段名已经是正确的格式
+            setConstitutionResult(constitutionData.questionnaire);
+          }
+        } catch (err) {
+          console.error('获取体质分析失败:', err);
+        }
       }
 
     } catch (err) {
+      console.error('加载结果失败:', err);
       setError(err instanceof Error ? err.message : '加载结果失败');
     } finally {
       setLoading(false);
@@ -192,14 +212,14 @@ function ResultContent() {
                 <Progress value={healthAnalysis?.overallHealth || 0} className="mt-2" />
               </div>
               <div className="text-center">
-                <div className={`text-5xl font-bold mb-2 ${getRiskColor(riskAssessment?.overallRisk)}`}>
-                  {getRiskLabel(riskAssessment?.overallRisk)}
+                <div className={`text-5xl font-bold mb-2 ${getRiskColor(riskAssessment?.overallRisk || riskAssessment?.overallRiskLevel)}`}>
+                  {getRiskLabel(riskAssessment?.overallRisk || riskAssessment?.overallRiskLevel)}
                 </div>
                 <p className="text-gray-600">风险等级</p>
                 <div className="mt-2">
-                  {riskAssessment?.overallRisk === 'low' && <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto" />}
-                  {riskAssessment?.overallRisk === 'medium' && <AlertTriangle className="h-8 w-8 text-yellow-600 mx-auto" />}
-                  {riskAssessment?.overallRisk === 'high' && <AlertTriangle className="h-8 w-8 text-red-600 mx-auto" />}
+                  {(riskAssessment?.overallRisk === 'low' || riskAssessment?.overallRiskLevel === 'low') && <CheckCircle2 className="h-8 w-8 text-green-600 mx-auto" />}
+                  {(riskAssessment?.overallRisk === 'medium' || riskAssessment?.overallRiskLevel === 'medium') && <AlertTriangle className="h-8 w-8 text-yellow-600 mx-auto" />}
+                  {(riskAssessment?.overallRisk === 'high' || riskAssessment?.overallRiskLevel === 'high') && <AlertTriangle className="h-8 w-8 text-red-600 mx-auto" />}
                 </div>
               </div>
               <div className="text-center">
