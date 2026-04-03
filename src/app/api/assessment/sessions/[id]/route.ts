@@ -25,9 +25,20 @@ export async function GET(
 
     const session = result.rows[0];
 
-    // 解析JSONB字段（PostgreSQL的JSONB已经自动解析，如果是字符串才需要parse）
+    // 解析JSONB字段并转换字段名（snake_case → camelCase）
     const parsedSession = {
-      ...session,
+      id: session.id,
+      sessionName: session.session_name,
+      status: session.status,
+      currentStep: session.current_step,
+      userId: session.user_id,
+      createdAt: session.created_at,
+      updatedAt: session.updated_at,
+      completedAt: session.completed_at,
+      healthQuestionnaireId: session.health_questionnaire_id,
+      constitutionQuestionnaireId: session.constitution_questionnaire_id,
+      healthAnalysisId: session.health_analysis_id,
+      riskAssessmentId: session.risk_assessment_id,
       personalInfo: typeof session.personal_info === 'string'
         ? JSON.parse(session.personal_info)
         : session.personal_info,
