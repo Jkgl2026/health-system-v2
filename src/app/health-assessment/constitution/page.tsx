@@ -45,9 +45,22 @@ function ConstitutionContent() {
   }, []);
 
   const currentQuestion = shuffledQuestions[currentIndex];
-  const progress = ((currentIndex + 1) / shuffledQuestions.length) * 100;
+  const progress = shuffledQuestions.length > 0 ? ((currentIndex + 1) / shuffledQuestions.length) * 100 : 0;
+
+  // 如果问题还没加载完成，显示加载状态
+  if (!currentQuestion || shuffledQuestions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">正在加载问卷...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleAnswer = (value: string) => {
+    if (!currentQuestion) return;
     const score = parseInt(value);
     setAnswers({ ...answers, [currentQuestion.id]: score });
   };
@@ -59,6 +72,7 @@ function ConstitutionContent() {
   };
 
   const handleNext = () => {
+    if (!currentQuestion) return;
     if (!answers[currentQuestion.id]) {
       setError('请先选择一个选项');
       return;

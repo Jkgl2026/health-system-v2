@@ -106,7 +106,8 @@ export async function POST(request: NextRequest) {
 
     // 步骤1: 插入基本字段（使用personalInfo中的值）
     await (db.execute as any)(
-      sql`INSERT INTO health_questionnaires (id, user_id, age, gender, height, weight, bmi, notes) VALUES (${questionnaireId}, ${userId}, ${personalInfo.age}, ${personalInfo.gender}, ${personalInfo.height}, ${personalInfo.weight}, ${bmi}, ${notes})`
+      sql`INSERT INTO health_questionnaires (id, user_id, age, gender, height, weight, bmi, notes)
+        VALUES (${questionnaireId}, ${userId}, ${personalInfo.age}, ${personalInfo.gender}, ${personalInfo.height}, ${personalInfo.weight}, ${bmi}, ${notes || null})`
     );
 
     // 步骤2: 更新疾病史字段
@@ -121,13 +122,17 @@ export async function POST(request: NextRequest) {
       return JSON.stringify(arr);
     };
 
-    // 处理sleep_hours - 将"7-8小时"转换为数值
+    // 处理sleep_hours - 将"7-8小时"转换为数值，或者直接使用数字
     let processedSleepHours = null;
     if (sleepHours) {
-      // 提取数字部分
-      const match = sleepHours.match(/(\d+)/);
-      if (match) {
-        processedSleepHours = Number(match[1]);
+      if (typeof sleepHours === 'number') {
+        processedSleepHours = sleepHours;
+      } else if (typeof sleepHours === 'string') {
+        // 提取数字部分
+        const match = sleepHours.match(/(\d+)/);
+        if (match) {
+          processedSleepHours = Number(match[1]);
+        }
       }
     }
 
