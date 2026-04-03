@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, ArrowRight, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, AlertCircle, CheckCircle2, Home } from 'lucide-react';
 import { CONSTITUTION_QUESTIONS, calculateConstitutionScore, determineConstitutionType } from '@/lib/constitution-questions';
 
 function ConstitutionContent() {
@@ -196,15 +196,24 @@ function ConstitutionContent() {
       <div className="max-w-3xl mx-auto">
         {/* 头部 */}
         <div className="flex items-center justify-between mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => router.push(`/health-assessment/health?sessionId=${sessionId}&userId=${userId}`)}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+            >
+              <Home className="mr-2 h-4 w-4" />
+              首页
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push(`/health-assessment/health?sessionId=${sessionId}&userId=${userId}`)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              返回
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">体质问卷</h1>
-          <div className="w-24"></div>
+          <div className="w-32"></div>
         </div>
 
         {/* 步骤指示器 */}

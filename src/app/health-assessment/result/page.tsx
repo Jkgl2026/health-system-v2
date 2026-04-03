@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Calendar, TrendingUp, Shield, Heart, Activity, AlertTriangle, CheckCircle2, Download, Share2 } from 'lucide-react';
+import { ArrowLeft, Calendar, TrendingUp, Shield, Heart, Activity, AlertTriangle, CheckCircle2, Download, Share2, Home } from 'lucide-react';
 
 function ResultContent() {
   const router = useRouter();
@@ -427,13 +427,22 @@ function ResultContent() {
       <div className="max-w-6xl mx-auto">
         {/* 头部 */}
         <div className="flex items-center justify-between mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => router.push('/health-assessment/history')}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回历史
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+            >
+              <Home className="mr-2 h-4 w-4" />
+              首页
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/health-assessment/history')}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              返回历史
+            </Button>
+          </div>
           <div>
             <h1 className="text-3xl font-bold text-gray-900">健康评估报告</h1>
             {sessionData?.sessionName && (

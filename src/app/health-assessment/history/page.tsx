@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Plus, Calendar, Activity, CheckCircle2, TrendingUp, Trash2, Share2, BarChart3 } from 'lucide-react';
+import { Plus, Calendar, Activity, CheckCircle2, TrendingUp, Trash2, Share2, BarChart3, Home } from 'lucide-react';
 
 interface Session {
   id: string;
@@ -95,6 +95,21 @@ export default function HistoryPage() {
       <div className="max-w-6xl mx-auto">
         {/* 头部 */}
         <div className="flex items-center justify-between mb-8">
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+            >
+              <Home className="mr-2 h-4 w-4" />
+              首页
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/health-assessment')}
+            >
+              返回
+            </Button>
+          </div>
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">健康评估历史</h1>
             <p className="text-gray-600">查看您所有的健康评估记录</p>

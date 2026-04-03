@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CheckCircle2, AlertCircle, Activity, TrendingUp, Shield, Heart } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Activity, TrendingUp, Shield, Heart, Home } from 'lucide-react';
 
 interface AnalysisData {
   healthAnalysis: any;
@@ -374,6 +374,19 @@ function AnalysisContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 p-8">
       <div className="max-w-3xl mx-auto">
+        {/* 头部 */}
+        <div className="flex items-center justify-between mb-8">
+          <Button
+            variant="ghost"
+            onClick={() => router.push('/')}
+          >
+            <Home className="mr-2 h-4 w-4" />
+            返回首页
+          </Button>
+          <h1 className="text-3xl font-bold text-gray-900">分析完成</h1>
+          <div className="w-32"></div>
+        </div>
+
         {/* 成功提示 */}
         <div className="text-center mb-12">
           <div className="flex items-center justify-center mb-4">

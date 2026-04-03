@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, ArrowRight, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Loader2, AlertCircle, CheckCircle2, Home } from 'lucide-react';
 
 interface QuestionnaireData {
   // 基础信息（从个人信息获取，不显示）
@@ -188,15 +188,24 @@ function HealthContent() {
       <div className="max-w-4xl mx-auto">
         {/* 头部 */}
         <div className="flex items-center justify-between mb-8">
-          <Button
-            variant="ghost"
-            onClick={() => router.push(`/health-assessment?sessionId=${sessionId}&userId=${userId}`)}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            返回
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              onClick={() => router.push('/')}
+            >
+              <Home className="mr-2 h-4 w-4" />
+              首页
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => router.push(`/health-assessment?sessionId=${sessionId}&userId=${userId}`)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              返回
+            </Button>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900">健康问卷</h1>
-          <div className="w-24"></div>
+          <div className="w-32"></div>
         </div>
 
         {/* 步骤指示器 */}

@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, Calendar, TrendingUp, BarChart3, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Calendar, TrendingUp, BarChart3, CheckCircle2, AlertTriangle, Home } from 'lucide-react';
 
 interface Session {
   id: string;
@@ -101,6 +101,10 @@ export default function ComparePage() {
         {/* 头部 */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
+            <Button variant="ghost" onClick={() => router.push('/')}>
+              <Home className="mr-2 h-4 w-4" />
+              首页
+            </Button>
             <Button variant="ghost" onClick={() => router.push('/health-assessment/history')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               返回
