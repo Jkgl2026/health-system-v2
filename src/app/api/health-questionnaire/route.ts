@@ -121,6 +121,16 @@ export async function POST(request: NextRequest) {
       return JSON.stringify(arr);
     };
 
+    // 处理sleep_hours - 将"7-8小时"转换为数值
+    let processedSleepHours = null;
+    if (sleepHours) {
+      // 提取数字部分
+      const match = sleepHours.match(/(\d+)/);
+      if (match) {
+        processedSleepHours = Number(match[1]);
+      }
+    }
+
     await (db.execute as any)(
       sql`UPDATE health_questionnaires SET
         has_hypertension = ${hasHypertensionValue},
@@ -164,7 +174,7 @@ export async function POST(request: NextRequest) {
     // 步骤5: 更新睡眠和饮食字段
     await (db.execute as any)(
       sql`UPDATE health_questionnaires SET
-        sleep_hours = ${sleepHours || null},
+        sleep_hours = ${processedSleepHours},
         sleep_quality = ${sleepQuality || null},
         sleep_issues = ${formatArray(sleepIssues)},
         diet_habits = ${dietHabits || null},

@@ -353,10 +353,10 @@ function HealthContent() {
                           <SelectValue placeholder="请选择" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="小于5小时">小于5小时</SelectItem>
-                          <SelectItem value="5-6小时">5-6小时</SelectItem>
-                          <SelectItem value="7-8小时">7-8小时</SelectItem>
-                          <SelectItem value="大于8小时">大于8小时</SelectItem>
+                          <SelectItem value="4">小于5小时</SelectItem>
+                          <SelectItem value="5.5">5-6小时</SelectItem>
+                          <SelectItem value="7.5">7-8小时</SelectItem>
+                          <SelectItem value="9">大于8小时</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
