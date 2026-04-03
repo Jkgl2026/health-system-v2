@@ -14,6 +14,9 @@ interface Session {
   status: string;
   createdAt: string;
   completedAt: string | null;
+  healthQuestionnaireId: string | null;
+  constitutionQuestionnaireId: string | null;
+  healthAnalysisId: string | null;
   personalInfo: {
     name: string;
     age: string;
@@ -191,27 +194,44 @@ export default function HistoryPage() {
 
                     {/* 操作按钮 */}
                     <div className="flex gap-2">
-                      <Button
-                        onClick={() => handleViewResult(session.id)}
-                        className="flex-1 bg-blue-600 hover:bg-blue-700"
-                        size="sm"
-                      >
-                        <Activity className="mr-2 h-4 w-4" />
-                        查看详情
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                      >
-                        <Share2 className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      {session.healthQuestionnaireId && session.constitutionQuestionnaireId ? (
+                        // 两个问卷都完成了，显示查看详情
+                        <Button
+                          onClick={() => handleViewResult(session.id)}
+                          className="flex-1 bg-blue-600 hover:bg-blue-700"
+                          size="sm"
+                        >
+                          <Activity className="mr-2 h-4 w-4" />
+                          查看详情
+                        </Button>
+                      ) : (
+                        // 问卷未完成，显示继续评估
+                        <Button
+                          onClick={() => router.push(`/health-assessment?sessionId=${session.id}`)}
+                          className="flex-1 bg-orange-600 hover:bg-orange-700"
+                          size="sm"
+                        >
+                          <Activity className="mr-2 h-4 w-4" />
+                          继续评估
+                        </Button>
+                      )}
+                      {session.healthQuestionnaireId && session.constitutionQuestionnaireId && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                          >
+                            <Share2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </CardContent>

@@ -91,7 +91,18 @@ export async function GET(request: NextRequest) {
     );
 
     const records = recordsResult.rows.map((row: any) => ({
-      ...row,
+      id: row.id,
+      sessionName: row.session_name,
+      status: row.status,
+      currentStep: row.current_step,
+      userId: row.user_id,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      completedAt: row.completed_at,
+      healthQuestionnaireId: row.health_questionnaire_id,
+      constitutionQuestionnaireId: row.constitution_questionnaire_id,
+      healthAnalysisId: row.health_analysis_id,
+      riskAssessmentId: row.risk_assessment_id,
       personalInfo: typeof row.personal_info === 'string'
         ? JSON.parse(row.personal_info)
         : row.personal_info,
