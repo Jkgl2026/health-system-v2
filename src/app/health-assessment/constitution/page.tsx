@@ -147,7 +147,7 @@ function ConstitutionContent() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          constitutionQuestionnaireId: data.data.id,
+          constitutionQuestionnaireId: data.questionnaireId,
           currentStep: 'analysis',
         }),
       });
