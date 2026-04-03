@@ -1,360 +1,298 @@
 /**
- * 前端性能监控和优化工具
+ * 性能监控系统
+ * 用于监控API响应时间、内存使用、缓存命中率等
  */
 
-/**
- * 性能指标接口
- */
+// 性能指标
 export interface PerformanceMetrics {
-  // 加载性能
-  FCP: number; // First Contentful Paint
-  LCP: number; // Largest Contentful Paint
-  TTI: number; // Time to Interactive
-  FID: number; // First Input Delay
-  CLS: number; // Cumulative Layout Shift
-
-  // 自定义指标
-  pageLoadTime: number;
-  apiResponseTime: number;
-  renderTime: number;
-
-  // 资源加载
-  jsLoadTime: number;
-  cssLoadTime: number;
-  imageLoadTime: number;
+  apiResponseTime: {
+    [endpoint: string]: {
+      avgTime: number;
+      minTime: number;
+      maxTime: number;
+      totalCount: number;
+      lastUpdated: Date;
+    };
+  };
+  cacheMetrics: {
+    hits: number;
+    misses: number;
+    hitRate: number;
+    totalRequests: number;
+  };
+  memoryMetrics: {
+    used: number;
+    total: number;
+    percentage: number;
+  };
+  errorMetrics: {
+    [errorType: string]: {
+      count: number;
+      lastOccurred: Date;
+    };
+  };
 }
 
-/**
- * 性能监控器
- */
+// 性能监控器类
 export class PerformanceMonitor {
-  private metrics: Partial<PerformanceMetrics> = {};
-  private observers: PerformanceObserver[] = [];
-  private readonly STORAGE_KEY = 'performance_metrics';
+  private metrics: PerformanceMetrics;
+  private enabled: boolean;
+  private responseTimeHistory: Map<string, number[]> = new Map();
 
   constructor() {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    this.init();
+    this.metrics = {
+      apiResponseTime: {},
+      cacheMetrics: {
+        hits: 0,
+        misses: 0,
+        hitRate: 0,
+        totalRequests: 0
+      },
+      memoryMetrics: {
+        used: 0,
+        total: 0,
+        percentage: 0
+      },
+      errorMetrics: {}
+    };
+    this.enabled = true;
   }
 
   /**
-   * 初始化监控
+   * 记录API响应时间
    */
-  private init(): void {
-    // 监听 Web Vitals
-    this.observeWebVitals();
+  recordApiResponse(endpoint: string, duration: number): void {
+    if (!this.enabled) return;
 
-    // 监听资源加载
-    this.observeResourceTiming();
-
-    // 记录页面加载时间
-    this.recordPageLoadTime();
-
-    // 恢复历史指标
-    this.loadHistoricalMetrics();
-  }
-
-  /**
-   * 观察 Web Vitals
-   */
-  private observeWebVitals(): void {
-    if (!('PerformanceObserver' in window)) {
-      return;
-    }
-
-    // FCP (First Contentful Paint)
-    this.observe('paint', (entries) => {
-      const fcp = entries.find(entry => entry.name === 'first-contentful-paint');
-      if (fcp) {
-        this.metrics.FCP = fcp.startTime;
+    if (!this.metrics.apiResponseTime[endpoint]) {
+      this.metrics.apiResponseTime[endpoint] = {
+        avgTime: duration,
+        minTime: duration,
+        maxTime: duration,
+        totalCount: 1,
+        lastUpdated: new Date()
+      };
+      this.responseTimeHistory.set(endpoint, [duration]);
+    } else {
+      const history = this.responseTimeHistory.get(endpoint) || [];
+      history.push(duration);
+      
+      // 保持最近100个记录
+      if (history.length > 100) {
+        history.shift();
       }
-    });
+      
+      this.responseTimeHistory.set(endpoint, history);
 
-    // LCP (Largest Contentful Paint)
-    this.observe('largest-contentful-paint', (entries) => {
-      const lcp = entries[entries.length - 1];
-      if (lcp) {
-        this.metrics.LCP = lcp.startTime;
-      }
-    });
-
-    // FID (First Input Delay)
-    this.observe('first-input', (entries) => {
-      if (entries.length > 0) {
-        const fid = entries[0];
-        this.metrics.FID = fid.processingStart - fid.startTime;
-      }
-    });
-
-    // CLS (Cumulative Layout Shift)
-    this.observe('layout-shift', (entries) => {
-      let clsValue = 0;
-      for (const entry of entries) {
-        if (!(entry as any).hadRecentInput) {
-          clsValue += (entry as any).value;
-        }
-      }
-      this.metrics.CLS = clsValue;
-    });
-  }
-
-  /**
-   * 通用观察方法
-   */
-  private observe(type: string, callback: (entries: any[]) => void): void {
-    try {
-      const observer = new PerformanceObserver((list) => {
-        callback(list.getEntries());
-      });
-      observer.observe({ type, buffered: true });
-      this.observers.push(observer);
-    } catch (error) {
-      console.warn('[PerformanceMonitor] 观察失败:', type, error);
+      const metrics = this.metrics.apiResponseTime[endpoint];
+      metrics.totalCount++;
+      metrics.minTime = Math.min(metrics.minTime, duration);
+      metrics.maxTime = Math.max(metrics.maxTime, duration);
+      metrics.avgTime = history.reduce((a, b) => a + b, 0) / history.length;
+      metrics.lastUpdated = new Date();
     }
   }
 
   /**
-   * 观察资源加载时间
+   * 记录缓存命中
    */
-  private observeResourceTiming(): void {
-    if (!('PerformanceObserver' in window)) {
-      return;
+  recordCacheHit(): void {
+    if (!this.enabled) return;
+    
+    this.metrics.cacheMetrics.hits++;
+    this.metrics.cacheMetrics.totalRequests++;
+    this.updateCacheHitRate();
+  }
+
+  /**
+   * 记录缓存未命中
+   */
+  recordCacheMiss(): void {
+    if (!this.enabled) return;
+    
+    this.metrics.cacheMetrics.misses++;
+    this.metrics.cacheMetrics.totalRequests++;
+    this.updateCacheHitRate();
+  }
+
+  /**
+   * 更新缓存命中率
+   */
+  private updateCacheHitRate(): void {
+    const { hits, totalRequests } = this.metrics.cacheMetrics;
+    this.metrics.cacheMetrics.hitRate = totalRequests > 0 
+      ? (hits / totalRequests) * 100 
+      : 0;
+  }
+
+  /**
+   * 记录内存使用
+   */
+  recordMemoryUsage(): void {
+    if (!this.enabled) return;
+
+    if (typeof process !== 'undefined' && process.memoryUsage) {
+      const usage = process.memoryUsage();
+      this.metrics.memoryMetrics.used = usage.heapUsed / 1024 / 1024; // MB
+      this.metrics.memoryMetrics.total = usage.heapTotal / 1024 / 1024; // MB
+      this.metrics.memoryMetrics.percentage = 
+        (usage.heapUsed / usage.heapTotal) * 100;
     }
-
-    this.observe('resource', (entries) => {
-      entries.forEach((entry: any) => {
-        if (entry.initiatorType === 'script') {
-          this.metrics.jsLoadTime = entry.duration;
-        } else if (entry.initiatorType === 'link' && entry.name.endsWith('.css')) {
-          this.metrics.cssLoadTime = entry.duration;
-        } else if (entry.initiatorType === 'img') {
-          this.metrics.imageLoadTime = entry.duration;
-        }
-      });
-    });
   }
 
   /**
-   * 记录页面加载时间
+   * 记录错误
    */
-  private recordPageLoadTime(): void {
-    window.addEventListener('load', () => {
-      const perfData = window.performance.timing;
-      const pageLoadTime = perfData.loadEventEnd - perfData.navigationStart;
-      this.metrics.pageLoadTime = pageLoadTime;
+  recordError(errorType: string): void {
+    if (!this.enabled) return;
 
-      // 保存指标
-      this.saveMetrics();
-    });
-  }
-
-  /**
-   * 记录 API 响应时间
-   */
-  recordAPIResponseTime(url: string, duration: number): void {
-    this.metrics.apiResponseTime = duration;
-    console.log(`[PerformanceMonitor] API 响应时间: ${url} - ${duration.toFixed(2)}ms`);
-  }
-
-  /**
-   * 记录渲染时间
-   */
-  recordRenderTime(componentName: string, duration: number): void {
-    this.metrics.renderTime = duration;
-    console.log(`[PerformanceMonitor] 渲染时间: ${componentName} - ${duration.toFixed(2)}ms`);
+    if (!this.metrics.errorMetrics[errorType]) {
+      this.metrics.errorMetrics[errorType] = {
+        count: 1,
+        lastOccurred: new Date()
+      };
+    } else {
+      this.metrics.errorMetrics[errorType].count++;
+      this.metrics.errorMetrics[errorType].lastOccurred = new Date();
+    }
   }
 
   /**
    * 获取所有指标
    */
-  getMetrics(): Partial<PerformanceMetrics> {
+  getMetrics(): PerformanceMetrics {
+    this.recordMemoryUsage();
     return { ...this.metrics };
   }
 
   /**
-   * 获取性能评分
+   * 获取API响应时间指标
    */
-  getPerformanceScore(): number {
-    let score = 100;
-
-    // FCP 评分 (目标 < 1.8s)
-    if (this.metrics.FCP && this.metrics.FCP > 1800) {
-      score -= Math.min(20, (this.metrics.FCP - 1800) / 100);
+  getApiResponseTimeMetrics(endpoint?: string): any {
+    if (endpoint) {
+      return this.metrics.apiResponseTime[endpoint] || null;
     }
-
-    // LCP 评分 (目标 < 2.5s)
-    if (this.metrics.LCP && this.metrics.LCP > 2500) {
-      score -= Math.min(25, (this.metrics.LCP - 2500) / 100);
-    }
-
-    // FID 评分 (目标 < 100ms)
-    if (this.metrics.FID && this.metrics.FID > 100) {
-      score -= Math.min(20, (this.metrics.FID - 100) / 10);
-    }
-
-    // CLS 评分 (目标 < 0.1)
-    if (this.metrics.CLS && this.metrics.CLS > 0.1) {
-      score -= Math.min(15, (this.metrics.CLS - 0.1) * 100);
-    }
-
-    return Math.max(0, Math.round(score));
+    return this.metrics.apiResponseTime;
   }
 
   /**
-   * 保存指标到 localStorage
+   * 获取缓存指标
    */
-  private saveMetrics(): void {
-    try {
-      const historical = this.loadHistoricalMetrics();
-      historical.push({
-        timestamp: Date.now(),
-        metrics: this.metrics,
+  getCacheMetrics(): PerformanceMetrics['cacheMetrics'] {
+    return { ...this.metrics.cacheMetrics };
+  }
+
+  /**
+   * 获取错误指标
+   */
+  getErrorMetrics(): PerformanceMetrics['errorMetrics'] {
+    return { ...this.metrics.errorMetrics };
+  }
+
+  /**
+   * 生成性能报告
+   */
+  generateReport(): string {
+    const report: string[] = [];
+    
+    report.push('=== 性能监控报告 ===\n');
+    
+    // API响应时间
+    report.push('API响应时间:');
+    Object.entries(this.metrics.apiResponseTime).forEach(([endpoint, metrics]) => {
+      report.push(`  ${endpoint}:`);
+      report.push(`    平均时间: ${metrics.avgTime.toFixed(2)}ms`);
+      report.push(`    最短时间: ${metrics.minTime.toFixed(2)}ms`);
+      report.push(`    最长时间: ${metrics.maxTime.toFixed(2)}ms`);
+      report.push(`    总请求数: ${metrics.totalCount}`);
+    });
+    
+    // 缓存指标
+    report.push('\n缓存指标:');
+    report.push(`  命中率: ${this.metrics.cacheMetrics.hitRate.toFixed(2)}%`);
+    report.push(`  命中次数: ${this.metrics.cacheMetrics.hits}`);
+    report.push(`  未命中次数: ${this.metrics.cacheMetrics.misses}`);
+    report.push(`  总请求数: ${this.metrics.cacheMetrics.totalRequests}`);
+    
+    // 内存指标
+    report.push('\n内存指标:');
+    report.push(`  已使用: ${this.metrics.memoryMetrics.used.toFixed(2)}MB`);
+    report.push(`  总分配: ${this.metrics.memoryMetrics.total.toFixed(2)}MB`);
+    report.push(`  使用率: ${this.metrics.memoryMetrics.percentage.toFixed(2)}%`);
+    
+    // 错误指标
+    if (Object.keys(this.metrics.errorMetrics).length > 0) {
+      report.push('\n错误统计:');
+      Object.entries(this.metrics.errorMetrics).forEach(([errorType, metrics]) => {
+        report.push(`  ${errorType}: ${metrics.count}次`);
       });
-
-      // 只保留最近 50 条记录
-      const trimmed = historical.slice(-50);
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(trimmed));
-    } catch (error) {
-      console.warn('[PerformanceMonitor] 保存指标失败:', error);
     }
+    
+    return report.join('\n');
   }
 
   /**
-   * 加载历史指标
+   * 重置指标
    */
-  private loadHistoricalMetrics(): any[] {
+  reset(): void {
+    this.metrics = {
+      apiResponseTime: {},
+      cacheMetrics: {
+        hits: 0,
+        misses: 0,
+        hitRate: 0,
+        totalRequests: 0
+      },
+      memoryMetrics: {
+        used: 0,
+        total: 0,
+        percentage: 0
+      },
+      errorMetrics: {}
+    };
+    this.responseTimeHistory.clear();
+  }
+
+  /**
+   * 启用监控
+   */
+  enable(): void {
+    this.enabled = true;
+  }
+
+  /**
+   * 禁用监控
+   */
+  disable(): void {
+    this.enabled = false;
+  }
+}
+
+// 全局监控实例
+export const globalMonitor = new PerformanceMonitor();
+
+/**
+ * 性能监控装饰器（用于API路由）
+ */
+export function withPerformanceMonitoring(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  const originalMethod = descriptor.value;
+  
+  descriptor.value = async function (...args: any[]) {
+    const endpoint = propertyKey;
+    const startTime = Date.now();
+    
     try {
-      const data = localStorage.getItem(this.STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
-    } catch (error) {
-      return [];
-    }
-  }
-
-  /**
-   * 获取历史指标
-   */
-  getHistoricalMetrics(): any[] {
-    return this.loadHistoricalMetrics();
-  }
-
-  /**
-   * 清除历史指标
-   */
-  clearHistoricalMetrics(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
-  }
-
-  /**
-   * 销毁监控器
-   */
-  destroy(): void {
-    this.observers.forEach(observer => observer.disconnect());
-    this.observers = [];
-  }
-}
-
-/**
- * 单例实例
- */
-export const performanceMonitor = new PerformanceMonitor();
-
-/**
- * React Hook：使用性能监控
- */
-export function usePerformanceMonitor() {
-  if (typeof window === 'undefined') {
-    return {
-      metrics: {},
-      score: 0,
-      recordAPI: () => {},
-      recordRender: () => {},
-    };
-  }
-
-  return {
-    metrics: performanceMonitor.getMetrics(),
-    score: performanceMonitor.getPerformanceScore(),
-    recordAPI: (url: string, duration: number) =>
-      performanceMonitor.recordAPIResponseTime(url, duration),
-    recordRender: (componentName: string, duration: number) =>
-      performanceMonitor.recordRenderTime(componentName, duration),
-  };
-}
-
-/**
- * 性能装饰器：测量函数执行时间
- */
-export function measurePerformance(componentName: string) {
-  return function (target: any, propertyName: string, descriptor: PropertyDescriptor) {
-    const originalMethod = descriptor.value;
-
-    descriptor.value = async function (...args: any[]) {
-      const start = performance.now();
       const result = await originalMethod.apply(this, args);
-      const end = performance.now();
-      const duration = end - start;
-
-      performanceMonitor.recordRenderTime(componentName, duration);
-      console.log(`[Performance] ${componentName}.${propertyName}: ${duration.toFixed(2)}ms`);
-
+      
+      const duration = Date.now() - startTime;
+      globalMonitor.recordApiResponse(endpoint, duration);
+      
       return result;
-    };
-
-    return descriptor;
+    } catch (error) {
+      globalMonitor.recordError(endpoint);
+      throw error;
+    }
   };
+  
+  return descriptor;
 }
-
-/**
- * 测量异步函数性能
- */
-export async function measureAsync<T>(
-  fn: () => Promise<T>,
-  label: string
-): Promise<{ result: T; duration: number }> {
-  const start = performance.now();
-  const result = await fn();
-  const end = performance.now();
-  const duration = end - start;
-
-  console.log(`[Performance] ${label}: ${duration.toFixed(2)}ms`);
-  return { result, duration };
-}
-
-/**
- * 检测性能瓶颈
- */
-export function detectPerformanceBottlenecks(metrics: Partial<PerformanceMetrics>): string[] {
-  const bottlenecks: string[] = [];
-
-  if (metrics.FCP && metrics.FCP > 3000) {
-    bottlenecks.push('FCP 超过 3 秒，考虑优化首屏加载');
-  }
-
-  if (metrics.LCP && metrics.LCP > 4000) {
-    bottlenecks.push('LCP 超过 4 秒，考虑优化最大内容元素');
-  }
-
-  if (metrics.FID && metrics.FID > 300) {
-    bottlenecks.push('FID 超过 300ms，考虑优化 JavaScript 执行');
-  }
-
-  if (metrics.CLS && metrics.CLS > 0.25) {
-    bottlenecks.push('CLS 超过 0.25，考虑减少布局偏移');
-  }
-
-  if (metrics.apiResponseTime && metrics.apiResponseTime > 500) {
-    bottlenecks.push('API 响应时间超过 500ms，考虑添加缓存');
-  }
-
-  if (metrics.renderTime && metrics.renderTime > 100) {
-    bottlenecks.push('渲染时间超过 100ms，考虑优化组件');
-  }
-
-  return bottlenecks;
-}
-
-export default PerformanceMonitor;
