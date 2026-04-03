@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowRight, User, Calendar, Ruler, Scale, AlertCircle, Loader2 } from 'lucide-react';
+import { ArrowRight, User, Calendar, Ruler, Scale, AlertCircle, Loader2, ArrowLeft } from 'lucide-react';
 
 interface PersonalInfo {
   name: string;
@@ -123,9 +123,20 @@ function AssessmentContent() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">
       <div className="max-w-2xl mx-auto">
         {/* 头部 */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">健康评估</h1>
-          <p className="text-gray-600">全面了解您的健康状况，开始您的健康之旅</p>
+        <div className="flex items-center justify-between mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/')}
+            className="mr-2"
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            返回首页
+          </Button>
+          <div className="flex-1 text-center">
+            <h1 className="text-4xl font-bold text-gray-900 mb-2">健康评估</h1>
+            <p className="text-gray-600">全面了解您的健康状况，开始您的健康之旅</p>
+          </div>
         </div>
 
         {/* 步骤指示器 */}

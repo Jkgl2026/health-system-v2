@@ -1,11 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Loader2, Download } from 'lucide-react';
+import { FileText, Loader2, Download, ArrowLeft } from 'lucide-react';
 
 export default function ComprehensiveReportPage() {
+  const router = useRouter();
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [userInfo, setUserInfo] = useState({
@@ -76,9 +78,20 @@ export default function ComprehensiveReportPage() {
   return (
     <div className="container mx-auto py-8 px-4">
       <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">综合健康报告</h1>
-          <p className="text-muted-foreground">整合所有检测结果生成综合报告</p>
+        {/* 头部 */}
+        <div className="flex items-center justify-between mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/')}
+          >
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            返回首页
+          </Button>
+          <div className="flex-1 text-center">
+            <h1 className="text-3xl font-bold mb-2">综合健康报告</h1>
+            <p className="text-muted-foreground">整合所有检测结果生成综合报告</p>
+          </div>
         </div>
 
         {!result ? (
