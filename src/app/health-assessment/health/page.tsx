@@ -151,6 +151,7 @@ function HealthContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId,
+          sessionId,
           ...formData,
         }),
       });

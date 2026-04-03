@@ -8,7 +8,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       userId,
-      // 基础信息
+      sessionId, // 新增：会话ID，用于获取个人信息
+      // 基础信息（可选，如果没有提供则从session中获取）
       age,
       gender,
       height,
@@ -64,6 +65,31 @@ export async function POST(request: NextRequest) {
 
     const db = await getDb();
 
+    // 如果有sessionId，从会话中获取个人信息
+    let personalInfo = { age, gender, height, weight };
+    if (sessionId) {
+      try {
+        const sessionResult = await (db.execute as any)(
+          sql`SELECT personal_info FROM assessment_sessions WHERE id = ${sessionId} AND user_id = ${userId}`
+        );
+        if (sessionResult.rows.length > 0) {
+          const personalInfoData = sessionResult.rows[0].personal_info;
+          if (personalInfoData) {
+            // 如果API没有提供个人信息，则从session中获取
+            personalInfo = {
+              age: age || personalInfoData.age,
+              gender: gender || personalInfoData.gender,
+              height: height || personalInfoData.height,
+              weight: weight || personalInfoData.weight
+            };
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching session data:', err);
+        // 继续执行，使用提供的个人信息或undefined
+      }
+    }
+
     // 计算BMI
     let bmi = null;
     if (height && weight) {
@@ -78,9 +104,9 @@ export async function POST(request: NextRequest) {
     // 插入健康问卷
     const questionnaireId = crypto.randomUUID();
 
-    // 步骤1: 插入基本字段
+    // 步骤1: 插入基本字段（使用personalInfo中的值）
     await (db.execute as any)(
-      sql`INSERT INTO health_questionnaires (id, user_id, age, gender, height, weight, bmi, notes) VALUES (${questionnaireId}, ${userId}, ${age}, ${gender}, ${height}, ${weight}, ${bmi}, ${notes})`
+      sql`INSERT INTO health_questionnaires (id, user_id, age, gender, height, weight, bmi, notes) VALUES (${questionnaireId}, ${userId}, ${personalInfo.age}, ${personalInfo.gender}, ${personalInfo.height}, ${personalInfo.weight}, ${bmi}, ${notes})`
     );
 
     // 步骤2: 更新疾病史字段
