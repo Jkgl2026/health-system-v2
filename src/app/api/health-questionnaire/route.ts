@@ -110,6 +110,22 @@ export async function POST(request: NextRequest) {
         VALUES (${questionnaireId}, ${userId}, ${personalInfo.age}, ${personalInfo.gender}, ${personalInfo.height}, ${personalInfo.weight}, ${bmi}, ${notes || null})`
     );
 
+    // 如果有 sessionId，更新评估会话
+    if (sessionId) {
+      try {
+        await (db.execute as any)(sql`
+          UPDATE assessment_sessions
+          SET health_questionnaire_id = ${questionnaireId},
+              updated_at = NOW()
+          WHERE id = ${sessionId}
+        `);
+        console.log('[HealthQuestionnaire] 会话已更新:', sessionId);
+      } catch (sessionError) {
+        console.error('[HealthQuestionnaire] 更新会话失败:', sessionError);
+        // 不阻止主流程
+      }
+    }
+
     // 步骤2: 更新疾病史字段
     const hasHypertensionValue = hasHypertension === true;
     const hasDiabetesValue = hasDiabetes === true;

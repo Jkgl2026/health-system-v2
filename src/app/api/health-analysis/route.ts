@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getDb } from 'coze-coding-dev-sdk';
+import { sql } from 'drizzle-orm';
 import { healthDataManager } from '@/storage/database';
 import type { InsertHealthAnalysis } from '@/storage/database';
 import { applyRateLimit } from '@/lib/rate-limit-middleware';
@@ -22,6 +24,8 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await request.json();
+    const { sessionId } = data; // 提取 sessionId
+
     const analysisData: InsertHealthAnalysis = {
       userId: data.userId,
       qiAndBlood: data.qiAndBlood || null,
@@ -35,7 +39,31 @@ export async function POST(request: NextRequest) {
     };
 
     const analysis = await healthDataManager.createHealthAnalysis(analysisData);
-    return NextResponse.json({ success: true, analysis }, { status: 201 });
+
+    // 如果有 sessionId，更新评估会话
+    if (sessionId && analysis.id) {
+      const db = await getDb();
+      try {
+        await (db.execute as any)(sql`
+          UPDATE assessment_sessions
+          SET health_analysis_id = ${analysis.id},
+              updated_at = NOW()
+          WHERE id = ${sessionId}
+        `);
+      } catch (sessionError) {
+        console.error('[HealthAnalysis] 更新会话失败:', sessionError);
+        // 不阻止主流程
+      }
+    }
+
+    // 统一响应格式：{ success: true, data: { id, ... } }
+    return NextResponse.json({
+      success: true,
+      data: {
+        id: analysis.id,
+        ...analysis
+      }
+    }, { status: 201 });
   } catch (error) {
     return createErrorResponse(error);
   }
@@ -49,13 +77,18 @@ export async function GET(request: NextRequest) {
 
     if (!userId) {
       return NextResponse.json(
-        { error: '必须提供 userId 参数' },
+        { success: false, error: '必须提供 userId 参数' },
         { status: 400 }
       );
     }
 
     const analyses = await healthDataManager.getHealthAnalysisByUserId(userId);
-    return NextResponse.json({ success: true, analyses });
+
+    // 统一响应格式
+    return NextResponse.json({
+      success: true,
+      data: analyses
+    });
   } catch (error) {
     return createErrorResponse(error);
   }

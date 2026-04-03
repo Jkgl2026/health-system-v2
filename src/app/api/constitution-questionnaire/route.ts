@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log('[ConstitutionQuestionnaire POST] Received request body:', JSON.stringify(body, null, 2));
 
-    const { userId, answers, scores, primaryConstitution, secondaryConstitutions, isBalanced } = body;
+    const { userId, sessionId, answers, scores, primaryConstitution, secondaryConstitutions, isBalanced } = body;
 
     if (!userId || !answers || !scores || !primaryConstitution) {
       console.error('[ConstitutionQuestionnaire POST] 缺少必要参数:', {
@@ -114,6 +114,22 @@ export async function POST(request: NextRequest) {
     `);
     console.log('[ConstitutionQuestionnaire POST] 问卷保存成功');
 
+    // 如果有 sessionId，更新评估会话
+    if (sessionId) {
+      try {
+        await (db.execute as any)(sql`
+          UPDATE assessment_sessions
+          SET constitution_questionnaire_id = ${questionnaireId},
+              updated_at = NOW()
+          WHERE id = ${sessionId}
+        `);
+        console.log('[ConstitutionQuestionnaire POST] 会话已更新:', sessionId);
+      } catch (sessionError) {
+        console.error('[ConstitutionQuestionnaire POST] 更新会话失败:', sessionError);
+        // 不阻止主流程
+      }
+    }
+
     // 保存后，自动触发体质分析
     let analysisData = null;
     try {
@@ -135,14 +151,18 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      questionnaireId,
-      message: '体质问卷保存成功',
-      analysis: analysisData?.success ? analysisData : null
+      data: {
+        questionnaireId,
+        userId,
+        sessionId,
+        message: '体质问卷保存成功',
+        analysis: analysisData?.success ? analysisData : null
+      }
     });
   } catch (error) {
     console.error('[ConstitutionQuestionnaire POST] 保存失败:', error);
     return NextResponse.json(
-      { error: '保存体质问卷失败', details: error instanceof Error ? error.message : 'Unknown error' },
+      { success: false, error: '保存体质问卷失败', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }
