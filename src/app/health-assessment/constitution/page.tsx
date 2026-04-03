@@ -50,16 +50,28 @@ function ConstitutionContent() {
   const handleAnswer = (value: string) => {
     const score = parseInt(value);
     setAnswers({ ...answers, [currentQuestion.id]: score });
+  };
 
-    // 延迟跳转下一题
-    setTimeout(() => {
-      if (currentIndex < shuffledQuestions.length - 1) {
-        setCurrentIndex(currentIndex + 1);
-      } else {
-        // 所有问题回答完毕，提交
-        handleSubmit();
-      }
-    }, 300);
+  const handlePrevious = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+    }
+  };
+
+  const handleNext = () => {
+    if (!answers[currentQuestion.id]) {
+      setError('请先选择一个选项');
+      return;
+    }
+
+    setError('');
+
+    if (currentIndex < shuffledQuestions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+    } else {
+      // 所有问题回答完毕，提交
+      handleSubmit();
+    }
   };
 
   const handleSubmit = async () => {
@@ -79,7 +91,9 @@ function ConstitutionContent() {
           userId,
           answers,
           scores,
-          result,
+          primaryConstitution: result.primary,
+          secondaryConstitutions: result.secondary,
+          isBalanced: result.isBalanced,
         }),
       });
 
@@ -192,7 +206,6 @@ function ConstitutionContent() {
                       <div
                         key={option.value}
                         className="flex items-center space-x-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                        onClick={() => !loading && !saved && handleAnswer(option.value)}
                       >
                         <RadioGroupItem
                           value={option.value}
@@ -231,6 +244,38 @@ function ConstitutionContent() {
                   <div className="flex items-center justify-center space-x-2 text-green-600 bg-green-50 p-3 rounded-lg">
                     <CheckCircle2 className="h-5 w-5" />
                     <span>分析完成！正在生成报告...</span>
+                  </div>
+                )}
+
+                {/* 导航按钮 */}
+                {!saved && (
+                  <div className="flex gap-4 mt-6 pt-6 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={handlePrevious}
+                      disabled={currentIndex === 0 || loading}
+                      className="flex-1"
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      上一步
+                    </Button>
+                    <Button
+                      onClick={handleNext}
+                      disabled={loading}
+                      className="flex-1"
+                    >
+                      {currentIndex === shuffledQuestions.length - 1 ? (
+                        <>
+                          提交问卷
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
+                      ) : (
+                        <>
+                          下一步
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        </>
+                      )}
+                    </Button>
                   </div>
                 )}
               </div>
