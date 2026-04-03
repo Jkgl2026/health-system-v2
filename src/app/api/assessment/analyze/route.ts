@@ -10,7 +10,7 @@ import { CacheManager, CacheKeyGenerator, globalCacheManager } from '@/lib/cache
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
-  
+
   try {
     const body = await request.json();
     const { sessionId } = body;
@@ -147,6 +147,7 @@ export async function POST(request: NextRequest) {
             immunity,
             emotions,
             overall_health,
+            analysis_data,
             analyzed_at
           )
           VALUES (
@@ -160,6 +161,7 @@ export async function POST(request: NextRequest) {
             ${Math.round(healthScores.immunity)},
             ${Math.round(healthScores.emotions)},
             ${Math.round(healthScores.overallHealth)},
+            ${JSON.stringify(analysisResult)},
             NOW()
           )
         `
@@ -235,12 +237,12 @@ export async function GET(request: NextRequest) {
     }
 
     const db = await getDb();
-    
+
     // 检查缓存
-    const cacheManager = new CacheManager();
-    const cacheKey = new CacheKeyGenerator().generate('analysis', { sessionId });
-    const cachedResult = await cacheManager.get(cacheKey);
-    
+    const cache = globalCacheManager.getCache('analysis');
+    const cacheKey = CacheKeyGenerator.generateCustom('analysis', { sessionId });
+    const cachedResult = cache.get(cacheKey);
+
     if (cachedResult) {
       return NextResponse.json({
         success: true,
@@ -249,46 +251,69 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 从数据库查询
-    const result = await (db.execute as any)(
+    // 查询会话信息
+    const sessionResult = await (db.execute as any)(
       sql`
-        SELECT 
-          ha.id,
-          ha.analysis_data,
-          asession.status,
-          asession.completed_at
-        FROM health_analysis ha
-        JOIN assessment_sessions asession ON ha.session_id = asession.id
-        WHERE ha.session_id = ${sessionId}
-        ORDER BY ha.created_at DESC
-        LIMIT 1
+        SELECT id, user_id, health_analysis_id, status
+        FROM assessment_sessions
+        WHERE id = ${sessionId}
       `
     );
 
-    if (!result.rows || result.rows.length === 0) {
+    if (!sessionResult.rows || sessionResult.rows.length === 0) {
       return NextResponse.json(
-        { success: false, error: '分析结果不存在' },
+        { success: false, error: '会话不存在' },
         { status: 404 }
       );
     }
 
-    const analysis = result.rows[0];
+    const session = sessionResult.rows[0];
 
-    // 如果分析已完成，缓存结果
-    if (analysis.status === 'completed') {
-      await cacheManager.set(cacheKey, analysis.analysis_data, 3600);
+    // 如果没有分析结果，返回空
+    if (!session.health_analysis_id) {
+      return NextResponse.json({
+        success: false,
+        error: '分析结果不存在'
+      });
     }
+
+    // 查询健康分析结果
+    const analysisResult = await (db.execute as any)(
+      sql`
+        SELECT analysis_data
+        FROM health_analysis
+        WHERE id = ${session.health_analysis_id}
+      `
+    );
+
+    if (!analysisResult.rows || analysisResult.rows.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: '分析结果不存在'
+      });
+    }
+
+    const analysisData = analysisResult.rows[0].analysis_data;
+
+    // 如果 analysis_data 为 null（旧数据），返回 null 让前端重新分析
+    if (!analysisData) {
+      return NextResponse.json({
+        success: false,
+        error: '分析数据不完整，请重新分析'
+      });
+    }
+
+    // 缓存结果
+    cache.set(cacheKey, analysisData, 3600);
 
     return NextResponse.json({
       success: true,
-      data: analysis.analysis_data,
-      status: analysis.status,
-      completedAt: analysis.completed_at
+      data: analysisData
     });
 
   } catch (error) {
     console.error('[分析引擎] 获取结果错误:', error);
-    
+
     return NextResponse.json(
       {
         success: false,
