@@ -368,6 +368,89 @@ function ResultContent() {
           </CardContent>
         </Card>
 
+        {/* 疾病史 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Heart className="mr-2 h-5 w-5 text-red-600" />
+              疾病史
+            </CardTitle>
+            <CardDescription>
+              您的健康状况和既往病史
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* 三高疾病 */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className={`p-4 rounded-lg border-2 ${analysis.medicalHistory?.hasHypertension ? 'border-red-500 bg-red-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">高血压</span>
+                    <Badge variant={analysis.medicalHistory?.hasHypertension ? "destructive" : "outline"}>
+                      {analysis.medicalHistory?.hasHypertension ? '有' : '无'}
+                    </Badge>
+                  </div>
+                  {analysis.medicalHistory?.hasHypertension && analysis.medicalHistory.hypertensionYears && (
+                    <p className="text-sm text-gray-600 mt-2">病程：{analysis.medicalHistory.hypertensionYears}年</p>
+                  )}
+                </div>
+
+                <div className={`p-4 rounded-lg border-2 ${analysis.medicalHistory?.hasDiabetes ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">糖尿病</span>
+                    <Badge variant={analysis.medicalHistory?.hasDiabetes ? "destructive" : "outline"}>
+                      {analysis.medicalHistory?.hasDiabetes ? '有' : '无'}
+                    </Badge>
+                  </div>
+                  {analysis.medicalHistory?.hasDiabetes && analysis.medicalHistory.diabetesType && (
+                    <p className="text-sm text-gray-600 mt-2">类型：{analysis.medicalHistory.diabetesType}</p>
+                  )}
+                </div>
+
+                <div className={`p-4 rounded-lg border-2 ${analysis.medicalHistory?.hasHyperlipidemia ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200 bg-gray-50'}`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium">高血脂</span>
+                    <Badge variant={analysis.medicalHistory?.hasHyperlipidemia ? "destructive" : "outline"}>
+                      {analysis.medicalHistory?.hasHyperlipidemia ? '有' : '无'}
+                    </Badge>
+                  </div>
+                  {analysis.medicalHistory?.hasHyperlipidemia && analysis.medicalHistory.hyperlipidemiaYears && (
+                    <p className="text-sm text-gray-600 mt-2">病程：{analysis.medicalHistory.hyperlipidemiaYears}年</p>
+                  )}
+                </div>
+              </div>
+
+              {/* 其他疾病 */}
+              {analysis.medicalHistory?.otherDiseases && analysis.medicalHistory.otherDiseases.length > 0 && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-2">其他疾病</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.medicalHistory.otherDiseases.map((disease: string, idx: number) => (
+                      <Badge key={idx} variant="secondary">
+                        {disease}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 症状 */}
+              {analysis.medicalHistory?.symptoms && analysis.medicalHistory.symptoms.length > 0 && (
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium mb-2">当前症状</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {analysis.medicalHistory.symptoms.map((symptom: string, idx: number) => (
+                      <Badge key={idx} variant="outline">
+                        {symptom}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
         {/* 风险评估 */}
         <Card>
           <CardHeader>
@@ -484,6 +567,85 @@ function ResultContent() {
           </CardContent>
         </Card>
 
+        {/* 体质问卷结果 */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Users className="mr-2 h-5 w-5 text-blue-600" />
+              体质问卷结果
+            </CardTitle>
+            <CardDescription>
+              基于中医体质辨识的问卷结果
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {analysis.constitutionResult ? (
+              <div className="space-y-6">
+                {/* 主要体质 */}
+                <div className="p-4 bg-blue-50 rounded-lg border-2 border-blue-200">
+                  <div className="text-sm text-gray-600 mb-1">主要体质</div>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {analysis.constitutionResult.primaryConstitution}
+                  </div>
+                </div>
+
+                {/* 次要体质 */}
+                {analysis.constitutionResult.secondaryConstitutions &&
+                  analysis.constitutionResult.secondaryConstitutions.length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3">次要体质</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {analysis.constitutionResult.secondaryConstitutions.map((constitution: string, idx: number) => (
+                        <Badge key={idx} variant="secondary" className="text-base px-3 py-1">
+                          {constitution}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 体质评分 */}
+                {analysis.constitutionResult.scores && Object.keys(analysis.constitutionResult.scores).length > 0 && (
+                  <div>
+                    <h4 className="font-medium mb-3">体质评分</h4>
+                    <div className="grid md:grid-cols-3 gap-3">
+                      {Object.entries(analysis.constitutionResult.scores).map(([type, score]: [string, any]) => {
+                        const typeNames: Record<string, string> = {
+                          PINGHE: '平和质',
+                          QIXU: '气虚质',
+                          YANGXU: '阳虚质',
+                          YINXU: '阴虚质',
+                          TANSHI: '痰湿质',
+                          SHIRE: '湿热质',
+                          XUEYU: '血瘀质',
+                          QIYU: '气郁质',
+                          TEBING: '特禀质'
+                        };
+                        const typeName = typeNames[type] || type;
+                        const isMax = score === Math.max(...(Object.values(analysis.constitutionResult.scores) as number[]));
+
+                        return (
+                          <div key={type} className={`p-3 rounded-lg border-2 ${isMax ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="font-medium">{typeName}</span>
+                              <span className={`font-bold ${isMax ? 'text-blue-600' : 'text-gray-700'}`}>{score}</span>
+                            </div>
+                            <Progress value={score} className={`h-2 ${isMax ? 'bg-blue-200' : ''}`} />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                体质问卷结果不可用
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {/* 体质分析 */}
         <Card>
           <CardHeader>
@@ -498,12 +660,12 @@ function ResultContent() {
           <CardContent>
             <div className="flex items-center space-x-4 mb-6">
               <div className="text-4xl font-bold text-indigo-600">
-                {analysis.constitutionAnalysis?.primaryConstitution}
+                {analysis.constitutionAnalysis?.syndromeType}
               </div>
               <div className="flex-1">
                 <div className="text-lg font-medium">主要体质类型</div>
                 <div className="text-sm text-gray-600">
-                  {analysis.constitutionAnalysis?.tendency?.join('、') || '无明显倾向'}
+                  {analysis.constitutionAnalysis?.syndromeDescription || '无明显倾向'}
                 </div>
               </div>
             </div>

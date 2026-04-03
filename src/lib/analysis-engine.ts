@@ -41,6 +41,25 @@ export interface AnalysisResult {
   tcmDiagnosis: any;
   recommendations: string[];
   personalizedCoefficients: any;
+  medicalHistory?: {
+    hasHypertension: boolean;
+    hypertensionYears?: number;
+    hypertensionMedications?: string[];
+    hasDiabetes: boolean;
+    diabetesYears?: number;
+    diabetesType?: string;
+    diabetesMedications?: string[];
+    hasHyperlipidemia: boolean;
+    hyperlipidemiaYears?: number;
+    hyperlipidemiaMedications?: string[];
+    otherDiseases?: string[];
+    symptoms?: string[];
+  };
+  constitutionResult?: {
+    primaryConstitution: string;
+    secondaryConstitutions: string[];
+    scores: Record<string, number>;
+  };
   summary: {
     overallHealth: string;
     primaryConcerns: string[];
@@ -175,7 +194,7 @@ export class AnalysisEngine {
         eightPrinciple: tcmClassification.eightPrinciples,
         organ: tcmClassification.organDifferentiation,
         qiBloodFluid: tcmClassification.qiBloodFluid,
-        overallPattern: tcmClassification.primarySyndrome || '无明显证候'
+        overallPattern: tcmClassification.syndromeType || '无明显证候'
       };
       
       return diagnosis;
@@ -190,42 +209,155 @@ export class AnalysisEngine {
    */
   async generateRecommendations(): Promise<string[]> {
     const recommendations: string[] = [];
-    
+    const health = this.input.healthQuestionnaire || {};
+    const constitution = this.input.constitutionQuestionnaire?.primaryConstitution || '平和质';
+
     try {
+      // 基于疾病史的建议（三高）
+      if (health.has_hypertension) {
+        recommendations.push('建议定期监测血压，每日测量并记录血压值');
+        recommendations.push('高血压患者应遵循低盐饮食，每日食盐摄入量控制在6克以内');
+        recommendations.push('遵医嘱规律服用降压药物，不要随意停药或调整剂量');
+        if (health.hypertension_years > 5) {
+          recommendations.push('高血压病程较长，建议定期进行心血管检查');
+        }
+      }
+
+      if (health.has_diabetes) {
+        recommendations.push('糖尿病需要定期监测血糖，包括空腹血糖和餐后2小时血糖');
+        recommendations.push('严格控制碳水化合物摄入，选择低升糖指数（GI）食物');
+        recommendations.push('遵医嘱服用降糖药物或注射胰岛素，定期复查糖化血红蛋白');
+        if (health.diabetes_type === '1型') {
+          recommendations.push('1型糖尿病患者需要终身胰岛素治疗，务必掌握胰岛素注射技巧');
+        }
+      }
+
+      if (health.has_hyperlipidemia) {
+        recommendations.push('高血脂需要控制饮食，减少动物性脂肪和胆固醇摄入');
+        recommendations.push('适当增加运动量，每周至少150分钟中等强度有氧运动');
+        recommendations.push('遵医嘱服用降脂药物，定期复查血脂指标');
+      }
+
+      // 基于体质的建议
+      const constitutionRecommendations: Record<string, string[]> = {
+        '平和质': [
+          '保持良好的生活习惯，规律作息，均衡饮食',
+          '适度运动，每周3-5次，每次30-60分钟',
+          '定期体检，预防疾病'
+        ],
+        '气虚质': [
+          '建议多食益气健脾的食物，如山药、大枣、糯米、鸡肉',
+          '避免过度劳累，保证充足睡眠',
+          '适当进行轻柔运动，如散步、太极拳',
+          '避免食用生冷食物'
+        ],
+        '阳虚质': [
+          '建议多食温补食物，如羊肉、韭菜、生姜、核桃',
+          '注意保暖，避免受凉，特别是腰部和脚部',
+          '适当进行温补运动，如慢跑、瑜伽',
+          '避免食用生冷寒凉食物'
+        ],
+        '阴虚质': [
+          '建议多食滋阴润燥食物，如梨、银耳、百合、绿豆',
+          '避免熬夜，保证充足睡眠',
+          '避免食用辛辣燥热食物',
+          '适当进行舒缓运动，如游泳、太极'
+        ],
+        '痰湿质': [
+          '建议多食健脾祛湿食物，如薏米、冬瓜、赤小豆、山楂',
+          '加强运动，每周4-6次，促进新陈代谢',
+          '控制体重，避免肥胖',
+          '避免食用油腻、甜腻食物'
+        ],
+        '湿热质': [
+          '建议多食清热利湿食物，如绿豆、苦瓜、黄瓜、芹菜',
+          '保持居住环境干燥通风',
+          '避免食用辛辣、油腻、煎炸食物',
+          '适当进行中等强度运动，促进排汗'
+        ],
+        '血瘀质': [
+          '建议多食活血化瘀食物，如山楂、桃仁、黑木耳、玫瑰花',
+          '适当运动促进血液循环',
+          '注意保暖，避免受凉',
+          '保持心情舒畅，避免情志抑郁'
+        ],
+        '气郁质': [
+          '建议多食疏肝理气食物，如佛手、橙子、玫瑰花、荞麦',
+          '保持心情舒畅，适当参加社交活动',
+          '培养兴趣爱好，释放压力',
+          '适当进行舒缓运动，如瑜伽、舞蹈'
+        ],
+        '特禀质': [
+          '注意避免接触过敏原',
+          '增强免疫力，适当运动，规律作息',
+          '饮食均衡，避免食用过敏食物',
+          '出现过敏症状及时就医'
+        ]
+      };
+
+      if (constitutionRecommendations[constitution]) {
+        recommendations.push(...constitutionRecommendations[constitution]);
+      }
+
+      // 基于症状的建议
+      if (health.symptoms && health.symptoms.length > 0) {
+        if (health.symptoms.includes('头晕')) {
+          recommendations.push('出现头晕症状，建议检查血压，避免突然站起');
+        }
+        if (health.symptoms.includes('乏力')) {
+          recommendations.push('感觉乏力，建议适当休息，补充营养，避免过度劳累');
+        }
+        if (health.symptoms.includes('失眠')) {
+          recommendations.push('存在失眠问题，建议建立规律作息，睡前避免使用电子产品');
+        }
+      }
+
       // 基于健康评分的建议
       const healthScores = await this.calculateHealthScores();
       if (healthScores.overallHealth < 60) {
-        recommendations.push('您需要重点关注健康管理，建议制定详细的改善计划');
+        recommendations.push('您的整体健康状况有待改善，建议制定详细的健康管理计划');
+        recommendations.push('建议定期进行健康检查，及时了解身体状况');
+      } else if (healthScores.overallHealth < 75) {
+        recommendations.push('您的健康状况一般，建议加强健康管理，改善生活方式');
       }
-      
-      // 基于风险的建议
-      const risks = await this.calculateRiskAssessment();
-      if (risks.overallRiskLevel === 'high') {
-        recommendations.push('您存在较高健康风险，建议尽快就医咨询');
-      }
-      
-      // 基于体质的建议
-      const constitution = this.input.constitutionQuestionnaire.primaryConstitution;
-      if (constitution && constitution !== '平和质') {
-        recommendations.push(`建议调理${constitution}体质`);
-      }
-      
-      // 基于生活质量的建议
+
+      // 基于生活质量评估的建议
       const qol = await this.assessQualityOfLife();
       if (qol.overallScore < 70) {
         recommendations.push('您的生活质量有待改善，建议从身体、心理、社交等多方面进行调整');
+        recommendations.push('建议培养健康的生活习惯，保持积极乐观的心态');
       }
-      
+
       // 基于预期寿命的建议
       const lifeExp = await this.calculateLifeExpectancy();
       if (lifeExp.potentialGain > 5) {
         recommendations.push('通过健康管理，您有潜力显著延长寿命');
+        recommendations.push('建议制定详细的健康改善计划，充分利用改善潜力');
       }
-      
-      return recommendations;
+
+      // 基于风险评估的建议
+      const risks = await this.calculateRiskAssessment();
+      if (risks.overallRiskLevel === 'high') {
+        recommendations.push('您存在较高健康风险，建议尽快就医咨询，制定专业的健康管理方案');
+      } else if (risks.overallRiskLevel === 'medium') {
+        recommendations.push('您存在中等健康风险，建议积极改善生活方式，定期体检');
+      }
+
+      // 确保至少有几条建议
+      if (recommendations.length === 0) {
+        recommendations.push('保持良好的生活习惯，均衡饮食，适量运动');
+        recommendations.push('定期进行健康检查，预防疾病');
+        recommendations.push('保持积极乐观的心态，合理调节压力');
+      }
+
+      return recommendations.slice(0, 12); // 最多返回12条建议
     } catch (error) {
       console.error('Recommendations generation error:', error);
-      return ['建议咨询专业医生获取个性化健康建议'];
+      return [
+        '建议咨询专业医生获取个性化健康建议',
+        '保持良好的生活习惯，均衡饮食，适量运动',
+        '定期进行健康检查，预防疾病'
+      ];
     }
   }
 
@@ -246,8 +378,10 @@ export class AnalysisEngine {
     // 计算个性化系数
     const personalizedCoefficients = this.options.enablePersonalization
       ? calculateComprehensiveCoefficients({
-          personalInfo: this.input.personalInfo,
-          constitutionQuestionnaire: this.input.constitutionQuestionnaire
+          age: Number(this.input.personalInfo.age) || 0,
+          gender: this.input.personalInfo.gender || '男',
+          bmi: this.calculateBMI(),
+          constitution: this.input.constitutionQuestionnaire?.primaryConstitution || '平和质'
         })
       : null;
 
@@ -276,6 +410,27 @@ export class AnalysisEngine {
       tcmDiagnosis,
       recommendations,
       personalizedCoefficients,
+      // 添加疾病史信息
+      medicalHistory: {
+        hasHypertension: this.input.healthQuestionnaire?.has_hypertension || false,
+        hypertensionYears: this.input.healthQuestionnaire?.hypertension_years,
+        hypertensionMedications: this.input.healthQuestionnaire?.hypertension_medications,
+        hasDiabetes: this.input.healthQuestionnaire?.has_diabetes || false,
+        diabetesYears: this.input.healthQuestionnaire?.diabetes_years,
+        diabetesType: this.input.healthQuestionnaire?.diabetes_type,
+        diabetesMedications: this.input.healthQuestionnaire?.diabetes_medications,
+        hasHyperlipidemia: this.input.healthQuestionnaire?.has_hyperlipidemia || false,
+        hyperlipidemiaYears: this.input.healthQuestionnaire?.hyperlipidemia_years,
+        hyperlipidemiaMedications: this.input.healthQuestionnaire?.hyperlipidemia_medications,
+        otherDiseases: this.input.healthQuestionnaire?.other_diseases,
+        symptoms: this.input.healthQuestionnaire?.symptoms
+      },
+      // 添加体质问卷结果
+      constitutionResult: {
+        primaryConstitution: this.input.constitutionQuestionnaire?.primaryConstitution || '平和质',
+        secondaryConstitutions: this.input.constitutionQuestionnaire?.secondaryConstitutions || [],
+        scores: this.input.constitutionQuestionnaire?.scores || {}
+      },
       summary,
       confidence
     };
@@ -317,8 +472,8 @@ export class AnalysisEngine {
     });
     
     // 体质问题
-    if (constitutionAnalysis.primarySyndrome && constitutionAnalysis.primarySyndrome !== '平和质') {
-      primaryConcerns.push(`体质倾向:${constitutionAnalysis.primarySyndrome}`);
+    if (constitutionAnalysis.syndromeType && constitutionAnalysis.syndromeType !== '平和质') {
+      primaryConcerns.push(`体质倾向:${constitutionAnalysis.syndromeType}`);
     }
 
     const keyImprovements = recommendations.slice(0, 5);
@@ -385,5 +540,18 @@ export class AnalysisEngine {
       constitution: Math.round(constitutionConfidence),
       overall
     };
+  }
+
+  /**
+   * 计算BMI
+   */
+  private calculateBMI(): number {
+    const personalInfo = this.input.personalInfo;
+    if (!personalInfo.height || !personalInfo.weight) {
+      return 22; // 默认值
+    }
+    const heightInMeters = Number(personalInfo.height) / 100;
+    const weight = Number(personalInfo.weight);
+    return weight / (heightInMeters * heightInMeters);
   }
 }

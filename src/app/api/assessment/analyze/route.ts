@@ -98,13 +98,21 @@ export async function POST(request: NextRequest) {
 
     const healthQuestionnaire = healthResult.rows[0];
     const constitutionQuestionnaire = constitutionResult.rows[0];
-    
+
+    // 转换体质问卷字段名（snake_case → camelCase）
+    const formattedConstitutionQuestionnaire = {
+      ...constitutionQuestionnaire,
+      primaryConstitution: constitutionQuestionnaire.primary_constitution,
+      secondaryConstitutions: constitutionQuestionnaire.secondary_constituents
+    };
+
+    // 转换 personalInfo 为普通对象
     const personalInfo = session.personal_info || {};
 
     // 创建分析引擎实例
     const engine = new AnalysisEngine({
       healthQuestionnaire,
-      constitutionQuestionnaire,
+      constitutionQuestionnaire: formattedConstitutionQuestionnaire,
       personalInfo
     });
 

@@ -42,9 +42,12 @@ export function calculateLifeExpectancy(data: {
   const personalInfo = data.personalInfo;
   const health = data.healthQuestionnaire || {};
   const constitution = data.constitutionQuestionnaire?.primaryConstitution || '平和质';
-  
+
+  // 确保 age 是数字类型
+  const currentAge = Number(personalInfo.age) || 0;
+
   // 基础预期寿命（基于性别和当前年龄）
-  const baseLifeExpectancy = getBaseLifeExpectancy(personalInfo.gender, personalInfo.age);
+  const baseLifeExpectancy = getBaseLifeExpectancy(personalInfo.gender, currentAge);
   
   // 健康因素调整
   const healthAdjustment = calculateHealthAdjustment(health, constitution, data.healthScores);
@@ -54,9 +57,9 @@ export function calculateLifeExpectancy(data: {
   
   // 计算改善潜力
   const potentialGain = calculatePotentialGain(health, constitution, personalInfo);
-  
-  // 计算预期寿命
-  const expectedAge = Math.round(personalInfo.age + (lifeExpectancyByHealth - personalInfo.age) + potentialGain);
+
+  // 计算预期寿命（基于健康的预期寿命 + 改善潜力）
+  const expectedAge = Math.round(lifeExpectancyByHealth + potentialGain);
   
   // 关键因素
   const keyFactors = identifyKeyFactors(health, constitution, personalInfo);
@@ -71,7 +74,7 @@ export function calculateLifeExpectancy(data: {
   const confidenceLevel = calculateLifeExpectancyConfidence(health, constitution, personalInfo);
   
   return {
-    currentAge: personalInfo.age,
+    currentAge,
     expectedAge,
     potentialGain,
     lifeExpectancyByHealth,
@@ -218,16 +221,16 @@ function identifyKeyFactors(health: any, constitution: string, personalInfo: any
 } {
   const positive: string[] = [];
   const negative: string[] = [];
-  
+
   // 体质因素
   if (constitution === '平和质') {
     positive.push('体质平衡，有利于长寿');
   } else {
     negative.push(`${constitution}体质，需要调理`);
   }
-  
+
   // 年龄因素
-  const age = personalInfo.age;
+  const age = Number(personalInfo.age) || 0;
   if (age < 45) {
     positive.push('年龄较轻，改善潜力大');
   } else if (age > 65) {
@@ -302,10 +305,11 @@ function identifyRiskFactors(health: any, constitution: string, personalInfo: an
   if (health.stressLevel === '高' || health.stressLevel === '很高') {
     moderateRisk.push('高压力');
   }
-  if (personalInfo.age > 65) {
+  const age = Number(personalInfo.age) || 0;
+  if (age > 65) {
     moderateRisk.push('高龄');
   }
-  
+
   return { highRisk, moderateRisk };
 }
 
