@@ -1,19 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
 import { sql } from 'drizzle-orm';
-import {
-  AnalysisEngine,
-  AnalysisProgress,
-  AnalysisError
-} from '@/lib/analysis-engine';
-import { 
-  AnalysisError as AnalysisErrorType,
-  ErrorHandler 
-} from '@/lib/error-handling';
-import { 
-  CacheManager,
-  createCacheKey
-} from '@/lib/cache-system';
+import { AnalysisEngine } from '@/lib/analysis-engine';
+import { CacheManager, CacheKeyGenerator } from '@/lib/cache-system';
 
 /**
  * 分析引擎API路由
@@ -37,7 +26,7 @@ export async function POST(request: NextRequest) {
     
     // 检查缓存
     const cacheManager = new CacheManager();
-    const cacheKey = createCacheKey('analysis', sessionId);
+    const cacheKey = new CacheKeyGenerator().generate('analysis', { sessionId });
     const cachedResult = await cacheManager.get(cacheKey);
     
     if (cachedResult) {
@@ -122,46 +111,17 @@ export async function POST(request: NextRequest) {
       personalInfo
     });
 
-    // 执行分析（带进度跟踪）
-    let currentStep = 0;
-    const totalSteps = 8;
-    
-    const updateProgress = async (progress: number, step: string) => {
-      currentStep++;
-      console.log(`[分析引擎] 进度: ${progress}% - ${step} (${currentStep}/${totalSteps})`);
-    };
-
     try {
-      // 1. 计算健康评分
-      await updateProgress(12.5, '计算健康评分');
+      // 执行分析
       const healthScores = await engine.calculateHealthScores();
-
-      // 2. 计算风险评估
-      await updateProgress(25, '计算风险评估');
       const riskAssessment = await engine.calculateRiskAssessment();
-
-      // 3. 体质分析
-      await updateProgress(37.5, '体质分析');
       const constitutionAnalysis = await engine.analyzeConstitution();
-
-      // 4. 生活质量评估
-      await updateProgress(50, '生活质量评估');
       const qualityOfLife = await engine.assessQualityOfLife();
-
-      // 5. 预期寿命评估
-      await updateProgress(62.5, '预期寿命评估');
       const lifeExpectancy = await engine.calculateLifeExpectancy();
-
-      // 6. 中医辨证
-      await updateProgress(75, '中医辨证');
       const tcmDiagnosis = await engine.performTCMDiagnosis();
-
-      // 7. 生成综合建议
-      await updateProgress(87.5, '生成综合建议');
       const recommendations = await engine.generateRecommendations();
 
-      // 8. 整合结果
-      await updateProgress(100, '整合结果');
+      // 整合结果
       const analysisResult = await engine.integrateResults({
         healthScores,
         riskAssessment,
@@ -205,7 +165,7 @@ export async function POST(request: NextRequest) {
       );
 
       // 缓存结果
-      await cacheManager.set(cacheKey, analysisResult, 3600); // 缓存1小时
+      await cacheManager.set(cacheKey, analysisResult, 3600);
 
       const executionTime = Date.now() - startTime;
       console.log(`[分析引擎] 分析完成，耗时: ${executionTime}ms`);
@@ -221,24 +181,15 @@ export async function POST(request: NextRequest) {
       });
 
     } catch (engineError) {
-      // 处理分析引擎内部错误
-      const error = engineError as AnalysisErrorType;
-      console.error('[分析引擎] 分析过程出错:', error);
-      
-      // 使用错误处理器处理
-      const handledError = ErrorHandler.handleError(error);
+      console.error('[分析引擎] 分析过程出错:', engineError);
       
       return NextResponse.json(
         {
           success: false,
-          error: handledError.userMessage,
-          details: {
-            code: handledError.code,
-            severity: handledError.severity,
-            suggestion: handledError.suggestion
-          }
+          error: '分析过程出错',
+          details: engineError instanceof Error ? engineError.message : '未知错误'
         },
-        { status: handledError.severity === 'critical' ? 500 : 400 }
+        { status: 500 }
       );
     }
 
@@ -274,7 +225,7 @@ export async function GET(request: NextRequest) {
     
     // 检查缓存
     const cacheManager = new CacheManager();
-    const cacheKey = createCacheKey('analysis', sessionId);
+    const cacheKey = new CacheKeyGenerator().generate('analysis', { sessionId });
     const cachedResult = await cacheManager.get(cacheKey);
     
     if (cachedResult) {

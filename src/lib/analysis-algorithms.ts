@@ -76,8 +76,8 @@ export function calculateHealthAnalysis(data: AnalysisInputData): HealthAnalysis
 function calculateBaseScores(data: AnalysisInputData): HealthAnalysisScores {
   const health = data.healthQuestionnaire || {};
   const constitution = data.constitutionQuestionnaire || {};
-  
-  const scores: HealthAnalysisScores = {
+
+  let scores: HealthAnalysisScores = {
     qiAndBlood: 75,
     circulation: 70,
     toxins: 65,

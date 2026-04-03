@@ -4,20 +4,20 @@
  */
 
 import {
-  calculateHealthScores,
+  calculateHealthAnalysis,
   calculateRiskAssessment,
-  HealthScores,
-  RiskAssessment
+  HealthAnalysisScores,
+  RiskAssessmentResult,
+  AnalysisInputData
 } from './analysis-algorithms';
 
 import {
-  calculatePersonalizationCoefficients,
-  PersonalizationCoefficients
+  calculateComprehensiveCoefficients
 } from './personalization-coefficients';
 
 import {
-  analyzeConstitutionType,
-  ConstitutionAnalysis
+  calculateTCMClassification,
+  TCMClassification
 } from './tcm-classification';
 
 import {
@@ -30,23 +30,17 @@ import {
   LifeExpectancy
 } from './life-expectancy';
 
-import {
-  AnalysisError,
-  AnalysisProgress,
-  AnalysisOptions
-} from './analysis-algorithms';
-
 // 分析结果类型
 export interface AnalysisResult {
   sessionId: string;
-  healthScores: HealthScores;
-  riskAssessment: RiskAssessment;
-  constitutionAnalysis: ConstitutionAnalysis;
+  healthScores: HealthAnalysisScores;
+  riskAssessment: RiskAssessmentResult;
+  constitutionAnalysis: TCMClassification;
   qualityOfLife: QoL;
   lifeExpectancy: LifeExpectancy;
   tcmDiagnosis: any;
   recommendations: string[];
-  personalizedCoefficients: PersonalizationCoefficients;
+  personalizedCoefficients: any;
   summary: {
     overallHealth: string;
     primaryConcerns: string[];
@@ -72,16 +66,10 @@ export interface AnalysisInput {
  */
 export class AnalysisEngine {
   private input: AnalysisInput;
-  private progress: AnalysisProgress;
-  private options: AnalysisOptions;
+  private options: any;
 
-  constructor(input: AnalysisInput, options?: AnalysisOptions) {
+  constructor(input: AnalysisInput, options?: any) {
     this.input = input;
-    this.progress = {
-      stage: 'initializing',
-      percentage: 0,
-      message: '初始化分析引擎'
-    };
     this.options = options || {
       enableCache: true,
       enablePersonalization: true,
@@ -92,15 +80,17 @@ export class AnalysisEngine {
   /**
    * 计算健康评分
    */
-  async calculateHealthScores(): Promise<HealthScores> {
-    this.updateProgress('calculating_scores', 10, '计算健康评分');
-    
+  async calculateHealthScores(): Promise<HealthAnalysisScores> {
     try {
-      const scores = calculateHealthScores(this.input);
-      this.updateProgress('scores_calculated', 20, '健康评分完成');
+      const data: AnalysisInputData = {
+        healthQuestionnaire: this.input.healthQuestionnaire,
+        constitutionQuestionnaire: this.input.constitutionQuestionnaire,
+        personalInfo: this.input.personalInfo
+      };
+      const scores = calculateHealthAnalysis(data);
       return scores;
     } catch (error) {
-      this.handleError('health_scores', error);
+      console.error('Health scores calculation error:', error);
       throw error;
     }
   }
@@ -108,15 +98,18 @@ export class AnalysisEngine {
   /**
    * 计算风险评估
    */
-  async calculateRiskAssessment(): Promise<RiskAssessment> {
-    this.updateProgress('calculating_risks', 30, '计算风险评估');
-    
+  async calculateRiskAssessment(): Promise<RiskAssessmentResult> {
     try {
-      const risks = calculateRiskAssessment(this.input);
-      this.updateProgress('risks_calculated', 40, '风险评估完成');
+      const data: AnalysisInputData = {
+        healthQuestionnaire: this.input.healthQuestionnaire,
+        constitutionQuestionnaire: this.input.constitutionQuestionnaire,
+        personalInfo: this.input.personalInfo
+      };
+      const healthScores = calculateHealthAnalysis(data);
+      const risks = calculateRiskAssessment(healthScores, data);
       return risks;
     } catch (error) {
-      this.handleError('risk_assessment', error);
+      console.error('Risk assessment calculation error:', error);
       throw error;
     }
   }
@@ -124,17 +117,17 @@ export class AnalysisEngine {
   /**
    * 体质分析
    */
-  async analyzeConstitution(): Promise<ConstitutionAnalysis> {
-    this.updateProgress('analyzing_constitution', 50, '分析体质');
-    
+  async analyzeConstitution(): Promise<TCMClassification> {
     try {
-      const constitution = analyzeConstitutionType(
-        this.input.constitutionQuestionnaire
-      );
-      this.updateProgress('constitution_analyzed', 60, '体质分析完成');
-      return constitution;
+      const data = {
+        healthQuestionnaire: this.input.healthQuestionnaire,
+        constitutionQuestionnaire: this.input.constitutionQuestionnaire,
+        personalInfo: this.input.personalInfo
+      };
+      const classification = calculateTCMClassification(data);
+      return classification;
     } catch (error) {
-      this.handleError('constitution_analysis', error);
+      console.error('Constitution analysis error:', error);
       throw error;
     }
   }
@@ -143,14 +136,11 @@ export class AnalysisEngine {
    * 生活质量评估
    */
   async assessQualityOfLife(): Promise<QoL> {
-    this.updateProgress('assessing_quality_of_life', 65, '评估生活质量');
-    
     try {
       const qol = calculateQualityOfLife(this.input);
-      this.updateProgress('quality_assessed', 70, '生活质量评估完成');
       return qol;
     } catch (error) {
-      this.handleError('quality_of_life', error);
+      console.error('Quality of life assessment error:', error);
       throw error;
     }
   }
@@ -159,14 +149,17 @@ export class AnalysisEngine {
    * 预期寿命评估
    */
   async calculateLifeExpectancy(): Promise<LifeExpectancy> {
-    this.updateProgress('calculating_life_expectancy', 75, '计算预期寿命');
-    
     try {
-      const lifeExp = calculateLifeExpectancy(this.input);
-      this.updateProgress('life_expectancy_calculated', 80, '预期寿命计算完成');
+      const data = {
+        healthQuestionnaire: this.input.healthQuestionnaire,
+        constitutionQuestionnaire: this.input.constitutionQuestionnaire,
+        personalInfo: this.input.personalInfo,
+        healthScores: await this.calculateHealthScores()
+      };
+      const lifeExp = calculateLifeExpectancy(data);
       return lifeExp;
     } catch (error) {
-      this.handleError('life_expectancy', error);
+      console.error('Life expectancy calculation error:', error);
       throw error;
     }
   }
@@ -175,24 +168,19 @@ export class AnalysisEngine {
    * 中医辨证
    */
   async performTCMDiagnosis(): Promise<any> {
-    this.updateProgress('performing_tcm_diagnosis', 85, '执行中医辨证');
-    
     try {
-      const { performEightPrincipleDiagnosis, performOrganDiagnosis } = require('./tcm-classification');
-      
-      const eightPrinciple = performEightPrincipleDiagnosis(this.input);
-      const organ = performOrganDiagnosis(this.input);
+      const tcmClassification = await this.analyzeConstitution();
       
       const diagnosis = {
-        eightPrinciple,
-        organ,
-        overallPattern: this.determineOverallPattern(eightPrinciple, organ)
+        eightPrinciple: tcmClassification.eightPrinciples,
+        organ: tcmClassification.organDifferentiation,
+        qiBloodFluid: tcmClassification.qiBloodFluid,
+        overallPattern: tcmClassification.primarySyndrome || '无明显证候'
       };
       
-      this.updateProgress('tcm_diagnosis_performed', 90, '中医辨证完成');
       return diagnosis;
     } catch (error) {
-      this.handleError('tcm_diagnosis', error);
+      console.error('TCM diagnosis error:', error);
       throw error;
     }
   }
@@ -201,36 +189,42 @@ export class AnalysisEngine {
    * 生成建议
    */
   async generateRecommendations(): Promise<string[]> {
-    this.updateProgress('generating_recommendations', 95, '生成建议');
-    
     const recommendations: string[] = [];
     
     try {
       // 基于健康评分的建议
-      const healthScores = calculateHealthScores(this.input);
+      const healthScores = await this.calculateHealthScores();
       if (healthScores.overallHealth < 60) {
         recommendations.push('您需要重点关注健康管理，建议制定详细的改善计划');
       }
       
       // 基于风险的建议
-      const risks = calculateRiskAssessment(this.input);
-      if (risks.riskLevel === 'high' || risks.riskLevel === 'severe') {
+      const risks = await this.calculateRiskAssessment();
+      if (risks.overallRiskLevel === 'high') {
         recommendations.push('您存在较高健康风险，建议尽快就医咨询');
       }
       
       // 基于体质的建议
       const constitution = this.input.constitutionQuestionnaire.primaryConstitution;
-      recommendations.push(`建议调理${constitution}体质`);
+      if (constitution && constitution !== '平和质') {
+        recommendations.push(`建议调理${constitution}体质`);
+      }
       
       // 基于生活质量的建议
-      const qol = calculateQualityOfLife(this.input);
-      const { generateQualityOfLifeImprovements } = require('./quality-of-life');
-      recommendations.push(...generateQualityOfLifeImprovements(qol));
+      const qol = await this.assessQualityOfLife();
+      if (qol.overallScore < 70) {
+        recommendations.push('您的生活质量有待改善，建议从身体、心理、社交等多方面进行调整');
+      }
       
-      this.updateProgress('recommendations_generated', 100, '建议生成完成');
+      // 基于预期寿命的建议
+      const lifeExp = await this.calculateLifeExpectancy();
+      if (lifeExp.potentialGain > 5) {
+        recommendations.push('通过健康管理，您有潜力显著延长寿命');
+      }
+      
       return recommendations;
     } catch (error) {
-      this.handleError('recommendations', error);
+      console.error('Recommendations generation error:', error);
       return ['建议咨询专业医生获取个性化健康建议'];
     }
   }
@@ -251,14 +245,11 @@ export class AnalysisEngine {
 
     // 计算个性化系数
     const personalizedCoefficients = this.options.enablePersonalization
-      ? calculatePersonalizationCoefficients(this.input)
-      : {
-          ageCoefficient: 1.0,
-          genderCoefficient: 1.0,
-          bmiCoefficient: 1.0,
-          constitutionCoefficient: 1.0,
-          overallCoefficient: 1.0
-        };
+      ? calculateComprehensiveCoefficients({
+          personalInfo: this.input.personalInfo,
+          constitutionQuestionnaire: this.input.constitutionQuestionnaire
+        })
+      : null;
 
     // 生成摘要
     const summary = this.generateSummary(
@@ -270,7 +261,6 @@ export class AnalysisEngine {
 
     // 计算置信度
     const confidence = this.calculateConfidence(
-      this.input,
       healthScores,
       riskAssessment,
       constitutionAnalysis
@@ -292,55 +282,12 @@ export class AnalysisEngine {
   }
 
   /**
-   * 更新进度
-   */
-  private updateProgress(stage: string, percentage: number, message: string): void {
-    this.progress = {
-      stage,
-      percentage,
-      message
-    };
-  }
-
-  /**
-   * 处理错误
-   */
-  private handleError(stage: string, error: any): void {
-    const analysisError: AnalysisError = {
-      code: `ANALYSIS_${stage.toUpperCase()}_ERROR`,
-      message: `${stage}分析失败`,
-      details: error.message,
-      recoverable: true,
-      severity: 'medium'
-    };
-    
-    console.error(`[分析引擎] ${stage}错误:`, analysisError);
-  }
-
-  /**
-   * 确定整体证候
-   */
-  private determineOverallPattern(eightPrinciple: any, organ: any): string {
-    const patterns: string[] = [];
-    
-    if (eightPrinciple.primaryPattern) {
-      patterns.push(eightPrinciple.primaryPattern);
-    }
-    
-    if (organ.affectedOrgans && organ.affectedOrgans.length > 0) {
-      patterns.push(organ.affectedOrgans.join(''));
-    }
-    
-    return patterns.join('·') || '无明显证候';
-  }
-
-  /**
    * 生成摘要
    */
   private generateSummary(
-    healthScores: HealthScores,
-    riskAssessment: RiskAssessment,
-    constitutionAnalysis: ConstitutionAnalysis,
+    healthScores: HealthAnalysisScores,
+    riskAssessment: RiskAssessmentResult,
+    constitutionAnalysis: TCMClassification,
     recommendations: string[]
   ): any {
     let overallHealth: string;
@@ -358,29 +305,27 @@ export class AnalysisEngine {
     const primaryConcerns: string[] = [];
     
     // 风险关注
-    if (riskAssessment.riskLevel === 'high' || riskAssessment.riskLevel === 'severe') {
-      primaryConcerns.push(`整体健康风险${riskAssessment.riskLevel === 'severe' ? '极高' : '较高'}`);
+    if (riskAssessment.overallRiskLevel === 'high') {
+      primaryConcerns.push('整体健康风险较高');
     }
     
     // 高风险因素
-    riskAssessment.highRiskFactors.forEach(factor => {
-      primaryConcerns.push(`${factor}风险较高`);
+    Object.entries(riskAssessment.riskFactors).forEach(([key, factor]: [string, any]) => {
+      if (factor.level === 'high') {
+        primaryConcerns.push(`${key}风险较高`);
+      }
     });
     
     // 体质问题
-    if (constitutionAnalysis.tendency && constitutionAnalysis.tendency.length > 0) {
-      constitutionAnalysis.tendency.forEach(tendency => {
-        primaryConcerns.push(`体质倾向:${tendency}`);
-      });
+    if (constitutionAnalysis.primarySyndrome && constitutionAnalysis.primarySyndrome !== '平和质') {
+      primaryConcerns.push(`体质倾向:${constitutionAnalysis.primarySyndrome}`);
     }
 
-    const keyImprovements = recommendations.slice(0, 5); // 前5条建议
+    const keyImprovements = recommendations.slice(0, 5);
 
     let priorityLevel: 'low' | 'medium' | 'high' | 'urgent';
     
-    if (riskAssessment.riskLevel === 'severe') {
-      priorityLevel = 'urgent';
-    } else if (riskAssessment.riskLevel === 'high' || healthScores.overallHealth < 50) {
+    if (riskAssessment.overallRiskLevel === 'high' || healthScores.overallHealth < 50) {
       priorityLevel = 'high';
     } else if (healthScores.overallHealth < 70) {
       priorityLevel = 'medium';
@@ -400,39 +345,29 @@ export class AnalysisEngine {
    * 计算置信度
    */
   private calculateConfidence(
-    input: AnalysisInput,
-    healthScores: HealthScores,
-    riskAssessment: RiskAssessment,
-    constitutionAnalysis: ConstitutionAnalysis
+    healthScores: HealthAnalysisScores,
+    riskAssessment: RiskAssessmentResult,
+    constitutionAnalysis: TCMClassification
   ): any {
-    let healthScoreConfidence = 0;
-    let riskAssessmentConfidence = 0;
-    let constitutionConfidence = 0;
+    let healthScoreConfidence = 60;
+    let riskAssessmentConfidence = 60;
+    let constitutionConfidence = 70;
     
     // 基于数据完整性
-    if (input.healthQuestionnaire) {
-      healthScoreConfidence += 30;
-      riskAssessmentConfidence += 30;
-    }
-    
-    if (input.constitutionQuestionnaire) {
-      constitutionConfidence += 40;
+    if (this.input.healthQuestionnaire) {
       healthScoreConfidence += 20;
+      riskAssessmentConfidence += 20;
     }
     
-    if (input.personalInfo) {
-      healthScoreConfidence += 15;
-      riskAssessmentConfidence += 15;
+    if (this.input.constitutionQuestionnaire) {
+      constitutionConfidence += 15;
+      healthScoreConfidence += 10;
+    }
+    
+    if (this.input.personalInfo) {
+      healthScoreConfidence += 10;
+      riskAssessmentConfidence += 10;
       constitutionConfidence += 10;
-    }
-    
-    // 基于评分置信度
-    if (healthScores.confidence) {
-      healthScoreConfidence += healthScores.confidence;
-    }
-    
-    if (riskAssessment.confidence) {
-      riskAssessmentConfidence += riskAssessment.confidence;
     }
     
     // 归一化到100
@@ -440,7 +375,6 @@ export class AnalysisEngine {
     riskAssessmentConfidence = Math.min(100, riskAssessmentConfidence);
     constitutionConfidence = Math.min(100, constitutionConfidence);
     
-    // 整体置信度（平均）
     const overall = Math.round(
       (healthScoreConfidence + riskAssessmentConfidence + constitutionConfidence) / 3
     );
