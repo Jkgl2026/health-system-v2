@@ -22,6 +22,136 @@ function ResultContent() {
   const [constitutionResult, setConstitutionResult] = useState<any>(null);
   const [error, setError] = useState('');
 
+  // 计算健康要素分析
+  const calculateHealthAnalysis = (healthData: any, constitutionData: any) => {
+    const scores = {
+      qiAndBlood: 75,
+      circulation: 70,
+      toxins: 65,
+      bloodLipids: 70,
+      coldness: 68,
+      immunity: 72,
+      emotions: 75,
+      overallHealth: 72,
+    };
+
+    if (healthData) {
+      // 使用snake_case字段名
+      if (healthData.exercise_frequency === '每周3-5次' || healthData.exercise_frequency === '每周6次以上') {
+        scores.circulation += 10;
+        scores.immunity += 10;
+      } else if (healthData.exercise_frequency === '从不运动') {
+        scores.circulation -= 15;
+        scores.immunity -= 10;
+      }
+
+      if (healthData.sleep_quality === '很好') {
+        scores.immunity += 10;
+        scores.emotions += 5;
+      } else if (healthData.sleep_quality === '较差' || healthData.sleep_quality === '很差') {
+        scores.immunity -= 10;
+        scores.emotions -= 10;
+      }
+
+      if (healthData.has_hypertension || healthData.has_diabetes || healthData.has_hyperlipidemia) {
+        scores.circulation -= 20;
+        scores.bloodLipids -= 15;
+      }
+
+      const bmi = healthData.bmi;
+      if (bmi) {
+        if (bmi < 18.5 || bmi > 28) {
+          scores.immunity -= 10;
+        }
+      }
+    }
+
+    Object.keys(scores).forEach(key => {
+      scores[key as keyof typeof scores] = Math.max(0, Math.min(100, scores[key as keyof typeof scores]));
+    });
+
+    return scores;
+  };
+
+  // 计算风险评估
+  const calculateRiskAssessment = (healthData: any, constitutionData: any, analysisData: any) => {
+    const riskFactors: any = {};
+    const recommendations: string[] = [];
+
+    if (healthData) {
+      // 使用snake_case字段名
+      if (healthData.has_hypertension) {
+        riskFactors.cardiovascular = {
+          level: 'high',
+          description: '有高血压病史，心血管风险较高'
+        };
+        recommendations.push('定期监测血压，遵医嘱用药');
+      } else {
+        riskFactors.cardiovascular = {
+          level: 'low',
+          description: '无明显心血管疾病史'
+        };
+      }
+
+      if (healthData.has_diabetes) {
+        riskFactors.metabolic = {
+          level: 'high',
+          description: '有糖尿病病史，代谢风险较高'
+        };
+        recommendations.push('控制饮食，定期监测血糖');
+      }
+
+      if (healthData.exercise_frequency === '从不运动') {
+        riskFactors.lifestyle = {
+          level: 'medium',
+          description: '缺乏运动，影响整体健康'
+        };
+        recommendations.push('建议每周进行至少3次中等强度运动');
+      }
+
+      if (healthData.sleep_quality === '较差' || healthData.sleep_quality === '很差') {
+        riskFactors.recovery = {
+          level: 'medium',
+          description: '睡眠质量不佳，影响身体恢复'
+        };
+        recommendations.push('改善睡眠习惯，保证7-8小时睡眠');
+      }
+    }
+
+    if (constitutionData && constitutionData.primaryConstitution) {
+      if (constitutionData.primaryConstitution !== '平和质') {
+        riskFactors.constitution = {
+          level: 'medium',
+          description: `体质为${constitutionData.primaryConstitution}，需要针对性调理`
+        };
+        recommendations.push(`根据${constitutionData.primaryConstitution}的特点进行养生调理`);
+      }
+    }
+
+    const overallHealthScore = analysisData.overallHealth || 70;
+    let overallRiskLevel = 'low';
+
+    if (riskFactors.cardiovascular?.level === 'high' || riskFactors.metabolic?.level === 'high') {
+      overallRiskLevel = 'high';
+    } else if (Object.values(riskFactors).some((r: any) => r.level === 'medium')) {
+      overallRiskLevel = 'medium';
+    }
+
+    if (overallHealthScore < 60) {
+      overallRiskLevel = 'high';
+    } else if (overallHealthScore < 80) {
+      overallRiskLevel = 'medium';
+    }
+
+    return {
+      overallRiskLevel,
+      healthScore: overallHealthScore,
+      riskFactors,
+      recommendations,
+      notes: ''
+    };
+  };
+
   useEffect(() => {
     if (!sessionId) {
       router.push('/health-assessment');
@@ -106,11 +236,147 @@ function ResultContent() {
         console.error('获取体质分析失败:', err);
       }
 
+      // 如果没有健康分析和风险评估数据，立即生成
+      if (!healthAnalysis || !riskAssessment) {
+        try {
+          console.log('检测到缺少健康分析或风险评估数据，开始生成...');
+          await generateMissingData(sessionId, userId);
+          // 重新加载数据
+          await reloadData(userId);
+        } catch (err) {
+          console.error('自动生成数据失败:', err);
+        }
+      }
+
     } catch (err) {
       console.error('加载结果失败:', err);
       setError(err instanceof Error ? err.message : '加载结果失败');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const reloadData = async (uid: string) => {
+    try {
+      const healthResponse = await fetch(`/api/health-analysis?userId=${uid}`);
+      const healthData = await healthResponse.json();
+      if (healthData.success && healthData.data && healthData.data.length > 0) {
+        const raw = healthData.data[0];
+        setHealthAnalysis({
+          qiAndBlood: raw.qi_and_blood,
+          circulation: raw.circulation,
+          toxins: raw.toxins,
+          bloodLipids: raw.blood_lipids,
+          coldness: raw.coldness,
+          immunity: raw.immunity,
+          emotions: raw.emotions,
+          overallHealth: raw.overall_health,
+        });
+      }
+
+      const riskResponse = await fetch(`/api/risk-assessment?userId=${uid}`);
+      const riskData = await riskResponse.json();
+      if (riskData.success && riskData.data && riskData.data.records && riskData.data.records.length > 0) {
+        const raw = riskData.data.records[0];
+        const riskFactors = raw.risk_factors ? JSON.parse(raw.risk_factors) : {};
+        const recommendations = raw.recommendations ? JSON.parse(raw.recommendations) : [];
+        setRiskAssessment({
+          overallRisk: raw.overall_risk_level,
+          overallRiskLevel: raw.overall_risk_level,
+          healthScore: raw.health_score,
+          hypertensionRisk: riskFactors.cardiovascular?.level === 'high' ? 0.7 : (riskFactors.cardiovascular?.level === 'medium' ? 0.4 : 0.1),
+          diabetesRisk: riskFactors.metabolic?.level === 'high' ? 0.6 : (riskFactors.metabolic?.level === 'medium' ? 0.3 : 0.1),
+          cardiovascularRisk: riskFactors.cardiovascular?.level === 'high' ? 0.65 : (riskFactors.cardiovascular?.level === 'medium' ? 0.35 : 0.15),
+          recommendations: recommendations,
+          riskFactors: riskFactors,
+        });
+      }
+    } catch (err) {
+      console.error('重新加载数据失败:', err);
+    }
+  };
+
+  const generateMissingData = async (sid: string, uid: string) => {
+    try {
+      // 获取健康问卷数据（通过会话关联或获取最新）
+      let healthQuestionnaire: any = null;
+      if (sessionData?.health_questionnaire_id) {
+        const healthResponse = await fetch(`/api/health-questionnaire/${sessionData.health_questionnaire_id}`);
+        const healthResp = await healthResponse.json();
+        if (healthResp.success) {
+          healthQuestionnaire = healthResp.data;
+        }
+      }
+      if (!healthQuestionnaire) {
+        // 获取最新的健康问卷
+        const healthResponse = await fetch(`/api/health-questionnaire?userId=${uid}&limit=1`);
+        const healthResp = await healthResponse.json();
+        if (healthResp.success && healthResp.data.records.length > 0) {
+          healthQuestionnaire = healthResp.data.records[0];
+        }
+      }
+
+      // 获取体质问卷数据
+      const constitutionResponse = await fetch(`/api/constitution-questionnaire?userId=${uid}`);
+      const constitutionData = await constitutionResponse.json();
+      const constitutionQuestionnaire = constitutionData.success ? constitutionData.questionnaire : null;
+
+      if (!healthQuestionnaire && !constitutionQuestionnaire) {
+        throw new Error('没有可用的问卷数据');
+      }
+
+      // 计算健康要素分析
+      const healthAnalysisData = calculateHealthAnalysis(healthQuestionnaire, constitutionQuestionnaire);
+
+      const healthAnalysisResponse = await fetch('/api/health-analysis', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: uid,
+          sessionId: sid,
+          ...healthAnalysisData
+        }),
+      });
+
+      const healthResult = await healthAnalysisResponse.json();
+      if (healthResult.success) {
+        await fetch(`/api/assessment/sessions/${sid}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            healthAnalysisId: healthResult.data.id,
+          }),
+        });
+      }
+
+      // 计算风险评估
+      const riskAssessmentData = calculateRiskAssessment(healthQuestionnaire, constitutionQuestionnaire, healthAnalysisData);
+
+      const riskResponse = await fetch('/api/risk-assessment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: uid,
+          sessionId: sid,
+          ...riskAssessmentData
+        }),
+      });
+
+      const riskResult = await riskResponse.json();
+      if (riskResult.success) {
+        await fetch(`/api/assessment/sessions/${sid}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            riskAssessmentId: riskResult.data.id,
+            status: 'completed',
+          }),
+        });
+      }
+
+      console.log('自动生成数据完成');
+    } catch (err) {
+      console.error('生成数据失败:', err);
     }
   };
 
