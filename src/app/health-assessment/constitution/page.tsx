@@ -16,7 +16,22 @@ function ConstitutionContent() {
   const sessionId = searchParams.get('sessionId');
   const userId = searchParams.get('userId');
 
-  const [shuffledQuestions, setShuffledQuestions] = useState<any[]>([]);
+  // 初始化时直接设置问题列表
+  const [shuffledQuestions, setShuffledQuestions] = useState<any[]>(() => {
+    // Fisher-Yates 洗牌算法打乱所有问题
+    const allQuestions = Object.entries(CONSTITUTION_QUESTIONS).flatMap(([type, questions]) =>
+      questions.map((q) => ({ ...q, constitutionType: type }))
+    );
+
+    const shuffled = [...allQuestions];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+
+    console.log('初始化问题数量:', shuffled.length);
+    return shuffled;
+  });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
@@ -29,26 +44,30 @@ function ConstitutionContent() {
     }
   }, [sessionId, router]);
 
-  useEffect(() => {
-    // Fisher-Yates 洗牌算法打乱所有问题
-    const allQuestions = Object.entries(CONSTITUTION_QUESTIONS).flatMap(([type, questions]) =>
-      questions.map((q) => ({ ...q, constitutionType: type }))
-    );
-
-    const shuffled = [...allQuestions];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    setShuffledQuestions(shuffled);
-  }, []);
-
   const currentQuestion = shuffledQuestions[currentIndex];
   const progress = shuffledQuestions.length > 0 ? ((currentIndex + 1) / shuffledQuestions.length) * 100 : 0;
 
-  // 如果问题还没加载完成，显示加载状态
+  // 如果问题还没加载完成，显示加载状态或错误
   if (!currentQuestion || shuffledQuestions.length === 0) {
+    if (error) {
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8 flex items-center justify-center">
+          <div className="text-center max-w-md">
+            <div className="w-16 h-16 border-4 border-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <p className="text-gray-900 font-medium mb-2">加载失败</p>
+            <p className="text-gray-600">{error}</p>
+            <Button
+              onClick={() => window.location.reload()}
+              className="mt-4"
+            >
+              重新加载
+            </Button>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8 flex items-center justify-center">
         <div className="text-center">
@@ -60,7 +79,10 @@ function ConstitutionContent() {
   }
 
   const handleAnswer = (value: string) => {
-    if (!currentQuestion) return;
+    if (!currentQuestion || !currentQuestion.id) {
+      console.error('currentQuestion is undefined or has no id');
+      return;
+    }
     const score = parseInt(value);
     setAnswers({ ...answers, [currentQuestion.id]: score });
   };
@@ -72,7 +94,11 @@ function ConstitutionContent() {
   };
 
   const handleNext = () => {
-    if (!currentQuestion) return;
+    if (!currentQuestion || !currentQuestion.id) {
+      console.error('handleNext: currentQuestion is undefined or has no id', { currentIndex, shuffledQuestionsLength: shuffledQuestions.length });
+      setError('出现错误，请刷新页面重试');
+      return;
+    }
     if (!answers[currentQuestion.id]) {
       setError('请先选择一个选项');
       return;
