@@ -3,6 +3,8 @@
  * 包含多层级评分、风险评估、置信度计算等核心算法
  */
 
+import { getAgeCoefficient, getGenderCoefficient, getBMICoefficient, getConstitutionCoefficient } from './personalization-coefficients';
+
 // 健康要素分析接口
 export interface HealthAnalysisScores {
   qiAndBlood: number;        // 气血

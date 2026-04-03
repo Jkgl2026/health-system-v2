@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from 'coze-coding-dev-sdk';
 import { sql } from 'drizzle-orm';
 import { AnalysisEngine } from '@/lib/analysis-engine';
-import { CacheManager, CacheKeyGenerator } from '@/lib/cache-system';
+import { CacheManager, CacheKeyGenerator, globalCacheManager } from '@/lib/cache-system';
 
 /**
  * 分析引擎API路由
@@ -23,11 +23,11 @@ export async function POST(request: NextRequest) {
     }
 
     const db = await getDb();
-    
+
     // 检查缓存
-    const cacheManager = new CacheManager();
-    const cacheKey = new CacheKeyGenerator().generate('analysis', { sessionId });
-    const cachedResult = await cacheManager.get(cacheKey);
+    const cache = globalCacheManager.getCache('analysis');
+    const cacheKey = CacheKeyGenerator.generateCustom('analysis', { sessionId });
+    const cachedResult = cache.get(cacheKey);
     
     if (cachedResult) {
       console.log(`[分析引擎] 使用缓存结果: ${sessionId}`);
@@ -73,8 +73,8 @@ export async function POST(request: NextRequest) {
     // 查询健康问卷
     const healthResult = await (db.execute as any)(
       sql`
-        SELECT response_data
-        FROM health_questionnaire_responses
+        SELECT *
+        FROM health_questionnaires
         WHERE id = ${session.health_questionnaire_id}
       `
     );
@@ -82,13 +82,13 @@ export async function POST(request: NextRequest) {
     // 查询体质问卷
     const constitutionResult = await (db.execute as any)(
       sql`
-        SELECT response_data, primary_constitution
-        FROM constitution_questionnaire_responses
+        SELECT *
+        FROM constitution_questionnaires
         WHERE id = ${session.constitution_questionnaire_id}
       `
     );
 
-    if (!healthResult.rows || healthResult.rows.length === 0 || 
+    if (!healthResult.rows || healthResult.rows.length === 0 ||
         !constitutionResult.rows || constitutionResult.rows.length === 0) {
       return NextResponse.json(
         { success: false, error: '问卷数据不存在' },
@@ -96,11 +96,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const healthQuestionnaire = healthResult.rows[0].response_data;
-    const constitutionQuestionnaire = {
-      ...constitutionResult.rows[0].response_data,
-      primaryConstitution: constitutionResult.rows[0].primary_constitution
-    };
+    const healthQuestionnaire = healthResult.rows[0];
+    const constitutionQuestionnaire = constitutionResult.rows[0];
     
     const personalInfo = session.personal_info || {};
 
@@ -132,20 +129,37 @@ export async function POST(request: NextRequest) {
         recommendations
       });
 
+      // 设置 sessionId
+      analysisResult.sessionId = sessionId;
+
       // 保存分析结果到数据库
       const analysisId = crypto.randomUUID();
       await (db.execute as any)(
         sql`
           INSERT INTO health_analysis (
             id,
-            session_id,
-            analysis_data,
-            created_at
+            user_id,
+            qi_and_blood,
+            circulation,
+            toxins,
+            blood_lipids,
+            coldness,
+            immunity,
+            emotions,
+            overall_health,
+            analyzed_at
           )
           VALUES (
             ${analysisId},
-            ${sessionId},
-            ${JSON.stringify(analysisResult)},
+            ${session.user_id},
+            ${Math.round(healthScores.qiAndBlood)},
+            ${Math.round(healthScores.circulation)},
+            ${Math.round(healthScores.toxins)},
+            ${Math.round(healthScores.bloodLipids)},
+            ${Math.round(healthScores.coldness)},
+            ${Math.round(healthScores.immunity)},
+            ${Math.round(healthScores.emotions)},
+            ${Math.round(healthScores.overallHealth)},
             NOW()
           )
         `
@@ -165,7 +179,7 @@ export async function POST(request: NextRequest) {
       );
 
       // 缓存结果
-      await cacheManager.set(cacheKey, analysisResult, 3600);
+      cache.set(cacheKey, analysisResult, 3600);
 
       const executionTime = Date.now() - startTime;
       console.log(`[分析引擎] 分析完成，耗时: ${executionTime}ms`);
@@ -174,7 +188,6 @@ export async function POST(request: NextRequest) {
         success: true,
         data: {
           analysisId,
-          sessionId,
           ...analysisResult
         },
         executionTime
