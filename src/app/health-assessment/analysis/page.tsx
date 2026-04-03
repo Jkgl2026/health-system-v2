@@ -103,7 +103,7 @@ function AnalysisContent() {
   };
 
   const handleViewResults = () => {
-    router.push(`/health-assessment/result?sessionId=${sessionId}`);
+    router.push(`/health-assessment/result?sessionId=${sessionId}&userId=${userId}`);
   };
 
   const handleViewHistory = () => {

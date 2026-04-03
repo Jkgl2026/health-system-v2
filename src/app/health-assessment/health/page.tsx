@@ -172,7 +172,7 @@ function HealthContent() {
 
       setSaved(true);
       setTimeout(() => {
-        router.push(`/health-assessment/constitution?sessionId=${sessionId}`);
+        router.push(`/health-assessment/constitution?sessionId=${sessionId}&userId=${userId}`);
       }, 1500);
 
     } catch (err) {
@@ -189,7 +189,7 @@ function HealthContent() {
         <div className="flex items-center justify-between mb-8">
           <Button
             variant="ghost"
-            onClick={() => router.push(`/health-assessment?sessionId=${sessionId}`)}
+            onClick={() => router.push(`/health-assessment?sessionId=${sessionId}&userId=${userId}`)}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             返回

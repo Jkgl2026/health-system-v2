@@ -100,7 +100,7 @@ function ConstitutionContent() {
 
       setSaved(true);
       setTimeout(() => {
-        router.push(`/health-assessment/analysis?sessionId=${sessionId}`);
+        router.push(`/health-assessment/analysis?sessionId=${sessionId}&userId=${userId}`);
       }, 1500);
 
     } catch (err) {
@@ -117,7 +117,7 @@ function ConstitutionContent() {
         <div className="flex items-center justify-between mb-8">
           <Button
             variant="ghost"
-            onClick={() => router.push(`/health-assessment/health?sessionId=${sessionId}`)}
+            onClick={() => router.push(`/health-assessment/health?sessionId=${sessionId}&userId=${userId}`)}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             返回

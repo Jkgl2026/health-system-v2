@@ -110,7 +110,7 @@ function AssessmentContent() {
       }
 
       // 跳转到健康问卷
-      router.push(`/health-assessment/health?sessionId=${currentSessionId}`);
+      router.push(`/health-assessment/health?sessionId=${currentSessionId}&userId=${userId}`);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : '提交失败，请重试');
