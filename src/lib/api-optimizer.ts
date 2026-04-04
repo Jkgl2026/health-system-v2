@@ -3,7 +3,7 @@
  * 提供请求缓存、重试、并发控制等功能
  */
 
-import { performanceMonitor } from './performance-monitor';
+import { globalMonitor } from './performance-monitor';
 
 /**
  * 请求配置
@@ -78,7 +78,7 @@ export class APIRequestOptimizer {
       const cached = this.getFromCache(cacheKey || url);
       if (cached) {
         const duration = performance.now() - startTime;
-        performanceMonitor.recordAPIResponseTime(url, duration);
+        globalMonitor.recordApiResponse(url, duration);
         return {
           data: cached,
           status: 200,
@@ -157,7 +157,7 @@ export class APIRequestOptimizer {
         }
 
         const duration = performance.now() - startTime;
-        performanceMonitor.recordAPIResponseTime(url, duration);
+        globalMonitor.recordApiResponse(url, duration);
 
         return {
           data: response.data,

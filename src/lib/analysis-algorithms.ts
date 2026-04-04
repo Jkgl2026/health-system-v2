@@ -222,11 +222,11 @@ export function calculateRiskAssessment(
   // 健康评分
   const healthScore = Math.round(
     100 - (
-      cardiovascularRisk.score * 0.25 +
-      metabolicRisk.score * 0.25 +
-      lifestyleRisk.score * 0.2 +
-      recoveryRisk.score * 0.15 +
-      constitutionRisk.score * 0.15
+      (cardiovascularRisk.score ?? 0) * 0.25 +
+      (metabolicRisk.score ?? 0) * 0.25 +
+      (lifestyleRisk.score ?? 0) * 0.2 +
+      (recoveryRisk.score ?? 0) * 0.15 +
+      (constitutionRisk.score ?? 0) * 0.15
     )
   );
   

@@ -8,15 +8,15 @@ import {
   calculateRiskAssessment,
   calculatePersonalizationCoefficients,
   analyzeConstitutionType
-} from './analysis-algorithms';
+} from '../analysis-algorithms';
 
 import {
   calculateQualityOfLife
-} from './quality-of-life';
+} from '../quality-of-life';
 
 import {
   calculateLifeExpectancy
-} from './life-expectancy';
+} from '../life-expectancy';
 
 /**
  * 测试数据
